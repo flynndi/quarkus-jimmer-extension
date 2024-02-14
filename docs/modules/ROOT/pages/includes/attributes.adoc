@@ -1,0 +1,3 @@
+:project-version: 999-SNAPSHOT
+
+:examples-dir: ./../examples/

@@ -1,0 +1,5 @@
+name: quarkus-jimmer
+title: Quarkus Jimmer Extension
+version: dev
+nav:
+  - modules/ROOT/nav.adoc

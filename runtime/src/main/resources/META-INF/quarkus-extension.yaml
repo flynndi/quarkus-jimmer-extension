@@ -1,0 +1,9 @@
+name: Quarkus Jimmer Extension
+description: A revolutionary ORM framework for both java and kotlin, and a complete integrated solution
+metadata:
+  keywords:
+    - jimmer
+  guide: https://quarkiverse.github.io/quarkiverse-docs/jimmer/dev/ # To create and publish this guide, see https://github.com/quarkiverse/quarkiverse/wiki#documenting-your-extension
+  categories:
+    - "miscellaneous"
+  status: "preview"

@@ -1,0 +1,63 @@
+package io.quarkiverse.jimmer.it.resource;
+
+import java.util.List;
+
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+
+import org.babyfish.jimmer.client.FetchBy;
+import org.babyfish.jimmer.client.meta.Api;
+import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.jboss.resteasy.reactive.RestPath;
+import org.jboss.resteasy.reactive.RestQuery;
+
+import io.quarkiverse.jimmer.it.entity.Book;
+import io.quarkiverse.jimmer.it.entity.Fetchers;
+import io.quarkiverse.jimmer.it.service.IBook;
+
+@Path("/bookResource")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@Api
+public class BookResources implements Fetchers {
+
+    private final IBook iBook;
+
+    public BookResources(IBook iBook) {
+        this.iBook = iBook;
+    }
+
+    @GET
+    @Path("/book")
+    public Response getBookById(@RestQuery int id) {
+        return Response.ok(iBook.findById(id)).build();
+    }
+
+    @GET
+    @Path("/book/{id}")
+    @Api
+    public @FetchBy("COMPLEX_BOOK") Book getBookByIdFetcher(@RestPath int id) {
+        return iBook.findById(id, COMPLEX_BOOK);
+    }
+
+    @POST
+    @Path("/book")
+    @Transactional(rollbackOn = Exception.class)
+    public Response postBook(Book book) {
+        return Response.ok(iBook.save(book)).build();
+    }
+
+    @GET
+    @Path("/books")
+    public List<@FetchBy("SIMPLE_BOOK") Book> getBookByNameFetcher(@RestQuery String name) {
+        return iBook.findBooksByName(name, SIMPLE_BOOK);
+    }
+
+    private static final Fetcher<Book> SIMPLE_BOOK = BOOK_FETCHER.name();
+
+    private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()
+            .store(BOOK_STORE_FETCHER.name())
+            .authors(AUTHOR_FETCHER.firstName().lastName());
+}
