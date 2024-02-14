@@ -1,0 +1,68 @@
+package io.quarkiverse.jimmer.it.service.impl;
+
+import static io.quarkiverse.jimmer.it.entity.Tables.BOOK_TABLE;
+
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import jakarta.enterprise.context.ApplicationScoped;
+
+import org.babyfish.jimmer.sql.ast.mutation.SimpleSaveResult;
+import org.babyfish.jimmer.sql.ast.tuple.Tuple2;
+import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.jetbrains.annotations.Nullable;
+
+import io.quarkiverse.jimmer.it.entity.Book;
+import io.quarkiverse.jimmer.it.entity.BookTable;
+import io.quarkiverse.jimmer.it.service.IBook;
+import io.quarkiverse.jimmer.runtime.Jimmer;
+
+@ApplicationScoped
+public class BookImpl implements IBook {
+
+    BookTable table = BOOK_TABLE;
+
+    @Override
+    public Book findById(int id) {
+        return Jimmer.getDefaultJSqlClient().findById(Book.class, id);
+    }
+
+    @Override
+    public Book findById(int id, Fetcher<Book> fetcher) {
+        return Jimmer.getDefaultJSqlClient().findById(fetcher, id);
+    }
+
+    @Override
+    public SimpleSaveResult<Book> save(Book book) {
+        SimpleSaveResult<Book> save = Jimmer.getDefaultJSqlClient().save(book);
+        int i = 1 / 0;
+        return save;
+    }
+
+    @Override
+    public Map<Long, BigDecimal> findAvgPriceGroupByStoreId(Collection<Long> storeIds) {
+        return Tuple2.toMap(
+                Jimmer.getDefaultJSqlClient()
+                        .createQuery(table)
+                        .where(table.storeId().in(storeIds))
+                        .groupBy(table.storeId())
+                        .select(
+                                table.storeId(),
+                                table.price().avg())
+                        .execute());
+    }
+
+    @Override
+    public List<Book> findBooksByName(@Nullable String name, @Nullable Fetcher<Book> fetcher) {
+        return Jimmer.getDefaultJSqlClient()
+                .createQuery(table)
+                .whereIf(
+                        name != null && !name.isEmpty(),
+                        table.name().ilike(name))
+                .select(
+                        table.fetch(fetcher))
+                .execute();
+    }
+}

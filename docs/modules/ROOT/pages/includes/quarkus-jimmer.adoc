@@ -1,0 +1,498 @@
+
+:summaryTableId: quarkus-jimmer
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[[quarkus-jimmer_configuration]]link:#quarkus-jimmer_configuration[Configuration property]
+
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.language]]`link:#quarkus-jimmer_quarkus.jimmer.language[quarkus.jimmer.language]`
+
+
+[.description]
+--
+jimmer.language
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_LANGUAGE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_LANGUAGE+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|`java`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.show-sql]]`link:#quarkus-jimmer_quarkus.jimmer.show-sql[quarkus.jimmer.show-sql]`
+
+
+[.description]
+--
+jimmer.showSql
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_SHOW_SQL+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_SHOW_SQL+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.pretty-sql]]`link:#quarkus-jimmer_quarkus.jimmer.pretty-sql[quarkus.jimmer.pretty-sql]`
+
+
+[.description]
+--
+jimmer.prettySql
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_PRETTY_SQL+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_PRETTY_SQL+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.inline-sql-variables]]`link:#quarkus-jimmer_quarkus.jimmer.inline-sql-variables[quarkus.jimmer.inline-sql-variables]`
+
+
+[.description]
+--
+jimmer.inlineSqlVariables
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_INLINE_SQL_VARIABLES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_INLINE_SQL_VARIABLES+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.database-validation.mode]]`link:#quarkus-jimmer_quarkus.jimmer.database-validation.mode[quarkus.jimmer.database-validation.mode]`
+
+
+[.description]
+--
+mode
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_DATABASE_VALIDATION_MODE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_DATABASE_VALIDATION_MODE+++`
+endif::add-copy-button-to-env-var[]
+-- a|
+`none`, `warning`, `error` 
+|`none`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.database-validation.catalog]]`link:#quarkus-jimmer_quarkus.jimmer.database-validation.catalog[quarkus.jimmer.database-validation.catalog]`
+
+
+[.description]
+--
+catalog
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_DATABASE_VALIDATION_CATALOG+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_DATABASE_VALIDATION_CATALOG+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.database-validation.schema]]`link:#quarkus-jimmer_quarkus.jimmer.database-validation.schema[quarkus.jimmer.database-validation.schema]`
+
+
+[.description]
+--
+schema
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_DATABASE_VALIDATION_SCHEMA+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_DATABASE_VALIDATION_SCHEMA+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.trigger-type]]`link:#quarkus-jimmer_quarkus.jimmer.trigger-type[quarkus.jimmer.trigger-type]`
+
+
+[.description]
+--
+jimmer.triggerType
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_TRIGGER_TYPE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_TRIGGER_TYPE+++`
+endif::add-copy-button-to-env-var[]
+-- a|
+`binlog-only`, `transaction-only`, `both` 
+|`binlog-only`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.default-dissociation-action-checkable]]`link:#quarkus-jimmer_quarkus.jimmer.default-dissociation-action-checkable[quarkus.jimmer.default-dissociation-action-checkable]`
+
+
+[.description]
+--
+jimmer.defaultDissociationActionCheckable
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_DEFAULT_DISSOCIATION_ACTION_CHECKABLE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_DEFAULT_DISSOCIATION_ACTION_CHECKABLE+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`true`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.id-only-target-checking-level]]`link:#quarkus-jimmer_quarkus.jimmer.id-only-target-checking-level[quarkus.jimmer.id-only-target-checking-level]`
+
+
+[.description]
+--
+jimmer.idOnlyTargetCheckingLevel
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_ID_ONLY_TARGET_CHECKING_LEVEL+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_ID_ONLY_TARGET_CHECKING_LEVEL+++`
+endif::add-copy-button-to-env-var[]
+-- a|
+`none`, `fake`, `all` 
+|`none`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.transaction-cache-operator-fixed-delay]]`link:#quarkus-jimmer_quarkus.jimmer.transaction-cache-operator-fixed-delay[quarkus.jimmer.transaction-cache-operator-fixed-delay]`
+
+
+[.description]
+--
+jimmer.transactionCacheOperatorFixedDelay
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_TRANSACTION_CACHE_OPERATOR_FIXED_DELAY+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_TRANSACTION_CACHE_OPERATOR_FIXED_DELAY+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|`5000`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.default-enum-strategy]]`link:#quarkus-jimmer_quarkus.jimmer.default-enum-strategy[quarkus.jimmer.default-enum-strategy]`
+
+
+[.description]
+--
+jimmer.defaultEnumStrategy
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_DEFAULT_ENUM_STRATEGY+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_DEFAULT_ENUM_STRATEGY+++`
+endif::add-copy-button-to-env-var[]
+-- a|
+`name`, `ordinal` 
+|`name`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.default-batch-size]]`link:#quarkus-jimmer_quarkus.jimmer.default-batch-size[quarkus.jimmer.default-batch-size]`
+
+
+[.description]
+--
+jimmer.defaultBatchSize
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_DEFAULT_BATCH_SIZE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_DEFAULT_BATCH_SIZE+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.default-list-batch-size]]`link:#quarkus-jimmer_quarkus.jimmer.default-list-batch-size[quarkus.jimmer.default-list-batch-size]`
+
+
+[.description]
+--
+jimmer.defaultListBatchSize
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_DEFAULT_LIST_BATCH_SIZE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_DEFAULT_LIST_BATCH_SIZE+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.offset-optimizing-threshold]]`link:#quarkus-jimmer_quarkus.jimmer.offset-optimizing-threshold[quarkus.jimmer.offset-optimizing-threshold]`
+
+
+[.description]
+--
+jimmer.offsetOptimizingThreshold
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_OFFSET_OPTIMIZING_THRESHOLD+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_OFFSET_OPTIMIZING_THRESHOLD+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.is-foreign-key-enabled-by-default]]`link:#quarkus-jimmer_quarkus.jimmer.is-foreign-key-enabled-by-default[quarkus.jimmer.is-foreign-key-enabled-by-default]`
+
+
+[.description]
+--
+jimmer.isForeignKeyEnabledByDefault
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_IS_FOREIGN_KEY_ENABLED_BY_DEFAULT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_IS_FOREIGN_KEY_ENABLED_BY_DEFAULT+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`true`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.save-command-pessimistic-lock]]`link:#quarkus-jimmer_quarkus.jimmer.save-command-pessimistic-lock[quarkus.jimmer.save-command-pessimistic-lock]`
+
+
+[.description]
+--
+jimmer.saveCommandPessimisticLock
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_SAVE_COMMAND_PESSIMISTIC_LOCK+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_SAVE_COMMAND_PESSIMISTIC_LOCK+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.executor-context-prefixes]]`link:#quarkus-jimmer_quarkus.jimmer.executor-context-prefixes[quarkus.jimmer.executor-context-prefixes]`
+
+
+[.description]
+--
+jimmer.executorContextPrefixes
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_EXECUTOR_CONTEXT_PREFIXES+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_EXECUTOR_CONTEXT_PREFIXES+++`
+endif::add-copy-button-to-env-var[]
+--|list of string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.micro-service-name]]`link:#quarkus-jimmer_quarkus.jimmer.micro-service-name[quarkus.jimmer.micro-service-name]`
+
+
+[.description]
+--
+jimmer.microServiceName
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_MICRO_SERVICE_NAME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_MICRO_SERVICE_NAME+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.path]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.path[quarkus.jimmer.client.ts.path]`
+
+
+[.description]
+--
+jimmer.Client.TypeScript.path
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_TS_PATH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_TS_PATH+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.api-name]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.api-name[quarkus.jimmer.client.ts.api-name]`
+
+
+[.description]
+--
+jimmer.Client.TypeScript.apiName
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_TS_API_NAME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_TS_API_NAME+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.indent]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.indent[quarkus.jimmer.client.ts.indent]`
+
+
+[.description]
+--
+jimmer.Client.TypeScript.indent
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_TS_INDENT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_TS_INDENT+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|`0`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.mutable]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.mutable[quarkus.jimmer.client.ts.mutable]`
+
+
+[.description]
+--
+jimmer.Client.TypeScript.mutable
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_TS_MUTABLE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_TS_MUTABLE+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.null-render-mode]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.null-render-mode[quarkus.jimmer.client.ts.null-render-mode]`
+
+
+[.description]
+--
+jimmer.Client.TypeScript.nullRenderMode
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_TS_NULL_RENDER_MODE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_TS_NULL_RENDER_MODE+++`
+endif::add-copy-button-to-env-var[]
+-- a|
+`undefined`, `null-or-undefined` 
+|`undefined`
+
+
+h|[[quarkus-jimmer_quarkus.jimmer.error-translator-jimmer]]link:#quarkus-jimmer_quarkus.jimmer.error-translator-jimmer[jimmer]
+This configuration section is optional
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.error-translator.disabled]]`link:#quarkus-jimmer_quarkus.jimmer.error-translator.disabled[quarkus.jimmer.error-translator.disabled]`
+
+
+[.description]
+--
+ErrorTranslatorBuildTimeConfig
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_ERROR_TRANSLATOR_DISABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_ERROR_TRANSLATOR_DISABLED+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.error-translator.http-status]]`link:#quarkus-jimmer_quarkus.jimmer.error-translator.http-status[quarkus.jimmer.error-translator.http-status]`
+
+
+[.description]
+--
+httpStatus
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_ERROR_TRANSLATOR_HTTP_STATUS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_ERROR_TRANSLATOR_HTTP_STATUS+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|`0`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.error-translator.debug-info-supported]]`link:#quarkus-jimmer_quarkus.jimmer.error-translator.debug-info-supported[quarkus.jimmer.error-translator.debug-info-supported]`
+
+
+[.description]
+--
+debugInfoSupported
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_ERROR_TRANSLATOR_DEBUG_INFO_SUPPORTED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_ERROR_TRANSLATOR_DEBUG_INFO_SUPPORTED+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.error-translator.debug-info-max-stack-trace-count]]`link:#quarkus-jimmer_quarkus.jimmer.error-translator.debug-info-max-stack-trace-count[quarkus.jimmer.error-translator.debug-info-max-stack-trace-count]`
+
+
+[.description]
+--
+debugInfoMaxStackTraceCount
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_ERROR_TRANSLATOR_DEBUG_INFO_MAX_STACK_TRACE_COUNT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_ERROR_TRANSLATOR_DEBUG_INFO_MAX_STACK_TRACE_COUNT+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|`0`
+
+|===

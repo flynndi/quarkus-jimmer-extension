@@ -1,0 +1,34 @@
+# Configuration file example
+quarkus:
+  package:
+    type: uber-jar
+  http:
+    port: 8080
+  datasource:
+    db-kind:
+    username:
+    password:
+    jdbc:
+      min-size: 2
+      max-size: 8
+      url:
+    DB2:
+      db-kind:
+      username:
+      password:
+      jdbc:
+        min-size: 2
+        max-size: 8
+        url:
+  log:
+    level: DEBUG
+  jimmer:
+    show-sql:
+    pretty-sql:
+    inline-sql-variables:
+    trigger-type:
+    database-validation:
+      mode:
+    client:
+      ts:
+        path:
