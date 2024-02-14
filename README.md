@@ -1,6 +1,14 @@
 # Quarkus Quarkus Jimmer Extension
 
-[![Version](https://img.shields.io/maven-central/v/io.quarkiverse.jimmer/quarkus-jimmer?logo=apache-maven&style=flat-square)](https://search.maven.org/artifact/io.quarkiverse.jimmer/quarkus-jimmer)
+# Jimmer
+https://github.com/babyfish-ct/jimmer
+
+# Feature
+| Feature               |     |
+|-----------------------|-----|
+| Multiple data sources | yes |
+| JDBC                  | yes |
+| Reactive              | no  |
 
 # Usage
 Groovy:
@@ -14,4 +22,43 @@ Maven
    <artifactId>quarkus-jimmer</artifactId>
    <version>preview</version>
 </dependency>
+```
+
+# Configuration file example
+quarkus datasource documentation https://quarkus.io/guides/datasource
+```
+# Configuration file example
+quarkus:
+  package:
+    type: uber-jar
+  http:
+    port: 8080
+  datasource:       default db
+    db-kind:
+    username:
+    password:
+    jdbc:
+      min-size: 2
+      max-size: 8
+      url:
+    DB2:            other db
+      db-kind:
+      username:
+      password:
+      jdbc:
+        min-size: 2
+        max-size: 8
+        url:
+  log:
+    level: DEBUG
+  jimmer:           jimmer config see https://github.com/babyfish-ct/jimmer
+    show-sql:
+    pretty-sql:
+    inline-sql-variables:
+    trigger-type:
+    database-validation:
+      mode:
+    client:
+      ts:
+        path:
 ```
