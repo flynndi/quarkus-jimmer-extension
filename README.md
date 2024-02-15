@@ -14,6 +14,7 @@ https://github.com/babyfish-ct/jimmer
 Gradle:
 ```groovy
 implementation 'io.github.flynndi:quarkus-jimmer:preview'
+annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.77'
 ```
 Maven
 ```maven
@@ -22,6 +23,25 @@ Maven
    <artifactId>quarkus-jimmer</artifactId>
    <version>preview</version>
 </dependency>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.10.1</version>
+            <configuration>
+                <annotationProcessorPaths>
+                    <path>
+                        <groupId>org.babyfish.jimmer</groupId>
+                        <artifactId>jimmer-apt</artifactId>
+                        <version>0.8.77</version>
+                    </path>
+                </annotationProcessorPaths>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
 ```
 
 # Configuration file example
