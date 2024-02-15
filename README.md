@@ -11,7 +11,7 @@ https://github.com/babyfish-ct/jimmer
 | Reactive              | no  |
 
 # Usage
-Groovy:
+Gradle:
 ```groovy
 implementation 'io.github.flynndi:quarkus-jimmer:preview'
 ```
@@ -61,4 +61,28 @@ quarkus:
     client:
       ts:
         path:
+```
+
+# Code
+```
+    // default db
+    @Inject
+    JSqlClient jSqlClient;
+    
+    // if other databases exist
+    @Inject
+    @DataSource("DB2")
+    JSqlClient jSqlClientDB2;
+    
+    public Book findById(int id) {
+        return jSqlClient.findById(Book.class, id);
+    or  return Jimmer.getDefaultJSqlClient().findById(Book.class, id);    
+    }
+    
+    public Book2 findById(int id) {
+        return jSqlClientDB2.findById(Book2.class, id);
+    or  return Jimmer.getJSqlClient(DB2).findById(Book2.class, id);
+    }
+    
+    Inject JSqlClient or static method Jimmer.getJSqlClient
 ```
