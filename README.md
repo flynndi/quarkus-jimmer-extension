@@ -1,4 +1,4 @@
-# Quarkus Quarkus Jimmer Extension
+# Quarkus Jimmer Extension
 
 # Jimmer
 https://github.com/babyfish-ct/jimmer
