@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.agroal.api.AgroalDataSource;
+import io.quarkus.agroal.DataSource;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -26,6 +27,10 @@ public class AppLifecycleBean {
 
     @Inject
     AgroalDataSource agroalDataSource;
+
+    @Inject
+    @DataSource("DB2")
+    AgroalDataSource agroalDataSourceDB2;
 
     void onStart(@Observes StartupEvent ev) throws SQLException {
         LOGGER.info("Default Charset = " + Charset.defaultCharset());
@@ -102,6 +107,27 @@ public class AppLifecycleBean {
                             INSERT INTO public.book
                             (id, name, edition, price, store_id, tenant)
                             VALUES(12, 'GraphQL in Action', 3, 80.00, 2, '2');
+
+                            """);
+        }
+
+        Connection connection2 = agroalDataSourceDB2.getConnection();
+        try (Statement statement2 = connection2.createStatement()) {
+            statement2.execute(
+                    """
+
+                            CREATE TABLE public.user_role (
+                                id varchar(64) NOT NULL,
+                                user_id varchar(64) NULL,
+                                role_id varchar(64) NULL,
+                                delete_flag bool NOT NULL DEFAULT false,
+                                CONSTRAINT user_role_pkey PRIMARY KEY (id)
+                              );
+
+
+                            INSERT INTO public.user_role
+                            (id, user_id, role_id, delete_flag)
+                            VALUES('defc2d01-fb38-4d31-b006-fd182b25aa33', '9ffec3c4-2342-427c-a0ec-e22e5f2ec732', '2c6a06d8-8e10-49c4-88fe-7d2f05dd073b', false);
 
                             """);
         }
