@@ -1,21 +1,23 @@
 package io.quarkiverse.jimmer.runtime.cache;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quarkus.redis.datasource.RedisDataSource;
-import io.quarkus.redis.datasource.hash.HashCommands;
-import io.quarkus.redis.datasource.value.GetExArgs;
-import io.quarkus.redis.datasource.value.ValueCommands;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.cache.spi.AbstractRemoteHashBinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.quarkus.redis.datasource.RedisDataSource;
+import io.quarkus.redis.datasource.hash.HashCommands;
+import io.quarkus.redis.datasource.value.GetExArgs;
+import io.quarkus.redis.datasource.value.ValueCommands;
 
 public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
 
@@ -30,8 +32,7 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
             ValueCommands<String, byte[]> valueCommands,
             ObjectMapper objectMapper,
             ImmutableType type,
-            Duration duration
-    ) {
+            Duration duration) {
         super(objectMapper, type, null, duration, 30);
         this.hashCommands = hashCommands;
         this.valueCommands = valueCommands;
@@ -41,8 +42,7 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
             RedisDataSource redisDataSource,
             ObjectMapper objectMapper,
             ImmutableType type,
-            Duration duration
-    ) {
+            Duration duration) {
         super(objectMapper, type, null, duration, 30);
         this.hashCommands = RedisCaches.cacheRedisHashCommands(redisDataSource);
         this.valueCommands = RedisCaches.cacheRedisValueCommands(redisDataSource);
@@ -53,8 +53,7 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
             ValueCommands<String, byte[]> valueCommands,
             ObjectMapper objectMapper,
             ImmutableProp prop,
-            Duration duration
-    ) {
+            Duration duration) {
         super(objectMapper, null, prop, duration, 30);
         this.hashCommands = hashCommands;
         this.valueCommands = valueCommands;
@@ -64,8 +63,7 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
             RedisDataSource redisDataSource,
             ObjectMapper objectMapper,
             ImmutableProp prop,
-            Duration duration
-    ) {
+            Duration duration) {
         super(objectMapper, null, prop, duration, 30);
         this.hashCommands = RedisCaches.cacheRedisHashCommands(redisDataSource);
         this.valueCommands = RedisCaches.cacheRedisValueCommands(redisDataSource);

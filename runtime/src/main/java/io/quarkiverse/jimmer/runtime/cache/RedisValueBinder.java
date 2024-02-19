@@ -1,20 +1,22 @@
 package io.quarkiverse.jimmer.runtime.cache;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quarkus.redis.datasource.RedisDataSource;
-import io.quarkus.redis.datasource.value.GetExArgs;
-import io.quarkus.redis.datasource.value.ValueCommands;
+import java.time.Duration;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.cache.spi.AbstractRemoteValueBinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.quarkus.redis.datasource.RedisDataSource;
+import io.quarkus.redis.datasource.value.GetExArgs;
+import io.quarkus.redis.datasource.value.ValueCommands;
 
 public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
 
@@ -26,9 +28,8 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
             ValueCommands<String, byte[]> operations,
             ObjectMapper objectMapper,
             ImmutableType type,
-            Duration duration
-    ) {
-        super(objectMapper,type, null, duration, 30);
+            Duration duration) {
+        super(objectMapper, type, null, duration, 30);
         this.operations = operations;
     }
 
@@ -36,9 +37,8 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
             RedisDataSource redisDataSource,
             ObjectMapper objectMapper,
             ImmutableType type,
-            Duration duration
-    ) {
-        super(objectMapper,type, null, duration, 30);
+            Duration duration) {
+        super(objectMapper, type, null, duration, 30);
         this.operations = RedisCaches.cacheRedisValueCommands(redisDataSource);
     }
 
@@ -46,9 +46,8 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
             ValueCommands<String, byte[]> operations,
             ObjectMapper objectMapper,
             ImmutableProp prop,
-            Duration duration
-    ) {
-        super(objectMapper,null, prop, duration, 30);
+            Duration duration) {
+        super(objectMapper, null, prop, duration, 30);
         this.operations = operations;
     }
 
@@ -56,9 +55,8 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
             RedisDataSource redisDataSource,
             ObjectMapper objectMapper,
             ImmutableProp prop,
-            Duration duration
-    ) {
-        super(objectMapper,null, prop, duration, 30);
+            Duration duration) {
+        super(objectMapper, null, prop, duration, 30);
         this.operations = RedisCaches.cacheRedisValueCommands(redisDataSource);
     }
 
@@ -88,8 +86,6 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
     protected String reason() {
         return "redis";
     }
-
-
 
     private List<byte[]> multiGet(Collection<String> keys, ValueCommands<String, byte[]> operations) {
         if (keys.isEmpty()) {
