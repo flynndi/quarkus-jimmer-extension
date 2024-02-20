@@ -43,6 +43,12 @@ public class BookResources implements Fetchers {
     }
 
     @POST
+    @Path("/books")
+    public Response getBookByIds(List<Integer> ids) {
+        return Response.ok(iBook.findByIds(ids)).build();
+    }
+
+    @POST
     @Path("/book")
     @Transactional(rollbackOn = Exception.class)
     public Response postBook(Book book) {
@@ -53,6 +59,19 @@ public class BookResources implements Fetchers {
     @Path("/books")
     public List<@FetchBy("SIMPLE_BOOK") Book> getBookByNameFetcher(@RestQuery String name) {
         return iBook.findBooksByName(name, SIMPLE_BOOK);
+    }
+
+    @GET
+    @Path("/booksByName")
+    public List<Book> getBookByName(@RestQuery String name) {
+        return iBook.findBooksByName(name);
+    }
+
+    @PUT
+    @Path("/update")
+    public Response update() {
+        iBook.update();
+        return Response.ok().build();
     }
 
     private static final Fetcher<Book> SIMPLE_BOOK = BOOK_FETCHER.name();
