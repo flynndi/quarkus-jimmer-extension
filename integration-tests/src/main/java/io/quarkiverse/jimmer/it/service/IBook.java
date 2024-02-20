@@ -17,9 +17,15 @@ public interface IBook {
 
     Book findById(int id, Fetcher<Book> fetcher);
 
+    List<Book> findByIds(List<Integer> ids);
+
     SimpleSaveResult<Book> save(Book book);
 
     Map<Long, BigDecimal> findAvgPriceGroupByStoreId(Collection<Long> storeIds);
 
     List<Book> findBooksByName(@Nullable String name, @Nullable Fetcher<Book> fetcher);
+
+    List<Book> findBooksByName(@Nullable String name);
+
+    void update();
 }
