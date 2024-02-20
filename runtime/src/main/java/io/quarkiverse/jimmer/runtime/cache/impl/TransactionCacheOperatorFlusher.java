@@ -26,11 +26,11 @@ public class TransactionCacheOperatorFlusher {
         this.operators = operators;
     }
 
-    public void beforeCommit(@Observes(during = TransactionPhase.BEFORE_COMPLETION) DatabaseEvent e) {
+    public void beforeCommit(@Observes(during = TransactionPhase.IN_PROGRESS) DatabaseEvent e) {
         dirtyLocal.set(Boolean.TRUE);
     }
 
-    public void afterCommit(@Observes(during = TransactionPhase.AFTER_COMPLETION) DatabaseEvent e) {
+    public void afterCommit(@Observes(during = TransactionPhase.AFTER_SUCCESS) DatabaseEvent e) {
         if (dirtyLocal.get() != null) {
             dirtyLocal.remove();
             flush();
