@@ -39,6 +39,10 @@
       <artifactId>quarkus-jackson-spi</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-redis-client-deployment</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.github.flynndi</groupId>
       <artifactId>quarkus-jimmer</artifactId>
       <version>${project.version}</version>
