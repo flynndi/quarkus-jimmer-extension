@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
 
 import org.babyfish.jimmer.sql.ast.mutation.SimpleSaveResult;
 import org.babyfish.jimmer.sql.ast.tuple.Tuple2;
@@ -16,6 +17,8 @@ import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.BookTable;
+import io.quarkiverse.jimmer.it.entity.Fetchers;
+import io.quarkiverse.jimmer.it.entity.Tables;
 import io.quarkiverse.jimmer.it.service.IBook;
 import io.quarkiverse.jimmer.runtime.Jimmer;
 
@@ -32,6 +35,11 @@ public class BookImpl implements IBook {
     @Override
     public Book findById(int id, Fetcher<Book> fetcher) {
         return Jimmer.getDefaultJSqlClient().findById(fetcher, id);
+    }
+
+    @Override
+    public List<Book> findByIds(List<Integer> ids) {
+        return Jimmer.getDefaultJSqlClient().findByIds(Book.class, ids);
     }
 
     @Override
@@ -63,6 +71,27 @@ public class BookImpl implements IBook {
                         table.name().ilike(name))
                 .select(
                         table.fetch(fetcher))
+                .execute();
+    }
+
+    @Override
+    public List<Book> findBooksByName(@Nullable String name) {
+        return Jimmer.getDefaultJSqlClient()
+                .createQuery(table)
+                .whereIf(
+                        name != null && !name.isEmpty(),
+                        table.name().ilike(name))
+                .select(table.fetch(Fetchers.BOOK_FETCHER.allScalarFields().store(Fetchers.BOOK_STORE_FETCHER.name())))
+                .execute();
+    }
+
+    @Override
+    @Transactional
+    public void update() {
+        Jimmer.getDefaultJSqlClient()
+                .createUpdate(Tables.BOOK_STORE_TABLE)
+                .set(Tables.BOOK_STORE_TABLE.website(), "https://www.manning.com")
+                .where(Tables.BOOK_STORE_TABLE.id().eq(2L))
                 .execute();
     }
 }
