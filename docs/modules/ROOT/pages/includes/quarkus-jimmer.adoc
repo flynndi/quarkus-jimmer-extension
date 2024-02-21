@@ -10,7 +10,7 @@ h|[[quarkus-jimmer_configuration]]link:#quarkus-jimmer_configuration[Configurati
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.language]]`link:#quarkus-jimmer_quarkus.jimmer.language[quarkus.jimmer.language]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-language]]`link:#quarkus-jimmer_quarkus-jimmer-language[quarkus.jimmer.language]`
 
 
 [.description]
@@ -27,7 +27,7 @@ endif::add-copy-button-to-env-var[]
 |`java`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.show-sql]]`link:#quarkus-jimmer_quarkus.jimmer.show-sql[quarkus.jimmer.show-sql]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-show-sql]]`link:#quarkus-jimmer_quarkus-jimmer-show-sql[quarkus.jimmer.show-sql]`
 
 
 [.description]
@@ -44,7 +44,7 @@ endif::add-copy-button-to-env-var[]
 |`false`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.pretty-sql]]`link:#quarkus-jimmer_quarkus.jimmer.pretty-sql[quarkus.jimmer.pretty-sql]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-pretty-sql]]`link:#quarkus-jimmer_quarkus-jimmer-pretty-sql[quarkus.jimmer.pretty-sql]`
 
 
 [.description]
@@ -61,7 +61,7 @@ endif::add-copy-button-to-env-var[]
 |`false`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.inline-sql-variables]]`link:#quarkus-jimmer_quarkus.jimmer.inline-sql-variables[quarkus.jimmer.inline-sql-variables]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-inline-sql-variables]]`link:#quarkus-jimmer_quarkus-jimmer-inline-sql-variables[quarkus.jimmer.inline-sql-variables]`
 
 
 [.description]
@@ -78,7 +78,7 @@ endif::add-copy-button-to-env-var[]
 |`false`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.database-validation.mode]]`link:#quarkus-jimmer_quarkus.jimmer.database-validation.mode[quarkus.jimmer.database-validation.mode]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-database-validation-mode]]`link:#quarkus-jimmer_quarkus-jimmer-database-validation-mode[quarkus.jimmer.database-validation.mode]`
 
 
 [.description]
@@ -96,7 +96,7 @@ endif::add-copy-button-to-env-var[]
 |`none`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.database-validation.catalog]]`link:#quarkus-jimmer_quarkus.jimmer.database-validation.catalog[quarkus.jimmer.database-validation.catalog]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-database-validation-catalog]]`link:#quarkus-jimmer_quarkus-jimmer-database-validation-catalog[quarkus.jimmer.database-validation.catalog]`
 
 
 [.description]
@@ -113,7 +113,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.database-validation.schema]]`link:#quarkus-jimmer_quarkus.jimmer.database-validation.schema[quarkus.jimmer.database-validation.schema]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-database-validation-schema]]`link:#quarkus-jimmer_quarkus-jimmer-database-validation-schema[quarkus.jimmer.database-validation.schema]`
 
 
 [.description]
@@ -130,7 +130,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.trigger-type]]`link:#quarkus-jimmer_quarkus.jimmer.trigger-type[quarkus.jimmer.trigger-type]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-trigger-type]]`link:#quarkus-jimmer_quarkus-jimmer-trigger-type[quarkus.jimmer.trigger-type]`
 
 
 [.description]
@@ -148,7 +148,7 @@ endif::add-copy-button-to-env-var[]
 |`binlog-only`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.default-dissociation-action-checkable]]`link:#quarkus-jimmer_quarkus.jimmer.default-dissociation-action-checkable[quarkus.jimmer.default-dissociation-action-checkable]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-default-dissociation-action-checkable]]`link:#quarkus-jimmer_quarkus-jimmer-default-dissociation-action-checkable[quarkus.jimmer.default-dissociation-action-checkable]`
 
 
 [.description]
@@ -165,7 +165,7 @@ endif::add-copy-button-to-env-var[]
 |`true`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.id-only-target-checking-level]]`link:#quarkus-jimmer_quarkus.jimmer.id-only-target-checking-level[quarkus.jimmer.id-only-target-checking-level]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-id-only-target-checking-level]]`link:#quarkus-jimmer_quarkus-jimmer-id-only-target-checking-level[quarkus.jimmer.id-only-target-checking-level]`
 
 
 [.description]
@@ -183,7 +183,7 @@ endif::add-copy-button-to-env-var[]
 |`none`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.transaction-cache-operator-fixed-delay]]`link:#quarkus-jimmer_quarkus.jimmer.transaction-cache-operator-fixed-delay[quarkus.jimmer.transaction-cache-operator-fixed-delay]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-transaction-cache-operator-fixed-delay]]`link:#quarkus-jimmer_quarkus-jimmer-transaction-cache-operator-fixed-delay[quarkus.jimmer.transaction-cache-operator-fixed-delay]`
 
 
 [.description]
@@ -200,7 +200,7 @@ endif::add-copy-button-to-env-var[]
 |`5000`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.default-enum-strategy]]`link:#quarkus-jimmer_quarkus.jimmer.default-enum-strategy[quarkus.jimmer.default-enum-strategy]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-default-enum-strategy]]`link:#quarkus-jimmer_quarkus-jimmer-default-enum-strategy[quarkus.jimmer.default-enum-strategy]`
 
 
 [.description]
@@ -218,7 +218,7 @@ endif::add-copy-button-to-env-var[]
 |`name`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.default-batch-size]]`link:#quarkus-jimmer_quarkus.jimmer.default-batch-size[quarkus.jimmer.default-batch-size]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-default-batch-size]]`link:#quarkus-jimmer_quarkus-jimmer-default-batch-size[quarkus.jimmer.default-batch-size]`
 
 
 [.description]
@@ -235,7 +235,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.default-list-batch-size]]`link:#quarkus-jimmer_quarkus.jimmer.default-list-batch-size[quarkus.jimmer.default-list-batch-size]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-default-list-batch-size]]`link:#quarkus-jimmer_quarkus-jimmer-default-list-batch-size[quarkus.jimmer.default-list-batch-size]`
 
 
 [.description]
@@ -252,7 +252,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.offset-optimizing-threshold]]`link:#quarkus-jimmer_quarkus.jimmer.offset-optimizing-threshold[quarkus.jimmer.offset-optimizing-threshold]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-offset-optimizing-threshold]]`link:#quarkus-jimmer_quarkus-jimmer-offset-optimizing-threshold[quarkus.jimmer.offset-optimizing-threshold]`
 
 
 [.description]
@@ -269,7 +269,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.is-foreign-key-enabled-by-default]]`link:#quarkus-jimmer_quarkus.jimmer.is-foreign-key-enabled-by-default[quarkus.jimmer.is-foreign-key-enabled-by-default]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-is-foreign-key-enabled-by-default]]`link:#quarkus-jimmer_quarkus-jimmer-is-foreign-key-enabled-by-default[quarkus.jimmer.is-foreign-key-enabled-by-default]`
 
 
 [.description]
@@ -286,7 +286,7 @@ endif::add-copy-button-to-env-var[]
 |`true`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.save-command-pessimistic-lock]]`link:#quarkus-jimmer_quarkus.jimmer.save-command-pessimistic-lock[quarkus.jimmer.save-command-pessimistic-lock]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-save-command-pessimistic-lock]]`link:#quarkus-jimmer_quarkus-jimmer-save-command-pessimistic-lock[quarkus.jimmer.save-command-pessimistic-lock]`
 
 
 [.description]
@@ -303,7 +303,7 @@ endif::add-copy-button-to-env-var[]
 |`false`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.executor-context-prefixes]]`link:#quarkus-jimmer_quarkus.jimmer.executor-context-prefixes[quarkus.jimmer.executor-context-prefixes]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-executor-context-prefixes]]`link:#quarkus-jimmer_quarkus-jimmer-executor-context-prefixes[quarkus.jimmer.executor-context-prefixes]`
 
 
 [.description]
@@ -320,7 +320,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.micro-service-name]]`link:#quarkus-jimmer_quarkus.jimmer.micro-service-name[quarkus.jimmer.micro-service-name]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-micro-service-name]]`link:#quarkus-jimmer_quarkus-jimmer-micro-service-name[quarkus.jimmer.micro-service-name]`
 
 
 [.description]
@@ -337,7 +337,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.path]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.path[quarkus.jimmer.client.ts.path]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-ts-path]]`link:#quarkus-jimmer_quarkus-jimmer-client-ts-path[quarkus.jimmer.client.ts.path]`
 
 
 [.description]
@@ -354,7 +354,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.api-name]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.api-name[quarkus.jimmer.client.ts.api-name]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-ts-api-name]]`link:#quarkus-jimmer_quarkus-jimmer-client-ts-api-name[quarkus.jimmer.client.ts.api-name]`
 
 
 [.description]
@@ -371,7 +371,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.indent]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.indent[quarkus.jimmer.client.ts.indent]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-ts-indent]]`link:#quarkus-jimmer_quarkus-jimmer-client-ts-indent[quarkus.jimmer.client.ts.indent]`
 
 
 [.description]
@@ -388,7 +388,7 @@ endif::add-copy-button-to-env-var[]
 |`0`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.mutable]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.mutable[quarkus.jimmer.client.ts.mutable]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-ts-mutable]]`link:#quarkus-jimmer_quarkus-jimmer-client-ts-mutable[quarkus.jimmer.client.ts.mutable]`
 
 
 [.description]
@@ -405,7 +405,7 @@ endif::add-copy-button-to-env-var[]
 |`false`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.null-render-mode]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.null-render-mode[quarkus.jimmer.client.ts.null-render-mode]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-ts-null-render-mode]]`link:#quarkus-jimmer_quarkus-jimmer-client-ts-null-render-mode[quarkus.jimmer.client.ts.null-render-mode]`
 
 
 [.description]
@@ -423,12 +423,12 @@ endif::add-copy-button-to-env-var[]
 |`undefined`
 
 
-h|[[quarkus-jimmer_quarkus.jimmer.error-translator-jimmer]]link:#quarkus-jimmer_quarkus.jimmer.error-translator-jimmer[jimmer]
+h|[[quarkus-jimmer_quarkus-jimmer-error-translator-jimmer]]link:#quarkus-jimmer_quarkus-jimmer-error-translator-jimmer[jimmer]
 This configuration section is optional
 h|Type
 h|Default
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.error-translator.disabled]]`link:#quarkus-jimmer_quarkus.jimmer.error-translator.disabled[quarkus.jimmer.error-translator.disabled]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-error-translator-disabled]]`link:#quarkus-jimmer_quarkus-jimmer-error-translator-disabled[quarkus.jimmer.error-translator.disabled]`
 
 
 [.description]
@@ -445,7 +445,7 @@ endif::add-copy-button-to-env-var[]
 |`false`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.error-translator.http-status]]`link:#quarkus-jimmer_quarkus.jimmer.error-translator.http-status[quarkus.jimmer.error-translator.http-status]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-error-translator-http-status]]`link:#quarkus-jimmer_quarkus-jimmer-error-translator-http-status[quarkus.jimmer.error-translator.http-status]`
 
 
 [.description]
@@ -462,7 +462,7 @@ endif::add-copy-button-to-env-var[]
 |`0`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.error-translator.debug-info-supported]]`link:#quarkus-jimmer_quarkus.jimmer.error-translator.debug-info-supported[quarkus.jimmer.error-translator.debug-info-supported]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-error-translator-debug-info-supported]]`link:#quarkus-jimmer_quarkus-jimmer-error-translator-debug-info-supported[quarkus.jimmer.error-translator.debug-info-supported]`
 
 
 [.description]
@@ -479,7 +479,7 @@ endif::add-copy-button-to-env-var[]
 |`false`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.error-translator.debug-info-max-stack-trace-count]]`link:#quarkus-jimmer_quarkus.jimmer.error-translator.debug-info-max-stack-trace-count[quarkus.jimmer.error-translator.debug-info-max-stack-trace-count]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-error-translator-debug-info-max-stack-trace-count]]`link:#quarkus-jimmer_quarkus-jimmer-error-translator-debug-info-max-stack-trace-count[quarkus.jimmer.error-translator.debug-info-max-stack-trace-count]`
 
 
 [.description]
