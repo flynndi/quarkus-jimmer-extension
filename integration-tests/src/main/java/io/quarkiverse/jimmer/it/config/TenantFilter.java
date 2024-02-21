@@ -20,6 +20,6 @@ public class TenantFilter implements Filter<TenantAwareProps> {
     public void filter(FilterArgs<TenantAwareProps> args) {
         LOGGER.info("args: {}", args);
         LOGGER.info("args.getTable(): {}", args.getTable());
-        args.where(args.getTable().tenant().eq("1"));
+        args.where(args.getTable().tenant().eq("a"));
     }
 }

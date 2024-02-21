@@ -12,6 +12,7 @@ import org.babyfish.jimmer.client.meta.Api;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.Fetchers;
@@ -91,6 +92,13 @@ public class BookResources implements Fetchers {
     @Path("/testSaveManyToMany")
     public Response testSaveManyToMany() {
         iBook.saveManyToMany();
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("/testFile")
+    @Api
+    public Response testFile(FileUpload filePart) {
         return Response.ok().build();
     }
 
