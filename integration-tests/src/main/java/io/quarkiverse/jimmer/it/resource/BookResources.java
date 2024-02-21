@@ -74,6 +74,26 @@ public class BookResources implements Fetchers {
         return Response.ok().build();
     }
 
+    @GET
+    @Path("/testManyToMany")
+    public Response testManyToMany() {
+        return Response.ok(iBook.manyToMany()).build();
+    }
+
+    @PUT
+    @Path("/testUpdateOneToMany")
+    public Response testUpdateOneToMany() {
+        iBook.updateOneToMany();
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("/testSaveManyToMany")
+    public Response testSaveManyToMany() {
+        iBook.saveManyToMany();
+        return Response.ok().build();
+    }
+
     private static final Fetcher<Book> SIMPLE_BOOK = BOOK_FETCHER.name();
 
     private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()
