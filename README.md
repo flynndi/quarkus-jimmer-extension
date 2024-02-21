@@ -1,7 +1,16 @@
-# Quarkus Quarkus Jimmer Extension
+# Quarkus Jimmer Extension
 
 # Jimmer
 https://github.com/babyfish-ct/jimmer
+
+# Version
+preview build by
+
+| Depend  | Version |    | Future |
+|---------|---------|----|--------|
+| JDK     | 11      | -> | 17     |
+| Quarkus | 3.6.4   | -> | 3.7.3  |
+| Jimmer  | 0.8.77  | -> | 0.8.92 |
 
 # Feature
 | Feature               |     |
