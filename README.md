@@ -22,15 +22,15 @@ preview build by
 # Usage
 Gradle:
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:preview'
-annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.77'
+implementation 'io.github.flynndi:quarkus-jimmer:Beta'
+annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.92'
 ```
 Maven
 ```maven
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>preview</version>
+   <version>Beta</version>
 </dependency>
 
 <build>
@@ -44,7 +44,7 @@ Maven
                     <path>
                         <groupId>org.babyfish.jimmer</groupId>
                         <artifactId>jimmer-apt</artifactId>
-                        <version>0.8.77</version>
+                        <version>0.8.92</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
