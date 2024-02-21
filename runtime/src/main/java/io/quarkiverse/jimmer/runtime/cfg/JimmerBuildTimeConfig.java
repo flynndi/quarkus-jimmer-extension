@@ -236,12 +236,25 @@ public class JimmerBuildTimeConfig {
         @ConfigItem
         public TypeScript ts;
 
+        /**
+         * jimmer.Client.uriPrefix
+         */
+        @Nullable
+        @ConfigItem
+        public Optional<String> uriPrefix;
+
+        /**
+         * jimmer.Client.controllerNullityChecked
+         */
+        @ConfigItem
+        public boolean controllerNullityChecked;
+
         public Client() {
         }
 
         public Client(@Nullable TypeScript ts) {
             if (ts == null) {
-                this.ts = new TypeScript(null, Optional.of("Api"), 4, false, null);
+                this.ts = new TypeScript(null, Optional.of("Api"), 4, false, null, false);
             } else {
                 this.ts = ts;
             }
@@ -287,6 +300,12 @@ public class JimmerBuildTimeConfig {
         @ConfigItem(defaultValue = "UNDEFINED")
         public NullRenderMode nullRenderMode;
 
+        /**
+         * jimmer.Client.TypeScript.isEnumTsStyle
+         */
+        @ConfigItem
+        public boolean isEnumTsStyle;
+
         public TypeScript() {
         }
 
@@ -295,7 +314,8 @@ public class JimmerBuildTimeConfig {
                 @Nullable Optional<String> apiName,
                 int indent,
                 boolean mutable,
-                @Nullable NullRenderMode nullRenderMode) {
+                @Nullable NullRenderMode nullRenderMode,
+                boolean isEnumTsStyle) {
             if (path.isEmpty()) {
                 this.path = null;
             } else {
@@ -312,6 +332,7 @@ public class JimmerBuildTimeConfig {
             this.indent = indent != 0 ? Math.max(indent, 2) : 4;
             this.mutable = mutable;
             this.nullRenderMode = nullRenderMode != null ? nullRenderMode : NullRenderMode.UNDEFINED;
+            this.isEnumTsStyle = isEnumTsStyle;
         }
     }
 }
