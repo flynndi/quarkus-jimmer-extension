@@ -1,4 +1,4 @@
 release:
-  current-version: "999-SNAPSHOT"
-  next-version: "999-SNAPSHOT"
+  current-version: "Beta"
+  next-version: "Beta"
 
