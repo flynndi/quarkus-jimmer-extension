@@ -7,7 +7,7 @@ import org.babyfish.jimmer.sql.*;
 import org.jetbrains.annotations.Nullable;
 
 @Entity
-public interface Book {
+public interface Book extends TenantAware, BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
