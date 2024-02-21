@@ -28,4 +28,10 @@ public interface IBook {
     List<Book> findBooksByName(@Nullable String name);
 
     void update();
+
+    List<Book> manyToMany();
+
+    void updateOneToMany();
+
+    void saveManyToMany();
 }

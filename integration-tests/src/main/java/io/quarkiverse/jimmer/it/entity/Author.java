@@ -1,7 +1,6 @@
 package io.quarkiverse.jimmer.it.entity;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.babyfish.jimmer.sql.*;
 
@@ -10,7 +9,7 @@ public interface Author {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    UUID id();
+    int id();
 
     @Key
     String firstName();

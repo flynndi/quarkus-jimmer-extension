@@ -15,13 +15,13 @@ public interface BookStore {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id();
 
-    @Key // ❶
+    @Key
     String name();
 
-    @Nullable // ❷
+    @Nullable
     String website();
 
-    @OneToMany(mappedBy = "store", orderedProps = { // ❸
+    @OneToMany(mappedBy = "store", orderedProps = {
             @OrderedProp("name"),
             @OrderedProp(value = "edition", desc = true)
     })
