@@ -15,10 +15,7 @@ import org.babyfish.jimmer.sql.ast.tuple.Tuple2;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.jetbrains.annotations.Nullable;
 
-import io.quarkiverse.jimmer.it.entity.Book;
-import io.quarkiverse.jimmer.it.entity.BookTable;
-import io.quarkiverse.jimmer.it.entity.Fetchers;
-import io.quarkiverse.jimmer.it.entity.Tables;
+import io.quarkiverse.jimmer.it.entity.*;
 import io.quarkiverse.jimmer.it.service.IBook;
 import io.quarkiverse.jimmer.runtime.Jimmer;
 
@@ -93,5 +90,36 @@ public class BookImpl implements IBook {
                 .set(Tables.BOOK_STORE_TABLE.website(), "https://www.manning.com")
                 .where(Tables.BOOK_STORE_TABLE.id().eq(2L))
                 .execute();
+    }
+
+    @Override
+    public List<Book> manyToMany() {
+        return Jimmer.getDefaultJSqlClient()
+                .createQuery(table)
+                .where(table.edition().eq(1))
+                .select(
+                        table.fetch(
+                                Fetchers.BOOK_FETCHER
+                                        .allScalarFields()
+                                        .authors(
+                                                Fetchers.AUTHOR_FETCHER
+                                                        .allScalarFields())))
+                .execute();
+    }
+
+    @Override
+    public void updateOneToMany() {
+        Jimmer.getDefaultJSqlClient()
+                .createUpdate(table)
+                .set(table.store().id(), 2L)
+                .where(table.id().eq(7))
+                .execute();
+    }
+
+    @Override
+    public void saveManyToMany() {
+        Jimmer.getDefaultJSqlClient()
+                .getAssociations(BookProps.AUTHORS)
+                .save(10, 3);
     }
 }
