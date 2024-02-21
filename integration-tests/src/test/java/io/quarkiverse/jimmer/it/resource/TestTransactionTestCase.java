@@ -1,6 +1,7 @@
 package io.quarkiverse.jimmer.it.resource;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.*;
@@ -40,6 +41,9 @@ public class TestTransactionTestCase {
             draft.setPrice(new BigDecimal("1"));
             draft.setEdition(1);
             draft.setStoreId(2L);
+            draft.setTenant("test");
+            draft.setCreatedTime(LocalDateTime.now());
+            draft.setModifiedTime(LocalDateTime.now());
         });
         Assertions.assertThrows(ArithmeticException.class, () -> iBook.save(book));
     }
