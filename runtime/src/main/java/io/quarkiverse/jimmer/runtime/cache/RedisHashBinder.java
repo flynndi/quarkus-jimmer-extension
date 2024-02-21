@@ -97,7 +97,7 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
     protected void delete(Collection<String> keys) {
         LOGGER.info("Delete data from redis: {}", keys);
         for (String key : keys) {
-            hashCommands.hdel(key);
+            valueCommands.getdel(key);
         }
     }
 
