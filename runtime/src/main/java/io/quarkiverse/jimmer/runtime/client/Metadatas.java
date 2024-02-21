@@ -4,15 +4,19 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.regex.Pattern;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
+import org.babyfish.jimmer.client.meta.TypeName;
 import org.babyfish.jimmer.client.runtime.Metadata;
 import org.babyfish.jimmer.client.runtime.Operation;
+import org.babyfish.jimmer.client.runtime.VirtualType;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
+import org.jboss.resteasy.reactive.multipart.FilePart;
 import org.jetbrains.annotations.Nullable;
 
 public class Metadatas {
@@ -22,14 +26,22 @@ public class Metadatas {
     private Metadatas() {
     }
 
-    public static Metadata create(boolean isGenericSupported, @Nullable String groups) {
+    public static Metadata create(boolean isGenericSupported,
+            @Nullable String groups,
+            @Nullable String uriPrefix,
+            boolean controllerNullityChecked) {
         return Metadata
                 .newBuilder()
                 .setOperationParser(new OperationParserImpl())
                 .setParameterParameter(new ParameterParserImpl())
+                .setVirtualTypeMap(
+                        Collections.singletonMap(
+                                TypeName.of(FilePart.class),
+                                VirtualType.FILE))
                 .setGenericSupported(isGenericSupported)
-                .setGroups(
-                        groups != null && !groups.isEmpty() ? Arrays.asList(COMMA_PATTERN.split(groups)) : null)
+                .setGroups(groups != null && !groups.isEmpty() ? Arrays.asList(COMMA_PATTERN.split(groups)) : null)
+                .setUriPrefix(uriPrefix)
+                .setControllerNullityChecked(controllerNullityChecked)
                 .build();
     }
 
@@ -57,6 +69,15 @@ public class Metadatas {
             }
             if (null != method.getAnnotation(DELETE.class)) {
                 return new Operation.HttpMethod[] { Operation.HttpMethod.DELETE };
+            }
+            if (null != method.getAnnotation(HEAD.class)) {
+                return new Operation.HttpMethod[] { Operation.HttpMethod.HEAD };
+            }
+            if (null != method.getAnnotation(PATCH.class)) {
+                return new Operation.HttpMethod[] { Operation.HttpMethod.PATCH };
+            }
+            if (null != method.getAnnotation(OPTIONS.class)) {
+                return new Operation.HttpMethod[] { Operation.HttpMethod.OPTIONS };
             }
             return new Operation.HttpMethod[] { Operation.HttpMethod.GET };
         }
@@ -94,22 +115,48 @@ public class Metadatas {
             return restPath.value();
         }
 
+        @Nullable
+        @Override
+        public String requestPart(Parameter javaParameter) {
+            Class<?> type = javaParameter.getType();
+            if (FilePart.class.isAssignableFrom(type)) {
+                return javaParameter.getName();
+            }
+            return null;
+        }
+
         @Override
         public String defaultValue(Parameter javaParameter) {
+            HeaderParam headerParam = javaParameter.getAnnotation(HeaderParam.class);
+            if (null != headerParam && !headerParam.value().isEmpty()) {
+                return headerParam.value();
+            }
+            RestQuery restQuery = javaParameter.getAnnotation(RestQuery.class);
+            if (null != restQuery && !restQuery.value().isEmpty()) {
+                return restQuery.value();
+            }
             return null;
         }
 
         @Override
         public boolean isOptional(Parameter javaParameter) {
-            RestQuery restQuery = javaParameter.getAnnotation(RestQuery.class);
-            return null != restQuery;
+            return true;
         }
 
         @Override
         public boolean isRequestBody(Parameter javaParameter) {
-            Consumes consumes = javaParameter.getAnnotation(Consumes.class);
-            if (null != consumes) {
-                String[] value = consumes.value();
+            Consumes methodConsumes = javaParameter.getAnnotation(Consumes.class);
+            if (null != methodConsumes) {
+                String[] value = methodConsumes.value();
+                if (value.length == 0) {
+                    return false;
+                }
+                return Arrays.asList(value).contains(MediaType.APPLICATION_JSON);
+            }
+
+            Consumes classConsumes = javaParameter.getDeclaringExecutable().getAnnotation(Consumes.class);
+            if (null != classConsumes) {
+                String[] value = classConsumes.value();
                 if (value.length == 0) {
                     return false;
                 }

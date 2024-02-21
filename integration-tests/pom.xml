@@ -44,6 +44,10 @@
       <artifactId>quarkus-config-yaml</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-openapi</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.github.flynndi</groupId>
       <artifactId>quarkus-jimmer</artifactId>
       <version>${project.version}</version>

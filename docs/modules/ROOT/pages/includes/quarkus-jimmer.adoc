@@ -423,6 +423,57 @@ endif::add-copy-button-to-env-var[]
 |`undefined`
 
 
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.ts.is-enum-ts-style]]`link:#quarkus-jimmer_quarkus.jimmer.client.ts.is-enum-ts-style[quarkus.jimmer.client.ts.is-enum-ts-style]`
+
+
+[.description]
+--
+jimmer.Client.TypeScript.isEnumTsStyle
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_TS_IS_ENUM_TS_STYLE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_TS_IS_ENUM_TS_STYLE+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.uri-prefix]]`link:#quarkus-jimmer_quarkus.jimmer.client.uri-prefix[quarkus.jimmer.client.uri-prefix]`
+
+
+[.description]
+--
+jimmer.Client.uriPrefix
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_URI_PREFIX+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_URI_PREFIX+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus.jimmer.client.controller-nullity-checked]]`link:#quarkus-jimmer_quarkus.jimmer.client.controller-nullity-checked[quarkus.jimmer.client.controller-nullity-checked]`
+
+
+[.description]
+--
+jimmer.Client.controllerNullityChecked
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_CONTROLLER_NULLITY_CHECKED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_CONTROLLER_NULLITY_CHECKED+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
 h|[[quarkus-jimmer_quarkus.jimmer.error-translator-jimmer]]link:#quarkus-jimmer_quarkus.jimmer.error-translator-jimmer[jimmer]
 This configuration section is optional
 h|Type

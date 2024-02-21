@@ -36,9 +36,10 @@ public class TypeScriptHandler implements Handler<RoutingContext> {
         }
 
         JimmerBuildTimeConfig.TypeScript ts = config.client.ts;
-        Metadata metadata = Metadatas.create(true, null);
+        Metadata metadata = Metadatas.create(true, null, config.client.uriPrefix.orElse(null),
+                config.client.controllerNullityChecked);
         TypeScriptContext ctx = new TypeScriptContext(metadata, ts.indent, ts.mutable, ts.apiName.orElse("Api"),
-                ts.nullRenderMode);
+                ts.nullRenderMode, ts.isEnumTsStyle);
         HttpServerResponse response = routingContext.response();
         ManagedContext requestContext = Arc.container().requestContext();
         if (requestContext.isActive()) {
