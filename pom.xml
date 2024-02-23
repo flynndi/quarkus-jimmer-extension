@@ -177,13 +177,6 @@
             <compilerArgs>
               <arg>-parameters</arg>
             </compilerArgs>
-            <annotationProcessorPaths>
-              <path>
-                <groupId>org.babyfish.jimmer</groupId>
-                <artifactId>jimmer-apt</artifactId>
-                <version>${jimmer.version}</version>
-              </path>
-            </annotationProcessorPaths>
           </configuration>
         </plugin>
       </plugins>
