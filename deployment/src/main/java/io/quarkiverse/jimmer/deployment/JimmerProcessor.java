@@ -76,8 +76,12 @@ public class JimmerProcessor {
         if (config.errorTranslator.isEmpty()) {
             config.errorTranslator = Optional.of(new JimmerBuildTimeConfig.ErrorTranslator(null, null, null, null));
         }
-        if (null == config.client) {
-            config.client = new JimmerBuildTimeConfig.Client(null);
+        if (null != config.client) {
+            if (config.client.ts.path.isPresent()) {
+                if (!config.client.ts.path.get().startsWith("/")) {
+                    throw new IllegalArgumentException("`jimmer.client.ts.path` must start with \"/\"");
+                }
+            }
         }
     }
 
