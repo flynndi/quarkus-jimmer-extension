@@ -216,6 +216,11 @@ public class JimmerBuildTimeConfig {
          */
         @ConfigItem
         public boolean controllerNullityChecked;
+
+        /**
+         * jimmer.Client.openapi
+         */
+        public Openapi openapi;
     }
 
     @ConfigGroup
@@ -258,5 +263,21 @@ public class JimmerBuildTimeConfig {
          */
         @ConfigItem
         public boolean isEnumTsStyle;
+    }
+
+    @ConfigGroup
+    public static class Openapi {
+
+        /**
+         * Openapi.path
+         */
+        @ConfigItem(defaultValue = "/openapi.yml")
+        public Optional<String> path;
+
+        /**
+         * Openapi.uiPath
+         */
+        @ConfigItem(defaultValue = "/openapi.html")
+        public Optional<String> uiPath;
     }
 }
