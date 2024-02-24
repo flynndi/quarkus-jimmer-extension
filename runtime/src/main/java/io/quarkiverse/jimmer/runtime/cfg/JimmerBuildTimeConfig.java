@@ -193,38 +193,6 @@ public class JimmerBuildTimeConfig {
             this.debugInfoMaxStackTraceCount = debugInfoMaxStackTraceCount != null ? debugInfoMaxStackTraceCount
                     : Integer.MAX_VALUE;
         }
-
-        public boolean isDisabled() {
-            return disabled;
-        }
-
-        public void setDisabled(boolean disabled) {
-            this.disabled = disabled;
-        }
-
-        public int getHttpStatus() {
-            return httpStatus;
-        }
-
-        public void setHttpStatus(int httpStatus) {
-            this.httpStatus = httpStatus;
-        }
-
-        public boolean isDebugInfoSupported() {
-            return debugInfoSupported;
-        }
-
-        public void setDebugInfoSupported(boolean debugInfoSupported) {
-            this.debugInfoSupported = debugInfoSupported;
-        }
-
-        public int getDebugInfoMaxStackTraceCount() {
-            return debugInfoMaxStackTraceCount;
-        }
-
-        public void setDebugInfoMaxStackTraceCount(int debugInfoMaxStackTraceCount) {
-            this.debugInfoMaxStackTraceCount = debugInfoMaxStackTraceCount;
-        }
     }
 
     @ConfigGroup
