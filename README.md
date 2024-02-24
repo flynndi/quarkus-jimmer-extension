@@ -115,3 +115,98 @@ quarkus:
     
     Inject JSqlClient or static method Jimmer.getJSqlClient
 ```
+
+# Cache
+
+example: /src/main/java/io/quarkiverse/jimmer/it/config/CacheConfig.java
+use blocking RedisDataSource 
+
+The difference with spring integration is need 
+
+ValueCommands and HashCommands 
+
+quarkus-jimmer-extension static methods are provided
+
+```
+ValueCommands<String, byte[]> stringValueCommands = RedisCaches.cacheRedisValueCommands(redisDataSource);
+
+HashCommands<String, String, byte[]> stringHashCommands = RedisCaches.cacheRedisHashCommands(redisDataSource);
+```
+
+```
+@ApplicationScoped
+public class CacheConfig {
+
+    @Singleton
+    @Unremovable
+    public CacheFactory cacheFactory(RedisDataSource redisDataSource, ObjectMapper objectMapper) {
+
+        ValueCommands<String, byte[]> stringValueCommands = RedisCaches.cacheRedisValueCommands(redisDataSource);
+
+        HashCommands<String, String, byte[]> stringHashCommands = RedisCaches.cacheRedisHashCommands(redisDataSource);
+
+        return new AbstractCacheFactory() {
+            @Override
+            public Cache<?, ?> createObjectCache(ImmutableType type) {
+                return new ChainCacheBuilder<>()
+                        .add(new CaffeineBinder<>(512, Duration.ofSeconds(1)))
+                        .add(new RedisValueBinder<>(stringValueCommands, objectMapper, type, Duration.ofMinutes(10)))
+                        .build();
+
+            }
+
+            @Override
+            public Cache<?, ?> createAssociatedIdCache(ImmutableProp prop) {
+                return createPropCache(
+                        getFilterState().isAffected(prop.getTargetType()),
+                        prop,
+                        stringValueCommands,
+                        stringHashCommands,
+                        objectMapper,
+                        Duration.ofMinutes(5));
+            }
+
+            @Override
+            public Cache<?, List<?>> createAssociatedIdListCache(ImmutableProp prop) {
+                return createPropCache(
+                        getFilterState().isAffected(prop.getTargetType()),
+                        prop,
+                        stringValueCommands,
+                        stringHashCommands,
+                        objectMapper,
+                        Duration.ofMinutes(5));
+            }
+
+            @Override
+            public Cache<?, ?> createResolverCache(ImmutableProp prop) {
+                return createPropCache(
+                        prop.equals(BookStoreProps.AVG_PRICE.unwrap()),
+                        prop,
+                        stringValueCommands,
+                        stringHashCommands,
+                        objectMapper,
+                        Duration.ofHours(1));
+            }
+        };
+    }
+
+    private static <K, V> Cache<K, V> createPropCache(
+            boolean isMultiView,
+            ImmutableProp prop,
+            ValueCommands<String, byte[]> stringValueCommands,
+            HashCommands<String, String, byte[]> stringHashCommands,
+            ObjectMapper objectMapper,
+            Duration redisDuration) {
+        if (isMultiView) {
+            return new ChainCacheBuilder<K, V>()
+                    .add(new RedisHashBinder<>(stringHashCommands, stringValueCommands, objectMapper, prop, redisDuration))
+                    .build();
+        }
+
+        return new ChainCacheBuilder<K, V>()
+                .add(new CaffeineBinder<>(512, Duration.ofSeconds(1)))
+                .add(new RedisValueBinder<>(stringValueCommands, objectMapper, prop, redisDuration))
+                .build();
+    }
+}
+```
