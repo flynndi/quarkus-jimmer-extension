@@ -241,28 +241,13 @@ public class JimmerBuildTimeConfig {
          */
         @Nullable
         @ConfigItem
-        public Optional<String> uriPrefix;
+        public Optional<String> uriPrefix = Optional.empty();
 
         /**
          * jimmer.Client.controllerNullityChecked
          */
         @ConfigItem
         public boolean controllerNullityChecked;
-
-        public Client() {
-        }
-
-        public Client(@Nullable TypeScript ts) {
-            if (ts == null) {
-                this.ts = new TypeScript(null, Optional.of("Api"), 4, false, null, false);
-            } else {
-                this.ts = ts;
-            }
-        }
-
-        public TypeScript getTs() {
-            return ts;
-        }
     }
 
     @ConfigGroup
@@ -273,19 +258,19 @@ public class JimmerBuildTimeConfig {
          */
         @ConfigItem
         @Nullable
-        public Optional<String> path;
+        public Optional<String> path = Optional.empty();
 
         /**
          * jimmer.Client.TypeScript.apiName
          */
-        @ConfigItem
+        @ConfigItem(defaultValue = "Api")
         @Nullable
-        public Optional<String> apiName;
+        public Optional<String> apiName = Optional.empty();
 
         /**
          * jimmer.Client.TypeScript.indent
          */
-        @ConfigItem
+        @ConfigItem(defaultValue = "4")
         public int indent;
 
         /**
@@ -305,34 +290,5 @@ public class JimmerBuildTimeConfig {
          */
         @ConfigItem
         public boolean isEnumTsStyle;
-
-        public TypeScript() {
-        }
-
-        public TypeScript(
-                @Nullable Optional<String> path,
-                @Nullable Optional<String> apiName,
-                int indent,
-                boolean mutable,
-                @Nullable NullRenderMode nullRenderMode,
-                boolean isEnumTsStyle) {
-            if (path.isEmpty()) {
-                this.path = null;
-            } else {
-                if (!path.get().startsWith("/")) {
-                    throw new IllegalArgumentException("`jimmer.client.ts.path` must start with \"/\"");
-                }
-                this.path = path;
-            }
-            if (apiName.isEmpty()) {
-                this.apiName = Optional.of("Api");
-            } else {
-                this.apiName = apiName;
-            }
-            this.indent = indent != 0 ? Math.max(indent, 2) : 4;
-            this.mutable = mutable;
-            this.nullRenderMode = nullRenderMode != null ? nullRenderMode : NullRenderMode.UNDEFINED;
-            this.isEnumTsStyle = isEnumTsStyle;
-        }
     }
 }
