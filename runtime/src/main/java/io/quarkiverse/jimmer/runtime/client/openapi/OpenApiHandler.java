@@ -1,17 +1,21 @@
-package io.quarkiverse.jimmer.runtime.client.ts;
+package io.quarkiverse.jimmer.runtime.client.openapi;
 
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.spi.CDI;
 
-import org.babyfish.jimmer.client.generator.ts.TypeScriptContext;
+import org.babyfish.jimmer.client.generator.openapi.OpenApiGenerator;
 import org.babyfish.jimmer.client.runtime.Metadata;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.client.Metadatas;
+import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptHandler;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ManagedContext;
@@ -21,7 +25,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
-public class TypeScriptHandler implements Handler<RoutingContext> {
+public class OpenApiHandler implements Handler<RoutingContext> {
 
     private static final Logger log = Logger.getLogger(TypeScriptHandler.class);
 
@@ -35,31 +39,31 @@ public class TypeScriptHandler implements Handler<RoutingContext> {
             setup();
         }
 
-        JimmerBuildTimeConfig.TypeScript ts = config.client.ts;
-        Metadata metadata = Metadatas.create(true, routingContext.request().getParam("groups"),
+        Metadata metadata = Metadatas.create(false, routingContext.request().getParam("groups"),
                 config.client.uriPrefix.orElse(null),
                 config.client.controllerNullityChecked);
-        TypeScriptContext ctx = new TypeScriptContext(metadata, ts.indent, ts.mutable, ts.apiName.get(),
-                ts.nullRenderMode, ts.isEnumTsStyle);
+        OpenApiGenerator generator = new OpenApiGenerator(metadata, null);
         HttpServerResponse response = routingContext.response();
         ManagedContext requestContext = Arc.container().requestContext();
         if (requestContext.isActive()) {
-            doHandle(response, ctx);
+            doHandle(response, generator);
         } else {
             requestContext.activate();
             try {
-                doHandle(response, ctx);
+                doHandle(response, generator);
             } finally {
                 requestContext.terminate();
             }
         }
+
     }
 
-    private void doHandle(HttpServerResponse response, TypeScriptContext context) {
+    private void doHandle(HttpServerResponse response, OpenApiGenerator generator) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        context.renderAll(byteArrayOutputStream);
+        Writer writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8);
+        generator.generate(writer);
 
-        response.putHeader(HttpHeaders.CONTENT_TYPE, Constant.APPLICATION_ZIP)
+        response.putHeader(HttpHeaders.CONTENT_TYPE, Constant.APPLICATION_YML)
                 .end(Buffer.buffer(byteArrayOutputStream.toByteArray()));
     }
 
