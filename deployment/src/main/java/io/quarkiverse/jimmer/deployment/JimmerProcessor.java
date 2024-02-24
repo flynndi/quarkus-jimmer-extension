@@ -18,6 +18,8 @@ import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.SqlClientInitializer;
 import io.quarkiverse.jimmer.runtime.cfg.TransactionCacheOperatorFlusherConfig;
+import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
+import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.runtime.DataSources;
@@ -87,7 +89,9 @@ public class JimmerProcessor {
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    void initializeResourceRegistry(TypeScriptRecorder recorder,
+    void initializeResourceRegistry(TypeScriptRecorder typeScriptRecorder,
+            OpenApiRecorder openApiRecorder,
+            OpenApiUiRecorder openApiUiRecorder,
             BuildProducer<RouteBuildItem> routes,
             NonApplicationRootPathBuildItem nonApplicationRootPathBuildItem,
             ManagementInterfaceBuildTimeConfig managementInterfaceBuildTimeConfig,
@@ -97,18 +101,46 @@ public class JimmerProcessor {
         if (config.client.ts.path.isPresent()) {
             routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
                     .management()
-                    .routeFunction(config.client.ts.path.get(), recorder.route())
+                    .routeFunction(config.client.ts.path.get(), typeScriptRecorder.route())
                     .routeConfigKey("quarkus.jimmer.client.ts.path")
-                    .handler(recorder.getHandler())
+                    .handler(typeScriptRecorder.getHandler())
                     .blockingRoute()
                     .build());
 
-            String path = nonApplicationRootPathBuildItem.resolveManagementPath(config.client.ts.path.get(),
+            String tsPath = nonApplicationRootPathBuildItem.resolveManagementPath(config.client.ts.path.get(),
                     managementInterfaceBuildTimeConfig, launchModeBuildItem);
-            log.debug("Initialized a Jimmer TypeScript meter registry on path = " + path);
+            log.debug("Initialized a Jimmer TypeScript meter registry on path = " + tsPath);
 
-            registries.produce(new RegistryBuildItem("TypeScriptResource", path));
+            registries.produce(new RegistryBuildItem("TypeScriptResource", tsPath));
         }
+
+        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
+                .management()
+                .routeFunction(config.client.openapi.path.get(), openApiRecorder.route())
+                .routeConfigKey("quarkus.jimmer.client.openapi.path")
+                .handler(openApiRecorder.getHandler())
+                .blockingRoute()
+                .build());
+
+        String openapiPath = nonApplicationRootPathBuildItem.resolveManagementPath(config.client.openapi.path.get(),
+                managementInterfaceBuildTimeConfig, launchModeBuildItem);
+        log.debug("Initialized a Jimmer OpenApi meter registry on path = " + openapiPath);
+
+        registries.produce(new RegistryBuildItem("OpenApiUiResource", openapiPath));
+
+        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
+                .management()
+                .routeFunction(config.client.openapi.uiPath.get(), openApiUiRecorder.route())
+                .routeConfigKey("quarkus.jimmer.client.openapi.ui-path")
+                .handler(openApiUiRecorder.getHandler())
+                .blockingRoute()
+                .build());
+
+        String uiPath = nonApplicationRootPathBuildItem.resolveManagementPath(config.client.openapi.uiPath.get(),
+                managementInterfaceBuildTimeConfig, launchModeBuildItem);
+        log.debug("Initialized a Jimmer OpenApiUi meter registry on path = " + uiPath);
+
+        registries.produce(new RegistryBuildItem("OpenApiUiResource", uiPath));
     }
 
     @BuildStep

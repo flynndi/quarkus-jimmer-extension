@@ -22,4 +22,12 @@ public class Constant {
     };
 
     public static final String APPLICATION_ZIP = "application/zip";
+
+    public static final String TEXT_CSS = "text/css";
+
+    public static final String TEXT_JAVASCRIPT = "text/javascript";
+
+    public static final String TEXT_HTML = "text/html";
+
+    public static final String APPLICATION_YML = "application/yml";
 }
