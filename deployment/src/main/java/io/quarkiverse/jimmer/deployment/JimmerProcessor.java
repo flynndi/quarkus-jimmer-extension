@@ -126,7 +126,7 @@ public class JimmerProcessor {
                 managementInterfaceBuildTimeConfig, launchModeBuildItem);
         log.debug("Initialized a Jimmer OpenApi meter registry on path = " + openapiPath);
 
-        registries.produce(new RegistryBuildItem("OpenApiUiResource", openapiPath));
+        registries.produce(new RegistryBuildItem("OpenApiResource", openapiPath));
 
         routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
                 .management()
