@@ -89,7 +89,7 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
         }
         StringBuilder builder = new StringBuilder();
         char[] buf = new char[1024];
-        InputStream inputStream = OpenApiUiHandler.class.getClassLoader().getResourceAsStream(resource);
+        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resource);
         assert inputStream != null;
         try (Reader reader = new InputStreamReader(inputStream)) {
             int len;
