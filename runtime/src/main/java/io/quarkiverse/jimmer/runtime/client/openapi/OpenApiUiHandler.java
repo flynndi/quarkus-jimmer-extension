@@ -29,14 +29,6 @@ import io.vertx.ext.web.RoutingContext;
 
 public class OpenApiUiHandler implements Handler<RoutingContext> {
 
-    private static final String CSS_RESOURCE = "META-INF/jimmer/swagger/swagger-ui.css";
-
-    private static final String JS_RESOURCE = "META-INF/jimmer/swagger/swagger-ui.js";
-
-    private static final String CSS_URL = "/jimmer-client/swagger-ui.css";
-
-    private static final String JS_URL = "/jimmer-client/swagger-ui.js";
-
     private static final Logger log = Logger.getLogger(TypeScriptHandler.class);
 
     private JimmerBuildTimeConfig config;
@@ -121,9 +113,11 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
         return builder
                 .toString()
                 .replace("${openapi.css}",
-                        exists(CSS_RESOURCE) ? CSS_URL : "https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui.css")
+                        exists(Constant.CSS_RESOURCE) ? Constant.CSS_URL
+                                : "https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui.css")
                 .replace("${openapi.js}",
-                        exists(JS_RESOURCE) ? JS_URL : "https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-bundle.js")
+                        exists(Constant.JS_RESOURCE) ? Constant.JS_URL
+                                : "https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-bundle.js")
                 .replace(
                         "${openapi.path}",
                         path);
