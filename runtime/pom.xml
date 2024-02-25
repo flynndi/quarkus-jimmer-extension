@@ -59,6 +59,11 @@
       <artifactId>jimmer-client</artifactId>
       <version>${jimmer.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.babyfish.jimmer</groupId>
+      <artifactId>jimmer-client-swagger</artifactId>
+      <version>${jimmer.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
