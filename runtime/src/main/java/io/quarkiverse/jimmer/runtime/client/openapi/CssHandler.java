@@ -39,7 +39,7 @@ public class CssHandler implements Handler<RoutingContext> {
 
     private void doHandle(HttpServerResponse response) throws IOException {
         byte[] buf = new byte[4 * 1024];
-        InputStream in = CssHandler.class.getClassLoader().getResourceAsStream(Constant.CSS_RESOURCE);
+        InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(Constant.CSS_RESOURCE);
         if (in == null) {
             throw new IllegalStateException("The resource \"" + Constant.CSS_RESOURCE + "\" does not exist");
         }

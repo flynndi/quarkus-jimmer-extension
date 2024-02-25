@@ -39,7 +39,7 @@ public class JsHandler implements Handler<RoutingContext> {
 
     private void doHandle(HttpServerResponse response) throws IOException {
         byte[] buf = new byte[4 * 1024];
-        InputStream in = JsHandler.class.getClassLoader().getResourceAsStream(Constant.JS_RESOURCE);
+        InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(Constant.JS_RESOURCE);
         if (in == null) {
             throw new IllegalStateException("The resource \"" + Constant.JS_RESOURCE + "\" does not exist");
         }
