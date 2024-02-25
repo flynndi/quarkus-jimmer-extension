@@ -18,9 +18,12 @@ import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.SqlClientInitializer;
 import io.quarkiverse.jimmer.runtime.cfg.TransactionCacheOperatorFlusherConfig;
+import io.quarkiverse.jimmer.runtime.client.openapi.CssRecorder;
+import io.quarkiverse.jimmer.runtime.client.openapi.JsRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
+import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.runtime.DataSources;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
@@ -90,6 +93,8 @@ public class JimmerProcessor {
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     void initializeResourceRegistry(TypeScriptRecorder typeScriptRecorder,
+            CssRecorder cssRecorder,
+            JsRecorder jsRecorder,
             OpenApiRecorder openApiRecorder,
             OpenApiUiRecorder openApiUiRecorder,
             BuildProducer<RouteBuildItem> routes,
@@ -116,6 +121,28 @@ public class JimmerProcessor {
 
         routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
                 .management()
+                .routeFunction(Constant.CSS_URL, cssRecorder.route())
+                .handler(cssRecorder.getHandler())
+                .blockingRoute()
+                .build());
+
+        String cssPath = nonApplicationRootPathBuildItem.resolveManagementPath(Constant.CSS_URL,
+                managementInterfaceBuildTimeConfig, launchModeBuildItem);
+        log.debug("Initialized a Jimmer CSS meter registry on path = " + cssPath);
+
+        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
+                .management()
+                .routeFunction(Constant.JS_URL, jsRecorder.route())
+                .handler(jsRecorder.getHandler())
+                .blockingRoute()
+                .build());
+
+        String jsPath = nonApplicationRootPathBuildItem.resolveManagementPath(Constant.JS_URL,
+                managementInterfaceBuildTimeConfig, launchModeBuildItem);
+        log.debug("Initialized a Jimmer JS meter registry on path = " + jsPath);
+
+        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
+                .management()
                 .routeFunction(config.client.openapi.path.get(), openApiRecorder.route())
                 .routeConfigKey("quarkus.jimmer.client.openapi.path")
                 .handler(openApiRecorder.getHandler())
@@ -126,7 +153,7 @@ public class JimmerProcessor {
                 managementInterfaceBuildTimeConfig, launchModeBuildItem);
         log.debug("Initialized a Jimmer OpenApi meter registry on path = " + openapiPath);
 
-        registries.produce(new RegistryBuildItem("OpenApiUiResource", openapiPath));
+        registries.produce(new RegistryBuildItem("OpenApiResource", openapiPath));
 
         routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
                 .management()
