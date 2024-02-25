@@ -1,10 +1,7 @@
 package io.quarkiverse.jimmer.runtime.cache;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.babyfish.jimmer.lang.Ref;
@@ -51,7 +48,7 @@ public class CaffeineBinder<K, V> implements LoadingBinder<K, V> {
 
                             @SuppressWarnings("unchecked")
                             @Override
-                            public Map<K, Ref<V>> loadAll(Iterable<? extends K> keys) {
+                            public Map<? extends K, ? extends Ref<V>> loadAll(Set<? extends K> keys) {
                                 Map<K, V> map = chain.loadAll((Collection<K>) keys);
                                 return map
                                         .entrySet()
