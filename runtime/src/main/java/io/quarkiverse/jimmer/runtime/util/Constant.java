@@ -21,6 +21,14 @@ public class Constant {
     public static final TypeLiteral<DraftInterceptor<?, ?>> DRAFT_INTERCEPTOR_TYPE_LITERAL = new TypeLiteral<>() {
     };
 
+    public static final String CSS_RESOURCE = "META-INF/jimmer/swagger/swagger-ui.css";
+
+    public static final String JS_RESOURCE = "META-INF/jimmer/swagger/swagger-ui.js";
+
+    public static final String CSS_URL = "/jimmer-client/swagger-ui.css";
+
+    public static final String JS_URL = "/jimmer-client/swagger-ui.js";
+
     public static final String APPLICATION_ZIP = "application/zip";
 
     public static final String TEXT_CSS = "text/css";
