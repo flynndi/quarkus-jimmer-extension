@@ -9,8 +9,8 @@ preview build by
 | Depend  | Version |    | Future |
 |---------|---------|----|--------|
 | JDK     | 11      | -> | 17     |
-| Quarkus | 3.6.4   | -> | 3.7.3  |
-| Jimmer  | 0.8.77  | -> | 0.8.92 |
+| Quarkus | 3.6.4   | -> | 3.8.0  |
+| Jimmer  | 0.8.100 | -> | latest |
 
 # Feature
 | Feature               |     |
