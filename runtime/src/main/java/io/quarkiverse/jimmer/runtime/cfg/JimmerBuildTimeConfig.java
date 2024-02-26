@@ -220,6 +220,7 @@ public class JimmerBuildTimeConfig {
         /**
          * jimmer.Client.openapi
          */
+        @ConfigItem
         public Openapi openapi;
     }
 
@@ -279,5 +280,49 @@ public class JimmerBuildTimeConfig {
          */
         @ConfigItem(defaultValue = "/openapi.html")
         public Optional<String> uiPath;
+
+        /**
+         * Openapi.properties
+         */
+        @ConfigItem
+        public Properties properties;
+    }
+
+    @ConfigGroup
+    public static class Properties {
+
+        /**
+         * Openapi.info
+         */
+        @ConfigItem
+        public Info info;
+
+    }
+
+    @ConfigGroup
+    public static class Info {
+
+        /**
+         * Openapi.title
+         */
+        @ConfigItem
+        public Optional<String> title;
+
+        /**
+         * Openapi.description
+         */
+        @ConfigItem
+        public Optional<String> description;
+
+        /**
+         * Openapi.termsOfService
+         */
+        public Optional<String> termsOfService;
+
+        /**
+         * Openapi.version
+         */
+        @ConfigItem
+        public Optional<String> version;
     }
 }

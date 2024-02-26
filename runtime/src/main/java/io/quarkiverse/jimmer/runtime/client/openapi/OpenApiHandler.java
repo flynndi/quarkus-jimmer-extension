@@ -10,6 +10,7 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.spi.CDI;
 
 import org.babyfish.jimmer.client.generator.openapi.OpenApiGenerator;
+import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.runtime.Metadata;
 import org.jboss.logging.Logger;
 
@@ -42,7 +43,17 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         Metadata metadata = Metadatas.create(false, routingContext.request().getParam("groups"),
                 config.client.uriPrefix.orElse(null),
                 config.client.controllerNullityChecked);
-        OpenApiGenerator generator = new OpenApiGenerator(metadata, null);
+        OpenApiProperties openApiProperties = OpenApiProperties
+                .newBuilder()
+                .setInfo(new OpenApiProperties.Info(
+                        config.client.openapi.properties.info.title.orElse(null),
+                        config.client.openapi.properties.info.description.orElse(null),
+                        config.client.openapi.properties.info.termsOfService.orElse(null),
+                        null,
+                        null,
+                        config.client.openapi.properties.info.version.orElse(null)))
+                .build();
+        OpenApiGenerator generator = new OpenApiGenerator(metadata, openApiProperties);
         HttpServerResponse response = routingContext.response();
         ManagedContext requestContext = Arc.container().requestContext();
         if (requestContext.isActive()) {
