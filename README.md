@@ -90,6 +90,9 @@ quarkus:
     client:
       ts:
         path:
+    openapi:
+        path: /openapi.yml
+        ui-path: /openapi.html  
 ```
 
 # Code
