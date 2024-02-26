@@ -1,8 +1,6 @@
 package io.quarkiverse.jimmer.runtime.cfg;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
 
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
 import org.babyfish.jimmer.sql.EnumType;
@@ -292,11 +290,28 @@ public class JimmerBuildTimeConfig {
     public static class Properties {
 
         /**
-         * Openapi.info
+         * Properties.info
          */
         @ConfigItem
         public Info info;
 
+        /**
+         * Properties.servers
+         */
+        //        @ConfigItem
+        //        public List<Server> servers;
+
+        /**
+         * Properties.securities
+         */
+        //        @ConfigItem
+        //        public List<Map<String, List<String>>> securities;
+
+        /**
+         * Properties.components
+         */
+        @ConfigItem
+        public Components components;
     }
 
     @ConfigGroup
@@ -317,12 +332,232 @@ public class JimmerBuildTimeConfig {
         /**
          * Openapi.termsOfService
          */
+        @ConfigItem
         public Optional<String> termsOfService;
+
+        /**
+         * Openapi.contact
+         */
+        @ConfigItem
+        public Contact contact;
+
+        /**
+         * Openapi.license
+         */
+        @ConfigItem
+        public License license;
 
         /**
          * Openapi.version
          */
         @ConfigItem
         public Optional<String> version;
+    }
+
+    @ConfigGroup
+    public static class Contact {
+
+        /**
+         * Contact.name
+         */
+        @ConfigItem
+        public Optional<String> name;
+
+        /**
+         * Contact.url
+         */
+        @ConfigItem
+        public Optional<String> url;
+
+        /**
+         * Contact.email
+         */
+        @ConfigItem
+        public Optional<String> email;
+    }
+
+    @ConfigGroup
+    public static class License {
+
+        /**
+         * License.name
+         */
+        @ConfigItem
+        public Optional<String> name;
+
+        /**
+         * License.identifier
+         */
+        @ConfigItem
+        public Optional<String> identifier;
+    }
+
+    //    @ConfigGroup
+    //    public static class Server {
+    //
+    //        /**
+    //         * Server.url
+    //         */
+    //        @ConfigItem
+    //        public Optional<String> url;
+    //
+    //        /**
+    //         * Server.description
+    //         */
+    //        @ConfigItem
+    //        public Optional<String> description;
+    //
+    //        /**
+    //         * Server.variables
+    //         */
+    //        @ConfigItem
+    //        public Map<String, Variable> variables;
+    //
+    //    }
+
+    @ConfigGroup
+    public static class Variable {
+
+        /**
+         * Variable.enums
+         */
+        @ConfigItem
+        public Optional<List<String>> enums;
+
+        /**
+         * Variable.defaultValue
+         */
+        @ConfigItem
+        public Optional<String> defaultValue;
+
+        /**
+         * Variable.description
+         */
+        @ConfigItem
+        public Optional<String> description;
+    }
+
+    @ConfigGroup
+    public static class Components {
+
+        /**
+         * Components.securitySchemes
+         */
+        @ConfigItem
+        public Map<String, SecurityScheme> securitySchemes;
+    }
+
+    @ConfigGroup
+    public static class SecurityScheme {
+
+        /**
+         * SecurityScheme.type
+         */
+        @ConfigItem
+        public Optional<String> type;
+
+        /**
+         * SecurityScheme.description
+         */
+        @ConfigItem
+        public Optional<String> description;
+
+        /**
+         * SecurityScheme.name
+         */
+        @ConfigItem
+        public Optional<String> name;
+
+        /**
+         * SecurityScheme.in
+         */
+        @ConfigItem(defaultValue = "HEADER")
+        public In in;
+
+        /**
+         * SecurityScheme.scheme
+         */
+        @ConfigItem
+        public Optional<String> scheme;
+
+        /**
+         * SecurityScheme.bearerFormat
+         */
+        @ConfigItem
+        public Optional<String> bearerFormat;
+
+        /**
+         * SecurityScheme.flows
+         */
+        @ConfigItem
+        public Flows flows;
+
+        /**
+         * SecurityScheme.openIdConnectUrl
+         */
+        @ConfigItem
+        public Optional<String> openIdConnectUrl;
+    }
+
+    public enum In {
+        QUERY,
+        HEADER,
+        COOKIE
+    }
+
+    @ConfigGroup
+    public static class Flows {
+
+        /**
+         * Flows.implicit
+         */
+        @ConfigItem
+        public Flow implicit;
+
+        /**
+         * Flows.password
+         */
+        @ConfigItem
+        public Flow password;
+
+        /**
+         * Flows.clientCredentials
+         */
+        @ConfigItem
+        public Flow clientCredentials;
+
+        /**
+         * Flows.authorizationCode
+         */
+        @ConfigItem
+        public Flow authorizationCode;
+    }
+
+    @ConfigGroup
+    public static class Flow {
+
+        /**
+         * Flow.authorizationUrl
+         */
+        @ConfigItem
+        public Optional<String> authorizationUrl;
+
+        /**
+         * Flow.tokenUrl
+         */
+        @ConfigItem
+        public Optional<String> tokenUrl;
+
+        /**
+         * Flow.refreshUrl
+         */
+        @ConfigItem
+        public Optional<String> refreshUrl;
+
+        /**
+         * Flow.scopes
+         */
+        @ConfigItem
+        public Map<String, String> scopes;
     }
 }
