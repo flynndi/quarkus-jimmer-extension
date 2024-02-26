@@ -508,6 +508,57 @@ endif::add-copy-button-to-env-var[]
 |`/openapi.html`
 
 
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-info-title]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-info-title[quarkus.jimmer.client.openapi.properties.info.title]`
+
+
+[.description]
+--
+Openapi.title
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_INFO_TITLE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_INFO_TITLE+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-info-description]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-info-description[quarkus.jimmer.client.openapi.properties.info.description]`
+
+
+[.description]
+--
+Openapi.description
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_INFO_DESCRIPTION+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_INFO_DESCRIPTION+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-info-version]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-info-version[quarkus.jimmer.client.openapi.properties.info.version]`
+
+
+[.description]
+--
+Openapi.version
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_INFO_VERSION+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_INFO_VERSION+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
 h|[[quarkus-jimmer_quarkus-jimmer-error-translator-jimmer]]link:#quarkus-jimmer_quarkus-jimmer-error-translator-jimmer[jimmer]
 This configuration section is optional
 h|Type
