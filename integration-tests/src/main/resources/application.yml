@@ -29,6 +29,22 @@ quarkus:
     client:
       ts:
         path: /Code/ts.zip
-    openapi:
-      path: /openapi.yml
-      ui-path: /openapi.html
+      openapi:
+        path: /openapi.yml
+        ui-path: /openapi.html
+        properties:
+          info:
+            title: Jimmer REST Example(Java)
+            description: This is the OpenAPI UI of Jimmer REST Example(Java)
+            version: 0.0.1.CR1
+          securities:
+          components:
+            securitySchemes:
+              tenantHeader:
+                type: apiKey
+                name: tenant
+                in: HEADER
+              oauthHeader:
+                type: apiKey
+                name: tenant
+                in: QUERY
