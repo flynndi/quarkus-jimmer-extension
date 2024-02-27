@@ -1,557 +1,516 @@
 package io.quarkiverse.jimmer.runtime.cfg;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
 
 import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
 import org.babyfish.jimmer.sql.EnumType;
+import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
 import org.babyfish.jimmer.sql.runtime.IdOnlyTargetCheckingLevel;
-import org.jetbrains.annotations.Nullable;
 
-import io.quarkus.runtime.annotations.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@ConfigRoot(name = "jimmer", phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
-public class JimmerBuildTimeConfig {
+import io.quarkus.runtime.annotations.ConfigDocMapKey;
+import io.quarkus.runtime.annotations.ConfigGroup;
+import io.quarkus.runtime.annotations.ConfigPhase;
+import io.quarkus.runtime.annotations.ConfigRoot;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+
+@ConfigMapping(prefix = "quarkus.jimmer")
+@ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
+public interface JimmerBuildTimeConfig {
 
     /**
      * jimmer.language
      */
-    @ConfigItem(defaultValue = "java")
-    public String language;
+    @WithDefault("java")
+    String language();
 
     /**
      * jimmer.showSql
      */
-    @ConfigItem
-    public boolean showSql;
+    @WithDefault("false")
+    boolean showSql();
 
     /**
      * jimmer.prettySql
      */
-    @ConfigItem
-    public boolean prettySql;
+    @WithDefault("false")
+    boolean prettySql();
 
     /**
      * jimmer.inlineSqlVariables
      */
-    @ConfigItem
-    public boolean inlineSqlVariables;
+    @WithDefault("false")
+    boolean inlineSqlVariables();
 
     /**
      * jimmer.databaseValidation
      */
-    @ConfigItem
-    public DatabaseValidation databaseValidation;
+    DatabaseValidation databaseValidation();
 
     /**
      * jimmer.triggerType
      */
-    @ConfigItem(defaultValue = "BINLOG_ONLY")
-    public TriggerType triggerType;
+    @WithDefault("BINLOG_ONLY")
+    TriggerType triggerType();
 
     /**
      * jimmer.defaultDissociationActionCheckable
      */
-    @ConfigItem(defaultValue = "true")
-    public boolean defaultDissociationActionCheckable;
+    @WithDefault("true")
+    boolean defaultDissociationActionCheckable();
 
     /**
      * jimmer.idOnlyTargetCheckingLevel
      */
-    @ConfigItem(defaultValue = "NONE")
-    public IdOnlyTargetCheckingLevel idOnlyTargetCheckingLevel;
+    @WithDefault("NONE")
+    IdOnlyTargetCheckingLevel idOnlyTargetCheckingLevel();
 
     /**
      * jimmer.transactionCacheOperatorFixedDelay
      */
-    @ConfigItem(defaultValue = "5000")
-    public OptionalInt transactionCacheOperatorFixedDelay;
+    @WithDefault("5000")
+    OptionalInt transactionCacheOperatorFixedDelay();
 
     /**
      * jimmer.defaultEnumStrategy
      */
-    @ConfigItem(defaultValue = "NAME")
-    public EnumType.Strategy defaultEnumStrategy;
+    @WithDefault("NAME")
+    EnumType.Strategy defaultEnumStrategy();
 
     /**
      * jimmer.defaultBatchSize
      */
-    @ConfigItem
-    public OptionalInt defaultBatchSize;
+    OptionalInt defaultBatchSize = OptionalInt.of(JSqlClient.Builder.DEFAULT_BATCH_SIZE);
 
     /**
      * jimmer.defaultListBatchSize
      */
-    @ConfigItem
-    public OptionalInt defaultListBatchSize;
+    OptionalInt defaultListBatchSize = OptionalInt.of(JSqlClient.Builder.DEFAULT_LIST_BATCH_SIZE);
 
     /**
      * jimmer.offsetOptimizingThreshold
      */
-    @ConfigItem
-    public OptionalInt offsetOptimizingThreshold;
+    OptionalInt offsetOptimizingThreshold = OptionalInt.of(Integer.MAX_VALUE);
 
     /**
      * jimmer.isForeignKeyEnabledByDefault
      */
-    @ConfigItem(defaultValue = "true")
-    public boolean isForeignKeyEnabledByDefault;
+    @WithDefault("true")
+    boolean isForeignKeyEnabledByDefault();
 
     /**
      * jimmer.saveCommandPessimisticLock
      */
-    @ConfigItem
-    public boolean saveCommandPessimisticLock;
+    @WithDefault("false")
+    boolean saveCommandPessimisticLock();
 
     /**
      * jimmer.executorContextPrefixes
      */
-    @ConfigItem
-    public Optional<List<String>> executorContextPrefixes = Optional.empty();
+    Optional<List<String>> executorContextPrefixes = Optional.empty();
 
     /**
      * jimmer.microServiceName
      */
-    @ConfigItem(defaultValue = "")
-    public Optional<String> microServiceName;
+    Optional<String> microServiceName();
 
     /**
      * jimmer.errorTranslator
      */
-    @ConfigItem
-    public Optional<ErrorTranslator> errorTranslator = Optional.empty();
+    Optional<ErrorTranslator> errorTranslator = Optional.empty();
 
     /**
      * jimmer.Client
      */
-    @ConfigItem
-    public Client client;
+    Optional<Client> client();
 
     @ConfigGroup
-    public static class DatabaseValidation {
+    interface DatabaseValidation {
 
         /**
          * mode
          */
-        @ConfigItem(defaultValue = "NONE")
-        public DatabaseValidationMode mode;
+        @WithDefault("NONE")
+        DatabaseValidationMode mode();
 
         /**
          * catalog
          */
-        @ConfigItem
-        public Optional<String> catalog = Optional.empty();
+        Optional<String> catalog = Optional.empty();
 
         /**
          * schema
          */
-        @ConfigItem
-        public Optional<String> schema = Optional.empty();
+        Optional<String> schema = Optional.empty();
     }
 
     @ConfigGroup
-    public static class ErrorTranslator {
+    interface ErrorTranslator {
 
         /**
          * ErrorTranslatorBuildTimeConfig
          */
-        @ConfigItem
-        public boolean disabled;
+        @WithDefault("false")
+        boolean disabled();
 
         /**
          * httpStatus
          */
-        @ConfigItem
-        public int httpStatus;
+        int httpStatus();
 
         /**
          * debugInfoSupported
          */
-        @ConfigItem
-        public boolean debugInfoSupported;
+        @WithDefault("false")
+        boolean debugInfoSupported();
 
         /**
          * debugInfoMaxStackTraceCount
          */
-        @ConfigItem
-        public int debugInfoMaxStackTraceCount;
+        int debugInfoMaxStackTraceCount();
 
-        public ErrorTranslator(
-                Boolean disabled,
-                Integer httpStatus,
-                Boolean debugInfoSupported,
-                Integer debugInfoMaxStackTraceCount) {
-            this.disabled = disabled != null ? disabled : false;
-            this.httpStatus = httpStatus != null ? httpStatus : 500;
-            this.debugInfoSupported = debugInfoSupported != null ? debugInfoSupported : false;
-            this.debugInfoMaxStackTraceCount = debugInfoMaxStackTraceCount != null ? debugInfoMaxStackTraceCount
-                    : Integer.MAX_VALUE;
-        }
+        //        ErrorTranslator(
+        //                Boolean disabled,
+        //                Integer httpStatus,
+        //                Boolean debugInfoSupported,
+        //                Integer debugInfoMaxStackTraceCount) {
+        //            this.disabled = disabled != null ? disabled : false();
+        //            this.httpStatus = httpStatus != null ? httpStatus : 500();
+        //            this.debugInfoSupported = debugInfoSupported != null ? debugInfoSupported : false();
+        //            this.debugInfoMaxStackTraceCount = debugInfoMaxStackTraceCount != null ? debugInfoMaxStackTraceCount
+        //                    : Integer.MAX_VALUE();
+        //        }
     }
 
     @ConfigGroup
-    public static class Client {
+    interface Client {
 
         /**
          * jimmer.Client.TypeScript
          */
-        @ConfigItem
-        public TypeScript ts;
+        TypeScript ts();
 
         /**
          * jimmer.Client.uriPrefix
          */
-        @Nullable
-        @ConfigItem
-        public Optional<String> uriPrefix = Optional.empty();
+        Optional<String> uriPrefix = Optional.empty();
 
         /**
          * jimmer.Client.controllerNullityChecked
          */
-        @ConfigItem
-        public boolean controllerNullityChecked;
+        @WithDefault("false")
+        boolean controllerNullityChecked();
 
         /**
          * jimmer.Client.openapi
          */
-        @ConfigItem
-        public Openapi openapi;
+        Openapi openapi();
     }
 
     @ConfigGroup
-    public static class TypeScript {
+    interface TypeScript {
 
         /**
          * jimmer.Client.TypeScript.path
          */
-        @ConfigItem
-        @Nullable
-        public Optional<String> path = Optional.empty();
+        Optional<String> path();
 
         /**
          * jimmer.Client.TypeScript.apiName
          */
-        @ConfigItem(defaultValue = "Api")
-        @Nullable
-        public Optional<String> apiName = Optional.empty();
+        @WithDefault("Api")
+        Optional<String> apiName();
 
         /**
          * jimmer.Client.TypeScript.indent
          */
-        @ConfigItem(defaultValue = "4")
-        public int indent;
+        @WithDefault("4")
+        int indent();
 
         /**
          * jimmer.Client.TypeScript.mutable
          */
-        @ConfigItem
-        public boolean mutable;
+        @WithDefault("false")
+        boolean mutable();
 
         /**
          * jimmer.Client.TypeScript.nullRenderMode
          */
-        @ConfigItem(defaultValue = "UNDEFINED")
-        public NullRenderMode nullRenderMode;
+        @WithDefault("UNDEFINED")
+        NullRenderMode nullRenderMode();
 
         /**
          * jimmer.Client.TypeScript.isEnumTsStyle
          */
-        @ConfigItem
-        public boolean isEnumTsStyle;
+        @WithDefault("false")
+        boolean isEnumTsStyle();
     }
 
     @ConfigGroup
-    public static class Openapi {
+    interface Openapi {
 
         /**
          * Openapi.path
          */
-        @ConfigItem(defaultValue = "/openapi.yml")
-        public Optional<String> path;
+        @WithDefault("/openapi.yml")
+        Optional<String> path();
 
         /**
          * Openapi.uiPath
          */
-        @ConfigItem(defaultValue = "/openapi.html")
-        public Optional<String> uiPath;
+        @WithDefault("/openapi.html")
+        Optional<String> uiPath();
 
         /**
          * Openapi.properties
          */
-        @ConfigItem
-        public Properties properties;
+        Properties properties();
     }
 
     @ConfigGroup
-    public static class Properties {
+    interface Properties {
 
         /**
          * Properties.info
          */
-        @ConfigItem
-        public Info info;
+        Info info();
 
         /**
          * Properties.servers
          */
-        @ConfigItem
-        public Optional<List<Server>> servers;
+        Optional<List<Server>> servers();
 
         /**
          * Properties.securities
          */
-        @ConfigItem(name = "securities")
-        public Optional<List<Map<String, List<String>>>> securities;
+        @JsonProperty
+        Optional<List<Map<String, List<String>>>> securities();
 
         /**
          * Properties.components
          */
-        @ConfigItem
-        public Components components;
+        Components components();
     }
 
     @ConfigGroup
-    public static class Info {
+    interface Info {
 
         /**
          * Openapi.title
          */
-        @ConfigItem
-        public Optional<String> title;
+        Optional<String> title();
 
         /**
          * Openapi.description
          */
-        @ConfigItem
-        public Optional<String> description;
+        Optional<String> description();
 
         /**
          * Openapi.termsOfService
          */
-        @ConfigItem
-        public Optional<String> termsOfService;
+        Optional<String> termsOfService();
 
         /**
          * Openapi.contact
          */
-        @ConfigItem
-        public Contact contact;
+        Contact contact();
 
         /**
          * Openapi.license
          */
-        @ConfigItem
-        public License license;
+        License license();
 
         /**
          * Openapi.version
          */
-        @ConfigItem
-        public Optional<String> version;
+        Optional<String> version();
     }
 
     @ConfigGroup
-    public static class Contact {
+    interface Contact {
 
         /**
          * Contact.name
          */
-        @ConfigItem
-        public Optional<String> name;
+        Optional<String> name();
 
         /**
          * Contact.url
          */
-        @ConfigItem
-        public Optional<String> url;
+        Optional<String> url();
 
         /**
          * Contact.email
          */
-        @ConfigItem
-        public Optional<String> email;
+        Optional<String> email();
     }
 
     @ConfigGroup
-    public static class License {
+    interface License {
 
         /**
          * License.name
          */
-        @ConfigItem
-        public Optional<String> name;
+        Optional<String> name();
 
         /**
          * License.identifier
          */
-        @ConfigItem
-        public Optional<String> identifier;
+        Optional<String> identifier();
     }
 
     @ConfigGroup
-    public static class Server {
+    interface Server {
 
         /**
          * Server.url
          */
-        @ConfigItem
-        public Optional<String> url = Optional.empty();
+        Optional<String> url = Optional.empty();
 
         /**
          * Server.description
          */
-        @ConfigItem
-        public Optional<String> description = Optional.empty();
+        Optional<String> description = Optional.empty();
 
         /**
          * Server.variables
          */
         @ConfigDocMapKey("variable")
-        @ConfigItem(name = "variables")
-        public Map<String, Variable> variables = new HashMap<>();
+        @WithName("variables")
+        Map<String, Variable> variables();
     }
 
     @ConfigGroup
-    public static class Variable {
+    interface Variable {
 
         /**
          * Variable.enums
          */
-        @ConfigItem
-        public Optional<List<String>> enums = Optional.empty();
+        Optional<List<String>> enums = Optional.empty();
 
         /**
          * Variable.defaultValue
          */
-        @ConfigItem
-        public Optional<String> defaultValue = Optional.empty();
+        Optional<String> defaultValue = Optional.empty();
 
         /**
          * Variable.description
          */
-        @ConfigItem
-        public Optional<String> description = Optional.empty();
+        Optional<String> description = Optional.empty();
     }
 
     @ConfigGroup
-    public static class Components {
+    interface Components {
 
         /**
          * Components.securitySchemes
          */
         @ConfigDocMapKey("scheme")
-        @ConfigItem(name = "securitySchemes")
-        public Map<String, SecurityScheme> securitySchemes = new HashMap<>();
+        @WithName("securitySchemes")
+        Map<String, SecurityScheme> securitySchemes();
     }
 
     @ConfigGroup
-    public static class SecurityScheme {
+    interface SecurityScheme {
 
         /**
          * SecurityScheme.type
          */
-        @ConfigItem
-        public Optional<String> type = Optional.empty();
+        Optional<String> type();
 
         /**
          * SecurityScheme.description
          */
-        @ConfigItem
-        public Optional<String> description = Optional.empty();
+        Optional<String> description();
 
         /**
          * SecurityScheme.name
          */
-        @ConfigItem
-        public Optional<String> name = Optional.empty();
+        Optional<String> name();
 
         /**
          * SecurityScheme.in
          */
-        @ConfigItem(defaultValue = "HEADER")
-        public OpenApiProperties.In in;
+        @WithDefault("HEADER")
+        OpenApiProperties.In in();
 
         /**
          * SecurityScheme.scheme
          */
-        @ConfigItem
-        public Optional<String> scheme = Optional.empty();
+        Optional<String> scheme();
 
         /**
          * SecurityScheme.bearerFormat
          */
-        @ConfigItem
-        public Optional<String> bearerFormat = Optional.empty();
+        Optional<String> bearerFormat();
 
         /**
          * SecurityScheme.flows
          */
-        @ConfigItem
-        public Flows flows = new Flows();
+        Flows flows();
 
         /**
          * SecurityScheme.openIdConnectUrl
          */
-        @ConfigItem
-        public Optional<String> openIdConnectUrl;
+        Optional<String> openIdConnectUrl();
     }
 
     @ConfigGroup
-    public static class Flows {
+    interface Flows {
 
         /**
          * Flows.implicit
          */
-        @ConfigItem
-        public Flow implicit;
+        Flow implicit();
 
         /**
          * Flows.password
          */
-        @ConfigItem
-        public Flow password;
+        Flow password();
 
         /**
          * Flows.clientCredentials
          */
-        @ConfigItem
-        public Flow clientCredentials;
+        Flow clientCredentials();
 
         /**
          * Flows.authorizationCode
          */
-        @ConfigItem
-        public Flow authorizationCode;
+        Flow authorizationCode();
     }
 
     @ConfigGroup
-    public static class Flow {
+    interface Flow {
 
         /**
          * Flow.authorizationUrl
          */
-        @ConfigItem
-        public Optional<String> authorizationUrl;
+        Optional<String> authorizationUrl();
 
         /**
          * Flow.tokenUrl
          */
-        @ConfigItem
-        public Optional<String> tokenUrl;
+        Optional<String> tokenUrl();
 
         /**
          * Flow.refreshUrl
          */
-        @ConfigItem
-        public Optional<String> refreshUrl;
+        Optional<String> refreshUrl();
 
         /**
          * Flow.scopes
          */
         @ConfigDocMapKey("flowScopes")
-        @ConfigItem(name = "scopes")
-        public Map<String, String> scopes;
+        @WithName("scopes")
+        Map<String, String> scopes();
     }
 }
