@@ -1,9 +1,8 @@
 package io.quarkiverse.jimmer.runtime.cfg;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
 
+import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
 import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.event.TriggerType;
@@ -11,10 +10,7 @@ import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
 import org.babyfish.jimmer.sql.runtime.IdOnlyTargetCheckingLevel;
 import org.jetbrains.annotations.Nullable;
 
-import io.quarkus.runtime.annotations.ConfigGroup;
-import io.quarkus.runtime.annotations.ConfigItem;
-import io.quarkus.runtime.annotations.ConfigPhase;
-import io.quarkus.runtime.annotations.ConfigRoot;
+import io.quarkus.runtime.annotations.*;
 
 @ConfigRoot(name = "jimmer", phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public class JimmerBuildTimeConfig {
@@ -220,6 +216,7 @@ public class JimmerBuildTimeConfig {
         /**
          * jimmer.Client.openapi
          */
+        @ConfigItem
         public Openapi openapi;
     }
 
@@ -279,5 +276,282 @@ public class JimmerBuildTimeConfig {
          */
         @ConfigItem(defaultValue = "/openapi.html")
         public Optional<String> uiPath;
+
+        /**
+         * Openapi.properties
+         */
+        @ConfigItem
+        public Properties properties;
+    }
+
+    @ConfigGroup
+    public static class Properties {
+
+        /**
+         * Properties.info
+         */
+        @ConfigItem
+        public Info info;
+
+        /**
+         * Properties.servers
+         */
+        @ConfigItem
+        public Optional<List<Server>> servers;
+
+        /**
+         * Properties.securities
+         */
+        @ConfigItem(name = "securities")
+        public Optional<List<Map<String, List<String>>>> securities;
+
+        /**
+         * Properties.components
+         */
+        @ConfigItem
+        public Components components;
+    }
+
+    @ConfigGroup
+    public static class Info {
+
+        /**
+         * Openapi.title
+         */
+        @ConfigItem
+        public Optional<String> title;
+
+        /**
+         * Openapi.description
+         */
+        @ConfigItem
+        public Optional<String> description;
+
+        /**
+         * Openapi.termsOfService
+         */
+        @ConfigItem
+        public Optional<String> termsOfService;
+
+        /**
+         * Openapi.contact
+         */
+        @ConfigItem
+        public Contact contact;
+
+        /**
+         * Openapi.license
+         */
+        @ConfigItem
+        public License license;
+
+        /**
+         * Openapi.version
+         */
+        @ConfigItem
+        public Optional<String> version;
+    }
+
+    @ConfigGroup
+    public static class Contact {
+
+        /**
+         * Contact.name
+         */
+        @ConfigItem
+        public Optional<String> name;
+
+        /**
+         * Contact.url
+         */
+        @ConfigItem
+        public Optional<String> url;
+
+        /**
+         * Contact.email
+         */
+        @ConfigItem
+        public Optional<String> email;
+    }
+
+    @ConfigGroup
+    public static class License {
+
+        /**
+         * License.name
+         */
+        @ConfigItem
+        public Optional<String> name;
+
+        /**
+         * License.identifier
+         */
+        @ConfigItem
+        public Optional<String> identifier;
+    }
+
+    @ConfigGroup
+    public static class Server {
+
+        /**
+         * Server.url
+         */
+        @ConfigItem
+        public Optional<String> url = Optional.empty();
+
+        /**
+         * Server.description
+         */
+        @ConfigItem
+        public Optional<String> description = Optional.empty();
+
+        /**
+         * Server.variables
+         */
+        @ConfigDocMapKey("variable")
+        @ConfigItem(name = "variables")
+        public Map<String, Variable> variables = new HashMap<>();
+    }
+
+    @ConfigGroup
+    public static class Variable {
+
+        /**
+         * Variable.enums
+         */
+        @ConfigItem
+        public Optional<List<String>> enums = Optional.empty();
+
+        /**
+         * Variable.defaultValue
+         */
+        @ConfigItem
+        public Optional<String> defaultValue = Optional.empty();
+
+        /**
+         * Variable.description
+         */
+        @ConfigItem
+        public Optional<String> description = Optional.empty();
+    }
+
+    @ConfigGroup
+    public static class Components {
+
+        /**
+         * Components.securitySchemes
+         */
+        @ConfigDocMapKey("scheme")
+        @ConfigItem(name = "securitySchemes")
+        public Map<String, SecurityScheme> securitySchemes = new HashMap<>();
+    }
+
+    @ConfigGroup
+    public static class SecurityScheme {
+
+        /**
+         * SecurityScheme.type
+         */
+        @ConfigItem
+        public Optional<String> type = Optional.empty();
+
+        /**
+         * SecurityScheme.description
+         */
+        @ConfigItem
+        public Optional<String> description = Optional.empty();
+
+        /**
+         * SecurityScheme.name
+         */
+        @ConfigItem
+        public Optional<String> name = Optional.empty();
+
+        /**
+         * SecurityScheme.in
+         */
+        @ConfigItem(defaultValue = "HEADER")
+        public OpenApiProperties.In in;
+
+        /**
+         * SecurityScheme.scheme
+         */
+        @ConfigItem
+        public Optional<String> scheme = Optional.empty();
+
+        /**
+         * SecurityScheme.bearerFormat
+         */
+        @ConfigItem
+        public Optional<String> bearerFormat = Optional.empty();
+
+        /**
+         * SecurityScheme.flows
+         */
+        @ConfigItem
+        public Flows flows = new Flows();
+
+        /**
+         * SecurityScheme.openIdConnectUrl
+         */
+        @ConfigItem
+        public Optional<String> openIdConnectUrl;
+    }
+
+    @ConfigGroup
+    public static class Flows {
+
+        /**
+         * Flows.implicit
+         */
+        @ConfigItem
+        public Flow implicit;
+
+        /**
+         * Flows.password
+         */
+        @ConfigItem
+        public Flow password;
+
+        /**
+         * Flows.clientCredentials
+         */
+        @ConfigItem
+        public Flow clientCredentials;
+
+        /**
+         * Flows.authorizationCode
+         */
+        @ConfigItem
+        public Flow authorizationCode;
+    }
+
+    @ConfigGroup
+    public static class Flow {
+
+        /**
+         * Flow.authorizationUrl
+         */
+        @ConfigItem
+        public Optional<String> authorizationUrl;
+
+        /**
+         * Flow.tokenUrl
+         */
+        @ConfigItem
+        public Optional<String> tokenUrl;
+
+        /**
+         * Flow.refreshUrl
+         */
+        @ConfigItem
+        public Optional<String> refreshUrl;
+
+        /**
+         * Flow.scopes
+         */
+        @ConfigDocMapKey("flowScopes")
+        @ConfigItem(name = "scopes")
+        public Map<String, String> scopes;
     }
 }
