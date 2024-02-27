@@ -33,7 +33,7 @@ public class QuarkusJSqlClientProducer {
     }
 
     public QuarkusJSqlClientContainer createQuarkusJSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect) {
-        final boolean isKotlin = config.language.equalsIgnoreCase("kotlin");
+        final boolean isKotlin = config.language().equalsIgnoreCase("kotlin");
         final QuarkusJSqlClient quarkusJSqlClient = new QuarkusJSqlClient(config, dataSource, dataSourceName, container, event,
                 dialect, isKotlin);
         return new QuarkusJSqlClientContainer(quarkusJSqlClient, dataSourceName);
