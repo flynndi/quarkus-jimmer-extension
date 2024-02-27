@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.runtime.cfg;
 
 import java.util.*;
 
+import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
 import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.event.TriggerType;
@@ -9,10 +10,7 @@ import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
 import org.babyfish.jimmer.sql.runtime.IdOnlyTargetCheckingLevel;
 import org.jetbrains.annotations.Nullable;
 
-import io.quarkus.runtime.annotations.ConfigGroup;
-import io.quarkus.runtime.annotations.ConfigItem;
-import io.quarkus.runtime.annotations.ConfigPhase;
-import io.quarkus.runtime.annotations.ConfigRoot;
+import io.quarkus.runtime.annotations.*;
 
 @ConfigRoot(name = "jimmer", phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public class JimmerBuildTimeConfig {
@@ -298,14 +296,14 @@ public class JimmerBuildTimeConfig {
         /**
          * Properties.servers
          */
-        //        @ConfigItem
-        //        public List<Server> servers;
+        @ConfigItem
+        public Optional<List<Server>> servers;
 
         /**
          * Properties.securities
          */
-        //        @ConfigItem
-        //        public List<Map<String, List<String>>> securities;
+        @ConfigItem(name = "securities")
+        public Optional<List<Map<String, List<String>>>> securities;
 
         /**
          * Properties.components
@@ -392,28 +390,28 @@ public class JimmerBuildTimeConfig {
         public Optional<String> identifier;
     }
 
-    //    @ConfigGroup
-    //    public static class Server {
-    //
-    //        /**
-    //         * Server.url
-    //         */
-    //        @ConfigItem
-    //        public Optional<String> url;
-    //
-    //        /**
-    //         * Server.description
-    //         */
-    //        @ConfigItem
-    //        public Optional<String> description;
-    //
-    //        /**
-    //         * Server.variables
-    //         */
-    //        @ConfigItem
-    //        public Map<String, Variable> variables;
-    //
-    //    }
+    @ConfigGroup
+    public static class Server {
+
+        /**
+         * Server.url
+         */
+        @ConfigItem
+        public Optional<String> url = Optional.empty();
+
+        /**
+         * Server.description
+         */
+        @ConfigItem
+        public Optional<String> description = Optional.empty();
+
+        /**
+         * Server.variables
+         */
+        @ConfigDocMapKey("variable")
+        @ConfigItem(name = "variables")
+        public Map<String, Variable> variables = new HashMap<>();
+    }
 
     @ConfigGroup
     public static class Variable {
@@ -422,19 +420,19 @@ public class JimmerBuildTimeConfig {
          * Variable.enums
          */
         @ConfigItem
-        public Optional<List<String>> enums;
+        public Optional<List<String>> enums = Optional.empty();
 
         /**
          * Variable.defaultValue
          */
         @ConfigItem
-        public Optional<String> defaultValue;
+        public Optional<String> defaultValue = Optional.empty();
 
         /**
          * Variable.description
          */
         @ConfigItem
-        public Optional<String> description;
+        public Optional<String> description = Optional.empty();
     }
 
     @ConfigGroup
@@ -443,8 +441,9 @@ public class JimmerBuildTimeConfig {
         /**
          * Components.securitySchemes
          */
-        @ConfigItem
-        public Map<String, SecurityScheme> securitySchemes;
+        @ConfigDocMapKey("scheme")
+        @ConfigItem(name = "securitySchemes")
+        public Map<String, SecurityScheme> securitySchemes = new HashMap<>();
     }
 
     @ConfigGroup
@@ -454,55 +453,49 @@ public class JimmerBuildTimeConfig {
          * SecurityScheme.type
          */
         @ConfigItem
-        public Optional<String> type;
+        public Optional<String> type = Optional.empty();
 
         /**
          * SecurityScheme.description
          */
         @ConfigItem
-        public Optional<String> description;
+        public Optional<String> description = Optional.empty();
 
         /**
          * SecurityScheme.name
          */
         @ConfigItem
-        public Optional<String> name;
+        public Optional<String> name = Optional.empty();
 
         /**
          * SecurityScheme.in
          */
         @ConfigItem(defaultValue = "HEADER")
-        public In in;
+        public OpenApiProperties.In in;
 
         /**
          * SecurityScheme.scheme
          */
         @ConfigItem
-        public Optional<String> scheme;
+        public Optional<String> scheme = Optional.empty();
 
         /**
          * SecurityScheme.bearerFormat
          */
         @ConfigItem
-        public Optional<String> bearerFormat;
+        public Optional<String> bearerFormat = Optional.empty();
 
         /**
          * SecurityScheme.flows
          */
         @ConfigItem
-        public Flows flows;
+        public Flows flows = new Flows();
 
         /**
          * SecurityScheme.openIdConnectUrl
          */
         @ConfigItem
         public Optional<String> openIdConnectUrl;
-    }
-
-    public enum In {
-        QUERY,
-        HEADER,
-        COOKIE
     }
 
     @ConfigGroup
@@ -557,7 +550,8 @@ public class JimmerBuildTimeConfig {
         /**
          * Flow.scopes
          */
-        @ConfigItem
+        @ConfigDocMapKey("flowScopes")
+        @ConfigItem(name = "scopes")
         public Map<String, String> scopes;
     }
 }
