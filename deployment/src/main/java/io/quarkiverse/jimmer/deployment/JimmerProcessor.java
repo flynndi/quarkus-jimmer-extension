@@ -58,32 +58,20 @@ public class JimmerProcessor {
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     void verifyConfig(JimmerDataSourcesRecorder recorder, JimmerBuildTimeConfig config) {
-        if (!config.language.equals("java") && !config.language.equals("kotlin")) {
+        if (!config.language().equals("java") && !config.language().equals("kotlin")) {
             throw new IllegalArgumentException("`jimmer.language` must be \"java\" or \"kotlin\"");
         }
-        if (config.prettySql && !config.showSql) {
+        if (config.prettySql() && !config.showSql()) {
             throw new IllegalArgumentException(
                     "When `pretty-sql` is true, `show-sql` must be true");
         }
-        if (config.inlineSqlVariables && !config.prettySql) {
+        if (config.inlineSqlVariables() && !config.prettySql()) {
             throw new IllegalArgumentException(
                     "When `inline-sql-variables` is true, `pretty-sql` must be true");
         }
-        if (config.defaultBatchSize.isEmpty()) {
-            config.defaultBatchSize = OptionalInt.of(JSqlClient.Builder.DEFAULT_BATCH_SIZE);
-        }
-        if (config.defaultListBatchSize.isEmpty()) {
-            config.defaultListBatchSize = OptionalInt.of(JSqlClient.Builder.DEFAULT_LIST_BATCH_SIZE);
-        }
-        if (config.offsetOptimizingThreshold.isEmpty()) {
-            config.offsetOptimizingThreshold = OptionalInt.of(Integer.MAX_VALUE);
-        }
-        if (config.errorTranslator.isEmpty()) {
-            config.errorTranslator = Optional.of(new JimmerBuildTimeConfig.ErrorTranslator(null, null, null, null));
-        }
-        if (null != config.client) {
-            if (config.client.ts.path.isPresent()) {
-                if (!config.client.ts.path.get().startsWith("/")) {
+        if (config.client().isPresent()) {
+            if (config.client().get().ts().path().isPresent()) {
+                if (!config.client().get().ts().path().get().startsWith("/")) {
                     throw new IllegalArgumentException("`jimmer.client.ts.path` must start with \"/\"");
                 }
             }
@@ -103,16 +91,16 @@ public class JimmerProcessor {
             LaunchModeBuildItem launchModeBuildItem,
             JimmerBuildTimeConfig config,
             BuildProducer<RegistryBuildItem> registries) {
-        if (config.client.ts.path.isPresent()) {
+        if (config.client().get().ts().path().isPresent()) {
             routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
                     .management()
-                    .routeFunction(config.client.ts.path.get(), typeScriptRecorder.route())
+                    .routeFunction(config.client().get().ts().path().get(), typeScriptRecorder.route())
                     .routeConfigKey("quarkus.jimmer.client.ts.path")
                     .handler(typeScriptRecorder.getHandler())
                     .blockingRoute()
                     .build());
 
-            String tsPath = nonApplicationRootPathBuildItem.resolveManagementPath(config.client.ts.path.get(),
+            String tsPath = nonApplicationRootPathBuildItem.resolveManagementPath(config.client().get().ts().path().get(),
                     managementInterfaceBuildTimeConfig, launchModeBuildItem);
             log.debug("Initialized a Jimmer TypeScript meter registry on path = " + tsPath);
 
@@ -143,13 +131,13 @@ public class JimmerProcessor {
 
         routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
                 .management()
-                .routeFunction(config.client.openapi.path.get(), openApiRecorder.route())
+                .routeFunction(config.client().get().openapi().path().get(), openApiRecorder.route())
                 .routeConfigKey("quarkus.jimmer.client.openapi.path")
                 .handler(openApiRecorder.getHandler())
                 .blockingRoute()
                 .build());
 
-        String openapiPath = nonApplicationRootPathBuildItem.resolveManagementPath(config.client.openapi.path.get(),
+        String openapiPath = nonApplicationRootPathBuildItem.resolveManagementPath(config.client().get().openapi().path().get(),
                 managementInterfaceBuildTimeConfig, launchModeBuildItem);
         log.debug("Initialized a Jimmer OpenApi meter registry on path = " + openapiPath);
 
@@ -157,13 +145,13 @@ public class JimmerProcessor {
 
         routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
                 .management()
-                .routeFunction(config.client.openapi.uiPath.get(), openApiUiRecorder.route())
+                .routeFunction(config.client().get().openapi().uiPath().get(), openApiUiRecorder.route())
                 .routeConfigKey("quarkus.jimmer.client.openapi.ui-path")
                 .handler(openApiUiRecorder.getHandler())
                 .blockingRoute()
                 .build());
 
-        String uiPath = nonApplicationRootPathBuildItem.resolveManagementPath(config.client.openapi.uiPath.get(),
+        String uiPath = nonApplicationRootPathBuildItem.resolveManagementPath(config.client().get().openapi().uiPath().get(),
                 managementInterfaceBuildTimeConfig, launchModeBuildItem);
         log.debug("Initialized a Jimmer OpenApiUi meter registry on path = " + uiPath);
 

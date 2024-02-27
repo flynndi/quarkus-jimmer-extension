@@ -79,7 +79,7 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
     }
 
     private String html(String groups) {
-        String path = config.client.openapi.path.get();
+        String path = config.client().get().openapi().path().get();
         String resource;
         if (hasMetadata()) {
             resource = path != null && !path.isEmpty() ? "META-INF/jimmer/openapi/index.html.template"

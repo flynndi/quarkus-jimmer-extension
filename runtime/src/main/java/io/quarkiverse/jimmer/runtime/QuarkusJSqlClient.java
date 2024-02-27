@@ -124,35 +124,35 @@ public class QuarkusJSqlClient extends JLazyInitializationSqlClient {
         }
 
         builder.setDialect(this.dialect);
-        builder.setTriggerType(config.triggerType);
-        builder.setDefaultDissociateActionCheckable(config.defaultDissociationActionCheckable);
-        builder.setIdOnlyTargetCheckingLevel(config.idOnlyTargetCheckingLevel);
-        builder.setDefaultEnumStrategy(config.defaultEnumStrategy);
+        builder.setTriggerType(config.triggerType());
+        builder.setDefaultDissociateActionCheckable(config.defaultDissociationActionCheckable());
+        builder.setIdOnlyTargetCheckingLevel(config.idOnlyTargetCheckingLevel());
+        builder.setDefaultEnumStrategy(config.defaultEnumStrategy());
         config.defaultBatchSize.ifPresent(builder::setDefaultBatchSize);
         config.defaultListBatchSize.ifPresent(builder::setDefaultListBatchSize);
         config.offsetOptimizingThreshold.ifPresent(builder::setOffsetOptimizingThreshold);
-        builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault);
-        builder.setSaveCommandPessimisticLock(config.saveCommandPessimisticLock);
+        builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
+        builder.setSaveCommandPessimisticLock(config.saveCommandPessimisticLock());
         config.executorContextPrefixes.ifPresent(builder::setExecutorContextPrefixes);
 
-        if (config.showSql) {
+        if (config.showSql()) {
             builder.setExecutor(Executor.log(executor));
         } else {
             builder.setExecutor(executor);
         }
         if (sqlFormatter != null) {
             builder.setSqlFormatter(sqlFormatter);
-        } else if (config.prettySql) {
-            if (config.inlineSqlVariables) {
+        } else if (config.prettySql()) {
+            if (config.inlineSqlVariables()) {
                 builder.setSqlFormatter(SqlFormatter.INLINE_PRETTY);
             } else {
                 builder.setSqlFormatter(SqlFormatter.PRETTY);
             }
         }
         builder
-                .setDatabaseValidationMode(config.databaseValidation.mode)
-                .setDatabaseValidationCatalog(config.databaseValidation.catalog.orElse(null))
-                .setDatabaseValidationSchema(config.databaseValidation.schema.orElse(null))
+                .setDatabaseValidationMode(config.databaseValidation().mode())
+                .setDatabaseValidationCatalog(config.databaseValidation().catalog.orElse(null))
+                .setDatabaseValidationSchema(config.databaseValidation().schema.orElse(null))
                 .setCacheFactory(cacheFactory)
                 .setCacheOperator(cacheOperator)
                 .addCacheAbandonedCallbacks(callbacks);
@@ -165,8 +165,8 @@ public class QuarkusJSqlClient extends JLazyInitializationSqlClient {
         initializeByLanguage(builder);
         builder.addInitializers(new QuarkusEventInitializer(event));
 
-        builder.setMicroServiceName(config.microServiceName.orElse(null));
-        if (config.microServiceName.isPresent()) {
+        builder.setMicroServiceName(config.microServiceName().orElse(null));
+        if (config.microServiceName().isPresent()) {
             builder.setMicroServiceExchange(exchange);
         }
 
