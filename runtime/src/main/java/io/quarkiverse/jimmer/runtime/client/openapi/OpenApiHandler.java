@@ -45,47 +45,49 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         }
 
         Metadata metadata = Metadatas.create(false, routingContext.request().getParam("groups"),
-                config.client.uriPrefix.orElse(null),
-                config.client.controllerNullityChecked);
+                config.client().get().uriPrefix.orElse(null),
+                config.client().get().controllerNullityChecked());
 
         List<OpenApiProperties.Server> servers = null;
-        if (config.client.openapi.properties.servers.isPresent()) {
-            servers = new ArrayList<>(config.client.openapi.properties.servers.get().size());
-            for (JimmerBuildTimeConfig.Server server : config.client.openapi.properties.servers.get()) {
+        if (config.client().get().openapi().properties().servers().isPresent()) {
+            servers = new ArrayList<>(config.client().get().openapi().properties().servers().get().size());
+            for (JimmerBuildTimeConfig.Server server : config.client().get().openapi().properties().servers().get()) {
                 Map<String, OpenApiProperties.Variable> map = new HashMap<>();
-                server.variables.forEach((k, v) -> map.put(k, new OpenApiProperties.Variable(v.enums.orElse(null),
+                server.variables().forEach((k, v) -> map.put(k, new OpenApiProperties.Variable(v.enums.orElse(null),
                         v.defaultValue.orElse(null), v.description.orElse(null))));
                 servers.add(new OpenApiProperties.Server(server.url.orElse(null), server.description.orElse(null), map));
             }
         }
 
         Map<String, OpenApiProperties.SecurityScheme> map;
-        if (!config.client.openapi.properties.components.securitySchemes.isEmpty()) {
+        if (!config.client().get().openapi().properties().components().securitySchemes().isEmpty()) {
             map = new HashMap<>();
-            config.client.openapi.properties.components.securitySchemes.forEach((k, v) -> map.put(k,
+            config.client().get().openapi().properties().components().securitySchemes().forEach((k, v) -> map.put(k,
                     new OpenApiProperties.SecurityScheme(
-                            v.type.orElse(null),
-                            v.description.orElse(null),
-                            v.name.orElse(null),
-                            v.in,
-                            v.scheme.orElse(null),
-                            v.bearerFormat.orElse(null),
+                            v.type().orElse(null),
+                            v.description().orElse(null),
+                            v.name().orElse(null),
+                            v.in(),
+                            v.scheme().orElse(null),
+                            v.bearerFormat().orElse(null),
                             new OpenApiProperties.Flows(
-                                    new OpenApiProperties.Flow(v.flows.implicit.authorizationUrl.orElse(null),
-                                            v.flows.implicit.tokenUrl.orElse(null), v.flows.implicit.refreshUrl.orElse(null),
-                                            v.flows.implicit.scopes),
-                                    new OpenApiProperties.Flow(v.flows.password.authorizationUrl.orElse(null),
-                                            v.flows.password.tokenUrl.orElse(null), v.flows.password.refreshUrl.orElse(null),
-                                            v.flows.password.scopes),
-                                    new OpenApiProperties.Flow(v.flows.clientCredentials.authorizationUrl.orElse(null),
-                                            v.flows.clientCredentials.tokenUrl.orElse(null),
-                                            v.flows.clientCredentials.refreshUrl.orElse(null),
-                                            v.flows.clientCredentials.scopes),
-                                    new OpenApiProperties.Flow(v.flows.authorizationCode.authorizationUrl.orElse(null),
-                                            v.flows.authorizationCode.tokenUrl.orElse(null),
-                                            v.flows.authorizationCode.refreshUrl.orElse(null),
-                                            v.flows.authorizationCode.scopes)),
-                            v.openIdConnectUrl.orElse(null))));
+                                    new OpenApiProperties.Flow(v.flows().implicit().authorizationUrl().orElse(null),
+                                            v.flows().implicit().tokenUrl().orElse(null),
+                                            v.flows().implicit().refreshUrl().orElse(null),
+                                            v.flows().implicit().scopes()),
+                                    new OpenApiProperties.Flow(v.flows().password().authorizationUrl().orElse(null),
+                                            v.flows().password().tokenUrl().orElse(null),
+                                            v.flows().password().refreshUrl().orElse(null),
+                                            v.flows().password().scopes()),
+                                    new OpenApiProperties.Flow(v.flows().clientCredentials().authorizationUrl().orElse(null),
+                                            v.flows().clientCredentials().tokenUrl().orElse(null),
+                                            v.flows().clientCredentials().refreshUrl().orElse(null),
+                                            v.flows().clientCredentials().scopes()),
+                                    new OpenApiProperties.Flow(v.flows().authorizationCode().authorizationUrl().orElse(null),
+                                            v.flows().authorizationCode().tokenUrl().orElse(null),
+                                            v.flows().authorizationCode().refreshUrl().orElse(null),
+                                            v.flows().authorizationCode().scopes())),
+                            v.openIdConnectUrl().orElse(null))));
         } else {
             map = null;
         }
@@ -93,17 +95,17 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         OpenApiProperties openApiProperties = OpenApiProperties
                 .newBuilder()
                 .setInfo(new OpenApiProperties.Info(
-                        config.client.openapi.properties.info.title.orElse(null),
-                        config.client.openapi.properties.info.description.orElse(null),
-                        config.client.openapi.properties.info.termsOfService.orElse(null),
+                        config.client().get().openapi().properties().info().title().orElse(null),
+                        config.client().get().openapi().properties().info().description().orElse(null),
+                        config.client().get().openapi().properties().info().termsOfService().orElse(null),
                         new OpenApiProperties.Contact(
-                                config.client.openapi.properties.info.contact.name.orElse(null),
-                                config.client.openapi.properties.info.contact.url.orElse(null),
-                                config.client.openapi.properties.info.contact.email.orElse(null)),
+                                config.client().get().openapi().properties().info().contact().name().orElse(null),
+                                config.client().get().openapi().properties().info().contact().url().orElse(null),
+                                config.client().get().openapi().properties().info().contact().email().orElse(null)),
                         new OpenApiProperties.License(
-                                config.client.openapi.properties.info.license.name.orElse(null),
-                                config.client.openapi.properties.info.license.identifier.orElse(null)),
-                        config.client.openapi.properties.info.version.orElse(null)))
+                                config.client().get().openapi().properties().info().license().name().orElse(null),
+                                config.client().get().openapi().properties().info().license().identifier().orElse(null)),
+                        config.client().get().openapi().properties().info().version().orElse(null)))
                 .setServers(servers)
                 .setComponents(new OpenApiProperties.Components(map))
                 .build();
