@@ -104,11 +104,7 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
             return builder.toString();
         }
         if (groups != null && !groups.isEmpty()) {
-            try {
-                path += "?groups=" + URLEncoder.encode(groups, "utf-8");
-            } catch (UnsupportedEncodingException ex) {
-                throw new AssertionError("Internal bug: utf-8 is not supported");
-            }
+            path += "?groups=" + URLEncoder.encode(groups, StandardCharsets.UTF_8);
         }
         return builder
                 .toString()
