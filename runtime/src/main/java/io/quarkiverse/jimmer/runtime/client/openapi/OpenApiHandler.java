@@ -45,13 +45,13 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         }
 
         Metadata metadata = Metadatas.create(false, routingContext.request().getParam("groups"),
-                config.client().get().uriPrefix.orElse(null),
-                config.client().get().controllerNullityChecked());
+                config.client().uriPrefix.orElse(null),
+                config.client().controllerNullityChecked());
 
         List<OpenApiProperties.Server> servers = null;
-        if (config.client().get().openapi().properties().servers().isPresent()) {
-            servers = new ArrayList<>(config.client().get().openapi().properties().servers().get().size());
-            for (JimmerBuildTimeConfig.Server server : config.client().get().openapi().properties().servers().get()) {
+        if (config.client().openapi().properties().servers().isPresent()) {
+            servers = new ArrayList<>(config.client().openapi().properties().servers().get().size());
+            for (JimmerBuildTimeConfig.Server server : config.client().openapi().properties().servers().get()) {
                 Map<String, OpenApiProperties.Variable> map = new HashMap<>();
                 server.variables().forEach((k, v) -> map.put(k, new OpenApiProperties.Variable(v.enums.orElse(null),
                         v.defaultValue.orElse(null), v.description.orElse(null))));
@@ -60,9 +60,9 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         }
 
         Map<String, OpenApiProperties.SecurityScheme> map;
-        if (!config.client().get().openapi().properties().components().securitySchemes().isEmpty()) {
+        if (!config.client().openapi().properties().components().securitySchemes().isEmpty()) {
             map = new HashMap<>();
-            config.client().get().openapi().properties().components().securitySchemes().forEach((k, v) -> map.put(k,
+            config.client().openapi().properties().components().securitySchemes().forEach((k, v) -> map.put(k,
                     new OpenApiProperties.SecurityScheme(
                             v.type().orElse(null),
                             v.description().orElse(null),
@@ -95,17 +95,17 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         OpenApiProperties openApiProperties = OpenApiProperties
                 .newBuilder()
                 .setInfo(new OpenApiProperties.Info(
-                        config.client().get().openapi().properties().info().title().orElse(null),
-                        config.client().get().openapi().properties().info().description().orElse(null),
-                        config.client().get().openapi().properties().info().termsOfService().orElse(null),
+                        config.client().openapi().properties().info().title().orElse(null),
+                        config.client().openapi().properties().info().description().orElse(null),
+                        config.client().openapi().properties().info().termsOfService().orElse(null),
                         new OpenApiProperties.Contact(
-                                config.client().get().openapi().properties().info().contact().name().orElse(null),
-                                config.client().get().openapi().properties().info().contact().url().orElse(null),
-                                config.client().get().openapi().properties().info().contact().email().orElse(null)),
+                                config.client().openapi().properties().info().contact().name().orElse(null),
+                                config.client().openapi().properties().info().contact().url().orElse(null),
+                                config.client().openapi().properties().info().contact().email().orElse(null)),
                         new OpenApiProperties.License(
-                                config.client().get().openapi().properties().info().license().name().orElse(null),
-                                config.client().get().openapi().properties().info().license().identifier().orElse(null)),
-                        config.client().get().openapi().properties().info().version().orElse(null)))
+                                config.client().openapi().properties().info().license().name().orElse(null),
+                                config.client().openapi().properties().info().license().identifier().orElse(null)),
+                        config.client().openapi().properties().info().version().orElse(null)))
                 .setServers(servers)
                 .setComponents(new OpenApiProperties.Components(map))
                 .build();
