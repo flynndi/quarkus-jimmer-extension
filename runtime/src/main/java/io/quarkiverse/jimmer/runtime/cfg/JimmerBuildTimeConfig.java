@@ -131,7 +131,7 @@ public interface JimmerBuildTimeConfig {
     /**
      * jimmer.Client
      */
-    Optional<Client> client();
+    Client client();
 
     @ConfigGroup
     interface DatabaseValidation {
@@ -228,7 +228,7 @@ public interface JimmerBuildTimeConfig {
          * jimmer.Client.TypeScript.apiName
          */
         @WithDefault("Api")
-        Optional<String> apiName();
+        String apiName();
 
         /**
          * jimmer.Client.TypeScript.indent
@@ -262,13 +262,13 @@ public interface JimmerBuildTimeConfig {
          * Openapi.path
          */
         @WithDefault("/openapi.yml")
-        Optional<String> path();
+        String path();
 
         /**
          * Openapi.uiPath
          */
         @WithDefault("/openapi.html")
-        Optional<String> uiPath();
+        String uiPath();
 
         /**
          * Openapi.properties
