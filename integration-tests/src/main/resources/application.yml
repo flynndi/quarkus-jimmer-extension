@@ -35,7 +35,7 @@ quarkus:
         properties:
           info:
             title: Jimmer REST Example(Java)
-            description: This is the OpenAPI UI of Jimmer REST Example(Java)
+            description: This is the OpenAPI UI of Quarkus-Jimmer-Extension REST Example (Java)
             version: 0.0.1.CR1
           securities:
             - tenantHeader: [1, 2, 3]
