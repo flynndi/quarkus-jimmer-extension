@@ -108,6 +108,7 @@ public class OpenApiHandler implements Handler<RoutingContext> {
                         config.client().openapi().properties().info().version().orElse(null)))
                 .setServers(servers)
                 .setComponents(new OpenApiProperties.Components(map))
+                .setSecurities(config.client().openapi().properties().securities().orElse(null))
                 .build();
 
         OpenApiGenerator generator = new OpenApiGenerator(metadata, openApiProperties);
