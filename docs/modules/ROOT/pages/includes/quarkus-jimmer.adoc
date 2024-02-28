@@ -235,11 +235,6 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-h|[[quarkus-jimmer_quarkus-jimmer-client-jimmer]]link:#quarkus-jimmer_quarkus-jimmer-client-jimmer[jimmer]
-This configuration section is optional
-h|Type
-h|Default
-
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-ts-path]]`link:#quarkus-jimmer_quarkus-jimmer-client-ts-path[quarkus.jimmer.client.ts.path]`
 
 
@@ -581,6 +576,57 @@ endif::add-copy-button-to-env-var[]
 |
 
 
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-type]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-type[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".type]`
+
+
+[.description]
+--
+SecurityScheme.type
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__TYPE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__TYPE+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-description]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-description[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".description]`
+
+
+[.description]
+--
+SecurityScheme.description
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__DESCRIPTION+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__DESCRIPTION+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-name]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-name[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".name]`
+
+
+[.description]
+--
+SecurityScheme.name
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__NAME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__NAME+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-in]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-in[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".in]`
 
 
@@ -597,6 +643,40 @@ endif::add-copy-button-to-env-var[]
 -- a|
 `query`, `header`, `cookie` 
 |`header`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-scheme]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-scheme[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".scheme]`
+
+
+[.description]
+--
+SecurityScheme.scheme
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__SCHEME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__SCHEME+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-bearer-format]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-bearer-format[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".bearer-format]`
+
+
+[.description]
+--
+SecurityScheme.bearerFormat
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__BEARER_FORMAT+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__BEARER_FORMAT+++`
+endif::add-copy-button-to-env-var[]
+--|string 
+|
 
 
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-authorization-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-authorization-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.implicit.authorization-url]`
