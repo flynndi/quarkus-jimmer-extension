@@ -1,15 +1,17 @@
 package io.quarkiverse.jimmer.it.config;
 
-import io.quarkiverse.jimmer.it.entity.BaseEntity;
-import io.quarkiverse.jimmer.it.entity.BaseEntityDraft;
-import io.quarkiverse.jimmer.it.entity.BaseEntityProps;
-import io.quarkus.arc.Unremovable;
+import java.time.LocalDateTime;
+
 import jakarta.inject.Singleton;
+
 import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.sql.DraftInterceptor;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import io.quarkiverse.jimmer.it.entity.BaseEntity;
+import io.quarkiverse.jimmer.it.entity.BaseEntityDraft;
+import io.quarkiverse.jimmer.it.entity.BaseEntityProps;
+import io.quarkus.arc.Unremovable;
 
 @Singleton
 @Unremovable
