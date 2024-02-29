@@ -32,6 +32,7 @@ public class BookResources implements Fetchers {
 
     @GET
     @Path("/book")
+    @Api
     public Response getBookById(@RestQuery int id) {
         return Response.ok(iBook.findById(id)).build();
     }
@@ -58,12 +59,14 @@ public class BookResources implements Fetchers {
 
     @GET
     @Path("/books")
+    @Api
     public List<@FetchBy("SIMPLE_BOOK") Book> getBookByNameFetcher(@RestQuery String name) {
         return iBook.findBooksByName(name, SIMPLE_BOOK);
     }
 
     @GET
     @Path("/booksByName")
+    @Api
     public List<Book> getBookByName(@RestQuery String name) {
         return iBook.findBooksByName(name);
     }
@@ -77,6 +80,7 @@ public class BookResources implements Fetchers {
 
     @GET
     @Path("/testManyToMany")
+    @Api
     public Response testManyToMany() {
         return Response.ok(iBook.manyToMany()).build();
     }
