@@ -25,6 +25,18 @@ public class Constant {
 
     public static final String JS_RESOURCE = "META-INF/jimmer/swagger/swagger-ui.js";
 
+    public static final String CLIENT_RESOURCE = "META-INF/jimmer/client";
+
+    public static final String ENTITIES_RESOURCE = "META-INF/jimmer/entities";
+
+    public static final String IMMUTABLES_RESOURCE = "META-INF/jimmer/immutables";
+
+    public static final String TEMPLATE_RESOURCE = "META-INF/jimmer/openapi/index.html.template";
+
+    public static final String NO_API_RESOURCE = "META-INF/jimmer/openapi/no-api.html";
+
+    public static final String NO_METADATA_RESOURCE = "META-INF/jimmer/openapi/no-metadata.html";
+
     public static final String CSS_URL = "/jimmer-client/swagger-ui.css";
 
     public static final String JS_URL = "/jimmer-client/swagger-ui.js";
