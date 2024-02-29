@@ -37,6 +37,7 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
@@ -254,6 +255,17 @@ public class JimmerProcessor {
             builder.addBeanClass(TransactionCacheOperatorFlusher.class);
             additionalBeans.produce(builder.build());
         }
+    }
+
+    @BuildStep
+    void registerNativeImageResources(BuildProducer<NativeImageResourceBuildItem> resource) {
+        resource.produce(new NativeImageResourceBuildItem(
+                Constant.TEMPLATE_RESOURCE,
+                Constant.NO_API_RESOURCE,
+                Constant.NO_METADATA_RESOURCE,
+                Constant.CLIENT_RESOURCE,
+                Constant.ENTITIES_RESOURCE,
+                Constant.IMMUTABLES_RESOURCE));
     }
 
     private JimmerBeanNameToDotNameBuildItem collectBuildItem(CombinedIndexBuildItem combinedIndex) {
