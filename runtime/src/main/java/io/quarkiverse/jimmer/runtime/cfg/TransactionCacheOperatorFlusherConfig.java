@@ -6,8 +6,7 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
 
-import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
-
+import io.quarkiverse.jimmer.runtime.cache.impl.QuarkusTransactionCacheOperator;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkus.arc.All;
 import io.quarkus.arc.DefaultBean;
@@ -19,7 +18,7 @@ public class TransactionCacheOperatorFlusherConfig {
     @Singleton
     @DefaultBean
     public TransactionCacheOperatorFlusher transactionCacheOperatorFlusher(
-            @All List<TransactionCacheOperator> transactionCacheOperators) {
+            @All List<QuarkusTransactionCacheOperator> transactionCacheOperators) {
         return new TransactionCacheOperatorFlusher(transactionCacheOperators);
     }
 }

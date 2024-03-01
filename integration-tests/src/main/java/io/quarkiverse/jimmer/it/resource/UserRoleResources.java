@@ -2,10 +2,8 @@ package io.quarkiverse.jimmer.it.resource;
 
 import java.util.UUID;
 
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -26,7 +24,15 @@ public class UserRoleResources {
 
     @GET
     @Path("/userRole")
-    public Response getBookById(@RestQuery UUID id) {
+    public Response getUserRoleById(@RestQuery UUID id) {
         return Response.ok(iUserRoleService.findById(id)).build();
+    }
+
+    @PUT
+    @Path("/userRole")
+    @Transactional(rollbackOn = Exception.class)
+    public Response updateUserRoleById(@RestQuery UUID id) {
+        iUserRoleService.updateById(id);
+        return Response.ok().build();
     }
 }

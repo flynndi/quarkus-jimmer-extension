@@ -1,12 +1,14 @@
 package io.quarkiverse.jimmer.deployment;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
 
 import org.babyfish.jimmer.sql.JSqlClient;
-import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
@@ -14,6 +16,7 @@ import io.quarkiverse.jimmer.runtime.DBKindEnum;
 import io.quarkiverse.jimmer.runtime.JimmerDataSourcesRecorder;
 import io.quarkiverse.jimmer.runtime.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.QuarkusJSqlClientProducer;
+import io.quarkiverse.jimmer.runtime.cache.impl.QuarkusTransactionCacheOperator;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.SqlClientInitializer;
@@ -249,7 +252,7 @@ public class JimmerProcessor {
     void registerBeanProducers(CombinedIndexBuildItem combinedIndex,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         JimmerBeanNameToDotNameBuildItem buildItem = collectBuildItem(combinedIndex);
-        if (buildItem.getMap().containsKey(DotName.createSimple(TransactionCacheOperator.class))) {
+        if (buildItem.getMap().containsKey(DotName.createSimple(QuarkusTransactionCacheOperator.class))) {
             AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
             builder.addBeanClass(TransactionCacheOperatorFlusherConfig.class);
             builder.addBeanClass(TransactionCacheOperatorFlusher.class);
@@ -287,8 +290,8 @@ public class JimmerProcessor {
                         || classInfo.hasDeclaredAnnotation(DotNames.SINGLETON)) {
                     if (method.hasDeclaredAnnotation(DotNames.SINGLETON)
                             || method.hasDeclaredAnnotation(DotNames.APPLICATION_SCOPED)) {
-                        if (method.returnType().name().equals(DotName.createSimple(TransactionCacheOperator.class))) {
-                            map.put(DotName.createSimple(TransactionCacheOperator.class), Boolean.TRUE);
+                        if (method.returnType().name().equals(DotName.createSimple(QuarkusTransactionCacheOperator.class))) {
+                            map.put(DotName.createSimple(QuarkusTransactionCacheOperator.class), Boolean.TRUE);
                         }
                     }
                 }
