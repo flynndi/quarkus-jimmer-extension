@@ -145,6 +145,21 @@ public class Metadatas {
 
         @Override
         public boolean isRequestBody(Parameter javaParameter) {
+            RestQuery restQuery = javaParameter.getAnnotation(RestQuery.class);
+            if (null != restQuery) {
+                return false;
+            }
+
+            RestPath restPath = javaParameter.getAnnotation(RestPath.class);
+            if (null != restPath) {
+                return false;
+            }
+
+            Class<?> type = javaParameter.getType();
+            if (FilePart.class.isAssignableFrom(type)) {
+                return false;
+            }
+
             Consumes methodConsumes = javaParameter.getAnnotation(Consumes.class);
             if (null != methodConsumes) {
                 String[] value = methodConsumes.value();
@@ -154,7 +169,7 @@ public class Metadatas {
                 return Arrays.asList(value).contains(MediaType.APPLICATION_JSON);
             }
 
-            Consumes classConsumes = javaParameter.getDeclaringExecutable().getAnnotation(Consumes.class);
+            Consumes classConsumes = javaParameter.getDeclaringExecutable().getDeclaringClass().getAnnotation(Consumes.class);
             if (null != classConsumes) {
                 String[] value = classConsumes.value();
                 if (value.length == 0) {
