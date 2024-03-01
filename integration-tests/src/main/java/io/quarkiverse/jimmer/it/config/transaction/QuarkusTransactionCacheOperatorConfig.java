@@ -1,7 +1,8 @@
 package io.quarkiverse.jimmer.it.config.transaction;
 
-import io.quarkiverse.jimmer.runtime.cache.impl.QuarkusTransactionCacheOperator;
 import jakarta.inject.Singleton;
+
+import io.quarkiverse.jimmer.runtime.cache.impl.QuarkusTransactionCacheOperator;
 
 @Singleton
 public class QuarkusTransactionCacheOperatorConfig {
