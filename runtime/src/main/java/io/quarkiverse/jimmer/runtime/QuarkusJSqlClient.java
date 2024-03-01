@@ -245,7 +245,9 @@ public class QuarkusJSqlClient extends JLazyInitializationSqlClient {
     private <T> T getOptionalBean(Class<T> type, String dataSourceName) {
         if (container.instance(type, QuarkusJSqlClientContainerUtil.getQuarkusJSqlClientContainerQualifier(dataSourceName))
                 .isAvailable()) {
-            return container.instance(type).get();
+            return container
+                    .instance(type, QuarkusJSqlClientContainerUtil.getQuarkusJSqlClientContainerQualifier(dataSourceName))
+                    .get();
         }
         return null;
     }
