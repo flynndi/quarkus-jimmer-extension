@@ -1,9 +1,7 @@
-package io.quarkiverse.jimmer.it.config.transaction;
+package io.quarkiverse.jimmer.runtime.cache.impl;
 
 import java.sql.*;
 import java.util.*;
-
-import jakarta.enterprise.context.ApplicationScoped;
 
 import org.babyfish.jimmer.jackson.ImmutableModule;
 import org.babyfish.jimmer.meta.ImmutableProp;
@@ -23,7 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-@ApplicationScoped
 public class QuarkusTransactionCacheOperator extends AbstractCacheOperator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransactionCacheOperator.class);
