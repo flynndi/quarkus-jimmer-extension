@@ -1,7 +1,9 @@
 package io.quarkiverse.jimmer.runtime;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
@@ -37,7 +39,6 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGener
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusUserIdGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.util.Constant;
-import io.quarkiverse.jimmer.runtime.util.QuarkusJSqlClientContainerUtil;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InstanceHandle;
 
@@ -238,15 +239,22 @@ public class QuarkusJSqlClient extends JLazyInitializationSqlClient {
     private <T> T getOptionalBean(Class<T> type) {
         if (container.instance(type).isAvailable()) {
             return container.instance(type).get();
+        } else if (container
+                .instance(type, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName))
+                .isAvailable()) {
+            return container
+                    .instance(type, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName))
+                    .get();
+        } else {
+            return null;
         }
-        return null;
     }
 
     private <T> T getOptionalBean(Class<T> type, String dataSourceName) {
-        if (container.instance(type, QuarkusJSqlClientContainerUtil.getQuarkusJSqlClientContainerQualifier(dataSourceName))
+        if (container.instance(type, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName))
                 .isAvailable()) {
             return container
-                    .instance(type, QuarkusJSqlClientContainerUtil.getQuarkusJSqlClientContainerQualifier(dataSourceName))
+                    .instance(type, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName))
                     .get();
         }
         return null;
@@ -256,7 +264,17 @@ public class QuarkusJSqlClient extends JLazyInitializationSqlClient {
     private <E> Collection<E> getObjects(Class<?> elementType) {
         Collection<E> collection = new ArrayList<>();
         for (InstanceHandle<?> instanceHandle : container.listAll(elementType)) {
-            collection.add((E) instanceHandle.get());
+            if (instanceHandle.isAvailable()) {
+                Optional<Annotation> annotationOptional = instanceHandle.getBean().getQualifiers().stream()
+                        .filter(x -> x.annotationType().equals(io.quarkus.agroal.DataSource.class)).findFirst();
+                if (annotationOptional.isPresent()) {
+                    if (dataSourceName.equals(((io.quarkus.agroal.DataSource) annotationOptional.get()).value())) {
+                        collection.add((E) instanceHandle.get());
+                    }
+                } else {
+                    collection.add((E) instanceHandle.get());
+                }
+            }
         }
         return collection;
     }
@@ -265,7 +283,17 @@ public class QuarkusJSqlClient extends JLazyInitializationSqlClient {
     private <E> Collection<E> getObjects(TypeLiteral<?> typeLiteral) {
         Collection<E> collection = new ArrayList<>();
         for (InstanceHandle<?> instanceHandle : container.listAll(typeLiteral)) {
-            collection.add((E) instanceHandle.get());
+            if (instanceHandle.isAvailable()) {
+                Optional<Annotation> annotationOptional = instanceHandle.getBean().getQualifiers().stream()
+                        .filter(x -> x.annotationType().equals(io.quarkus.agroal.DataSource.class)).findFirst();
+                if (annotationOptional.isPresent()) {
+                    if (dataSourceName.equals(((io.quarkus.agroal.DataSource) annotationOptional.get()).value())) {
+                        collection.add((E) instanceHandle.get());
+                    }
+                } else {
+                    collection.add((E) instanceHandle.get());
+                }
+            }
         }
         return collection;
     }
