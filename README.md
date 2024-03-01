@@ -22,7 +22,7 @@ preview build by
 # Usage
 Gradle:
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR1'
+implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR2'
 annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.100'
 ```
 Maven
@@ -30,7 +30,7 @@ Maven
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR1</version>
+   <version>0.0.1.CR2</version>
 </dependency>
 
 <build>
@@ -87,12 +87,30 @@ quarkus:
     trigger-type:
     database-validation:
       mode:
-    client:
+        client:
       ts:
-        path:
-    openapi:
+        path: /youPath/ts.zip
+      openapi:
         path: /openapi.yml
-        ui-path: /openapi.html  
+        ui-path: /openapi.html
+        properties:
+          info:
+            title: Jimmer REST Example(Java)
+            description: This is the OpenAPI UI of Jimmer REST Example(Java)
+            version: 0.0.1.CR2
+          securities:
+            - tenantHeader: [1, 2, 3]
+            - oauthHeader: [4, 5, 6]
+          components:
+            securitySchemes:
+              tenantHeader:
+                type: apiKey
+                name: tenant
+                in: HEADER
+              oauthHeader:
+                type: apiKey
+                name: tenant
+                in: QUERY
 ```
 
 # Code
