@@ -5,8 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.inject.Inject;
-
 import org.babyfish.jimmer.error.CodeBasedException;
 import org.babyfish.jimmer.error.CodeBasedRuntimeException;
 import org.slf4j.Logger;
@@ -18,8 +16,14 @@ public abstract class CommonExceptionAdvice {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonExceptionAdvice.class);
 
-    @Inject
     JimmerBuildTimeConfig config;
+
+    public CommonExceptionAdvice(JimmerBuildTimeConfig config) {
+        this.config = config;
+        if (config.errorTranslator().isPresent() && config.errorTranslator().get().debugInfoSupported()) {
+            notice();
+        }
+    }
 
     protected void notice() {
         String builder = "\n" + "------------------------------------------------\n" +
