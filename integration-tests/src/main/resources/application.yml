@@ -26,6 +26,8 @@ quarkus:
     trigger-type: BOTH
     database-validation:
       mode: NONE
+    error-translator:
+      disabled: true
     client:
       ts:
         path: /Code/ts.zip

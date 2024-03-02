@@ -7,7 +7,10 @@ import java.util.Map;
 
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
+import jakarta.ws.rs.Priorities;
 
+import org.babyfish.jimmer.error.CodeBasedException;
+import org.babyfish.jimmer.error.CodeBasedRuntimeException;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
@@ -21,6 +24,8 @@ import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.SqlClientInitializer;
 import io.quarkiverse.jimmer.runtime.cfg.TransactionCacheOperatorFlusherConfig;
+import io.quarkiverse.jimmer.runtime.client.CodeBasedExceptionAdvice;
+import io.quarkiverse.jimmer.runtime.client.CodeBasedRuntimeExceptionAdvice;
 import io.quarkiverse.jimmer.runtime.client.openapi.CssRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.JsRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
@@ -42,6 +47,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
+import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig;
@@ -257,6 +263,18 @@ public class JimmerProcessor {
             builder.addBeanClass(TransactionCacheOperatorFlusherConfig.class);
             builder.addBeanClass(TransactionCacheOperatorFlusher.class);
             additionalBeans.produce(builder.build());
+        }
+    }
+
+    @BuildStep
+    void setUpExceptionMapper(JimmerBuildTimeConfig config, BuildProducer<ExceptionMapperBuildItem> exceptionMapperProducer) {
+        if (config.errorTranslator().isPresent()) {
+            if (config.errorTranslator().get().disabled()) {
+                exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedExceptionAdvice.class.getName(),
+                        CodeBasedException.class.getName(), Priorities.USER + 1, true));
+                exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedRuntimeExceptionAdvice.class.getName(),
+                        CodeBasedRuntimeException.class.getName(), Priorities.USER + 1, true));
+            }
         }
     }
 
