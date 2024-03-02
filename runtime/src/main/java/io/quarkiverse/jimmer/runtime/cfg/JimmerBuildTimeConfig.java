@@ -126,7 +126,7 @@ public interface JimmerBuildTimeConfig {
     /**
      * jimmer.errorTranslator
      */
-    Optional<ErrorTranslator> errorTranslator = Optional.empty();
+    Optional<ErrorTranslator> errorTranslator();
 
     /**
      * jimmer.Client
@@ -165,6 +165,7 @@ public interface JimmerBuildTimeConfig {
         /**
          * httpStatus
          */
+        @WithDefault("500")
         int httpStatus();
 
         /**
@@ -176,19 +177,7 @@ public interface JimmerBuildTimeConfig {
         /**
          * debugInfoMaxStackTraceCount
          */
-        int debugInfoMaxStackTraceCount();
-
-        //        ErrorTranslator(
-        //                Boolean disabled,
-        //                Integer httpStatus,
-        //                Boolean debugInfoSupported,
-        //                Integer debugInfoMaxStackTraceCount) {
-        //            this.disabled = disabled != null ? disabled : false();
-        //            this.httpStatus = httpStatus != null ? httpStatus : 500();
-        //            this.debugInfoSupported = debugInfoSupported != null ? debugInfoSupported : false();
-        //            this.debugInfoMaxStackTraceCount = debugInfoMaxStackTraceCount != null ? debugInfoMaxStackTraceCount
-        //                    : Integer.MAX_VALUE();
-        //        }
+        int debugInfoMaxStackTraceCount = Integer.MAX_VALUE;
     }
 
     @ConfigGroup
