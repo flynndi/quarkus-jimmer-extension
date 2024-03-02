@@ -8,11 +8,17 @@ import org.babyfish.jimmer.error.CodeBasedRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
+
 @Provider
 public class CodeBasedRuntimeExceptionAdvice extends CommonExceptionAdvice
         implements ExceptionMapper<CodeBasedRuntimeException> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CodeBasedRuntimeExceptionAdvice.class);
+
+    public CodeBasedRuntimeExceptionAdvice(JimmerBuildTimeConfig config) {
+        super(config);
+    }
 
     @Override
     public Response toResponse(CodeBasedRuntimeException ex) {
