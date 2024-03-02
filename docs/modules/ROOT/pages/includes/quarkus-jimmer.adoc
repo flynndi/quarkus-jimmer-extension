@@ -967,4 +967,60 @@ endif::add-copy-button-to-env-var[]
 --|string 
 |
 
+
+h|[[quarkus-jimmer_quarkus-jimmer-error-translator-jimmer]]link:#quarkus-jimmer_quarkus-jimmer-error-translator-jimmer[jimmer]
+This configuration section is optional
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-error-translator-disabled]]`link:#quarkus-jimmer_quarkus-jimmer-error-translator-disabled[quarkus.jimmer.error-translator.disabled]`
+
+
+[.description]
+--
+ErrorTranslatorBuildTimeConfig
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_ERROR_TRANSLATOR_DISABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_ERROR_TRANSLATOR_DISABLED+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-error-translator-http-status]]`link:#quarkus-jimmer_quarkus-jimmer-error-translator-http-status[quarkus.jimmer.error-translator.http-status]`
+
+
+[.description]
+--
+httpStatus
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_ERROR_TRANSLATOR_HTTP_STATUS+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_ERROR_TRANSLATOR_HTTP_STATUS+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|`500`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-error-translator-debug-info-supported]]`link:#quarkus-jimmer_quarkus-jimmer-error-translator-debug-info-supported[quarkus.jimmer.error-translator.debug-info-supported]`
+
+
+[.description]
+--
+debugInfoSupported
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_ERROR_TRANSLATOR_DEBUG_INFO_SUPPORTED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_ERROR_TRANSLATOR_DEBUG_INFO_SUPPORTED+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
 |===
