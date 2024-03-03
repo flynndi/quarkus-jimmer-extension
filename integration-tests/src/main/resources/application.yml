@@ -1,4 +1,6 @@
 quarkus:
+  application:
+    name: quarkus-jimmer-integration-tests
   package:
     type: uber-jar
   http:
