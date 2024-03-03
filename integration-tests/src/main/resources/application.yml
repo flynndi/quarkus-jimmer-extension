@@ -27,7 +27,8 @@ quarkus:
     database-validation:
       mode: NONE
     error-translator:
-      disabled: true
+      disabled: false
+      debug-info-supported: true
     client:
       ts:
         path: /Code/ts.zip

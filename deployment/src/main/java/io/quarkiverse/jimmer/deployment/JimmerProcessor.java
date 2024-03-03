@@ -269,7 +269,7 @@ public class JimmerProcessor {
     @BuildStep
     void setUpExceptionMapper(JimmerBuildTimeConfig config, BuildProducer<ExceptionMapperBuildItem> exceptionMapperProducer) {
         if (config.errorTranslator().isPresent()) {
-            if (config.errorTranslator().get().disabled()) {
+            if (!config.errorTranslator().get().disabled()) {
                 exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedExceptionAdvice.class.getName(),
                         CodeBasedException.class.getName(), Priorities.USER + 1, true));
                 exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedRuntimeExceptionAdvice.class.getName(),
