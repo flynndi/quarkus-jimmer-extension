@@ -1,5 +1,6 @@
 package io.quarkiverse.jimmer.it.resource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.transaction.Transactional;
@@ -14,6 +15,7 @@ import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+import io.quarkiverse.jimmer.it.config.error.UserInfoException;
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.Fetchers;
 import io.quarkiverse.jimmer.it.service.IBook;
@@ -109,6 +111,15 @@ public class BookResources implements Fetchers {
     @Api
     public Response testFile(FileUpload filePart) {
         return Response.ok().build();
+    }
+
+    @GET
+    @Path("/testError")
+    @Api
+    public Response testError() throws UserInfoException.IllegalUserName {
+        List<Character> illegalChars = new ArrayList<>();
+        illegalChars.add('a');
+        throw UserInfoException.illegalUserName("testError", illegalChars);
     }
 
     private static final Fetcher<Book> SIMPLE_BOOK = BOOK_FETCHER.name();
