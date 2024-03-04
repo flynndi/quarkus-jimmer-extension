@@ -19,9 +19,6 @@ public interface Book extends TenantAware, BaseEntity {
 
     BigDecimal price();
 
-    @IdView
-    Long storeId();
-
     @Nullable
     @ManyToOne
     BookStore store();
