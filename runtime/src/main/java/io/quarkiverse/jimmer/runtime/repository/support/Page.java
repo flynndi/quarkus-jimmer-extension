@@ -1,10 +1,6 @@
 package io.quarkiverse.jimmer.runtime.repository.support;
 
-import java.util.List;
-
-import io.quarkiverse.jimmer.runtime.repository.common.Sort;
-
-public class Page<E> {
+public class Page {
 
     /**
      * The current page index (0-based).
@@ -15,12 +11,6 @@ public class Page<E> {
      * The current page size;
      */
     public final int size;
-
-    private long total;
-
-    public List<E> list;
-
-    public Sort sort;
 
     /**
      * Builds a page of the given size.
@@ -51,49 +41,6 @@ public class Page<E> {
         this.size = size;
     }
 
-    public Page(int index, int size, List<E> list) {
-        if (index < 0)
-            throw new IllegalArgumentException("Page index must be >= 0 : " + index);
-        if (size <= 0)
-            throw new IllegalArgumentException("Page size must be > 0 : " + size);
-        this.index = index;
-        this.size = size;
-        this.list = list;
-    }
-
-    public Page(int index, int size, long total, List<E> list) {
-        if (index < 0)
-            throw new IllegalArgumentException("Page index must be >= 0 : " + index);
-        if (size <= 0)
-            throw new IllegalArgumentException("Page size must be > 0 : " + size);
-        this.index = index;
-        this.size = size;
-        this.total = total;
-        this.list = list;
-    }
-
-    public Page(int index, int size, Sort sort) {
-        if (index < 0)
-            throw new IllegalArgumentException("Page index must be >= 0 : " + index);
-        if (size <= 0)
-            throw new IllegalArgumentException("Page size must be > 0 : " + size);
-        this.index = index;
-        this.size = size;
-        this.sort = sort;
-    }
-
-    public Page(List<E> list, int index, int size, Sort sort, long total) {
-        if (index < 0)
-            throw new IllegalArgumentException("Page index must be >= 0 : " + index);
-        if (size <= 0)
-            throw new IllegalArgumentException("Page size must be > 0 : " + size);
-        this.index = index;
-        this.size = size;
-        this.total = total;
-        this.list = list;
-        this.sort = sort;
-    }
-
     /**
      * Builds a page of the given index and size.
      *
@@ -104,10 +51,6 @@ public class Page<E> {
      */
     public static Page of(int index, int size) {
         return new Page(index, size);
-    }
-
-    public static Page of(int index, int size, Sort sort) {
-        return new Page(index, size, sort);
     }
 
     /**
