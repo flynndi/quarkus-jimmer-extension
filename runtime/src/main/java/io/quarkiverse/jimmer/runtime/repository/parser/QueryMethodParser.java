@@ -29,6 +29,8 @@ class QueryMethodParser {
 
     private final Type[] genericParameterTypes;
 
+    private final int pageableParamIndex;
+
     public static final Type[] NO_TYPES = {};
 
     private final int sortParamIndex;
@@ -51,6 +53,7 @@ class QueryMethodParser {
         this.method = method;
         this.parameterTypes = method.getParameterTypes();
         this.genericParameterTypes = method.getGenericParameterTypes();
+        this.pageableParamIndex = implicitParameterIndex(Page.class);
         this.sortParamIndex = implicitParameterIndex(Sort.class);
         this.specificationIndex = implicitParameterIndex(Specification.class);
         this.fetcherParamIndex = implicitParameterIndex(Fetcher.class);
@@ -59,9 +62,11 @@ class QueryMethodParser {
             vtpIndex = implicitParameterIndex(KClass.class);
         }
         this.viewTypeParamIndex = vtpIndex;
-        if (sortParamIndex != -1) {
+        if (pageableParamIndex != -1 && sortParamIndex != -1) {
             throw new IllegalArgumentException(
                     "Cannot have parameters of type \"" +
+                            org.babyfish.jimmer.Page.class.getName() +
+                            "\" and \"" +
                             Sort.class.getName() +
                             "\" at the same time");
         }
@@ -99,9 +104,21 @@ class QueryMethodParser {
                 throw new IllegalArgumentException("Too many parameters");
             }
         }
-        if (!isPage(method.getReturnType())) {
+        if (isPage(method.getReturnType()) && pageableParamIndex == -1) {
+            throw new IllegalArgumentException(
+                    "Return type \"" +
+                            method.getReturnType() +
+                            "\" requires parameter whose type is \"" +
+                            org.babyfish.jimmer.Page.class +
+                            "\"");
+        }
+        if (!isPage(method.getReturnType()) && pageableParamIndex != -1) {
             throw new IllegalArgumentException(
                     "The parameter whose type is \"" +
+                            org.babyfish.jimmer.Page.class +
+                            "\" requires the return type \"" +
+                            Page.class.getName() +
+                            "\" or \"" +
                             org.babyfish.jimmer.Page.class.getName() +
                             "\"");
         }
@@ -253,6 +270,9 @@ class QueryMethodParser {
         if (viewTypeParamIndex != -1 && query.getAction() != Query.Action.FIND) {
             throw new IllegalArgumentException("The method must be query method when there is a view type parameter");
         }
+        if (pageableParamIndex != -1 && query.getAction() != Query.Action.FIND) {
+            throw new IllegalArgumentException("The method must be query method when there is a pageable parameter");
+        }
         if (sortParamIndex != -1 && query.getAction() != Query.Action.FIND) {
             throw new IllegalArgumentException("The method must be query method when there is a sort parameter");
         }
@@ -261,6 +281,7 @@ class QueryMethodParser {
                 method,
                 query,
                 viewType,
+                pageableParamIndex,
                 sortParamIndex,
                 specificationIndex,
                 fetcherParamIndex,
@@ -456,7 +477,7 @@ class QueryMethodParser {
     }
 
     private static boolean isPage(Class<?> returnType) {
-        return returnType == Page.class || returnType == org.babyfish.jimmer.Page.class;
+        return returnType == org.babyfish.jimmer.Page.class;
     }
 
     static class Param {
