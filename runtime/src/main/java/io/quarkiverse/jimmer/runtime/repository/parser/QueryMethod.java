@@ -12,6 +12,8 @@ public class QueryMethod {
 
     private final Class<?> viewType;
 
+    private final int pageableParamIndex;
+
     private final int sortParamIndex;
 
     private final int specificationParamIndex;
@@ -24,6 +26,7 @@ public class QueryMethod {
             Method javaMethod,
             Query query,
             Class<?> viewType,
+            int pageableParamIndex,
             int sortParamIndex,
             int specificationParamIndex,
             int fetcherParamIndex,
@@ -31,6 +34,7 @@ public class QueryMethod {
         this.javaMethod = javaMethod;
         this.query = query;
         this.viewType = viewType;
+        this.pageableParamIndex = pageableParamIndex;
         this.sortParamIndex = sortParamIndex;
         this.specificationParamIndex = specificationParamIndex;
         this.fetcherParamIndex = fetcherParamIndex;
@@ -51,6 +55,10 @@ public class QueryMethod {
 
     public Class<?> getViewType() {
         return viewType;
+    }
+
+    public int getPageableParamIndex() {
+        return pageableParamIndex;
     }
 
     public int getSortParamIndex() {
@@ -75,6 +83,7 @@ public class QueryMethod {
                 "javaMethod=" + javaMethod +
                 ", query=" + query +
                 ", viewType=" + viewType +
+                ", pageableParamIndex=" + pageableParamIndex +
                 ", sortParamIndex=" + sortParamIndex +
                 ", fetcherParamIndex=" + fetcherParamIndex +
                 ", viewTypeParamIndex=" + viewTypeParamIndex +
