@@ -9,7 +9,9 @@ import org.babyfish.jimmer.Input;
 import org.babyfish.jimmer.Page;
 import org.babyfish.jimmer.View;
 import org.babyfish.jimmer.impl.util.CollectionUtils;
+import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TypedProp;
+import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.*;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.jetbrains.annotations.NotNull;
@@ -24,11 +26,11 @@ public interface JRepository<E, ID> extends PagingAndSortingRepository<E, ID> {
      * For provider
      */
 
-    //    JSqlClient sql();
-    //
-    //    ImmutableType type();
-    //
-    //    Class<E> entityType();
+    JSqlClient sql();
+
+    ImmutableType type();
+
+    Class<E> entityType();
 
     /*
      * For consumer
