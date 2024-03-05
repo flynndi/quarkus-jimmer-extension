@@ -1,10 +1,12 @@
 package io.quarkiverse.jimmer.runtime.repository.support;
 
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import jakarta.ws.rs.core.GenericType;
 
 import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.Input;
@@ -30,67 +32,43 @@ import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.babyfish.jimmer.sql.fetcher.ViewMetadata;
 import org.babyfish.jimmer.sql.runtime.ExecutionPurpose;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
+import org.jboss.resteasy.reactive.common.util.types.Types;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.repository.QuarkusOrders;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.impl.Reflections;
 
-public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
+public class JRepository<E, ID> implements io.quarkiverse.jimmer.runtime.repository.JRepository<E, ID> {
 
-    protected JSqlClientImplementor sqlClient = (JSqlClientImplementor) sql();
-
-    protected Class<E> entityType;
-
-    protected ImmutableType immutableType;
-
-    //    protected JRepositoryImpl(JSqlClient sqlClient) {
-    //        this(sqlClient, null);
-    //    }
-
-    //    @SuppressWarnings("unchecked")
-    //    public JRepositoryImpl(JSqlClient sqlClient, Class<E> entityType) {
-    //        this.sqlClient = Utils.validateSqlClient(sqlClient);
-    //        this.entityType = entityType;
-    //        //        if (entityType != null) {
-    //        //            this.entityType = entityType;
-    //        //        }
-    //        //        else {
-    //        //            Class<?>[] typeArguments = GenericTypeResolver
-    //        //                    .resolveTypeArguments(this.getClass(), JRepository.class);
-    //        //            if (typeArguments == null) {
-    //        //                throw new IllegalArgumentException(
-    //        //                        "The class \"" + this.getClass() + "\" " +
-    //        //                                "does not explicitly specify the type arguments of \"" +
-    //        //                                JRepository.class.getName() +
-    //        //                                "\" so that the entityType must be specified"
-    //        //                );
-    //        //            }
-    //        //            this.entityType = entityType = (Class<E>) typeArguments[0];
-    //        //        }
-    //        this.immutableType = ImmutableType.get(entityType);
-    //        if (!immutableType.isEntity()) {
-    //            throw new IllegalArgumentException(
-    //                    "\"" +
-    //                            entityType +
-    //                            "\" is not entity type decorated by @" +
-    //                            Entity.class.getName());
-    //        }
-    //    }
+    protected final JSqlClientImplementor sqlClient = Utils.validateSqlClient(sql());
 
     public JSqlClient sql() {
         return Arc.container().instance(JSqlClient.class).get();
     }
 
     public ImmutableType type() {
-        return ImmutableType.get(entityType());
+        Type[] types = Types.getActualTypeArgumentsOfAnInterface(this.getClass(),
+                io.quarkiverse.jimmer.runtime.repository.JRepository.class);
+        if (types.length == 2) {
+            GenericType<Object> genericType = new GenericType<>(types[0]);
+            return ImmutableType.get(genericType.getRawType());
+        } else {
+            throw new IllegalArgumentException(
+                    "io.quarkiverse.jimmer.runtime.repository.support.JRepository<E, ID> 'E' illegality");
+        }
     }
 
     public Class<E> entityType() {
-        return (Class<E>) ((ParameterizedType) this.getClass().getGenericSuperclass())
-                .getActualTypeArguments()[0];
+        Type[] types = Types.getActualTypeArgumentsOfAnInterface(this.getClass(),
+                io.quarkiverse.jimmer.runtime.repository.JRepository.class);
+        if (types.length == 2) {
+            return Reflections.getRawType(types[0]);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -237,8 +215,8 @@ public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
     public int delete(@NotNull E entity, DeleteMode mode) {
         return sqlClient.getEntities().delete(
                 entityType(),
-                ImmutableObjects.get(entity, immutableType.getIdProp().getId()),
-                mode).getAffectedRowCount(AffectedTable.of(immutableType));
+                ImmutableObjects.get(entity, type().getIdProp().getId()),
+                mode).getAffectedRowCount(AffectedTable.of(type()));
     }
 
     @Override
@@ -248,9 +226,9 @@ public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
                 Utils
                         .toCollection(entities)
                         .stream()
-                        .map(it -> ImmutableObjects.get(it, immutableType.getIdProp().getId()))
+                        .map(it -> ImmutableObjects.get(it, type().getIdProp().getId()))
                         .collect(Collectors.toList()),
-                mode).getAffectedRowCount(AffectedTable.of(immutableType));
+                mode).getAffectedRowCount(AffectedTable.of(type()));
     }
 
     @Override
@@ -258,7 +236,7 @@ public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
         return sqlClient
                 .getEntities()
                 .delete(entityType(), id, mode)
-                .getAffectedRowCount(AffectedTable.of(immutableType));
+                .getAffectedRowCount(AffectedTable.of(type()));
     }
 
     @Override
@@ -266,13 +244,13 @@ public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
         return sqlClient
                 .getEntities()
                 .deleteAll(entityType(), Utils.toCollection(ids), mode)
-                .getAffectedRowCount(AffectedTable.of(immutableType));
+                .getAffectedRowCount(AffectedTable.of(type()));
     }
 
     @Override
     public void deleteAll() {
         Mutations
-                .createDelete(sqlClient, immutableType, (d, t) -> {
+                .createDelete(sqlClient, type(), (d, t) -> {
                 })
                 .execute();
     }
@@ -288,17 +266,17 @@ public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
             @Nullable Function<?, X> converter,
             @Nullable TypedProp.Scalar<?, ?>[] sortedProps,
             @Nullable Sort sort) {
-        MutableRootQueryImpl<Table<?>> query = new MutableRootQueryImpl<>(sqlClient, immutableType, ExecutionPurpose.QUERY,
+        MutableRootQueryImpl<Table<?>> query = new MutableRootQueryImpl<>(sqlClient, type(), ExecutionPurpose.QUERY,
                 FilterLevel.DEFAULT);
         TableImplementor<?> table = query.getTableImplementor();
         if (sortedProps != null) {
             for (TypedProp.Scalar<?, ?> sortedProp : sortedProps) {
-                if (!sortedProp.unwrap().getDeclaringType().isAssignableFrom(immutableType)) {
+                if (!sortedProp.unwrap().getDeclaringType().isAssignableFrom(type())) {
                     throw new IllegalArgumentException(
                             "The sorted field \"" +
                                     sortedProp +
                                     "\" does not belong to the type \"" +
-                                    immutableType +
+                                    type() +
                                     "\" or its super types");
                 }
                 PropExpression<?> expr = table.get(sortedProp.unwrap());
