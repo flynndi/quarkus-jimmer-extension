@@ -55,7 +55,7 @@ public class Utils {
         if (orders == null || orders.isEmpty()) {
             return Sort.unsorted();
         }
-        List<Sort.Order> springOrders = new ArrayList<>(orders.size());
+        List<Sort.Order> quarkusOrders = new ArrayList<>(orders.size());
         for (Order order : orders) {
             if (order.getExpression() instanceof PropExpression<?>) {
                 PropExpressionImplementor<?> propExpr = (PropExpressionImplementor<?>) order.getExpression();
@@ -77,14 +77,14 @@ public class Utils {
                         nullHandling = Sort.NullHandling.NATIVE;
                         break;
                 }
-                springOrders.add(
+                quarkusOrders.add(
                         new Sort.Order(
                                 order.getOrderMode() == OrderMode.DESC ? Sort.Direction.DESC : Sort.Direction.ASC,
                                 path,
                                 nullHandling));
             }
         }
-        return Sort.by(springOrders);
+        return Sort.by(quarkusOrders);
     }
 
     private static String prefix(Table<?> table) {
