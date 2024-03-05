@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.it.resource;
 
 import java.util.List;
 
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -14,12 +15,20 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.BookFetcher;
 import io.quarkiverse.jimmer.it.entity.Tables;
+import io.quarkiverse.jimmer.it.repository.BookRepository;
+import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.runtime.Jimmer;
 
 @Path("/testResources")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class TestResources {
+
+    @Inject
+    BookRepository bookRepository;
+
+    @Inject
+    BookStoreRepository bookStoreRepository;
 
     @GET
     @Path("/test")
@@ -30,5 +39,17 @@ public class TestResources {
                 .select(Tables.BOOK_TABLE.fetch(BookFetcher.$.allTableFields()))
                 .execute();
         return Response.ok(books).build();
+    }
+
+    @GET
+    @Path("/testBookRepository")
+    public Response testBookRepository() {
+        return Response.ok(bookRepository.findAll()).build();
+    }
+
+    @GET
+    @Path("/testBookStoreRepository")
+    public Response testRepository() {
+        return Response.ok(bookStoreRepository.findAll()).build();
     }
 }
