@@ -3,10 +3,7 @@ package io.quarkiverse.jimmer.it.resource;
 import java.util.List;
 
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -18,6 +15,7 @@ import io.quarkiverse.jimmer.it.entity.Tables;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.runtime.Jimmer;
+import io.quarkiverse.jimmer.runtime.repository.support.Page;
 
 @Path("/testResources")
 @Produces(MediaType.APPLICATION_JSON)
@@ -51,5 +49,11 @@ public class TestResources {
     @Path("/testBookStoreRepository")
     public Response testRepository() {
         return Response.ok(bookStoreRepository.findAll()).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryPage")
+    public Response testRepository(Page page) {
+        return Response.ok(bookRepository.findAll(page)).build();
     }
 }
