@@ -31,6 +31,7 @@ import io.quarkiverse.jimmer.runtime.client.openapi.JsRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
+import io.quarkiverse.jimmer.runtime.repository.support.JRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.runtime.DataSources;
@@ -38,6 +39,7 @@ import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
+import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.deployment.annotations.*;
@@ -275,6 +277,15 @@ public class JimmerProcessor {
                 exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedRuntimeExceptionAdvice.class.getName(),
                         CodeBasedRuntimeException.class.getName(), Priorities.USER + 1, true));
             }
+        }
+    }
+
+    @BuildStep
+    void registerRepository(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer) {
+        Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex().getAllKnownSubclasses(JRepository.class);
+        for (ClassInfo repositoryBean : repositoryBeans) {
+            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
         }
     }
 
