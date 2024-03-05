@@ -51,4 +51,71 @@ public class TestResourceTestCase {
         Assertions.assertEquals(6, responseJsonPath.getInt("totalRowCount"));
         Assertions.assertEquals(6, responseJsonPath.getInt("totalPageCount"));
     }
+
+    @Test
+    void testPageOther() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response post = given()
+                .body(body)
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryPageOther");
+        JsonPath responseJsonPath = post.jsonPath();
+        Assertions.assertEquals(6, responseJsonPath.getInt("totalRowCount"));
+        Assertions.assertEquals(6, responseJsonPath.getInt("totalPageCount"));
+    }
+
+    @Test
+    void testPageFetcher() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response post = given()
+                .body(body)
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryPageFetcher");
+        JsonPath responseJsonPath = post.jsonPath();
+        Assertions.assertEquals(6, responseJsonPath.getInt("totalRowCount"));
+        Assertions.assertEquals(6, responseJsonPath.getInt("totalPageCount"));
+        Assertions.assertNotNull(responseJsonPath.getList("rows"));
+        Assertions.assertNotNull(responseJsonPath.get("rows.authors"));
+    }
+
+    @Test
+    void testBookRepositoryById() {
+        Response post = given()
+                .queryParam("id", 1L)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryById");
+        Assertions.assertNotNull(post.jsonPath());
+        Assertions.assertEquals(1, post.jsonPath().getLong("id"));
+    }
+
+    @Test
+    void testBookRepositoryByIdFetcher() {
+        Response post = given()
+                .queryParam("id", 1L)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryByIdFetcher");
+        Assertions.assertNotNull(post.jsonPath());
+        Assertions.assertEquals(1, post.jsonPath().getLong("id"));
+        Assertions.assertEquals(1, post.jsonPath().getLong("store.id"));
+    }
 }
