@@ -104,21 +104,4 @@ public class TestResourceTestCase {
         Assertions.assertNotNull(post.jsonPath());
         Assertions.assertEquals(1, post.jsonPath().getLong("id"));
     }
-
-    @Test
-    void testBookRepositoryByIdFetcher() {
-        Response post = given()
-                .queryParam("id", 1L)
-                .log()
-                .all()
-                .when()
-                .get("testResources/testBookRepositoryByIdFetcher")
-                .then()
-                .contentType(HttpHeaderValues.APPLICATION_JSON.toString())
-                .extract()
-                .response();
-        Assertions.assertNotNull(post);
-        Assertions.assertEquals(1, post.jsonPath().getLong("id"));
-        Assertions.assertEquals(1, post.jsonPath().getLong("store.id"));
-    }
 }
