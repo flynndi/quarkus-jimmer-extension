@@ -29,6 +29,7 @@ public class TestResourceTestCase {
         BookStoreRepository bookStoreRepository = Arc.container().instance(BookStoreRepository.class).get();
         Assertions.assertNotNull(bookRepository);
         Assertions.assertNotNull(bookStoreRepository);
+        Assertions.assertEquals(bookRepository, this.bookRepository);
     }
 
     @Test
@@ -100,7 +101,11 @@ public class TestResourceTestCase {
                 .log()
                 .all()
                 .when()
-                .get("testResources/testBookRepositoryById");
+                .get("testResources/testBookRepositoryById")
+                .then()
+                .contentType(HttpHeaderValues.APPLICATION_JSON.toString())
+                .extract()
+                .response();
         Assertions.assertNotNull(response.jsonPath());
         Assertions.assertEquals(1, response.jsonPath().getLong("id"));
     }
