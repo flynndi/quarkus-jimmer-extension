@@ -113,8 +113,11 @@ public class TestResourceTestCase {
                 .log()
                 .all()
                 .when()
-                .get("testResources/testBookRepositoryByIdFetcher");
-        Assertions.assertNotNull(post.jsonPath());
+                .get("testResources/testBookRepositoryByIdFetcher")
+                .then()
+                .contentType(HttpHeaderValues.APPLICATION_JSON.toString())
+                .extract().response();
+        Assertions.assertNotNull(post.asString());
         Assertions.assertEquals(1, post.jsonPath().getLong("id"));
         Assertions.assertEquals(1, post.jsonPath().getLong("store.id"));
     }
