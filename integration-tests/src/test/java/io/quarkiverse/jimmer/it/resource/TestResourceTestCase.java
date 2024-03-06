@@ -115,8 +115,9 @@ public class TestResourceTestCase {
                 .get("testResources/testBookRepositoryByIdFetcher")
                 .then()
                 .contentType(HttpHeaderValues.APPLICATION_JSON.toString())
-                .extract().response();
-        Assertions.assertNotNull(post.asString());
+                .extract()
+                .response();
+        Assertions.assertNotNull(post);
         Assertions.assertEquals(1, post.jsonPath().getLong("id"));
         Assertions.assertEquals(1, post.jsonPath().getLong("store.id"));
     }
