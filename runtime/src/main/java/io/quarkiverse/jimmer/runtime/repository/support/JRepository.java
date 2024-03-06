@@ -36,10 +36,10 @@ import org.jboss.resteasy.reactive.common.util.types.Types;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import io.quarkiverse.jimmer.runtime.Jimmer;
 import io.quarkiverse.jimmer.runtime.repository.QuarkusOrders;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkus.agroal.DataSource;
-import io.quarkus.arc.Arc;
 import io.quarkus.arc.ClientProxy;
 import io.quarkus.arc.impl.Reflections;
 
@@ -50,15 +50,9 @@ public class JRepository<E, ID> implements io.quarkiverse.jimmer.runtime.reposit
     public JSqlClient sql() {
         Class<?> actualType = ClientProxy.unwrap(this.getClass()).getSuperclass();
         if (null != actualType.getAnnotation(DataSource.class)) {
-            if (Arc.container().instance(JSqlClient.class,
-                    new io.quarkus.agroal.DataSource.DataSourceLiteral(actualType.getAnnotation(DataSource.class).value()))
-                    .isAvailable()) {
-                return Arc.container().instance(JSqlClient.class,
-                        new io.quarkus.agroal.DataSource.DataSourceLiteral(actualType.getAnnotation(DataSource.class).value()))
-                        .get();
-            }
+            return Jimmer.getJSqlClient(actualType.getAnnotation(DataSource.class).value());
         }
-        return Arc.container().instance(JSqlClient.class).get();
+        return Jimmer.getDefaultJSqlClient();
     }
 
     public ImmutableType type() {
