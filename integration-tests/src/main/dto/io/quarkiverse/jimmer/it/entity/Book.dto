@@ -7,3 +7,15 @@ BookDetailView {
             #allScalars
         }
 }
+
+input BookInput {
+
+    #allScalars(Book)
+
+    id(store)
+
+    authors {
+        #allScalars(Author)
+        -id
+    }
+}
