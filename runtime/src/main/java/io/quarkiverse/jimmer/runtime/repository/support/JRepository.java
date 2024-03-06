@@ -40,7 +40,6 @@ import io.quarkiverse.jimmer.runtime.Jimmer;
 import io.quarkiverse.jimmer.runtime.repository.QuarkusOrders;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkus.agroal.DataSource;
-import io.quarkus.arc.Arc;
 import io.quarkus.arc.ClientProxy;
 import io.quarkus.arc.impl.Reflections;
 
