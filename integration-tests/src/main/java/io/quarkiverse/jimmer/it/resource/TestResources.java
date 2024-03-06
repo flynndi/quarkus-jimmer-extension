@@ -17,6 +17,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.BookFetcher;
 import io.quarkiverse.jimmer.it.entity.Tables;
+import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.runtime.Jimmer;
@@ -76,14 +77,20 @@ public class TestResources {
 
     @GET
     @Path("/testBookRepositoryById")
-    public Book testBookRepositoryById(@RestQuery long id) {
-        return bookRepository.findNullable(id);
+    public Response testBookRepositoryById(@RestQuery long id) {
+        return Response.ok(bookRepository.findNullable(id)).build();
     }
 
     @GET
     @Path("/testBookRepositoryByIdFetcher")
     public @FetchBy("COMPLEX_BOOK") Book testBookRepositoryByIdFetcher(@RestQuery long id) {
         return bookRepository.findNullable(id, COMPLEX_BOOK);
+    }
+
+    @GET
+    @Path("/testBookRepositoryViewById")
+    public Response testBookRepositoryViewById(@RestQuery long id) {
+        return Response.ok(bookRepository.viewer(BookDetailView.class).findNullable(id)).build();
     }
 
     private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()
