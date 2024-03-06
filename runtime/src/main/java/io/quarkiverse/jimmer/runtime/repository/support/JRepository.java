@@ -48,7 +48,7 @@ public class JRepository<E, ID> implements io.quarkiverse.jimmer.runtime.reposit
     protected final JSqlClientImplementor sqlClient = Utils.validateSqlClient(sql());
 
     public JSqlClient sql() {
-        Class<?> actualType = ClientProxy.unwrap(this.getClass()).getSuperclass();
+        Class<?> actualType = ClientProxy.unwrap(this.getClass());
         if (null != actualType.getAnnotation(DataSource.class)) {
             return Jimmer.getJSqlClient(actualType.getAnnotation(DataSource.class).value());
         }
