@@ -1,7 +1,6 @@
 package io.quarkiverse.jimmer.it.resource;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.post;
 
 import jakarta.inject.Inject;
 
