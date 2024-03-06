@@ -39,14 +39,14 @@ public class TestResourceTestCase {
                     "size": 1
                 }
                 """;
-        Response post = given()
+        Response response = given()
                 .body(body)
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .log()
                 .all()
                 .when()
                 .post("testResources/testBookRepositoryPage");
-        JsonPath responseJsonPath = post.jsonPath();
+        JsonPath responseJsonPath = response.jsonPath();
         Assertions.assertEquals(6, responseJsonPath.getInt("totalRowCount"));
         Assertions.assertEquals(6, responseJsonPath.getInt("totalPageCount"));
     }
@@ -59,14 +59,14 @@ public class TestResourceTestCase {
                     "size": 1
                 }
                 """;
-        Response post = given()
+        Response response = given()
                 .body(body)
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .log()
                 .all()
                 .when()
                 .post("testResources/testBookRepositoryPageOther");
-        JsonPath responseJsonPath = post.jsonPath();
+        JsonPath responseJsonPath = response.jsonPath();
         Assertions.assertEquals(6, responseJsonPath.getInt("totalRowCount"));
         Assertions.assertEquals(6, responseJsonPath.getInt("totalPageCount"));
     }
@@ -79,14 +79,14 @@ public class TestResourceTestCase {
                     "size": 1
                 }
                 """;
-        Response post = given()
+        Response response = given()
                 .body(body)
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .log()
                 .all()
                 .when()
                 .post("testResources/testBookRepositoryPageFetcher");
-        JsonPath responseJsonPath = post.jsonPath();
+        JsonPath responseJsonPath = response.jsonPath();
         Assertions.assertEquals(6, responseJsonPath.getInt("totalRowCount"));
         Assertions.assertEquals(6, responseJsonPath.getInt("totalPageCount"));
         Assertions.assertNotNull(responseJsonPath.getList("rows"));
@@ -95,13 +95,27 @@ public class TestResourceTestCase {
 
     @Test
     void testBookRepositoryById() {
-        Response post = given()
+        Response response = given()
                 .queryParam("id", 1L)
                 .log()
                 .all()
                 .when()
                 .get("testResources/testBookRepositoryById");
-        Assertions.assertNotNull(post.jsonPath());
-        Assertions.assertEquals(1, post.jsonPath().getLong("id"));
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals(1, response.jsonPath().getLong("id"));
+    }
+
+    @Test
+    void testBookRepositoryViewById() {
+        Response response = given()
+                .queryParam("id", 1L)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryViewById");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals(1, response.jsonPath().getLong("id"));
+        Assertions.assertNotNull(response.jsonPath().getJsonObject("store"));
+        Assertions.assertNotNull(response.jsonPath().getJsonObject("authors"));
     }
 }
