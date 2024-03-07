@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.runtime.repository.common;
 
 import java.util.Optional;
 
+@Deprecated
 public interface CrudRepository<T, ID> extends Repository<T, ID> {
 
     /**

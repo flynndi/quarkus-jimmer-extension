@@ -43,6 +43,7 @@ import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.ClientProxy;
 import io.quarkus.arc.impl.Reflections;
 
+@Deprecated
 public class JRepository<E, ID> implements io.quarkiverse.jimmer.runtime.repository.JRepository<E, ID> {
 
     protected final JSqlClientImplementor sqlClient = Utils.validateSqlClient(sql());
