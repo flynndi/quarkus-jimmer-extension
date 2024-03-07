@@ -1,10 +1,15 @@
 package io.quarkiverse.jimmer.runtime.repository;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import jakarta.ws.rs.core.GenericType;
+
+import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.Input;
 import org.babyfish.jimmer.Page;
 import org.babyfish.jimmer.View;
@@ -12,36 +17,86 @@ import org.babyfish.jimmer.impl.util.CollectionUtils;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TypedProp;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.ast.PropExpression;
+import org.babyfish.jimmer.sql.ast.Selection;
+import org.babyfish.jimmer.sql.ast.impl.mutation.Mutations;
+import org.babyfish.jimmer.sql.ast.impl.query.FilterLevel;
+import org.babyfish.jimmer.sql.ast.impl.query.MutableRootQueryImpl;
+import org.babyfish.jimmer.sql.ast.impl.table.FetcherSelectionImpl;
+import org.babyfish.jimmer.sql.ast.impl.table.TableImplementor;
 import org.babyfish.jimmer.sql.ast.mutation.*;
+import org.babyfish.jimmer.sql.ast.query.ConfigurableRootQuery;
+import org.babyfish.jimmer.sql.ast.query.Order;
+import org.babyfish.jimmer.sql.ast.table.Table;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.babyfish.jimmer.sql.fetcher.ViewMetadata;
+import org.babyfish.jimmer.sql.runtime.ExecutionPurpose;
+import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
+import org.jboss.resteasy.reactive.common.util.types.Types;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import io.quarkiverse.jimmer.runtime.repository.common.PagingAndSortingRepository;
+import io.quarkiverse.jimmer.runtime.Jimmer;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.support.Utils;
+import io.quarkus.agroal.DataSource;
+import io.quarkus.arc.ClientProxy;
+import io.quarkus.arc.impl.Reflections;
 
-public interface JRepository<E, ID> extends PagingAndSortingRepository<E, ID> {
+public interface JRepository<E, ID> {
+
+    default JSqlClientImplementor sqlClient() {
+        return Utils.validateSqlClient(sql());
+    }
 
     /*
      * For provider
      */
+    default JSqlClient sql() {
+        Class<?> actualType = ClientProxy.unwrap(this.getClass());
+        if (null != actualType.getAnnotation(DataSource.class)) {
+            return Jimmer.getJSqlClient(actualType.getAnnotation(DataSource.class).value());
+        }
+        return Jimmer.getDefaultJSqlClient();
+    }
 
-    JSqlClient sql();
+    default ImmutableType type() {
+        Type[] types = Types.getActualTypeArgumentsOfAnInterface(this.getClass(),
+                io.quarkiverse.jimmer.runtime.repository.JRepository.class);
+        if (types.length == 2) {
+            GenericType<Object> genericType = new GenericType<>(types[0]);
+            return ImmutableType.get(genericType.getRawType());
+        } else {
+            throw new IllegalArgumentException(
+                    "io.quarkiverse.jimmer.runtime.repository.support.JRepository<E, ID> 'E' illegality");
+        }
+    }
 
-    ImmutableType type();
-
-    Class<E> entityType();
+    default Class<E> entityType() {
+        Type[] types = Types.getActualTypeArgumentsOfAnInterface(this.getClass(),
+                io.quarkiverse.jimmer.runtime.repository.JRepository.class);
+        if (types.length == 2) {
+            return Reflections.getRawType(types[0]);
+        } else {
+            return null;
+        }
+    }
 
     /*
      * For consumer
      */
+    default E findNullable(ID id) {
+        return sqlClient().getEntities().findById(entityType(), id);
+    }
 
-    E findNullable(ID id);
-
-    E findNullable(ID id, Fetcher<E> fetcher);
+    default E findNullable(ID id, Fetcher<E> fetcher) {
+        if (fetcher == null) {
+            return findNullable(id);
+        }
+        return sqlClient().getEntities().findById(fetcher, id);
+    }
 
     @NotNull
-    @Override
     default Optional<E> findById(@NotNull ID id) {
         return Optional.ofNullable(findNullable(id));
     }
@@ -51,65 +106,108 @@ public interface JRepository<E, ID> extends PagingAndSortingRepository<E, ID> {
         return Optional.ofNullable(findNullable(id, fetcher));
     }
 
-    List<E> findByIds(Iterable<ID> ids);
+    default List<E> findByIds(Iterable<ID> ids) {
+        return sqlClient().getEntities().findByIds(entityType(), Utils.toCollection(ids));
+    }
 
     @NotNull
-    @Override
     default List<E> findAllById(@NotNull Iterable<ID> ids) {
         return findByIds(ids);
     }
 
-    List<E> findByIds(Iterable<ID> ids, Fetcher<E> fetcher);
+    default List<E> findByIds(Iterable<ID> ids, Fetcher<E> fetcher) {
+        if (fetcher == null) {
+            return findByIds(ids);
+        }
+        return sqlClient().getEntities().findByIds(fetcher, Utils.toCollection(ids));
+    }
 
-    Map<ID, E> findMapByIds(Iterable<ID> ids);
+    default Map<ID, E> findMapByIds(Iterable<ID> ids) {
+        return sqlClient().getEntities().findMapByIds(entityType(), Utils.toCollection(ids));
+    }
 
-    Map<ID, E> findMapByIds(Iterable<ID> ids, Fetcher<E> fetcher);
-
-    @NotNull
-    @Override
-    List<E> findAll();
-
-    @SuppressWarnings("unchecked")
-    List<E> findAll(TypedProp.Scalar<?, ?>... sortedProps);
-
-    @SuppressWarnings("unchecked")
-    List<E> findAll(Fetcher<E> fetcher, TypedProp.Scalar<?, ?>... sortedProps);
-
-    @NotNull
-    @Override
-    List<E> findAll(@NotNull Sort sort);
-
-    List<E> findAll(Fetcher<E> fetcher, Sort sort);
-
-    Page<E> findAll(int pageIndex, int pageSize);
-
-    Page<E> findAll(int pageIndex, int pageSize, Fetcher<E> fetcher);
-
-    @SuppressWarnings("unchecked")
-    Page<E> findAll(int pageIndex, int pageSize, TypedProp.Scalar<?, ?>... sortedProps);
-
-    @SuppressWarnings("unchecked")
-    Page<E> findAll(int pageIndex, int pageSize, Fetcher<E> fetcher, TypedProp.Scalar<?, ?>... sortedProps);
-
-    Page<E> findAll(int pageIndex, int pageSize, Sort sort);
-
-    Page<E> findAll(int pageIndex, int pageSize, Fetcher<E> fetcher, Sort sort);
+    default Map<ID, E> findMapByIds(Iterable<ID> ids, Fetcher<E> fetcher) {
+        if (fetcher == null) {
+            return findMapByIds(ids);
+        }
+        return sqlClient().getEntities().findMapByIds(fetcher, Utils.toCollection(ids));
+    }
 
     @NotNull
-    @Override
-    Page<E> findAll(@NotNull io.quarkiverse.jimmer.runtime.repository.support.Page page);
+    default List<E> findAll() {
+        return createQuery(null, (Function<?, E>) null, null, null).execute();
+    }
 
-    Page<E> findAll(io.quarkiverse.jimmer.runtime.repository.support.Page page, Fetcher<E> fetcher);
+    @SuppressWarnings("unchecked")
+    default List<E> findAll(TypedProp.Scalar<?, ?>... sortedProps) {
+        return createQuery(null, (Function<?, E>) null, sortedProps, null).execute();
+    }
 
-    @Override
+    @SuppressWarnings("unchecked")
+    default List<E> findAll(Fetcher<E> fetcher, TypedProp.Scalar<?, ?>... sortedProps) {
+        return createQuery(fetcher, (Function<?, E>) null, sortedProps, null).execute();
+    }
+
+    @NotNull
+    default List<E> findAll(@NotNull Sort sort) {
+        return createQuery(null, (Function<?, E>) null, null, sort).execute();
+    }
+
+    default List<E> findAll(Fetcher<E> fetcher, Sort sort) {
+        return createQuery(fetcher, (Function<?, E>) null, null, sort).execute();
+    }
+
+    default Page<E> findAll(int pageIndex, int pageSize) {
+        return this.<E> createQuery(null, null, null, null)
+                .fetchPage(pageIndex, pageSize);
+    }
+
+    default Page<E> findAll(int pageIndex, int pageSize, Fetcher<E> fetcher) {
+        return this.<E> createQuery(fetcher, null, null, null)
+                .fetchPage(pageIndex, pageSize);
+    }
+
+    @SuppressWarnings("unchecked")
+    default Page<E> findAll(int pageIndex, int pageSize, TypedProp.Scalar<?, ?>... sortedProps) {
+        return this.<E> createQuery(null, null, sortedProps, null)
+                .fetchPage(pageIndex, pageSize);
+    }
+
+    @SuppressWarnings("unchecked")
+    default Page<E> findAll(int pageIndex, int pageSize, Fetcher<E> fetcher, TypedProp.Scalar<?, ?>... sortedProps) {
+        return this.<E> createQuery(fetcher, null, sortedProps, null)
+                .fetchPage(pageIndex, pageSize);
+    }
+
+    default Page<E> findAll(int pageIndex, int pageSize, Sort sort) {
+        return this.<E> createQuery(null, null, null, sort)
+                .fetchPage(pageIndex, pageSize);
+    }
+
+    default Page<E> findAll(int pageIndex, int pageSize, Fetcher<E> fetcher, Sort sort) {
+        return this.<E> createQuery(fetcher, null, null, sort)
+                .fetchPage(pageIndex, pageSize);
+    }
+
+    @NotNull
+    default Page<E> findAll(@NotNull io.quarkiverse.jimmer.runtime.repository.support.Page page) {
+        return this.<E> createQuery(null, null, null, null)
+                .fetchPage(page.index, page.size);
+    }
+
+    default Page<E> findAll(io.quarkiverse.jimmer.runtime.repository.support.Page page, Fetcher<E> fetcher) {
+        return this.<E> createQuery(fetcher, null, null, null)
+                .fetchPage(page.index, page.size);
+    }
+
     default boolean existsById(@NotNull ID id) {
         return findNullable(id) != null;
     }
 
-    @Override
-    long count();
+    default long count() {
+        return createQuery(null, null, null, null).fetchUnlimitedCount();
+    }
 
-    @NotNull
     default E insert(@NotNull E entity) {
         return save(entity, SaveMode.INSERT_ONLY).getModifiedEntity();
     }
@@ -130,7 +228,6 @@ public interface JRepository<E, ID> extends PagingAndSortingRepository<E, ID> {
     }
 
     @NotNull
-    @Override
     default <S extends E> S save(@NotNull S entity) {
         return saveCommand(entity).execute().getModifiedEntity();
     }
@@ -203,16 +300,19 @@ public interface JRepository<E, ID> extends PagingAndSortingRepository<E, ID> {
     }
 
     @NotNull
-    SimpleEntitySaveCommand<E> saveCommand(@NotNull Input<E> input);
+    default SimpleEntitySaveCommand<E> saveCommand(@NotNull Input<E> input) {
+        return sqlClient().getEntities().saveCommand(input);
+    }
 
     @NotNull
-    <S extends E> SimpleEntitySaveCommand<S> saveCommand(@NotNull S entity);
+    default <S extends E> SimpleEntitySaveCommand<S> saveCommand(@NotNull S entity) {
+        return sqlClient().getEntities().saveCommand(entity);
+    }
 
     /**
      * Replaced by saveEntities, will be removed in 1.0
      */
     @Deprecated
-    @Override
     default <S extends E> Iterable<S> saveAll(Iterable<S> entities) {
         return saveEntities(entities);
     }
@@ -235,49 +335,178 @@ public interface JRepository<E, ID> extends PagingAndSortingRepository<E, ID> {
     }
 
     @NotNull
-    <S extends E> BatchEntitySaveCommand<S> saveEntitiesCommand(@NotNull Iterable<S> entities);
+    default <S extends E> BatchEntitySaveCommand<S> saveEntitiesCommand(@NotNull Iterable<S> entities) {
+        return sqlClient()
+                .getEntities()
+                .saveEntitiesCommand(Utils.toCollection(entities));
+    }
 
     @NotNull
     default <S extends E> BatchEntitySaveCommand<S> saveInputsCommand(@NotNull Iterable<Input<S>> inputs) {
         return saveEntitiesCommand(CollectionUtils.map(inputs, Input::toEntity));
     }
 
-    @Override
     default void delete(@NotNull E entity) {
         delete(entity, DeleteMode.AUTO);
     }
 
-    int delete(@NotNull E entity, DeleteMode mode);
+    default int delete(@NotNull E entity, DeleteMode mode) {
+        return sqlClient().getEntities().delete(
+                entityType(),
+                ImmutableObjects.get(entity, type().getIdProp().getId()),
+                mode).getAffectedRowCount(AffectedTable.of(type()));
+    }
 
-    @Override
     default void deleteAll(@NotNull Iterable<? extends E> entities) {
         deleteAll(entities, DeleteMode.AUTO);
     }
 
-    int deleteAll(@NotNull Iterable<? extends E> entities, DeleteMode mode);
+    default int deleteAll(@NotNull Iterable<? extends E> entities, DeleteMode mode) {
+        return sqlClient().getEntities().deleteAll(
+                entityType(),
+                Utils
+                        .toCollection(entities)
+                        .stream()
+                        .map(it -> ImmutableObjects.get(it, type().getIdProp().getId()))
+                        .collect(Collectors.toList()),
+                mode).getAffectedRowCount(AffectedTable.of(type()));
+    }
 
-    @Override
     default void deleteById(@NotNull ID id) {
         deleteById(id, DeleteMode.AUTO);
     }
 
-    int deleteById(@NotNull ID id, DeleteMode mode);
+    default int deleteById(@NotNull ID id, DeleteMode mode) {
+        return sqlClient()
+                .getEntities()
+                .delete(entityType(), id, mode)
+                .getAffectedRowCount(AffectedTable.of(type()));
+    }
 
     default void deleteByIds(Iterable<? extends ID> ids) {
         deleteByIds(ids, DeleteMode.AUTO);
     }
 
-    @Override
     default void deleteAllById(@NotNull Iterable<? extends ID> ids) {
         deleteByIds(ids, DeleteMode.AUTO);
     }
 
-    int deleteByIds(Iterable<? extends ID> ids, DeleteMode mode);
+    default int deleteByIds(Iterable<? extends ID> ids, DeleteMode mode) {
+        return sqlClient()
+                .getEntities()
+                .deleteAll(entityType(), Utils.toCollection(ids), mode)
+                .getAffectedRowCount(AffectedTable.of(type()));
+    }
 
-    @Override
-    void deleteAll();
+    default void deleteAll() {
+        Mutations
+                .createDelete(sqlClient(), type(), (d, t) -> {
+                })
+                .execute();
+    }
 
-    <V extends View<E>> Viewer<E, ID, V> viewer(Class<V> viewType);
+    default <V extends View<E>> Viewer<E, ID, V> viewer(Class<V> viewType) {
+
+        return new Viewer<E, ID, V>() {
+
+            private final ViewMetadata<E, V> metadata = ViewMetadata.of(viewType);
+
+            @Override
+            public V findNullable(ID id) {
+                return sqlClient().getEntities().findById(viewType, id);
+            }
+
+            @Override
+            public List<V> findByIds(Iterable<ID> ids) {
+                return sqlClient().getEntities().findByIds(viewType, Utils.toCollection(ids));
+            }
+
+            @Override
+            public Map<ID, V> findMapByIds(Iterable<ID> ids) {
+                return sqlClient().getEntities().findMapByIds(viewType, Utils.toCollection(ids));
+            }
+
+            @Override
+            public List<V> findAll() {
+                return createQuery(metadata.getFetcher(), metadata.getConverter(), null, null).execute();
+            }
+
+            @Override
+            public List<V> findAll(TypedProp.Scalar<?, ?>... sortedProps) {
+                return createQuery(metadata.getFetcher(), metadata.getConverter(), sortedProps, null).execute();
+            }
+
+            @Override
+            public List<V> findAll(Sort sort) {
+                return createQuery(metadata.getFetcher(), metadata.getConverter(), null, sort).execute();
+            }
+
+            @Override
+            public Page<V> findAll(io.quarkiverse.jimmer.runtime.repository.support.Page page) {
+                return createQuery(metadata.getFetcher(), metadata.getConverter(), null, null)
+                        .fetchPage(page.index, page.size);
+            }
+
+            @Override
+            public Page<V> findAll(int pageIndex, int pageSize) {
+                return createQuery(metadata.getFetcher(), metadata.getConverter(), null, null)
+                        .fetchPage(pageIndex, pageSize);
+            }
+
+            @Override
+            public Page<V> findAll(int pageIndex, int pageSize, TypedProp.Scalar<?, ?>... sortedProps) {
+                return createQuery(metadata.getFetcher(), metadata.getConverter(), sortedProps, null)
+                        .fetchPage(pageIndex, pageSize);
+            }
+
+            @Override
+            public Page<V> findAll(int pageIndex, int pageSize, Sort sort) {
+                return createQuery(metadata.getFetcher(), metadata.getConverter(), null, sort)
+                        .fetchPage(pageIndex, pageSize);
+            }
+        };
+    }
+
+    private <X> ConfigurableRootQuery<?, X> createQuery(
+            Fetcher<?> fetcher,
+            @Nullable Function<?, X> converter,
+            @Nullable TypedProp.Scalar<?, ?>[] sortedProps,
+            @Nullable Sort sort) {
+        MutableRootQueryImpl<Table<?>> query = new MutableRootQueryImpl<>(sqlClient(), type(), ExecutionPurpose.QUERY,
+                FilterLevel.DEFAULT);
+        TableImplementor<?> table = query.getTableImplementor();
+        if (sortedProps != null) {
+            for (TypedProp.Scalar<?, ?> sortedProp : sortedProps) {
+                if (!sortedProp.unwrap().getDeclaringType().isAssignableFrom(type())) {
+                    throw new IllegalArgumentException(
+                            "The sorted field \"" +
+                                    sortedProp +
+                                    "\" does not belong to the type \"" +
+                                    type() +
+                                    "\" or its super types");
+                }
+                PropExpression<?> expr = table.get(sortedProp.unwrap());
+                Order astOrder;
+                if (sortedProp.isDesc()) {
+                    astOrder = expr.desc();
+                } else {
+                    astOrder = expr.asc();
+                }
+                if (sortedProp.isNullsFirst()) {
+                    astOrder = astOrder.nullsFirst();
+                }
+                if (sortedProp.isNullsLast()) {
+                    astOrder = astOrder.nullsLast();
+                }
+                query.orderBy(astOrder);
+            }
+        }
+        if (sort != null) {
+            query.orderBy(QuarkusOrders.toOrders(table, sort));
+        }
+        return query.select(
+                fetcher != null ? new FetcherSelectionImpl<>(table, fetcher, converter) : (Selection<X>) table);
+    }
 
     interface Viewer<E, ID, V extends View<E>> {
 
