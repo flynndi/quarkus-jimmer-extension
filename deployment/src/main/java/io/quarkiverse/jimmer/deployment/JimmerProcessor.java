@@ -11,14 +11,12 @@ import jakarta.ws.rs.Priorities;
 
 import org.babyfish.jimmer.error.CodeBasedException;
 import org.babyfish.jimmer.error.CodeBasedRuntimeException;
+import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.jimmer.runtime.DBKindEnum;
-import io.quarkiverse.jimmer.runtime.JimmerDataSourcesRecorder;
-import io.quarkiverse.jimmer.runtime.QuarkusJSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.QuarkusJSqlClientProducer;
+import io.quarkiverse.jimmer.runtime.*;
 import io.quarkiverse.jimmer.runtime.cache.impl.QuarkusTransactionCacheOperator;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
@@ -49,6 +47,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
+import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
@@ -87,6 +86,32 @@ public class JimmerProcessor {
             }
         }
 
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void registerRepository(JimmerJpaRecorder jimmerJpaRecorder,
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
+            BuildProducer<EntityToImmutableTypeBuildItem> entityToImmutableTypeProducer) {
+        Collection<ClassInfo> repositoryBeans = combinedIndex.getComputingIndex().getAllKnownImplementors(JRepository.class);
+        for (ClassInfo repositoryBean : repositoryBeans) {
+            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
+
+            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
+                    DotName.createSimple(JRepository.class), combinedIndex.getComputingIndex());
+            entityToImmutableTypeProducer.produce(new EntityToImmutableTypeBuildItem(typeParameters.get(0).name().toString(),
+                    ImmutableType.get(JandexReflection.loadRawType(typeParameters.get(0)))));
+        }
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void recordJpaOperationsData(JimmerJpaRecorder jimmerJpaRecorder,
+            List<EntityToImmutableTypeBuildItem> entityToImmutableTypes) {
+        for (EntityToImmutableTypeBuildItem entityToImmutableType : entityToImmutableTypes) {
+            System.out.println("entityToImmutableType = " + entityToImmutableType);
+        }
     }
 
     @BuildStep
@@ -277,15 +302,6 @@ public class JimmerProcessor {
                 exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedRuntimeExceptionAdvice.class.getName(),
                         CodeBasedRuntimeException.class.getName(), Priorities.USER + 1, true));
             }
-        }
-    }
-
-    @BuildStep
-    void registerRepository(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer) {
-        Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex().getAllKnownImplementors(JRepository.class);
-        for (ClassInfo repositoryBean : repositoryBeans) {
-            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
         }
     }
 
