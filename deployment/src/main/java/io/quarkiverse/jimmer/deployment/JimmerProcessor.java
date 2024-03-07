@@ -31,7 +31,7 @@ import io.quarkiverse.jimmer.runtime.client.openapi.JsRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
-import io.quarkiverse.jimmer.runtime.repository.support.JRepository;
+import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.runtime.DataSources;
@@ -283,7 +283,7 @@ public class JimmerProcessor {
     @BuildStep
     void registerRepository(CombinedIndexBuildItem combinedIndex,
             BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer) {
-        Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex().getAllKnownSubclasses(JRepository.class);
+        Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex().getAllKnownImplementors(JRepository.class);
         for (ClassInfo repositoryBean : repositoryBeans) {
             unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
         }
