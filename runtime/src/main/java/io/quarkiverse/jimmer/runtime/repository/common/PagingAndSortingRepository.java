@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.runtime.repository.common;
 
 import org.babyfish.jimmer.Page;
 
+@Deprecated
 public interface PagingAndSortingRepository<T, ID> extends CrudRepository<T, ID> {
 
     /**
