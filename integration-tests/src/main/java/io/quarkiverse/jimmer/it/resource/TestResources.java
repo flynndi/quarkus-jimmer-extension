@@ -25,6 +25,7 @@ import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
 import io.quarkiverse.jimmer.runtime.Jimmer;
+import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.support.Page;
 import io.quarkus.agroal.DataSource;
 
@@ -76,6 +77,12 @@ public class TestResources {
     @Path("/testBookRepositoryPageOther")
     public Response testBookRepositoryPageOther(Page page) {
         return Response.ok(bookRepository.findAll(page.index, page.size)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryPageSort")
+    public Response testBookRepositoryPageSort(Page page) {
+        return Response.ok(bookRepository.findAll(page.index, page.size, Sort.by(Sort.Direction.DESC, "id"))).build();
     }
 
     @POST

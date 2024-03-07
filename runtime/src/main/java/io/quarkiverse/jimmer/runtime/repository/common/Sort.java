@@ -6,8 +6,6 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.cronutils.utils.StringUtils;
-
 import io.quarkiverse.jimmer.runtime.util.Assert;
 
 public class Sort implements Streamable<Sort.Order>, Serializable {
@@ -417,7 +415,7 @@ public class Sort implements Streamable<Sort.Order>, Serializable {
          */
         private Order(@Nullable Direction direction, String property, boolean ignoreCase, NullHandling nullHandling) {
 
-            if (!StringUtils.isEmpty(property)) {
+            if (property.isEmpty()) {
                 throw new IllegalArgumentException("Property must not be null or empty!");
             }
 
