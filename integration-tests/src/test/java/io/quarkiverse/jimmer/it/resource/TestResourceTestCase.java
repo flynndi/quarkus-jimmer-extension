@@ -85,6 +85,27 @@ public class TestResourceTestCase {
     }
 
     @Test
+    void testBookRepositoryPageSort() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response response = given()
+                .body(body)
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryPageSort");
+        JsonPath responseJsonPath = response.jsonPath();
+        Assertions.assertEquals(6, responseJsonPath.getInt("totalRowCount"));
+        Assertions.assertEquals(6, responseJsonPath.getInt("totalPageCount"));
+        Assertions.assertEquals(11, responseJsonPath.getLong("rows[0].id"));
+    }
+
+    @Test
     void testPageFetcher() {
         String body = """
                 {
