@@ -108,8 +108,8 @@ public class TestResources {
         return Response.ok(userRoleRepository.findNullable(id)).build();
     }
 
-    @POST
-    @Path("/testUserRoleRepositoryTransactional")
+    @PUT
+    @Path("/testUserRoleRepositoryUpdate")
     @Transactional(rollbackOn = Exception.class)
     public Response testUserRoleRepositoryTransactional(UserRoleInput userRoleInput) {
         userRoleRepository.update(userRoleInput);
