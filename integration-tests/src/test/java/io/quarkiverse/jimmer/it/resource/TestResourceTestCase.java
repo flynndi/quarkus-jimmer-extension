@@ -2,8 +2,8 @@ package io.quarkiverse.jimmer.it.resource;
 
 import static io.restassured.RestAssured.given;
 
-import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
-import io.quarkus.agroal.DataSource;
+import java.util.UUID;
+
 import jakarta.inject.Inject;
 
 import org.apache.http.HttpStatus;
@@ -13,14 +13,14 @@ import org.junit.jupiter.api.Test;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
+import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
+import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.Header;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.vertx.core.http.HttpHeaders;
-
-import java.util.UUID;
 
 @QuarkusTest
 public class TestResourceTestCase {
@@ -36,7 +36,8 @@ public class TestResourceTestCase {
     void testRepository() {
         BookRepository bookRepository = Arc.container().instance(BookRepository.class).get();
         BookStoreRepository bookStoreRepository = Arc.container().instance(BookStoreRepository.class).get();
-        UserRoleRepository userRoleRepository = Arc.container().instance(UserRoleRepository.class).get();
+        UserRoleRepository userRoleRepository = Arc.container()
+                .instance(UserRoleRepository.class, new DataSource.DataSourceLiteral("DB2")).get();
         Assertions.assertNotNull(bookRepository);
         Assertions.assertNotNull(bookStoreRepository);
         Assertions.assertEquals(bookRepository, this.bookRepository);
