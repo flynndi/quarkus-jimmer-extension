@@ -1,23 +1,8 @@
 # Quarkus Jimmer Extension
 
-# Jimmer
-https://github.com/babyfish-ct/jimmer
+# Note
+In most cases you can refer to jimmer's configuration of spring, there is no real difference between the two, only a few differences
 
-# Version
-preview build by
-
-| Depend  | Version |    | Future |
-|---------|---------|----|--------|
-| JDK     | 11      | -> | 17     |
-| Quarkus | 3.6.4   | -> | 3.8.0  |
-| Jimmer  | 0.8.100 | -> | latest |
-
-# Feature
-| Feature               |     |
-|-----------------------|-----|
-| Multiple data sources | yes |
-| JDBC                  | yes |
-| Reactive              | no  |
 
 # Usage
 Gradle:
@@ -276,3 +261,19 @@ public class CacheConfig {
     }
 }
 ```
+
+# Version
+preview build by
+
+| Depend  | Version |    | Future |
+|---------|---------|----|--------|
+| JDK     | 11      | -> | 17     |
+| Quarkus | 3.6.4   | -> | 3.8.0  |
+| Jimmer  | 0.8.100 | -> | latest |
+
+# Feature
+| Feature               |     |
+|-----------------------|-----|
+| Multiple data sources | yes |
+| JDBC                  | yes |
+| Reactive              | no  |
