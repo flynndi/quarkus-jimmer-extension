@@ -182,15 +182,15 @@ public class JRepository<E, ID> implements io.quarkiverse.jimmer.runtime.reposit
     }
 
     @Override
-    public org.babyfish.jimmer.@NotNull Page<E> findAll(@NotNull Page page) {
+    public org.babyfish.jimmer.@NotNull Page<E> findAll(@NotNull Pagination pagination) {
         return this.<E> createQuery(null, null, null, null)
-                .fetchPage(page.index, page.size);
+                .fetchPage(pagination.index, pagination.size);
     }
 
     @Override
-    public org.babyfish.jimmer.Page<E> findAll(Page page, Fetcher<E> fetcher) {
+    public org.babyfish.jimmer.Page<E> findAll(Pagination pagination, Fetcher<E> fetcher) {
         return this.<E> createQuery(fetcher, null, null, null)
-                .fetchPage(page.index, page.size);
+                .fetchPage(pagination.index, pagination.size);
     }
 
     @Override
@@ -351,9 +351,9 @@ public class JRepository<E, ID> implements io.quarkiverse.jimmer.runtime.reposit
         }
 
         @Override
-        public org.babyfish.jimmer.Page<V> findAll(Page page) {
+        public org.babyfish.jimmer.Page<V> findAll(Pagination pagination) {
             return createQuery(metadata.getFetcher(), metadata.getConverter(), null, null)
-                    .fetchPage(page.index, page.size);
+                    .fetchPage(pagination.index, pagination.size);
         }
 
         @Override
