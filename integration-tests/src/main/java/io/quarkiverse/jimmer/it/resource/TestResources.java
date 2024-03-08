@@ -26,7 +26,7 @@ import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
 import io.quarkiverse.jimmer.runtime.Jimmer;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
-import io.quarkiverse.jimmer.runtime.repository.support.Page;
+import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import io.quarkus.agroal.DataSource;
 
 @Path("/testResources")
@@ -69,26 +69,27 @@ public class TestResources {
 
     @POST
     @Path("/testBookRepositoryPage")
-    public Response testBookRepositoryPage(Page page) {
-        return Response.ok(bookRepository.findAll(page)).build();
+    public Response testBookRepositoryPage(Pagination pagination) {
+        return Response.ok(bookRepository.findAll(pagination)).build();
     }
 
     @POST
     @Path("/testBookRepositoryPageOther")
-    public Response testBookRepositoryPageOther(Page page) {
-        return Response.ok(bookRepository.findAll(page.index, page.size)).build();
+    public Response testBookRepositoryPageOther(Pagination pagination) {
+        return Response.ok(bookRepository.findAll(pagination.index, pagination.size)).build();
     }
 
     @POST
     @Path("/testBookRepositoryPageSort")
-    public Response testBookRepositoryPageSort(Page page) {
-        return Response.ok(bookRepository.findAll(page.index, page.size, Sort.by(Sort.Direction.DESC, "id"))).build();
+    public Response testBookRepositoryPageSort(Pagination pagination) {
+        return Response.ok(bookRepository.findAll(pagination.index, pagination.size, Sort.by(Sort.Direction.DESC, "id")))
+                .build();
     }
 
     @POST
     @Path("/testBookRepositoryPageFetcher")
-    public org.babyfish.jimmer.Page<@FetchBy("COMPLEX_BOOK") Book> testBookRepositoryPageFetcher(Page page) {
-        return bookRepository.findAll(page, COMPLEX_BOOK);
+    public org.babyfish.jimmer.Page<@FetchBy("COMPLEX_BOOK") Book> testBookRepositoryPageFetcher(Pagination pagination) {
+        return bookRepository.findAll(pagination, COMPLEX_BOOK);
     }
 
     @GET
