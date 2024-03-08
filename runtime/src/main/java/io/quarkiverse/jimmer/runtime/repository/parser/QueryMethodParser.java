@@ -14,7 +14,7 @@ import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
-import io.quarkiverse.jimmer.runtime.repository.support.Page;
+import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import kotlin.reflect.KClass;
 
 class QueryMethodParser {
@@ -53,7 +53,7 @@ class QueryMethodParser {
         this.method = method;
         this.parameterTypes = method.getParameterTypes();
         this.genericParameterTypes = method.getGenericParameterTypes();
-        this.pageableParamIndex = implicitParameterIndex(Page.class);
+        this.pageableParamIndex = implicitParameterIndex(Pagination.class);
         this.sortParamIndex = implicitParameterIndex(Sort.class);
         this.specificationIndex = implicitParameterIndex(Specification.class);
         this.fetcherParamIndex = implicitParameterIndex(Fetcher.class);
@@ -117,7 +117,7 @@ class QueryMethodParser {
                     "The parameter whose type is \"" +
                             org.babyfish.jimmer.Page.class +
                             "\" requires the return type \"" +
-                            Page.class.getName() +
+                            Pagination.class.getName() +
                             "\" or \"" +
                             org.babyfish.jimmer.Page.class.getName() +
                             "\"");
@@ -141,7 +141,7 @@ class QueryMethodParser {
                                     "\", \"" +
                                     Iterator.class.getName() +
                                     "\", \"" +
-                                    Page.class.getName() +
+                                    Pagination.class.getName() +
                                     "\", \"" +
                                     org.babyfish.jimmer.Page.class.getName() +
                                     "\" or \"" +
@@ -448,7 +448,7 @@ class QueryMethodParser {
     }
 
     private static boolean isImplicitParameterType(Class<?> type) {
-        return Page.class.isAssignableFrom(type) ||
+        return Pagination.class.isAssignableFrom(type) ||
                 Sort.class.isAssignableFrom(type) ||
                 Specification.class.isAssignableFrom(type) ||
                 Fetcher.class.isAssignableFrom(type) ||

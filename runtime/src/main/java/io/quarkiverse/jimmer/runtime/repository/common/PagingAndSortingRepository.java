@@ -2,6 +2,8 @@ package io.quarkiverse.jimmer.runtime.repository.common;
 
 import org.babyfish.jimmer.Page;
 
+import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
+
 @Deprecated
 public interface PagingAndSortingRepository<T, ID> extends CrudRepository<T, ID> {
 
@@ -17,8 +19,8 @@ public interface PagingAndSortingRepository<T, ID> extends CrudRepository<T, ID>
     /**
      * Returns a {@link Page}
      *
-     * @param page must not be {@literal null}.
+     * @param pagination must not be {@literal null}.
      * @return a page of entities
      */
-    Page<T> findAll(io.quarkiverse.jimmer.runtime.repository.support.Page page);
+    Page<T> findAll(Pagination pagination);
 }
