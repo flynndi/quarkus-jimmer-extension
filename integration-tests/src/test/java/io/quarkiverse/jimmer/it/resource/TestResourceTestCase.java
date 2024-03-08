@@ -139,6 +139,17 @@ public class TestResourceTestCase {
     }
 
     @Test
+    void testBookRepositoryByIdFetcher() {
+        Response response = given()
+                .queryParam("id", 0)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryByIdFetcher");
+        Assertions.assertEquals(response.statusCode(), HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
     void testBookRepositoryViewById() {
         Response response = given()
                 .queryParam("id", 1L)
