@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import io.quarkiverse.jimmer.runtime.Jimmer;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.support.JpaOperationsData;
+import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import io.quarkiverse.jimmer.runtime.repository.support.Utils;
 import io.quarkus.agroal.DataSource;
 
@@ -167,14 +168,14 @@ public interface JRepository<E, ID> {
     }
 
     @NotNull
-    default Page<E> findAll(@NotNull io.quarkiverse.jimmer.runtime.repository.support.Page page) {
+    default Page<E> findAll(@NotNull Pagination pagination) {
         return this.<E> createQuery(null, null, null, null)
-                .fetchPage(page.index, page.size);
+                .fetchPage(pagination.index, pagination.size);
     }
 
-    default Page<E> findAll(io.quarkiverse.jimmer.runtime.repository.support.Page page, Fetcher<E> fetcher) {
+    default Page<E> findAll(Pagination pagination, Fetcher<E> fetcher) {
         return this.<E> createQuery(fetcher, null, null, null)
-                .fetchPage(page.index, page.size);
+                .fetchPage(pagination.index, pagination.size);
     }
 
     default boolean existsById(@NotNull ID id) {
@@ -419,9 +420,9 @@ public interface JRepository<E, ID> {
             }
 
             @Override
-            public Page<V> findAll(io.quarkiverse.jimmer.runtime.repository.support.Page page) {
+            public Page<V> findAll(Pagination pagination) {
                 return createQuery(metadata.getFetcher(), metadata.getConverter(), null, null)
-                        .fetchPage(page.index, page.size);
+                        .fetchPage(pagination.index, pagination.size);
             }
 
             @Override
@@ -500,7 +501,7 @@ public interface JRepository<E, ID> {
 
         List<V> findAll(Sort sort);
 
-        Page<V> findAll(io.quarkiverse.jimmer.runtime.repository.support.Page page);
+        Page<V> findAll(Pagination pagination);
 
         Page<V> findAll(int pageIndex, int pageSize);
 

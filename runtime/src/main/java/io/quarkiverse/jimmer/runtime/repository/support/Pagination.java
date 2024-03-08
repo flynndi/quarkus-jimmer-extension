@@ -1,6 +1,6 @@
 package io.quarkiverse.jimmer.runtime.repository.support;
 
-public class Page {
+public class Pagination {
 
     /**
      * The current page index (0-based).
@@ -19,7 +19,7 @@ public class Page {
      * @throws IllegalArgumentException if the page size is less than or equal to 0
      * @see #ofSize(int)
      */
-    public Page(int size) {
+    public Pagination(int size) {
         this(0, size);
     }
 
@@ -32,7 +32,7 @@ public class Page {
      * @throws IllegalArgumentException if the page size is less than or equal to 0
      * @see #of(int, int)
      */
-    public Page(int index, int size) {
+    public Pagination(int index, int size) {
         if (index < 0)
             throw new IllegalArgumentException("Page index must be >= 0 : " + index);
         if (size <= 0)
@@ -49,8 +49,8 @@ public class Page {
      * @throws IllegalArgumentException if the page index is less than 0
      * @throws IllegalArgumentException if the page size is less than or equal to 0
      */
-    public static Page of(int index, int size) {
-        return new Page(index, size);
+    public static Pagination of(int index, int size) {
+        return new Pagination(index, size);
     }
 
     /**
@@ -59,8 +59,8 @@ public class Page {
      * @param size the page size
      * @throws IllegalArgumentException if the page size is less than or equal to 0
      */
-    public static Page ofSize(int size) {
-        return new Page(size);
+    public static Pagination ofSize(int size) {
+        return new Pagination(size);
     }
 
     /**
@@ -69,8 +69,8 @@ public class Page {
      * @return a new page with the next page index and the same size.
      * @see #previous()
      */
-    public Page next() {
-        return new Page(index + 1, size);
+    public Pagination next() {
+        return new Pagination(index + 1, size);
     }
 
     /**
@@ -79,8 +79,8 @@ public class Page {
      * @return a new page with the next page index and the same size, or this page if it is the first page.
      * @see #next()
      */
-    public Page previous() {
-        return index > 0 ? new Page(index - 1, size) : this;
+    public Pagination previous() {
+        return index > 0 ? new Pagination(index - 1, size) : this;
     }
 
     /**
@@ -88,8 +88,8 @@ public class Page {
      *
      * @return a new page with the first page index (0) and the same size, or this page if it is the first page.
      */
-    public Page first() {
-        return index > 0 ? new Page(0, size) : this;
+    public Pagination first() {
+        return index > 0 ? new Pagination(0, size) : this;
     }
 
     /**
@@ -98,7 +98,7 @@ public class Page {
      * @param newIndex the new page index
      * @return a new page at the given page index and the same size, or this page if the page index is the same.
      */
-    public Page index(int newIndex) {
-        return newIndex != index ? new Page(newIndex, size) : this;
+    public Pagination index(int newIndex) {
+        return newIndex != index ? new Pagination(newIndex, size) : this;
     }
 }

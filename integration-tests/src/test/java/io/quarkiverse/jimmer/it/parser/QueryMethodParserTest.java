@@ -14,6 +14,7 @@ import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.repository.parser.Context;
 import io.quarkiverse.jimmer.runtime.repository.parser.QueryMethod;
+import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 
 public class QueryMethodParserTest {
 
@@ -21,7 +22,7 @@ public class QueryMethodParserTest {
     public void testEntityMethod() throws NoSuchMethodException {
 
         Method method = Dao.class.getMethod("findByNameOrderByName", String.class,
-                io.quarkiverse.jimmer.runtime.repository.support.Page.class, Fetcher.class);
+                Pagination.class, Fetcher.class);
         QueryMethod queryMethod1 = QueryMethod.of(new Context(), ImmutableType.get(Book.class), method);
         System.out.println("queryMethod = " + queryMethod1);
         method = Dao.class.getMethod("findByNameAndEditionInOrderByNameAscEditionDesc", String.class, Collection.class);
@@ -34,7 +35,7 @@ public class QueryMethodParserTest {
         // Dynamic entity
         Page<Book> findByNameOrderByName(
                 String name,
-                io.quarkiverse.jimmer.runtime.repository.support.Page page,
+                Pagination pagination,
                 Fetcher<Book> fetcher);
 
         List<Book> findByNameAndEditionInOrderByNameAscEditionDesc(
