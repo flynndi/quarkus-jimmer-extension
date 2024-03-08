@@ -22,7 +22,7 @@ preview build by
 # Usage
 Gradle:
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR2'
+implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR3'
 annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.100'
 ```
 Maven
@@ -30,7 +30,7 @@ Maven
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR2</version>
+   <version>0.0.1.CR3</version>
 </dependency>
 
 <build>
