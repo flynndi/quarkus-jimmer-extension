@@ -1,13 +1,10 @@
 package io.quarkiverse.jimmer.runtime.repository;
 
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import jakarta.ws.rs.core.GenericType;
 
 import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.Input;
@@ -32,16 +29,14 @@ import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.babyfish.jimmer.sql.fetcher.ViewMetadata;
 import org.babyfish.jimmer.sql.runtime.ExecutionPurpose;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
-import org.jboss.resteasy.reactive.common.util.types.Types;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.runtime.Jimmer;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
+import io.quarkiverse.jimmer.runtime.repository.support.JpaOperationsData;
 import io.quarkiverse.jimmer.runtime.repository.support.Utils;
 import io.quarkus.agroal.DataSource;
-import io.quarkus.arc.ClientProxy;
-import io.quarkus.arc.impl.Reflections;
 
 public interface JRepository<E, ID> {
 
@@ -53,33 +48,19 @@ public interface JRepository<E, ID> {
      * For provider
      */
     default JSqlClient sql() {
-        Class<?> actualType = ClientProxy.unwrap(this.getClass());
-        if (null != actualType.getAnnotation(DataSource.class)) {
-            return Jimmer.getJSqlClient(actualType.getAnnotation(DataSource.class).value());
+        if (null != this.getClass().getAnnotation(DataSource.class)) {
+            return Jimmer.getJSqlClient(this.getClass().getAnnotation(DataSource.class).value());
         }
         return Jimmer.getDefaultJSqlClient();
     }
 
     default ImmutableType type() {
-        Type[] types = Types.getActualTypeArgumentsOfAnInterface(this.getClass(),
-                io.quarkiverse.jimmer.runtime.repository.JRepository.class);
-        if (types.length == 2) {
-            GenericType<Object> genericType = new GenericType<>(types[0]);
-            return ImmutableType.get(genericType.getRawType());
-        } else {
-            throw new IllegalArgumentException(
-                    "io.quarkiverse.jimmer.runtime.repository.support.JRepository<E, ID> 'E' illegality");
-        }
+        return JpaOperationsData.getImmutableType(this.getClass());
     }
 
+    @SuppressWarnings("unchecked")
     default Class<E> entityType() {
-        Type[] types = Types.getActualTypeArgumentsOfAnInterface(this.getClass(),
-                io.quarkiverse.jimmer.runtime.repository.JRepository.class);
-        if (types.length == 2) {
-            return Reflections.getRawType(types[0]);
-        } else {
-            return null;
-        }
+        return (Class<E>) JpaOperationsData.getEntityClass(this.getClass());
     }
 
     /*
@@ -138,12 +119,10 @@ public interface JRepository<E, ID> {
         return createQuery(null, (Function<?, E>) null, null, null).execute();
     }
 
-    @SuppressWarnings("unchecked")
     default List<E> findAll(TypedProp.Scalar<?, ?>... sortedProps) {
         return createQuery(null, (Function<?, E>) null, sortedProps, null).execute();
     }
 
-    @SuppressWarnings("unchecked")
     default List<E> findAll(Fetcher<E> fetcher, TypedProp.Scalar<?, ?>... sortedProps) {
         return createQuery(fetcher, (Function<?, E>) null, sortedProps, null).execute();
     }
@@ -167,13 +146,11 @@ public interface JRepository<E, ID> {
                 .fetchPage(pageIndex, pageSize);
     }
 
-    @SuppressWarnings("unchecked")
     default Page<E> findAll(int pageIndex, int pageSize, TypedProp.Scalar<?, ?>... sortedProps) {
         return this.<E> createQuery(null, null, sortedProps, null)
                 .fetchPage(pageIndex, pageSize);
     }
 
-    @SuppressWarnings("unchecked")
     default Page<E> findAll(int pageIndex, int pageSize, Fetcher<E> fetcher, TypedProp.Scalar<?, ?>... sortedProps) {
         return this.<E> createQuery(fetcher, null, sortedProps, null)
                 .fetchPage(pageIndex, pageSize);
@@ -467,6 +444,7 @@ public interface JRepository<E, ID> {
         };
     }
 
+    @SuppressWarnings("unchecked")
     private <X> ConfigurableRootQuery<?, X> createQuery(
             Fetcher<?> fetcher,
             @Nullable Function<?, X> converter,
