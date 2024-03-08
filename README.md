@@ -113,6 +113,51 @@ quarkus:
                 in: QUERY
 ```
 
+# JPA
+```
+// default db
+
+// repository
+@ApplicationScoped
+public class BookRepository implements JRepository<Book, Long> {
+
+}
+
+// service
+@ApplicationScoped
+public class BookService {
+
+    @Inject
+    BookRepository bookRepository;
+    
+    public Book findById(long id) {
+        return bookRepository.findNullable(id);
+    }
+}
+
+// if other databases exist
+
+// repository
+@ApplicationScoped
+@DataSource("DB2")
+public class UserRoleRepository implements JRepository<UserRole, UUID> {
+
+}
+
+// service
+@ApplicationScoped
+public class UserRoleService {
+
+    @Inject
+    @DataSource("DB2")
+    UserRoleRepository userRoleRepository;
+    
+    public UserRole findById(long id) {
+        return userRoleRepository.findNullable(id);
+    }
+}
+```
+
 # Code
 ```
     // default db
