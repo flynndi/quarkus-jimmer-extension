@@ -9,7 +9,7 @@ import io.quarkus.agroal.DataSource;
 public class QuarkusTransactionCacheOperatorConfig {
 
     @Singleton
-    @DataSource("DB2")
+    @DataSource("<default>")
     public QuarkusTransactionCacheOperator quarkusTransactionCacheOperator() {
         return new QuarkusTransactionCacheOperator();
     }
