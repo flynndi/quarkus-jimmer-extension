@@ -11,7 +11,7 @@ public interface Book extends TenantAware, BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int id();
+    long id();
 
     String name();
 
