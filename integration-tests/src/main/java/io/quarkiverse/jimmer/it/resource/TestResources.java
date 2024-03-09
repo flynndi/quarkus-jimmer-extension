@@ -18,6 +18,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.BookFetcher;
+import io.quarkiverse.jimmer.it.entity.BookProps;
 import io.quarkiverse.jimmer.it.entity.Tables;
 import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
 import io.quarkiverse.jimmer.it.entity.dto.UserRoleInput;
@@ -99,15 +100,77 @@ public class TestResources {
     }
 
     @GET
+    @Path("/testBookRepositoryByIdOptional")
+    public Response testBookRepositoryByIdOptional(@RestQuery long id) {
+        if (bookRepository.findById(id).isPresent()) {
+            return Response.ok(bookRepository.findById(id).get()).build();
+        } else {
+            return Response.noContent().build();
+        }
+    }
+
+    @GET
     @Path("/testBookRepositoryByIdFetcher")
     public @FetchBy("COMPLEX_BOOK") Book testBookRepositoryByIdFetcher(@RestQuery long id) {
         return bookRepository.findNullable(id, COMPLEX_BOOK);
     }
 
     @GET
+    @Path("/testBookRepositoryByIdFetcherOptional")
+    public @FetchBy("COMPLEX_BOOK") Book testBookRepositoryByIdFetcherOptional(@RestQuery long id) {
+        if (bookRepository.findById(id, COMPLEX_BOOK).isPresent()) {
+            return bookRepository.findById(id, COMPLEX_BOOK).get();
+        } else {
+            return null;
+        }
+    }
+
+    @GET
     @Path("/testBookRepositoryViewById")
     public Response testBookRepositoryViewById(@RestQuery long id) {
         return Response.ok(bookRepository.viewer(BookDetailView.class).findNullable(id)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindAllById")
+    public Response testBookRepositoryFindAllById(List<Long> ids) {
+        return Response.ok(bookRepository.findAllById(ids)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindByIdsFetcher")
+    public Response testBookRepositoryFindByIdsFetcher(List<Long> ids) {
+        return Response.ok(bookRepository.findByIds(ids, COMPLEX_BOOK)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindMapByIds")
+    public Response testBookRepositoryFindMapByIds(List<Long> ids) {
+        return Response.ok(bookRepository.findMapByIds(ids)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindMapByIdsFetcher")
+    public Response testBookRepositoryFindMapByIdsFetcher(List<Long> ids) {
+        return Response.ok(bookRepository.findMapByIds(ids, COMPLEX_BOOK)).build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryFindAll")
+    public Response testBookRepositoryFindAll() {
+        return Response.ok(bookRepository.findAll()).build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryFindAllTypedPropScalar")
+    public Response testBookRepositoryFindAllTypedPropScalar() {
+        return Response.ok(bookRepository.findAll(BookProps.NAME.desc())).build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryFindAllFetcherTypedPropScalar")
+    public Response testBookRepositoryFindAllFetcherTypedPropScalar() {
+        return Response.ok(bookRepository.findAll(COMPLEX_BOOK, BookProps.NAME.desc())).build();
     }
 
     @GET

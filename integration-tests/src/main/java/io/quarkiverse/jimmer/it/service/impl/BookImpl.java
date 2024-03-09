@@ -112,7 +112,7 @@ public class BookImpl implements IBook {
         Jimmer.getDefaultJSqlClient()
                 .createUpdate(table)
                 .set(table.store().id(), 2L)
-                .where(table.id().eq(7))
+                .where(table.id().eq(7L))
                 .execute();
     }
 
