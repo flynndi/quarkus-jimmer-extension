@@ -2,10 +2,8 @@ package io.quarkiverse.jimmer.it.resource;
 
 import static io.restassured.RestAssured.given;
 
-import java.util.Map;
 import java.util.UUID;
 
-import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 
 import org.apache.http.HttpStatus;
@@ -23,8 +21,6 @@ import io.restassured.http.Header;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.vertx.core.http.HttpHeaders;
-
-import javax.validation.constraints.NotNull;
 
 @QuarkusTest
 public class TestResourceTestCase {
