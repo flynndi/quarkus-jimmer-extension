@@ -5,7 +5,6 @@ import static io.quarkiverse.jimmer.it.entity.Fetchers.*;
 import java.util.List;
 import java.util.UUID;
 
-import io.quarkiverse.jimmer.it.entity.BookProps;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -13,13 +12,13 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import org.babyfish.jimmer.client.FetchBy;
-import org.babyfish.jimmer.meta.TypedProp;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.jboss.resteasy.reactive.RestQuery;
 
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.BookFetcher;
+import io.quarkiverse.jimmer.it.entity.BookProps;
 import io.quarkiverse.jimmer.it.entity.Tables;
 import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
 import io.quarkiverse.jimmer.it.entity.dto.UserRoleInput;
