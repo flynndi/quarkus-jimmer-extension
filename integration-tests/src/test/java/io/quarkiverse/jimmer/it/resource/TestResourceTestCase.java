@@ -488,7 +488,7 @@ public class TestResourceTestCase {
     void testUserRoleRepositoryInsertInput() {
         String body = """
                 {
-                     "id": "D45493FF-5770-C90D-CFFF-DA11A8C07264",
+                     "id": "81D8F7AB-C3FB-A8B6-3B22-C20A26C83B72",
                      "userId": "12",
                      "roleId": "213",
                      "deleteFlag": false
@@ -501,10 +501,187 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testUserRoleRepositoryInsertInput");
-        Assertions.assertEquals("d45493ff-5770-c90d-cfff-da11a8c07264", response.jsonPath().getString("id"));
+        Assertions.assertEquals("81d8f7ab-c3fb-a8b6-3b22-c20a26c83b72", response.jsonPath().getString("id"));
         Assertions.assertEquals("12", response.jsonPath().getString("userId"));
         Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
         Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
+    }
+
+    @Test
+    void testUserRoleRepositorySave() {
+        String body = """
+                {
+                     "id": "0C844055-A86E-94D9-2C50-77CAFBBC20AB",
+                     "userId": "12",
+                     "roleId": "213",
+                     "deleteFlag": false
+                 }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testUserRoleRepositorySave");
+        Assertions.assertEquals("0c844055-a86e-94d9-2c50-77cafbbc20ab", response.jsonPath().getString("id"));
+        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
+        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
+    }
+
+    @Test
+    void testUserRoleRepositorySaveInput() {
+        String body = """
+                {
+                     "id": "EEB27AAA-8FEA-4177-0179-183FCB154B36",
+                     "userId": "12",
+                     "roleId": "213",
+                     "deleteFlag": false
+                 }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testUserRoleRepositorySaveInput");
+        Assertions.assertEquals("eeb27aaa-8fea-4177-0179-183fcb154b36", response.jsonPath().getString("id"));
+        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
+        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
+    }
+
+    @Test
+    void testUserRoleRepositorySaveInputSaveMode() {
+        String body = """
+                {
+                     "id": "E85FC166-66DD-F496-F733-22BA38DC807D",
+                     "userId": "12",
+                     "roleId": "213",
+                     "deleteFlag": false
+                 }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testUserRoleRepositorySaveInputSaveMode");
+        Assertions.assertEquals(1, response.jsonPath().getInt("totalAffectedRowCount"));
+        Assertions.assertEquals("e85fc166-66dd-f496-f733-22ba38dc807d", response.jsonPath().getString("originalEntity.id"));
+        Assertions.assertEquals("e85fc166-66dd-f496-f733-22ba38dc807d", response.jsonPath().getString("modifiedEntity.id"));
+        Assertions.assertFalse(response.jsonPath().getBoolean("modified"));
+    }
+
+    @Test
+    void testUserRoleRepositorySaveCommand() {
+        String body = """
+                {
+                     "id": "83282150-7E51-D3A9-0EB6-CB606A56873B",
+                     "userId": "12",
+                     "roleId": "213",
+                     "deleteFlag": false
+                 }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testUserRoleRepositorySaveCommand");
+        Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
+    }
+
+    @Test
+    void testUserRoleRepositorySaveEntities() {
+        String body = """
+                [
+                      {
+                          "id": "D45493FF-5770-C90D-CFFF-DA11A8C07264",
+                          "userId": "12",
+                          "roleId": "213",
+                          "deleteFlag": false
+                      },
+                      {
+                          "id": "AC3CEADF-151E-BD7E-2D73-D50E5F86B31D",
+                          "userId": "333",
+                          "roleId": "333",
+                          "deleteFlag": false
+                      }
+                  ]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testUserRoleRepositorySaveEntities");
+        Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals("d45493ff-5770-c90d-cfff-da11a8c07264", response.jsonPath().getString("[0].id"));
+        Assertions.assertEquals("ac3ceadf-151e-bd7e-2d73-d50e5f86b31d", response.jsonPath().getString("[1].id"));
+    }
+
+    @Test
+    void testUserRoleRepositorySaveEntitiesSaveMode() {
+        String body = """
+                [
+                      {
+                          "id": "4C1710D4-46E6-33D3-DC53-8492F6664050",
+                          "userId": "12",
+                          "roleId": "213",
+                          "deleteFlag": false
+                      },
+                      {
+                          "id": "10C40E99-B6EB-A6AE-B1C5-61FA87FEF236",
+                          "userId": "333",
+                          "roleId": "333",
+                          "deleteFlag": false
+                      }
+                  ]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testUserRoleRepositorySaveEntitiesSaveMode");
+        Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(2, response.jsonPath().getInt("totalAffectedRowCount"));
+        Assertions.assertEquals(2, response.jsonPath().getInt("simpleResults[0].totalAffectedRowCount"));
+    }
+
+    @Test
+    void testUserRoleRepositorySaveEntitiesCommand() {
+        String body = """
+                [
+                      {
+                          "id": "8BAD0B39-3BEC-00F8-BE42-7F0D9671A28C",
+                          "userId": "12",
+                          "roleId": "213",
+                          "deleteFlag": false
+                      },
+                      {
+                          "id": "F6EADECF-EE6D-FFC6-F0FA-E7DC353EE735",
+                          "userId": "333",
+                          "roleId": "333",
+                          "deleteFlag": false
+                      }
+                  ]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testUserRoleRepositorySaveEntitiesCommand");
+        Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
     }
 
     @Test
