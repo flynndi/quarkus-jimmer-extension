@@ -5,6 +5,7 @@ import static io.quarkiverse.jimmer.it.entity.Fetchers.*;
 import java.util.List;
 import java.util.UUID;
 
+import io.quarkiverse.jimmer.it.entity.BookProps;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -12,6 +13,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import org.babyfish.jimmer.client.FetchBy;
+import org.babyfish.jimmer.meta.TypedProp;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.jboss.resteasy.reactive.RestQuery;
@@ -133,8 +135,43 @@ public class TestResources {
     @POST
     @Path("/testBookRepositoryFindAllById")
     public Response testBookRepositoryFindAllById(List<Long> ids) {
-        List<Book> allById = bookRepository.findAllById(ids);
-        return Response.ok(allById).build();
+        return Response.ok(bookRepository.findAllById(ids)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindByIdsFetcher")
+    public Response testBookRepositoryFindByIdsFetcher(List<Long> ids) {
+        return Response.ok(bookRepository.findByIds(ids, COMPLEX_BOOK)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindMapByIds")
+    public Response testBookRepositoryFindMapByIds(List<Long> ids) {
+        return Response.ok(bookRepository.findMapByIds(ids)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindMapByIdsFetcher")
+    public Response testBookRepositoryFindMapByIdsFetcher(List<Long> ids) {
+        return Response.ok(bookRepository.findMapByIds(ids, COMPLEX_BOOK)).build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryFindAll")
+    public Response testBookRepositoryFindAll() {
+        return Response.ok(bookRepository.findAll()).build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryFindAllTypedPropScalar")
+    public Response testBookRepositoryFindAllTypedPropScalar() {
+        return Response.ok(bookRepository.findAll(BookProps.NAME.desc())).build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryFindAllFetcherTypedPropScalar")
+    public Response testBookRepositoryFindAllFetcherTypedPropScalar() {
+        return Response.ok(bookRepository.findAll(COMPLEX_BOOK, BookProps.NAME.desc())).build();
     }
 
     @GET
