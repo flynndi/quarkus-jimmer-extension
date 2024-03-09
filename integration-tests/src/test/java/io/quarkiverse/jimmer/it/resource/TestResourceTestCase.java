@@ -139,6 +139,28 @@ public class TestResourceTestCase {
     }
 
     @Test
+    void testBookRepositoryByIdOptionalPresent() {
+        Response response = given()
+                .queryParam("id", 1L)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryByIdOptional");
+        Assertions.assertNotNull(response.jsonPath());
+    }
+
+    @Test
+    void testBookRepositoryByIdOptionalEmpty() {
+        Response response = given()
+                .queryParam("id", 0)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryByIdOptional");
+        Assertions.assertEquals(HttpStatus.SC_NO_CONTENT, response.statusCode());
+    }
+
+    @Test
     void testBookRepositoryByIdFetcher() {
         Response response = given()
                 .queryParam("id", 0)
@@ -147,6 +169,28 @@ public class TestResourceTestCase {
                 .when()
                 .get("testResources/testBookRepositoryByIdFetcher");
         Assertions.assertEquals(response.statusCode(), HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
+    void testBookRepositoryByIdFetcherOptionalPresent() {
+        Response response = given()
+                .queryParam("id", 1L)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryByIdFetcherOptional");
+        Assertions.assertNotNull(response.jsonPath());
+    }
+
+    @Test
+    void testBookRepositoryByIdFetcherOptionalEmpty() {
+        Response response = given()
+                .queryParam("id", 0)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryByIdFetcherOptional");
+        Assertions.assertEquals(response.body().print(), "");
     }
 
     @Test
@@ -161,6 +205,106 @@ public class TestResourceTestCase {
         Assertions.assertEquals(1, response.jsonPath().getLong("id"));
         Assertions.assertNotNull(response.jsonPath().getJsonObject("store"));
         Assertions.assertNotNull(response.jsonPath().getJsonObject("authors"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllById() {
+        String body = """
+                [1, 2]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindAllById");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals(1, response.jsonPath().getLong("[0].id"));
+    }
+
+    @Test
+    void testBookRepositoryFindByIdsFetcher() {
+        String body = """
+                [1, 2]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindByIdsFetcher");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals(1, response.jsonPath().getLong("[0].id"));
+        Assertions.assertEquals(2, response.jsonPath().getLong("[0].authors[0].id"));
+    }
+
+    @Test
+    void testBookRepositoryFindMapByIds() {
+        String body = """
+                [1, 2]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindMapByIds");
+        Assertions.assertNotNull(response.jsonPath().getMap(""));
+    }
+
+    @Test
+    void testBookRepositoryFindMapByIdsFetcher() {
+        String body = """
+                [1, 2]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindMapByIdsFetcher");
+        Assertions.assertNotNull(response.jsonPath().getMap(""));
+        Assertions.assertNotNull(response.jsonPath().getMap("").get("1"));
+    }
+
+    @Test
+    void testBookRepositoryFindAll() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAll");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals(1, response.jsonPath().getLong("[0].id"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllTypedPropScalar() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAllTypedPropScalar");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("[0].name"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllFetcherTypedPropScalar() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAllFetcherTypedPropScalar");
+        System.out.println("response.body().prettyPrint() = " + response.body().prettyPrint());
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("[0].name"));
+        Assertions.assertNotNull(response.jsonPath().getString("[0].authors"));
+        Assertions.assertNotNull(response.jsonPath().getString("[0].store"));
     }
 
     @Test
