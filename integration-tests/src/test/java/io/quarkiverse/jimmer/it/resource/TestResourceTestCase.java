@@ -300,11 +300,234 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .get("testResources/testBookRepositoryFindAllFetcherTypedPropScalar");
-        System.out.println("response.body().prettyPrint() = " + response.body().prettyPrint());
         Assertions.assertNotNull(response.jsonPath());
         Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("[0].name"));
         Assertions.assertNotNull(response.jsonPath().getString("[0].authors"));
         Assertions.assertNotNull(response.jsonPath().getString("[0].store"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllSort() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAllSort");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("[0].name"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllFetcherSort() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAllFetcherSort");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("[0].name"));
+        Assertions.assertNotNull(response.jsonPath().getString("[0].authors"));
+        Assertions.assertNotNull(response.jsonPath().getString("[0].store"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllPageFetcher() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindAllPageFetcher");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertNotNull(response.jsonPath().getString("rows[0].authors"));
+        Assertions.assertEquals(6, response.jsonPath().getInt("totalRowCount"));
+        Assertions.assertNotNull(response.jsonPath().getString("totalPageCount"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllPageTypedPropScalar() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindAllPageTypedPropScalar");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertNull(response.jsonPath().getString("rows[0].authors"));
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("rows[0].name"));
+        Assertions.assertEquals(6, response.jsonPath().getInt("totalRowCount"));
+        Assertions.assertNotNull(response.jsonPath().getString("totalPageCount"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllPageFetcherTypedPropScalar() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindAllPageFetcherTypedPropScalar");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertNotNull(response.jsonPath().getString("rows[0].authors"));
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("rows[0].name"));
+        Assertions.assertEquals(6, response.jsonPath().getInt("totalRowCount"));
+        Assertions.assertNotNull(response.jsonPath().getString("totalPageCount"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllPageSort() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindAllPageSort");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("rows[0].name"));
+        Assertions.assertEquals(6, response.jsonPath().getInt("totalRowCount"));
+        Assertions.assertNotNull(response.jsonPath().getString("totalPageCount"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllPageFetcherSort() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindAllPageFetcherSort");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("rows[0].name"));
+        Assertions.assertNotNull(response.jsonPath().getString("rows[0].authors"));
+        Assertions.assertEquals(6, response.jsonPath().getInt("totalRowCount"));
+        Assertions.assertNotNull(response.jsonPath().getString("totalPageCount"));
+    }
+
+    @Test
+    void testBookRepositoryExistsById() {
+        Response response = given()
+                .queryParam("id", 0)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryExistsById");
+        Assertions.assertFalse(response.jsonPath().getBoolean(""));
+    }
+
+    @Test
+    void testBookRepositoryCount() {
+        Response response = given()
+                .queryParam("id", 0)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryCount");
+        Assertions.assertEquals(6, response.jsonPath().getInt(""));
+    }
+
+    @Test
+    void testUserRoleRepositoryInsert() {
+        String body = """
+                {
+                     "id": "029253C4-35D3-F78B-5A21-E12D7F358A0B",
+                     "userId": "12",
+                     "roleId": "213",
+                     "deleteFlag": false
+                 }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testUserRoleRepositoryInsert");
+        System.out.println("response.body().prettyPrint() = " + response.body().prettyPrint());
+        Assertions.assertEquals("029253c4-35d3-f78b-5a21-e12d7f358a0b", response.jsonPath().getString("id"));
+        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
+        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
+    }
+
+    @Test
+    void testUserRoleRepositoryInsertInput() {
+        String body = """
+                {
+                     "id": "D45493FF-5770-C90D-CFFF-DA11A8C07264",
+                     "userId": "12",
+                     "roleId": "213",
+                     "deleteFlag": false
+                 }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testUserRoleRepositoryInsertInput");
+        Assertions.assertEquals("d45493ff-5770-c90d-cfff-da11a8c07264", response.jsonPath().getString("id"));
+        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
+        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
+    }
+
+    @Test
+    void testUserRoleRepositoryUpdate() {
+        String body = """
+                {
+                     "id": "defc2d01-fb38-4d31-b006-fd182b25aa33",
+                     "userId": "12",
+                     "roleId": "213",
+                     "deleteFlag": false
+                 }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testUserRoleRepositoryUpdate");
+        Assertions.assertEquals("defc2d01-fb38-4d31-b006-fd182b25aa33", response.jsonPath().getString("id"));
+        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
+        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
     }
 
     @Test
@@ -320,7 +543,7 @@ public class TestResourceTestCase {
     }
 
     @Test
-    void testUserRoleRepositoryUpdate() {
+    void testUserRoleRepositoryUpdateInput() {
         String body = """
                 {
                     "id": "defc2d01-fb38-4d31-b006-fd182b25aa33",
@@ -334,7 +557,7 @@ public class TestResourceTestCase {
                 .log()
                 .all()
                 .when()
-                .put("testResources/testUserRoleRepositoryUpdate");
+                .put("testResources/testUserRoleRepositoryUpdateInput");
         Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
     }
 }
