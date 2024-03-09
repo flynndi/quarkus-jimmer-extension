@@ -13,6 +13,8 @@ import jakarta.ws.rs.core.Response;
 
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.ast.mutation.DeleteMode;
+import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.jboss.resteasy.reactive.RestQuery;
 
@@ -238,6 +240,62 @@ public class TestResources {
     @Transactional(rollbackOn = Exception.class)
     public Response testUserRoleRepositoryInsertInput(UserRoleInput userRoleInput) {
         return Response.ok(userRoleRepository.insert(userRoleInput)).build();
+    }
+
+    @POST
+    @Path("/testUserRoleRepositorySave")
+    @Transactional(rollbackOn = Exception.class)
+    public Response testUserRoleRepositorySave(UserRole userRole) {
+        return Response.ok(userRoleRepository.save(userRole)).build();
+    }
+
+    @POST
+    @Path("/testUserRoleRepositorySaveInput")
+    @Transactional(rollbackOn = Exception.class)
+    public Response testUserRoleRepositorySaveInput(UserRoleInput userRoleInput) {
+        return Response.ok(userRoleRepository.save(userRoleInput)).build();
+    }
+
+    @POST
+    @Path("/testUserRoleRepositorySaveInputSaveMode")
+    @Transactional(rollbackOn = Exception.class)
+    public Response testUserRoleRepositorySaveInputSaveMode(UserRoleInput userRoleInput) {
+        return Response.ok(userRoleRepository.save(userRoleInput, SaveMode.INSERT_ONLY)).build();
+    }
+
+    @POST
+    @Path("/testUserRoleRepositorySaveCommand")
+    @Transactional(rollbackOn = Exception.class)
+    public Response testUserRoleRepositorySaveCommand(UserRoleInput userRoleInput) {
+        return Response.ok(userRoleRepository.saveCommand(userRoleInput)).build();
+    }
+
+    @POST
+    @Path("/testUserRoleRepositorySaveEntities")
+    @Transactional(rollbackOn = Exception.class)
+    public Response testUserRoleRepositorySaveEntities(List<UserRole> list) {
+        return Response.ok(userRoleRepository.saveEntities(list)).build();
+    }
+
+    @POST
+    @Path("/testUserRoleRepositorySaveEntitiesSaveMode")
+    @Transactional(rollbackOn = Exception.class)
+    public Response testUserRoleRepositorySaveEntitiesSaveMode(List<UserRole> list) {
+        return Response.ok(userRoleRepository.saveEntities(list, SaveMode.INSERT_ONLY)).build();
+    }
+
+    @POST
+    @Path("/testUserRoleRepositorySaveEntitiesCommand")
+    @Transactional(rollbackOn = Exception.class)
+    public Response testUserRoleRepositorySaveEntitiesCommand(List<UserRole> list) {
+        return Response.ok(userRoleRepository.saveEntitiesCommand(list)).build();
+    }
+
+    @DELETE
+    @Path("/testUserRoleRepositoryDeleteAll")
+    @Transactional(rollbackOn = Exception.class)
+    public Response testUserRoleRepositoryDeleteAll(List<UserRole> list) {
+        return Response.ok(userRoleRepository.deleteAll(list, DeleteMode.AUTO)).build();
     }
 
     @POST
