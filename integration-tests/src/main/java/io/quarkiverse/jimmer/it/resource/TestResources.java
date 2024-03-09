@@ -16,10 +16,7 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.jboss.resteasy.reactive.RestQuery;
 
-import io.quarkiverse.jimmer.it.entity.Book;
-import io.quarkiverse.jimmer.it.entity.BookFetcher;
-import io.quarkiverse.jimmer.it.entity.BookProps;
-import io.quarkiverse.jimmer.it.entity.Tables;
+import io.quarkiverse.jimmer.it.entity.*;
 import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
 import io.quarkiverse.jimmer.it.entity.dto.UserRoleInput;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
@@ -174,15 +171,92 @@ public class TestResources {
     }
 
     @GET
+    @Path("/testBookRepositoryFindAllSort")
+    public Response testBookRepositoryFindAllSort() {
+        return Response.ok(bookRepository.findAll(Sort.by(Sort.Order.desc("name")))).build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryFindAllFetcherSort")
+    public Response testBookRepositoryFindAllFetcherSort() {
+        return Response.ok(bookRepository.findAll(COMPLEX_BOOK, Sort.by(Sort.Order.desc("name")))).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindAllPageFetcher")
+    public Response testBookRepositoryFindAllPageFetcher(Pagination pagination) {
+        return Response.ok(bookRepository.findAll(pagination.index, pagination.size, COMPLEX_BOOK)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindAllPageTypedPropScalar")
+    public Response testBookRepositoryFindAllPageTypedPropScalar(Pagination pagination) {
+        return Response.ok(bookRepository.findAll(pagination.index, pagination.size, BookProps.NAME.desc())).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindAllPageFetcherTypedPropScalar")
+    public Response testBookRepositoryFindAllPageFetcherTypedPropScalar(Pagination pagination) {
+        return Response.ok(bookRepository.findAll(pagination.index, pagination.size, COMPLEX_BOOK, BookProps.NAME.desc()))
+                .build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindAllPageSort")
+    public Response testBookRepositoryFindAllPageSort(Pagination pagination) {
+        return Response.ok(bookRepository.findAll(pagination.index, pagination.size, Sort.by(Sort.Order.desc("name")))).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindAllPageFetcherSort")
+    public Response testBookRepositoryFindAllPageFetcherSort(Pagination pagination) {
+        return Response
+                .ok(bookRepository.findAll(pagination.index, pagination.size, COMPLEX_BOOK, Sort.by(Sort.Order.desc("name"))))
+                .build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryExistsById")
+    public Response testBookRepositoryExistsById(@RestQuery long id) {
+        return Response.ok(bookRepository.existsById(id)).build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryCount")
+    public Response testBookRepositoryCount(@RestQuery long id) {
+        return Response.ok(bookRepository.count()).build();
+    }
+
+    @POST
+    @Path("/testUserRoleRepositoryInsert")
+    public Response testUserRoleRepositoryInsert(UserRole userRole) {
+        return Response.ok(userRoleRepository.insert(userRole)).build();
+    }
+
+    @POST
+    @Path("/testUserRoleRepositoryInsertInput")
+    @Transactional(rollbackOn = Exception.class)
+    public Response testUserRoleRepositoryInsertInput(UserRoleInput userRoleInput) {
+        return Response.ok(userRoleRepository.insert(userRoleInput)).build();
+    }
+
+    @POST
+    @Path("/testUserRoleRepositoryUpdate")
+    @Transactional(rollbackOn = Exception.class)
+    public Response testUserRoleRepositoryUpdate(UserRole userRole) {
+        return Response.ok(userRoleRepository.update(userRole)).build();
+    }
+
+    @GET
     @Path("/testUserRoleRepositoryById")
     public Response UserRoleRepositoryById(@RestQuery UUID id) {
         return Response.ok(userRoleRepository.findNullable(id)).build();
     }
 
     @PUT
-    @Path("/testUserRoleRepositoryUpdate")
+    @Path("/testUserRoleRepositoryUpdateInput")
     @Transactional(rollbackOn = Exception.class)
-    public Response testUserRoleRepositoryTransactional(UserRoleInput userRoleInput) {
+    public Response testUserRoleRepositoryUpdateInput(UserRoleInput userRoleInput) {
         userRoleRepository.update(userRoleInput);
         return Response.ok().build();
     }
