@@ -99,15 +99,42 @@ public class TestResources {
     }
 
     @GET
+    @Path("/testBookRepositoryByIdOptional")
+    public Response testBookRepositoryByIdOptional(@RestQuery long id) {
+        if (bookRepository.findById(id).isPresent()) {
+            return Response.ok(bookRepository.findById(id).get()).build();
+        } else {
+            return Response.noContent().build();
+        }
+    }
+
+    @GET
     @Path("/testBookRepositoryByIdFetcher")
     public @FetchBy("COMPLEX_BOOK") Book testBookRepositoryByIdFetcher(@RestQuery long id) {
         return bookRepository.findNullable(id, COMPLEX_BOOK);
     }
 
     @GET
+    @Path("/testBookRepositoryByIdFetcherOptional")
+    public @FetchBy("COMPLEX_BOOK") Book testBookRepositoryByIdFetcherOptional(@RestQuery long id) {
+        if (bookRepository.findById(id, COMPLEX_BOOK).isPresent()) {
+            return bookRepository.findById(id, COMPLEX_BOOK).get();
+        } else {
+            return null;
+        }
+    }
+
+    @GET
     @Path("/testBookRepositoryViewById")
     public Response testBookRepositoryViewById(@RestQuery long id) {
         return Response.ok(bookRepository.viewer(BookDetailView.class).findNullable(id)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindAllById")
+    public Response testBookRepositoryFindAllById(List<Long> ids) {
+        List<Book> allById = bookRepository.findAllById(ids);
+        return Response.ok(allById).build();
     }
 
     @GET
