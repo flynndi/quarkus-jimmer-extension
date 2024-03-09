@@ -2,8 +2,10 @@ package io.quarkiverse.jimmer.it.resource;
 
 import static io.restassured.RestAssured.given;
 
+import java.util.Map;
 import java.util.UUID;
 
+import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 
 import org.apache.http.HttpStatus;
@@ -21,6 +23,8 @@ import io.restassured.http.Header;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.vertx.core.http.HttpHeaders;
+
+import javax.validation.constraints.NotNull;
 
 @QuarkusTest
 public class TestResourceTestCase {
@@ -221,6 +225,90 @@ public class TestResourceTestCase {
                 .post("testResources/testBookRepositoryFindAllById");
         Assertions.assertNotNull(response.jsonPath());
         Assertions.assertEquals(1, response.jsonPath().getLong("[0].id"));
+    }
+
+    @Test
+    void testBookRepositoryFindByIdsFetcher() {
+        String body = """
+                [1, 2]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindByIdsFetcher");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals(1, response.jsonPath().getLong("[0].id"));
+        Assertions.assertEquals(2, response.jsonPath().getLong("[0].authors[0].id"));
+    }
+
+    @Test
+    void testBookRepositoryFindMapByIds() {
+        String body = """
+                [1, 2]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindMapByIds");
+        Assertions.assertNotNull(response.jsonPath().getMap(""));
+    }
+
+    @Test
+    void testBookRepositoryFindMapByIdsFetcher() {
+        String body = """
+                [1, 2]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindMapByIdsFetcher");
+        Assertions.assertNotNull(response.jsonPath().getMap(""));
+        Assertions.assertNotNull(response.jsonPath().getMap("").get("1"));
+    }
+
+    @Test
+    void testBookRepositoryFindAll() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAll");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals(1, response.jsonPath().getLong("[0].id"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllTypedPropScalar() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAllTypedPropScalar");
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("[0].name"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllFetcherTypedPropScalar() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAllFetcherTypedPropScalar");
+        System.out.println("response.body().prettyPrint() = " + response.body().prettyPrint());
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("[0].name"));
+        Assertions.assertNotNull(response.jsonPath().getString("[0].authors"));
+        Assertions.assertNotNull(response.jsonPath().getString("[0].store"));
     }
 
     @Test
