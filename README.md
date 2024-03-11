@@ -2,7 +2,10 @@
 
 # Note
 In most cases you can refer to jimmer's configuration of spring, there is no real difference between the two, only a few differences   
-Refer to: https://github.com/babyfish-ct/jimmer
+Refer to: https://github.com/babyfish-ct/jimmer   
+
+TODO: GraphQL, Remote Associations   
+Please let me know if you have any suggestions on these two parts
 
 
 # Usage
