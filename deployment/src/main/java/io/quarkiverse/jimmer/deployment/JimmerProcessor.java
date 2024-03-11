@@ -107,10 +107,10 @@ public class JimmerProcessor {
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     void recordJpaOperationsData(JimmerJpaRecorder jimmerJpaRecorder,
-            List<EntityToClassBuildItem> entityToImmutableTypes) {
+            List<EntityToClassBuildItem> entityToClassBuildItems) {
         Map<String, Class<?>> map = new HashMap<>();
-        for (EntityToClassBuildItem entityToImmutableType : entityToImmutableTypes) {
-            map.put(entityToImmutableType.getEntityClass(), entityToImmutableType.getClazz());
+        for (EntityToClassBuildItem entityToClassBuildItem : entityToClassBuildItems) {
+            map.put(entityToClassBuildItem.getEntityClass(), entityToClassBuildItem.getClazz());
         }
         jimmerJpaRecorder.setEntityToClassUnit(map);
     }
