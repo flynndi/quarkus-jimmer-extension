@@ -8,7 +8,9 @@ TODO: GraphQL, Remote Associations
 Please let me know if you have any suggestions on these two parts
 
 
-# Usage
+# Quick Start
+
+## dependency
 Gradle:
 ```groovy
 implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR3'
@@ -40,66 +42,6 @@ Maven
         </plugin>
     </plugins>
 </build>
-```
-
-# Configuration file example
-quarkus datasource documentation https://quarkus.io/guides/datasource
-```
-# Configuration file example
-quarkus:
-  package:
-    type: uber-jar
-  http:
-    port: 8080
-  datasource:       default db
-    db-kind:
-    username:
-    password:
-    jdbc:
-      min-size: 2
-      max-size: 8
-      url:
-    DB2:            other db
-      db-kind:
-      username:
-      password:
-      jdbc:
-        min-size: 2
-        max-size: 8
-        url:
-  log:
-    level: DEBUG
-  jimmer:           jimmer config see https://github.com/babyfish-ct/jimmer
-    show-sql:
-    pretty-sql:
-    inline-sql-variables:
-    trigger-type:
-    database-validation:
-      mode:
-        client:
-      ts:
-        path: /youPath/ts.zip
-      openapi:
-        path: /openapi.yml
-        ui-path: /openapi.html
-        properties:
-          info:
-            title: Jimmer REST Example(Java)
-            description: This is the OpenAPI UI of Jimmer REST Example(Java)
-            version: 0.0.1.CR2
-          securities:
-            - tenantHeader: [1, 2, 3]
-            - oauthHeader: [4, 5, 6]
-          components:
-            securitySchemes:
-              tenantHeader:
-                type: apiKey
-                name: tenant
-                in: HEADER
-              oauthHeader:
-                type: apiKey
-                name: tenant
-                in: QUERY
 ```
 
 # JPA
@@ -264,6 +206,66 @@ public class CacheConfig {
                 .build();
     }
 }
+```
+
+# Configuration file example
+quarkus datasource documentation https://quarkus.io/guides/datasource
+```
+# Configuration file example
+quarkus:
+  package:
+    type: uber-jar
+  http:
+    port: 8080
+  datasource:       default db
+    db-kind:
+    username:
+    password:
+    jdbc:
+      min-size: 2
+      max-size: 8
+      url:
+    DB2:            other db
+      db-kind:
+      username:
+      password:
+      jdbc:
+        min-size: 2
+        max-size: 8
+        url:
+  log:
+    level: DEBUG
+  jimmer:           jimmer config see https://github.com/babyfish-ct/jimmer
+    show-sql:
+    pretty-sql:
+    inline-sql-variables:
+    trigger-type:
+    database-validation:
+      mode:
+        client:
+      ts:
+        path: /youPath/ts.zip
+      openapi:
+        path: /openapi.yml
+        ui-path: /openapi.html
+        properties:
+          info:
+            title: Jimmer REST Example(Java)
+            description: This is the OpenAPI UI of Jimmer REST Example(Java)
+            version: 0.0.1.CR2
+          securities:
+            - tenantHeader: [1, 2, 3]
+            - oauthHeader: [4, 5, 6]
+          components:
+            securitySchemes:
+              tenantHeader:
+                type: apiKey
+                name: tenant
+                in: HEADER
+              oauthHeader:
+                type: apiKey
+                name: tenant
+                in: QUERY
 ```
 
 # Version
