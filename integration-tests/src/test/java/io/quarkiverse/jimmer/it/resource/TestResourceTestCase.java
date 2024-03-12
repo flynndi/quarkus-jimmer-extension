@@ -766,4 +766,99 @@ public class TestResourceTestCase {
         Assertions.assertNotNull(response.jsonPath().get("[0].store"));
         Assertions.assertNotNull(response.jsonPath().get("[0].authors"));
     }
+
+    @Test
+    void testBookRepositoryFindAllTypedPropScalarView() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAllTypedPropScalarView");
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(7, response.jsonPath().getLong("[0].id"));
+        Assertions.assertNotNull(response.jsonPath().get("[0].store"));
+        Assertions.assertNotNull(response.jsonPath().get("[0].authors"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllSortView() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAllSortView");
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(7, response.jsonPath().getLong("[0].id"));
+        Assertions.assertNotNull(response.jsonPath().get("[0].store"));
+        Assertions.assertNotNull(response.jsonPath().get("[0].authors"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllPageView() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindAllPageView");
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Learning GraphQL", response.jsonPath().getString("rows[0].name"));
+        Assertions.assertNotNull(response.jsonPath().getString("rows[0].authors"));
+        Assertions.assertEquals(6, response.jsonPath().getInt("totalRowCount"));
+        Assertions.assertNotNull(response.jsonPath().getString("totalPageCount"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllPageTypedPropScalarView() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindAllPageTypedPropScalarView");
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("rows[0].name"));
+        Assertions.assertNotNull(response.jsonPath().getString("rows[0].authors"));
+        Assertions.assertEquals(6, response.jsonPath().getInt("totalRowCount"));
+        Assertions.assertNotNull(response.jsonPath().getString("totalPageCount"));
+    }
+
+    @Test
+    void testBookRepositoryFindAllPageSortView() {
+        String body = """
+                {
+                    "index": 0,
+                    "size": 1
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindAllPageSortView");
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("rows[0].name"));
+        Assertions.assertNotNull(response.jsonPath().getString("rows[0].authors"));
+        Assertions.assertEquals(6, response.jsonPath().getInt("totalRowCount"));
+        Assertions.assertNotNull(response.jsonPath().getString("totalPageCount"));
+    }
 }
