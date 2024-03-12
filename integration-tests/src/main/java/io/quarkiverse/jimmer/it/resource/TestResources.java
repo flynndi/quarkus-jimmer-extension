@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import org.babyfish.jimmer.client.FetchBy;
+import org.babyfish.jimmer.client.meta.Api;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.DeleteMode;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
@@ -32,6 +33,7 @@ import io.quarkus.agroal.DataSource;
 @Path("/testResources")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Api("test")
 public class TestResources {
 
     @Inject
@@ -46,6 +48,7 @@ public class TestResources {
 
     @GET
     @Path("/test")
+    @Api
     public Response test() {
         JSqlClient defaultJSqlClient = Jimmer.getDefaultJSqlClient();
         List<Book> books = defaultJSqlClient
@@ -57,30 +60,35 @@ public class TestResources {
 
     @GET
     @Path("/testBookRepository")
+    @Api
     public Response testBookRepository() {
         return Response.ok(bookRepository.findAll()).build();
     }
 
     @GET
     @Path("/testBookStoreRepository")
+    @Api
     public Response testRepository() {
         return Response.ok(bookStoreRepository.findAll()).build();
     }
 
     @POST
     @Path("/testBookRepositoryPage")
+    @Api
     public Response testBookRepositoryPage(Pagination pagination) {
         return Response.ok(bookRepository.findAll(pagination)).build();
     }
 
     @POST
     @Path("/testBookRepositoryPageOther")
+    @Api
     public Response testBookRepositoryPageOther(Pagination pagination) {
         return Response.ok(bookRepository.findAll(pagination.index, pagination.size)).build();
     }
 
     @POST
     @Path("/testBookRepositoryPageSort")
+    @Api
     public Response testBookRepositoryPageSort(Pagination pagination) {
         return Response.ok(bookRepository.findAll(pagination.index, pagination.size, Sort.by(Sort.Direction.DESC, "id")))
                 .build();
@@ -88,18 +96,21 @@ public class TestResources {
 
     @POST
     @Path("/testBookRepositoryPageFetcher")
+    @Api
     public org.babyfish.jimmer.Page<@FetchBy("COMPLEX_BOOK") Book> testBookRepositoryPageFetcher(Pagination pagination) {
         return bookRepository.findAll(pagination, COMPLEX_BOOK);
     }
 
     @GET
     @Path("/testBookRepositoryById")
+    @Api
     public Response testBookRepositoryById(@RestQuery long id) {
         return Response.ok(bookRepository.findNullable(id)).build();
     }
 
     @GET
     @Path("/testBookRepositoryByIdOptional")
+    @Api
     public Response testBookRepositoryByIdOptional(@RestQuery long id) {
         if (bookRepository.findById(id).isPresent()) {
             return Response.ok(bookRepository.findById(id).get()).build();
@@ -110,12 +121,14 @@ public class TestResources {
 
     @GET
     @Path("/testBookRepositoryByIdFetcher")
+    @Api
     public @FetchBy("COMPLEX_BOOK") Book testBookRepositoryByIdFetcher(@RestQuery long id) {
         return bookRepository.findNullable(id, COMPLEX_BOOK);
     }
 
     @GET
     @Path("/testBookRepositoryByIdFetcherOptional")
+    @Api
     public @FetchBy("COMPLEX_BOOK") Book testBookRepositoryByIdFetcherOptional(@RestQuery long id) {
         if (bookRepository.findById(id, COMPLEX_BOOK).isPresent()) {
             return bookRepository.findById(id, COMPLEX_BOOK).get();
@@ -126,78 +139,91 @@ public class TestResources {
 
     @GET
     @Path("/testBookRepositoryViewById")
+    @Api
     public Response testBookRepositoryViewById(@RestQuery long id) {
         return Response.ok(bookRepository.viewer(BookDetailView.class).findNullable(id)).build();
     }
 
     @POST
     @Path("/testBookRepositoryFindAllById")
+    @Api
     public Response testBookRepositoryFindAllById(List<Long> ids) {
         return Response.ok(bookRepository.findAllById(ids)).build();
     }
 
     @POST
     @Path("/testBookRepositoryFindByIdsFetcher")
+    @Api
     public Response testBookRepositoryFindByIdsFetcher(List<Long> ids) {
         return Response.ok(bookRepository.findByIds(ids, COMPLEX_BOOK)).build();
     }
 
     @POST
     @Path("/testBookRepositoryFindMapByIds")
+    @Api
     public Response testBookRepositoryFindMapByIds(List<Long> ids) {
         return Response.ok(bookRepository.findMapByIds(ids)).build();
     }
 
     @POST
     @Path("/testBookRepositoryFindMapByIdsFetcher")
+    @Api
     public Response testBookRepositoryFindMapByIdsFetcher(List<Long> ids) {
         return Response.ok(bookRepository.findMapByIds(ids, COMPLEX_BOOK)).build();
     }
 
     @GET
     @Path("/testBookRepositoryFindAll")
+    @Api
     public Response testBookRepositoryFindAll() {
         return Response.ok(bookRepository.findAll()).build();
     }
 
     @GET
     @Path("/testBookRepositoryFindAllTypedPropScalar")
+    @Api
     public Response testBookRepositoryFindAllTypedPropScalar() {
         return Response.ok(bookRepository.findAll(BookProps.NAME.desc())).build();
     }
 
     @GET
     @Path("/testBookRepositoryFindAllFetcherTypedPropScalar")
+    @Api
     public Response testBookRepositoryFindAllFetcherTypedPropScalar() {
         return Response.ok(bookRepository.findAll(COMPLEX_BOOK, BookProps.NAME.desc())).build();
     }
 
     @GET
     @Path("/testBookRepositoryFindAllSort")
+    @Api
     public Response testBookRepositoryFindAllSort() {
         return Response.ok(bookRepository.findAll(Sort.by(Sort.Order.desc("name")))).build();
     }
 
     @GET
     @Path("/testBookRepositoryFindAllFetcherSort")
+    @Api
     public Response testBookRepositoryFindAllFetcherSort() {
         return Response.ok(bookRepository.findAll(COMPLEX_BOOK, Sort.by(Sort.Order.desc("name")))).build();
     }
 
     @POST
     @Path("/testBookRepositoryFindAllPageFetcher")
+    @Api
     public Response testBookRepositoryFindAllPageFetcher(Pagination pagination) {
         return Response.ok(bookRepository.findAll(pagination.index, pagination.size, COMPLEX_BOOK)).build();
     }
 
     @POST
     @Path("/testBookRepositoryFindAllPageTypedPropScalar")
+    @Api
     public Response testBookRepositoryFindAllPageTypedPropScalar(Pagination pagination) {
         return Response.ok(bookRepository.findAll(pagination.index, pagination.size, BookProps.NAME.desc())).build();
     }
 
     @POST
     @Path("/testBookRepositoryFindAllPageFetcherTypedPropScalar")
+    @Api
     public Response testBookRepositoryFindAllPageFetcherTypedPropScalar(Pagination pagination) {
         return Response.ok(bookRepository.findAll(pagination.index, pagination.size, COMPLEX_BOOK, BookProps.NAME.desc()))
                 .build();
@@ -205,12 +231,14 @@ public class TestResources {
 
     @POST
     @Path("/testBookRepositoryFindAllPageSort")
+    @Api
     public Response testBookRepositoryFindAllPageSort(Pagination pagination) {
         return Response.ok(bookRepository.findAll(pagination.index, pagination.size, Sort.by(Sort.Order.desc("name")))).build();
     }
 
     @POST
     @Path("/testBookRepositoryFindAllPageFetcherSort")
+    @Api
     public Response testBookRepositoryFindAllPageFetcherSort(Pagination pagination) {
         return Response
                 .ok(bookRepository.findAll(pagination.index, pagination.size, COMPLEX_BOOK, Sort.by(Sort.Order.desc("name"))))
@@ -219,18 +247,21 @@ public class TestResources {
 
     @GET
     @Path("/testBookRepositoryExistsById")
+    @Api
     public Response testBookRepositoryExistsById(@RestQuery long id) {
         return Response.ok(bookRepository.existsById(id)).build();
     }
 
     @GET
     @Path("/testBookRepositoryCount")
+    @Api
     public Response testBookRepositoryCount(@RestQuery long id) {
         return Response.ok(bookRepository.count()).build();
     }
 
     @POST
     @Path("/testUserRoleRepositoryInsert")
+    @Api
     public Response testUserRoleRepositoryInsert(UserRole userRole) {
         return Response.ok(userRoleRepository.insert(userRole)).build();
     }
@@ -238,6 +269,7 @@ public class TestResources {
     @POST
     @Path("/testUserRoleRepositoryInsertInput")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositoryInsertInput(UserRoleInput userRoleInput) {
         return Response.ok(userRoleRepository.insert(userRoleInput)).build();
     }
@@ -245,6 +277,7 @@ public class TestResources {
     @POST
     @Path("/testUserRoleRepositorySave")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositorySave(UserRole userRole) {
         return Response.ok(userRoleRepository.save(userRole)).build();
     }
@@ -252,6 +285,7 @@ public class TestResources {
     @POST
     @Path("/testUserRoleRepositorySaveInput")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositorySaveInput(UserRoleInput userRoleInput) {
         return Response.ok(userRoleRepository.save(userRoleInput)).build();
     }
@@ -259,6 +293,7 @@ public class TestResources {
     @POST
     @Path("/testUserRoleRepositorySaveInputSaveMode")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositorySaveInputSaveMode(UserRoleInput userRoleInput) {
         return Response.ok(userRoleRepository.save(userRoleInput, SaveMode.INSERT_ONLY)).build();
     }
@@ -266,6 +301,7 @@ public class TestResources {
     @POST
     @Path("/testUserRoleRepositorySaveCommand")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositorySaveCommand(UserRoleInput userRoleInput) {
         return Response.ok(userRoleRepository.saveCommand(userRoleInput)).build();
     }
@@ -273,6 +309,7 @@ public class TestResources {
     @POST
     @Path("/testUserRoleRepositorySaveEntities")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositorySaveEntities(List<UserRole> list) {
         return Response.ok(userRoleRepository.saveEntities(list)).build();
     }
@@ -280,6 +317,7 @@ public class TestResources {
     @POST
     @Path("/testUserRoleRepositorySaveEntitiesSaveMode")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositorySaveEntitiesSaveMode(List<UserRole> list) {
         return Response.ok(userRoleRepository.saveEntities(list, SaveMode.INSERT_ONLY)).build();
     }
@@ -287,6 +325,7 @@ public class TestResources {
     @POST
     @Path("/testUserRoleRepositorySaveEntitiesCommand")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositorySaveEntitiesCommand(List<UserRole> list) {
         return Response.ok(userRoleRepository.saveEntitiesCommand(list)).build();
     }
@@ -294,6 +333,7 @@ public class TestResources {
     @DELETE
     @Path("/testUserRoleRepositoryDeleteAll")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositoryDeleteAll(List<UserRole> list) {
         return Response.ok(userRoleRepository.deleteAll(list, DeleteMode.AUTO)).build();
     }
@@ -301,12 +341,14 @@ public class TestResources {
     @POST
     @Path("/testUserRoleRepositoryUpdate")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositoryUpdate(UserRole userRole) {
         return Response.ok(userRoleRepository.update(userRole)).build();
     }
 
     @GET
     @Path("/testUserRoleRepositoryById")
+    @Api
     public Response UserRoleRepositoryById(@RestQuery UUID id) {
         return Response.ok(userRoleRepository.findNullable(id)).build();
     }
@@ -314,6 +356,7 @@ public class TestResources {
     @PUT
     @Path("/testUserRoleRepositoryUpdateInput")
     @Transactional(rollbackOn = Exception.class)
+    @Api
     public Response testUserRoleRepositoryUpdateInput(UserRoleInput userRoleInput) {
         userRoleRepository.update(userRoleInput);
         return Response.ok().build();
@@ -321,14 +364,54 @@ public class TestResources {
 
     @POST
     @Path("/testBookRepositoryFindByIdsView")
+    @Api
     public Response testBookRepositoryFindByIdsView(List<Long> ids) {
         return Response.ok(bookRepository.viewer(BookDetailView.class).findByIds(ids)).build();
     }
 
     @GET
     @Path("/testBookRepositoryFindAllView")
+    @Api
     public Response testBookRepositoryFindAllView() {
         return Response.ok(bookRepository.viewer(BookDetailView.class).findAll()).build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryFindAllTypedPropScalarView")
+    @Api
+    public Response testBookRepositoryFindAllTypedPropScalarView() {
+        return Response.ok(bookRepository.viewer(BookDetailView.class).findAll(BookProps.NAME.desc())).build();
+    }
+
+    @GET
+    @Path("/testBookRepositoryFindAllSortView")
+    @Api
+    public Response testBookRepositoryFindAllSortView() {
+        return Response.ok(bookRepository.viewer(BookDetailView.class).findAll(Sort.by(Sort.Order.desc("name")))).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindAllPageView")
+    @Api
+    public Response testBookRepositoryFindAllPageView(Pagination pagination) {
+        return Response.ok(bookRepository.viewer(BookDetailView.class).findAll(pagination.index, pagination.size)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindAllPageTypedPropScalarView")
+    @Api
+    public Response testBookRepositoryFindAllPageTypedPropScalarView(Pagination pagination) {
+        return Response.ok(
+                bookRepository.viewer(BookDetailView.class).findAll(pagination.index, pagination.size, BookProps.NAME.desc()))
+                .build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryFindAllPageSortView")
+    @Api
+    public Response testBookRepositoryFindAllPageSortView(Pagination pagination) {
+        return Response.ok(bookRepository.viewer(BookDetailView.class).findAll(pagination.index, pagination.size,
+                Sort.by(Sort.Order.desc("name")))).build();
     }
 
     private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()
