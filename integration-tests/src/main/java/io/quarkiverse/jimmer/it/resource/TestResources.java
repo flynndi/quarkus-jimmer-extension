@@ -325,6 +325,12 @@ public class TestResources {
         return Response.ok(bookRepository.viewer(BookDetailView.class).findByIds(ids)).build();
     }
 
+    @GET
+    @Path("/testBookRepositoryFindAllView")
+    public Response testBookRepositoryFindAllView() {
+        return Response.ok(bookRepository.viewer(BookDetailView.class).findAll()).build();
+    }
+
     private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()
             .store(BOOK_STORE_FETCHER.name())
             .authors(AUTHOR_FETCHER.firstName().lastName());

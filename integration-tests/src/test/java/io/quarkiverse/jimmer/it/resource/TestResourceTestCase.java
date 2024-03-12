@@ -754,4 +754,16 @@ public class TestResourceTestCase {
         Assertions.assertNotNull(response.jsonPath().get("[0].store"));
         Assertions.assertNotNull(response.jsonPath().get("[0].authors"));
     }
+
+    @Test
+    void testBookRepositoryFindAllView() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryFindAllView");
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertNotNull(response.jsonPath().get("[0].store"));
+        Assertions.assertNotNull(response.jsonPath().get("[0].authors"));
+    }
 }
