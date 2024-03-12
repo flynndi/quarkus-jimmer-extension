@@ -737,4 +737,21 @@ public class TestResourceTestCase {
                 .put("testResources/testUserRoleRepositoryUpdateInput");
         Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
     }
+
+    @Test
+    void testBookRepositoryFindByIdsView() {
+        String body = """
+                [1,3,5,7]
+                """;
+        Response response = given()
+                .body(body)
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindByIdsView");
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertNotNull(response.jsonPath().get("[0].store"));
+        Assertions.assertNotNull(response.jsonPath().get("[0].authors"));
+    }
 }

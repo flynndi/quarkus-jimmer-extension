@@ -3,3 +3,7 @@ input UserRoleInput {
     #allScalars(UserRole)
 
 }
+
+UserRoleDetailView {
+    #allScalars
+}
