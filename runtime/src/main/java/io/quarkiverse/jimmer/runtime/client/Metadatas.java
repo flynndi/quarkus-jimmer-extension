@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.regex.Pattern;
 
+import io.smallrye.mutiny.Multi;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
@@ -14,6 +15,7 @@ import org.babyfish.jimmer.client.meta.TypeName;
 import org.babyfish.jimmer.client.runtime.Metadata;
 import org.babyfish.jimmer.client.runtime.Operation;
 import org.babyfish.jimmer.client.runtime.VirtualType;
+import org.jboss.resteasy.reactive.RestMulti;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.multipart.FilePart;
@@ -80,6 +82,11 @@ public class Metadatas {
                 return new Operation.HttpMethod[] { Operation.HttpMethod.OPTIONS };
             }
             return new Operation.HttpMethod[] { Operation.HttpMethod.GET };
+        }
+
+        @Override
+        public boolean isStream(Method method) {
+            return RestMulti.class == method.getReturnType() || Multi.class == method.getReturnType();
         }
     }
 
