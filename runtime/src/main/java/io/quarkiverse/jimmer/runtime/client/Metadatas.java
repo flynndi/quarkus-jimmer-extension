@@ -14,10 +14,13 @@ import org.babyfish.jimmer.client.meta.TypeName;
 import org.babyfish.jimmer.client.runtime.Metadata;
 import org.babyfish.jimmer.client.runtime.Operation;
 import org.babyfish.jimmer.client.runtime.VirtualType;
+import org.jboss.resteasy.reactive.RestMulti;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.multipart.FilePart;
 import org.jetbrains.annotations.Nullable;
+
+import io.smallrye.mutiny.Multi;
 
 public class Metadatas {
 
@@ -80,6 +83,11 @@ public class Metadatas {
                 return new Operation.HttpMethod[] { Operation.HttpMethod.OPTIONS };
             }
             return new Operation.HttpMethod[] { Operation.HttpMethod.GET };
+        }
+
+        @Override
+        public boolean isStream(Method method) {
+            return RestMulti.class == method.getReturnType() || Multi.class == method.getReturnType();
         }
     }
 
@@ -178,6 +186,12 @@ public class Metadatas {
                 return Arrays.asList(value).contains(MediaType.APPLICATION_JSON);
             }
             return false;
+        }
+
+        @Override
+        public boolean isRequestPartRequired(Parameter javaParameter) {
+            Class<?> type = javaParameter.getType();
+            return FilePart.class.isAssignableFrom(type);
         }
     }
 }
