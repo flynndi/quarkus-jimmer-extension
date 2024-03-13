@@ -42,7 +42,7 @@ import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InstanceHandle;
 
-public class QuarkusJSqlClient extends JLazyInitializationSqlClient {
+class QuarkusJSqlClient extends JLazyInitializationSqlClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusJSqlClient.class);
 
@@ -72,7 +72,7 @@ public class QuarkusJSqlClient extends JLazyInitializationSqlClient {
     }
 
     @Override
-    protected Builder createBuilder() {
+    protected JSqlClient.Builder createBuilder() {
 
         ConnectionManager connectionManager = getOptionalBean(ConnectionManager.class);
         UserIdGeneratorProvider userIdGeneratorProvider = getOptionalBean(UserIdGeneratorProvider.class);
@@ -91,7 +91,7 @@ public class QuarkusJSqlClient extends JLazyInitializationSqlClient {
         Collection<ScalarProvider<?, ?>> providers = getObjects(Constant.SCALAR_PROVIDER_TYPE_LITERAL);
         Collection<DraftInterceptor<?, ?>> interceptors = getObjects(Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL);
 
-        Builder builder = JSqlClient.newBuilder();
+        JSqlClient.Builder builder = JSqlClient.newBuilder();
         if (null != connectionManager) {
             builder.setConnectionManager(connectionManager);
         } else if (null != dataSource) {
@@ -174,7 +174,7 @@ public class QuarkusJSqlClient extends JLazyInitializationSqlClient {
         return builder;
     }
 
-    private void initializeByLanguage(Builder builder) {
+    private void initializeByLanguage(JSqlClient.Builder builder) {
 
         Collection<Filter<?>> javaFilters = getObjects(Constant.FILTER_TYPE_LITERAL);
         Collection<Customizer> javaCustomizers = getObjects(Customizer.class);
