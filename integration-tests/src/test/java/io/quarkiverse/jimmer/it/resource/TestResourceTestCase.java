@@ -861,4 +861,15 @@ public class TestResourceTestCase {
         Assertions.assertEquals(6, response.jsonPath().getInt("totalRowCount"));
         Assertions.assertNotNull(response.jsonPath().getString("totalPageCount"));
     }
+
+    @Test
+    void testBookRepositoryCustomQuery() {
+        Response response = given()
+                .queryParam("id", 1L)
+                .log()
+                .all()
+                .when()
+                .get("testResources/testBookRepositoryCustomQuery");
+        Assertions.assertNotNull(response.jsonPath());
+    }
 }
