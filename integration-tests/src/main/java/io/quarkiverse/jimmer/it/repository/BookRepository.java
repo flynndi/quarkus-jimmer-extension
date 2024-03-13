@@ -8,4 +8,8 @@ import io.quarkiverse.jimmer.runtime.repository.JRepository;
 @ApplicationScoped
 public class BookRepository implements JRepository<Book, Long> {
 
+    public Book selectBookById(long id) {
+        return sql().findById(Book.class, id);
+    }
+
 }
