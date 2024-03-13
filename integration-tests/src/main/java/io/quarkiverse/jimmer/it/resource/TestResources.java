@@ -414,6 +414,13 @@ public class TestResources {
                 Sort.by(Sort.Order.desc("name")))).build();
     }
 
+    @GET
+    @Path("/testBookRepositoryCustomQuery")
+    @Api
+    public Response testBookRepositoryCustomQuery(@RestQuery long id) {
+        return Response.ok(bookRepository.selectBookById(id)).build();
+    }
+
     private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()
             .store(BOOK_STORE_FETCHER.name())
             .authors(AUTHOR_FETCHER.firstName().lastName());
