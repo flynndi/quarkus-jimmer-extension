@@ -179,5 +179,11 @@ public class Metadatas {
             }
             return false;
         }
+
+        @Override
+        public boolean isRequestPartRequired(Parameter javaParameter) {
+            Class<?> type = javaParameter.getType();
+            return FilePart.class.isAssignableFrom(type);
+        }
     }
 }
