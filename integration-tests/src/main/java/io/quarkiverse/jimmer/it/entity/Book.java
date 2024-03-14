@@ -6,7 +6,7 @@ import java.util.List;
 import org.babyfish.jimmer.sql.*;
 import org.jetbrains.annotations.Nullable;
 
-@Entity
+@Entity(microServiceName = "quarkus-jimmer-integration-tests")
 public interface Book extends TenantAware, BaseEntity {
 
     @Id

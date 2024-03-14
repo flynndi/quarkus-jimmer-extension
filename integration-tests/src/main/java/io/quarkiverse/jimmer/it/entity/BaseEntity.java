@@ -6,7 +6,7 @@ import org.babyfish.jimmer.sql.MappedSuperclass;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-@MappedSuperclass
+@MappedSuperclass(microServiceName = "quarkus-jimmer-integration-tests")
 public interface BaseEntity {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

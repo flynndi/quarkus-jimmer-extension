@@ -21,7 +21,13 @@ quarkus:
         url: jdbc:h2:mem:bd2
   log:
     level: DEBUG
+  rest-client:
+    other-service:
+      url: http://localhost:8888
+    order-service:
+      url: http://localhost:9090
   jimmer:
+    micro-service-name: ${quarkus.application.name}
     show-sql: true
     pretty-sql: true
     inline-sql-variables: true

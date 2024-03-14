@@ -28,6 +28,8 @@ import io.quarkiverse.jimmer.runtime.client.openapi.JsRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
+import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
+import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
@@ -290,6 +292,8 @@ public class JimmerProcessor {
             AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
             builder.addBeanClass(TransactionCacheOperatorFlusherConfig.class);
             builder.addBeanClass(TransactionCacheOperatorFlusher.class);
+            builder.addBeanClass(QuarkusExchangeRestClient.class);
+            builder.addBeanClass(QuarkusExchange.class);
             additionalBeans.produce(builder.build());
         }
     }

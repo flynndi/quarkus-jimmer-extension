@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.babyfish.jimmer.sql.*;
 
-@Entity
+@Entity(microServiceName = "quarkus-jimmer-integration-tests")
 public interface Author {
 
     @Id

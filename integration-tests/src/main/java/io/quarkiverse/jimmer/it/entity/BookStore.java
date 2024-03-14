@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.it.resolver.BookStoreAvgPriceResolver;
 
-@Entity
+@Entity(microServiceName = "other-service")
 public interface BookStore {
 
     @Id
