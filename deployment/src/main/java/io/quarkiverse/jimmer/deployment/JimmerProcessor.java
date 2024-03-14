@@ -33,12 +33,11 @@ import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.runtime.DataSources;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
-import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
-import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
-import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
-import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
+import io.quarkus.arc.deployment.*;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
+import io.quarkus.deployment.Capabilities;
+import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
@@ -48,6 +47,7 @@ import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
+import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig;
@@ -315,6 +315,16 @@ public class JimmerProcessor {
                 Constant.CLIENT_RESOURCE,
                 Constant.ENTITIES_RESOURCE,
                 Constant.IMMUTABLES_RESOURCE));
+    }
+
+    @BuildStep
+    void checkTransactionsSupport(Capabilities capabilities,
+            BuildProducer<ValidationPhaseBuildItem.ValidationErrorBuildItem> validationErrors) {
+        // JTA is necessary for Jimmer
+        if (capabilities.isMissing(Capability.TRANSACTIONS)) {
+            validationErrors.produce(new ValidationPhaseBuildItem.ValidationErrorBuildItem(
+                    new ConfigurationException("The Jimmer extension is only functional in a JTA environment.")));
+        }
     }
 
     private JimmerBeanNameToDotNameBuildItem collectBuildItem(CombinedIndexBuildItem combinedIndex) {
