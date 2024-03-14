@@ -16,5 +16,5 @@ public interface QuarkusExchangeRestClient {
     @Path("/jimmerMicroServiceBridge/byIds")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    List<ImmutableSpi> findByIds(@QueryParam("ids") Collection<?> ids, @QueryParam("fetcher") String fetcher);
+    String findByIds(@QueryParam("ids") Collection<?> ids, @QueryParam("fetcher") String fetcher);
 }

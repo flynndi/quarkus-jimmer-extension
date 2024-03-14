@@ -38,7 +38,14 @@ public class QuarkusExchange implements MicroServiceExchange {
             QuarkusExchangeRestClient quarkusExchangeRestClient = RestClientBuilder.newBuilder()
                     .queryParamStyle(QueryParamStyle.MULTI_PAIRS)
                     .baseUrl(URI.create(restClientConfig.url.get()).toURL()).build(QuarkusExchangeRestClient.class);
-            return quarkusExchangeRestClient.findByIds(ids, fetcher.toString());
+            String json = quarkusExchangeRestClient.findByIds(ids, fetcher.toString());
+            return objectMapper.readValue(
+                    json,
+                    objectMapper.getTypeFactory().constructParametricType(
+                            List.class,
+                            fetcher.getImmutableType().getJavaClass()
+                    )
+            );
         } else {
             throw new IllegalArgumentException("Can not find restClientConfig.url by microServiceName: " + microServiceName);
         }
