@@ -872,4 +872,20 @@ public class TestResourceTestCase {
                 .get("testResources/testBookRepositoryCustomQuery");
         Assertions.assertNotNull(response.jsonPath());
     }
+
+    @Test
+    void testBookRepositoryFindMapByIdsView() {
+        String body = """
+                [1, 2]
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryFindMapByIdsView");
+        Assertions.assertNotNull(response.jsonPath().getMap(""));
+        Assertions.assertNotNull(response.jsonPath().get("1"));
+    }
 }
