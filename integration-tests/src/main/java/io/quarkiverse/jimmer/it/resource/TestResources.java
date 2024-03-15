@@ -421,6 +421,13 @@ public class TestResources {
         return Response.ok(bookRepository.selectBookById(id)).build();
     }
 
+    @POST
+    @Path("/testBookRepositoryFindMapByIdsView")
+    @Api
+    public Response testBookRepositoryFindMapByIdsView(List<Long> ids) {
+        return Response.ok(bookRepository.viewer(BookDetailView.class).findMapByIds(ids)).build();
+    }
+
     private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()
             .store(BOOK_STORE_FETCHER.name())
             .authors(AUTHOR_FETCHER.firstName().lastName());
