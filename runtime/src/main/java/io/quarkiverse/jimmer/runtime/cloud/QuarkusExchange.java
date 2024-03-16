@@ -11,11 +11,10 @@ import org.babyfish.jimmer.runtime.ImmutableSpi;
 import org.babyfish.jimmer.sql.ast.tuple.Tuple2;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.babyfish.jimmer.sql.runtime.MicroServiceExchange;
-import org.eclipse.microprofile.rest.client.RestClientBuilder;
-import org.eclipse.microprofile.rest.client.ext.QueryParamStyle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
 import io.quarkus.restclient.config.RestClientConfig;
 import io.quarkus.restclient.config.RestClientsConfig;
 
@@ -35,8 +34,7 @@ public class QuarkusExchange implements MicroServiceExchange {
     public List<ImmutableSpi> findByIds(String microServiceName, Collection<?> ids, Fetcher<?> fetcher) throws Exception {
         RestClientConfig restClientConfig = restClientsConfig.getClientConfig(microServiceName);
         if (restClientConfig.url.isPresent()) {
-            QuarkusExchangeRestClient quarkusExchangeRestClient = RestClientBuilder.newBuilder()
-                    .queryParamStyle(QueryParamStyle.MULTI_PAIRS)
+            QuarkusExchangeRestClient quarkusExchangeRestClient = QuarkusRestClientBuilder.newBuilder()
                     .baseUrl(URI.create(restClientConfig.url.get()).toURL()).build(QuarkusExchangeRestClient.class);
             String json = quarkusExchangeRestClient.findByIds(ids.toString(), fetcher.toString());
             return objectMapper.readValue(
