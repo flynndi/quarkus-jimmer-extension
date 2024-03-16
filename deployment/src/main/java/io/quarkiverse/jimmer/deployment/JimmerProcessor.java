@@ -9,7 +9,6 @@ import jakarta.ws.rs.Priorities;
 import org.babyfish.jimmer.error.CodeBasedException;
 import org.babyfish.jimmer.error.CodeBasedRuntimeException;
 import org.babyfish.jimmer.sql.JSqlClient;
-import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
@@ -27,7 +26,6 @@ import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
-import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
@@ -44,7 +42,6 @@ import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
-import io.quarkus.deployment.index.IndexingUtil;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
@@ -288,19 +285,8 @@ public class JimmerProcessor {
         JimmerBeanNameToDotNameBuildItem buildItem = collectBuildItem(combinedIndex);
         if (buildItem.getMap().containsKey(DotName.createSimple(QuarkusTransactionCacheOperator.class))) {
             AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
-            IndexView index = combinedIndex.getComputingIndex();
-            Indexer indexer = new Indexer();
-            Set<DotName> additionalIndex = new HashSet<>();
-            IndexingUtil.indexClass(QuarkusExchangeRestClient.class.getName(), indexer, combinedIndex.getIndex(),
-                    additionalIndex,
-                    JimmerProcessor.class.getClassLoader());
-            index = CompositeIndex.create(index, indexer.complete());
-            Collection<AnnotationInstance> annotations = index.getAnnotations(RegisterRestClient.class);
-            System.out.println("annotations.size() = " + annotations.size());
-
             builder.addBeanClass(TransactionCacheOperatorFlusherConfig.class);
             builder.addBeanClass(TransactionCacheOperatorFlusher.class);
-            builder.addBeanClass(QuarkusExchangeRestClient.class);
             builder.addBeanClass(QuarkusExchange.class);
             additionalBeans.produce(builder.build());
         }
