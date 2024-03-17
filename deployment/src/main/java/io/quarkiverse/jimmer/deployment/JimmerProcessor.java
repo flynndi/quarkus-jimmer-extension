@@ -25,6 +25,7 @@ import io.quarkiverse.jimmer.runtime.client.openapi.JsRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
+import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
@@ -119,6 +120,7 @@ public class JimmerProcessor {
             JsRecorder jsRecorder,
             OpenApiRecorder openApiRecorder,
             OpenApiUiRecorder openApiUiRecorder,
+            MicroServiceExporterRecorder microServiceExporterRecorder,
             BuildProducer<RouteBuildItem> routes,
             NonApplicationRootPathBuildItem nonApplicationRootPathBuildItem,
             ManagementInterfaceBuildTimeConfig managementInterfaceBuildTimeConfig,
@@ -190,6 +192,21 @@ public class JimmerProcessor {
         log.debug("Initialized a Jimmer OpenApiUi meter registry on path = " + uiPath);
 
         registries.produce(new RegistryBuildItem("OpenApiUiResource", uiPath));
+
+        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
+                .management()
+                .routeFunction("/jimmerMicroServiceBridge/byIds", microServiceExporterRecorder.route())
+                .routeConfigKey("quarkus.jimmer.micro-service-name")
+                .handler(microServiceExporterRecorder.getHandler())
+                .blockingRoute()
+                .build());
+
+        String microServiceExporterPath = nonApplicationRootPathBuildItem.resolveManagementPath(
+                "/jimmerMicroServiceBridge/byIds",
+                managementInterfaceBuildTimeConfig, launchModeBuildItem);
+        log.debug("Initialized a Jimmer microServiceExporterPath meter registry on path = " + microServiceExporterPath);
+
+        registries.produce(new RegistryBuildItem("microServiceExporterPath", microServiceExporterPath));
     }
 
     @BuildStep
