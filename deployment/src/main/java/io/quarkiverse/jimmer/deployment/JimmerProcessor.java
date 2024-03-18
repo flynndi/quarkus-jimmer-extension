@@ -28,6 +28,8 @@ import io.quarkiverse.jimmer.runtime.client.openapi.JsRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
+import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
+import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterRecorder;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
@@ -40,6 +42,7 @@ import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
@@ -304,6 +307,39 @@ public class JimmerProcessor {
                         CodeBasedRuntimeException.class.getName(), Priorities.USER + 1, true));
             }
         }
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void setUpMicroService(JimmerBuildTimeConfig config,
+            BuildProducer<RouteBuildItem> routes,
+            LaunchModeBuildItem launchModeBuildItem,
+            BuildProducer<RegistryBuildItem> registries,
+            MicroServiceExporterRecorder microServiceExporterRecorder,
+            NonApplicationRootPathBuildItem nonApplicationRootPathBuildItem,
+            ManagementInterfaceBuildTimeConfig managementInterfaceBuildTimeConfig,
+            BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClassesBuildItem) {
+
+        if (config.microServiceName().isPresent()) {
+            routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
+                    .management()
+                    .routeFunction(Constant.BY_IDS, microServiceExporterRecorder.route())
+                    .routeConfigKey("quarkus.jimmer.micro-service-name")
+                    .handler(microServiceExporterRecorder.getHandler())
+                    .blockingRoute()
+                    .build());
+
+            String microServiceExporterPath = nonApplicationRootPathBuildItem.resolveManagementPath(
+                    Constant.BY_IDS,
+                    managementInterfaceBuildTimeConfig, launchModeBuildItem);
+            log.debug("Initialized a Jimmer microServiceExporterPath meter registry on path = " + microServiceExporterPath);
+
+            registries.produce(new RegistryBuildItem("microServiceExporterPath", microServiceExporterPath));
+
+            additionalIndexedClassesBuildItem
+                    .produce(new AdditionalIndexedClassesBuildItem(ExchangeRestClient.class.getName()));
+        }
+
     }
 
     @BuildStep
