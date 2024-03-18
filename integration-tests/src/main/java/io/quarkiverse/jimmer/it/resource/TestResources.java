@@ -255,7 +255,7 @@ public class TestResources {
     @GET
     @Path("/testBookRepositoryCount")
     @Api
-    public Response testBookRepositoryCount(@RestQuery long id) {
+    public Response testBookRepositoryCount() {
         return Response.ok(bookRepository.count()).build();
     }
 
