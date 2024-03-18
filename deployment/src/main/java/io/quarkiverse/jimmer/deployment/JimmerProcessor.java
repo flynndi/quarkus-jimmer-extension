@@ -27,6 +27,7 @@ import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
+import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
@@ -39,6 +40,7 @@ import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
@@ -319,6 +321,12 @@ public class JimmerProcessor {
                         CodeBasedRuntimeException.class.getName(), Priorities.USER + 1, true));
             }
         }
+    }
+
+    @BuildStep
+    void test(BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClassesBuildItem) {
+        additionalIndexedClassesBuildItem
+                .produce(new AdditionalIndexedClassesBuildItem(QuarkusExchangeRestClient.class.getName()));
     }
 
     @BuildStep
