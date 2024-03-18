@@ -1,8 +1,8 @@
 package io.quarkiverse.jimmer.deployment;
 
-import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
-
 import java.util.function.BooleanSupplier;
+
+import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 
 public class MicroServiceEnable implements BooleanSupplier {
 
