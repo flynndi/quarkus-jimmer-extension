@@ -452,7 +452,6 @@ public class TestResourceTestCase {
     @Test
     void testBookRepositoryCount() {
         Response response = given()
-                .queryParam("id", 0)
                 .log()
                 .all()
                 .when()
