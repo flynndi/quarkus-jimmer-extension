@@ -13,15 +13,15 @@ Please let me know if you have any suggestions on these two parts
 ## dependency
 Gradle:
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR4'
-annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.108'
+implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR5'
+annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.109'
 ```
 Maven
 ```maven
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR4</version>
+   <version>0.0.1.CR5</version>
 </dependency>
 
 <build>
@@ -35,7 +35,7 @@ Maven
                     <path>
                         <groupId>org.babyfish.jimmer</groupId>
                         <artifactId>jimmer-apt</artifactId>
-                        <version>0.8.108</version>
+                        <version>0.8.109</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
@@ -262,7 +262,7 @@ quarkus:
           info:
             title: Jimmer REST Example(Java)
             description: This is the OpenAPI UI of Jimmer REST Example(Java)
-            version: 0.0.1.CR2
+            version: 0.0.1.CR5
           securities:
             - tenantHeader: [1, 2, 3]
             - oauthHeader: [4, 5, 6]
