@@ -8,17 +8,18 @@ import jakarta.ws.rs.core.MediaType;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
+import io.quarkiverse.jimmer.runtime.util.Constant;
+
 @RegisterRestClient
-@Path("/jimmerMicroServiceBridge")
-public interface QuarkusExchangeRestClient {
+public interface ExchangeRestClient {
 
     @GET
-    @Path("/byIds")
+    @Path(Constant.BY_IDS)
     @Produces(MediaType.APPLICATION_JSON)
     String findByIds(@QueryParam("ids") String ids, @QueryParam("fetcher") String fetcher);
 
     @GET
-    @Path("/byAssociatedIds")
+    @Path(Constant.BY_ASSOCIATED_IDS)
     @Produces(MediaType.APPLICATION_JSON)
     String findByAssociatedIds(@QueryParam("prop") String prop,
             @QueryParam("targetIds") String targetIdArrStr,

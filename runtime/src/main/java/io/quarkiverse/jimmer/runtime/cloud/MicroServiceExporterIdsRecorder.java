@@ -8,13 +8,13 @@ import io.quarkus.runtime.annotations.Recorder;
 import io.vertx.ext.web.Route;
 
 @Recorder
-public class MicroServiceExporterRecorder {
+public class MicroServiceExporterIdsRecorder {
 
-    MicroServiceExporterHandler handler;
+    MicroServiceExporterIdsHandler handler;
 
-    public MicroServiceExporterHandler getHandler() {
+    public AbstractMicroServiceExporterHandler getHandler() {
         if (handler == null) {
-            return new MicroServiceExporterHandler();
+            return new MicroServiceExporterIdsHandler();
         }
 
         return handler;

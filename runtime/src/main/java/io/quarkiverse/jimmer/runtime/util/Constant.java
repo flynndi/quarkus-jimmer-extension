@@ -50,4 +50,16 @@ public class Constant {
     public static final String TEXT_HTML = "text/html";
 
     public static final String APPLICATION_YML = "application/yml";
+
+    public static final String BY_IDS = "/jimmerMicroServiceBridge/byIds";
+
+    public static final String BY_ASSOCIATED_IDS = "/jimmerMicroServiceBridge/byAssociatedIds";
+
+    public static final String IDS = "ids";
+
+    public static final String PROP = "prop";
+
+    public static final String TARGET_IDS = "targetIds";
+
+    public static final String FETCHER = "fetcher";
 }

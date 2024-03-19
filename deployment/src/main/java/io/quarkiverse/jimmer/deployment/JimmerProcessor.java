@@ -1,6 +1,9 @@
 package io.quarkiverse.jimmer.deployment;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
@@ -25,9 +28,10 @@ import io.quarkiverse.jimmer.runtime.client.openapi.JsRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
-import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterRecorder;
+import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
+import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsRecorder;
+import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
-import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
@@ -67,8 +71,30 @@ public class JimmerProcessor {
     }
 
     @BuildStep
+    void setUpExceptionMapper(JimmerBuildTimeConfig config, BuildProducer<ExceptionMapperBuildItem> exceptionMapperProducer) {
+        if (config.errorTranslator().isPresent()) {
+            if (!config.errorTranslator().get().disabled()) {
+                exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedExceptionAdvice.class.getName(),
+                        CodeBasedException.class.getName(), Priorities.USER + 1, true));
+                exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedRuntimeExceptionAdvice.class.getName(),
+                        CodeBasedRuntimeException.class.getName(), Priorities.USER + 1, true));
+            }
+        }
+    }
+
+    @BuildStep
+    void checkTransactionsSupport(Capabilities capabilities,
+            BuildProducer<ValidationPhaseBuildItem.ValidationErrorBuildItem> validationErrors) {
+        // JTA is necessary for Jimmer
+        if (capabilities.isMissing(Capability.TRANSACTIONS)) {
+            validationErrors.produce(new ValidationPhaseBuildItem.ValidationErrorBuildItem(
+                    new ConfigurationException("The Jimmer extension is only functional in a JTA environment.")));
+        }
+    }
+
+    @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    void verifyConfig(JimmerDataSourcesRecorder recorder, JimmerBuildTimeConfig config) {
+    void verifyConfig(@SuppressWarnings("unused") JimmerDataSourcesRecorder recorder, JimmerBuildTimeConfig config) {
         if (!config.language().equals("java") && !config.language().equals("kotlin")) {
             throw new IllegalArgumentException("`jimmer.language` must be \"java\" or \"kotlin\"");
         }
@@ -89,30 +115,54 @@ public class JimmerProcessor {
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    void registerRepository(JimmerJpaRecorder jimmerJpaRecorder,
-            CombinedIndexBuildItem combinedIndex,
-            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
-            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
-        Collection<ClassInfo> repositoryBeans = combinedIndex.getComputingIndex().getAllKnownImplementors(JRepository.class);
-        for (ClassInfo repositoryBean : repositoryBeans) {
-            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
+    void setUpMicroService(JimmerBuildTimeConfig config,
+            BuildProducer<RouteBuildItem> routes,
+            LaunchModeBuildItem launchModeBuildItem,
+            BuildProducer<RegistryBuildItem> registries,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeanBuildItem,
+            MicroServiceExporterIdsRecorder microServiceExporterIdsRecorder,
+            MicroServiceExporterAssociatedIdsRecorder microServiceExporterAssociatedIdsRecorder,
+            NonApplicationRootPathBuildItem nonApplicationRootPathBuildItem,
+            ManagementInterfaceBuildTimeConfig managementInterfaceBuildTimeConfig,
+            BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClassesBuildItem) {
 
-            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
-                    DotName.createSimple(JRepository.class), combinedIndex.getComputingIndex());
-            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
-                    JandexReflection.loadRawType(typeParameters.get(0))));
-        }
-    }
+        //        if (config.microServiceName().isPresent()) {
+        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
+                .management()
+                .routeFunction(Constant.BY_IDS, microServiceExporterIdsRecorder.route())
+                .handler(microServiceExporterIdsRecorder.getHandler())
+                .blockingRoute()
+                .build());
 
-    @BuildStep
-    @Record(ExecutionTime.STATIC_INIT)
-    void recordJpaOperationsData(JimmerJpaRecorder jimmerJpaRecorder,
-            List<EntityToClassBuildItem> entityToClassBuildItems) {
-        Map<String, Class<?>> map = new HashMap<>();
-        for (EntityToClassBuildItem entityToClassBuildItem : entityToClassBuildItems) {
-            map.put(entityToClassBuildItem.getEntityClass(), entityToClassBuildItem.getClazz());
-        }
-        jimmerJpaRecorder.setEntityToClassUnit(map);
+        String microServiceExporterIdsPath = nonApplicationRootPathBuildItem.resolveManagementPath(
+                Constant.BY_IDS,
+                managementInterfaceBuildTimeConfig, launchModeBuildItem);
+        log.debug(
+                "Initialized a Jimmer microServiceExporterIdsPath meter registry on path = " + microServiceExporterIdsPath);
+
+        registries.produce(new RegistryBuildItem("microServiceExporterIdsPath", microServiceExporterIdsPath));
+
+        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
+                .management()
+                .routeFunction(Constant.BY_ASSOCIATED_IDS, microServiceExporterAssociatedIdsRecorder.route())
+                .handler(microServiceExporterAssociatedIdsRecorder.getHandler())
+                .blockingRoute()
+                .build());
+
+        String microServiceExporterAssociatedIdsPath = nonApplicationRootPathBuildItem.resolveManagementPath(
+                Constant.BY_ASSOCIATED_IDS,
+                managementInterfaceBuildTimeConfig, launchModeBuildItem);
+        log.debug("Initialized a Jimmer microServiceExporterAssociatedIdsPath meter registry on path = "
+                + microServiceExporterAssociatedIdsPath);
+
+        registries
+                .produce(new RegistryBuildItem("microServiceExporterAssociatedIdsPath", microServiceExporterAssociatedIdsPath));
+
+        AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
+        additionalBeanBuildItem.produce(builder.addBeanClasses(QuarkusExchange.class).build());
+        additionalIndexedClassesBuildItem
+                .produce(new AdditionalIndexedClassesBuildItem(ExchangeRestClient.class.getName()));
+        //        }
     }
 
     @BuildStep
@@ -122,7 +172,6 @@ public class JimmerProcessor {
             JsRecorder jsRecorder,
             OpenApiRecorder openApiRecorder,
             OpenApiUiRecorder openApiUiRecorder,
-            MicroServiceExporterRecorder microServiceExporterRecorder,
             BuildProducer<RouteBuildItem> routes,
             NonApplicationRootPathBuildItem nonApplicationRootPathBuildItem,
             ManagementInterfaceBuildTimeConfig managementInterfaceBuildTimeConfig,
@@ -194,21 +243,53 @@ public class JimmerProcessor {
         log.debug("Initialized a Jimmer OpenApiUi meter registry on path = " + uiPath);
 
         registries.produce(new RegistryBuildItem("OpenApiUiResource", uiPath));
+    }
 
-        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
-                .management()
-                .routeFunction("/jimmerMicroServiceBridge/byIds", microServiceExporterRecorder.route())
-                .routeConfigKey("quarkus.jimmer.micro-service-name")
-                .handler(microServiceExporterRecorder.getHandler())
-                .blockingRoute()
-                .build());
+    @BuildStep
+    void registerBeanProducers(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
+        JimmerBeanNameToDotNameBuildItem buildItem = collectBuildItem(combinedIndex);
+        if (buildItem.getMap().containsKey(DotName.createSimple(QuarkusTransactionCacheOperator.class))) {
+            AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
+            builder.addBeanClass(TransactionCacheOperatorFlusherConfig.class);
+            builder.addBeanClass(TransactionCacheOperatorFlusher.class);
+            additionalBeans.produce(builder.build());
+        }
+    }
 
-        String microServiceExporterPath = nonApplicationRootPathBuildItem.resolveManagementPath(
-                "/jimmerMicroServiceBridge/byIds",
-                managementInterfaceBuildTimeConfig, launchModeBuildItem);
-        log.debug("Initialized a Jimmer microServiceExporterPath meter registry on path = " + microServiceExporterPath);
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void registerRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
+            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
+        Collection<ClassInfo> repositoryBeans = combinedIndex.getComputingIndex().getAllKnownImplementors(JRepository.class);
+        for (ClassInfo repositoryBean : repositoryBeans) {
+            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
 
-        registries.produce(new RegistryBuildItem("microServiceExporterPath", microServiceExporterPath));
+            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
+                    DotName.createSimple(JRepository.class), combinedIndex.getComputingIndex());
+            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
+                    JandexReflection.loadRawType(typeParameters.get(0))));
+        }
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void recordJpaOperationsData(JimmerJpaRecorder jimmerJpaRecorder,
+            List<EntityToClassBuildItem> entityToClassBuildItems) {
+        Map<String, Class<?>> map = new HashMap<>();
+        for (EntityToClassBuildItem entityToClassBuildItem : entityToClassBuildItems) {
+            map.put(entityToClassBuildItem.getEntityClass(), entityToClassBuildItem.getClazz());
+        }
+        jimmerJpaRecorder.setEntityToClassUnit(map);
+    }
+
+    @BuildStep
+    @Produce(SyntheticBeansRuntimeInitBuildItem.class)
+    @Consume(LoggingSetupBuildItem.class)
+    void sqlClientInitializer(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
+        additionalBeans.produce(new AdditionalBeanBuildItem(SqlClientInitializer.class));
     }
 
     @BuildStep
@@ -292,44 +373,6 @@ public class JimmerProcessor {
     }
 
     @BuildStep
-    @Produce(SyntheticBeansRuntimeInitBuildItem.class)
-    @Consume(LoggingSetupBuildItem.class)
-    void sqlClientInitializer(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-        additionalBeans.produce(new AdditionalBeanBuildItem(SqlClientInitializer.class));
-    }
-
-    @BuildStep
-    void registerBeanProducers(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-        JimmerBeanNameToDotNameBuildItem buildItem = collectBuildItem(combinedIndex);
-        if (buildItem.getMap().containsKey(DotName.createSimple(QuarkusTransactionCacheOperator.class))) {
-            AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
-            builder.addBeanClass(TransactionCacheOperatorFlusherConfig.class);
-            builder.addBeanClass(TransactionCacheOperatorFlusher.class);
-            builder.addBeanClass(QuarkusExchange.class);
-            additionalBeans.produce(builder.build());
-        }
-    }
-
-    @BuildStep
-    void setUpExceptionMapper(JimmerBuildTimeConfig config, BuildProducer<ExceptionMapperBuildItem> exceptionMapperProducer) {
-        if (config.errorTranslator().isPresent()) {
-            if (!config.errorTranslator().get().disabled()) {
-                exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedExceptionAdvice.class.getName(),
-                        CodeBasedException.class.getName(), Priorities.USER + 1, true));
-                exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedRuntimeExceptionAdvice.class.getName(),
-                        CodeBasedRuntimeException.class.getName(), Priorities.USER + 1, true));
-            }
-        }
-    }
-
-    @BuildStep
-    void test(BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClassesBuildItem) {
-        additionalIndexedClassesBuildItem
-                .produce(new AdditionalIndexedClassesBuildItem(QuarkusExchangeRestClient.class.getName()));
-    }
-
-    @BuildStep
     void registerNativeImageResources(BuildProducer<NativeImageResourceBuildItem> resource) {
         resource.produce(new NativeImageResourceBuildItem(
                 Constant.TEMPLATE_RESOURCE,
@@ -338,16 +381,6 @@ public class JimmerProcessor {
                 Constant.CLIENT_RESOURCE,
                 Constant.ENTITIES_RESOURCE,
                 Constant.IMMUTABLES_RESOURCE));
-    }
-
-    @BuildStep
-    void checkTransactionsSupport(Capabilities capabilities,
-            BuildProducer<ValidationPhaseBuildItem.ValidationErrorBuildItem> validationErrors) {
-        // JTA is necessary for Jimmer
-        if (capabilities.isMissing(Capability.TRANSACTIONS)) {
-            validationErrors.produce(new ValidationPhaseBuildItem.ValidationErrorBuildItem(
-                    new ConfigurationException("The Jimmer extension is only functional in a JTA environment.")));
-        }
     }
 
     private JimmerBeanNameToDotNameBuildItem collectBuildItem(CombinedIndexBuildItem combinedIndex) {

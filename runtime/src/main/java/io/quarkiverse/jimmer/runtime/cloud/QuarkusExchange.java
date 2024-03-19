@@ -36,9 +36,9 @@ public class QuarkusExchange implements MicroServiceExchange {
     public List<ImmutableSpi> findByIds(String microServiceName, Collection<?> ids, Fetcher<?> fetcher) throws Exception {
         RestClientConfig restClientConfig = restClientsConfig.getClientConfig(microServiceName);
         if (restClientConfig.url.isPresent()) {
-            QuarkusExchangeRestClient quarkusExchangeRestClient = QuarkusRestClientBuilder.newBuilder()
-                    .baseUrl(URI.create(restClientConfig.url.get()).toURL()).build(QuarkusExchangeRestClient.class);
-            String json = quarkusExchangeRestClient.findByIds(ids.toString(), fetcher.toString());
+            ExchangeRestClient exchangeRestClient = QuarkusRestClientBuilder.newBuilder()
+                    .baseUrl(URI.create(restClientConfig.url.get()).toURL()).build(ExchangeRestClient.class);
+            String json = exchangeRestClient.findByIds(ids.toString(), fetcher.toString());
             return objectMapper.readValue(
                     json,
                     objectMapper.getTypeFactory().constructParametricType(
@@ -54,9 +54,9 @@ public class QuarkusExchange implements MicroServiceExchange {
             Collection<?> targetIds, Fetcher<?> fetcher) throws Exception {
         RestClientConfig restClientConfig = restClientsConfig.getClientConfig(microServiceName);
         if (restClientConfig.url.isPresent()) {
-            QuarkusExchangeRestClient quarkusExchangeRestClient = QuarkusRestClientBuilder.newBuilder()
-                    .baseUrl(URI.create(restClientConfig.url.get()).toURL()).build(QuarkusExchangeRestClient.class);
-            String json = quarkusExchangeRestClient.findByAssociatedIds(prop.getName(), targetIds.toString(),
+            ExchangeRestClient exchangeRestClient = QuarkusRestClientBuilder.newBuilder()
+                    .baseUrl(URI.create(restClientConfig.url.get()).toURL()).build(ExchangeRestClient.class);
+            String json = exchangeRestClient.findByAssociatedIds(prop.getName(), targetIds.toString(),
                     fetcher.toString());
             TypeFactory typeFactory = objectMapper.getTypeFactory();
             return objectMapper.readValue(
