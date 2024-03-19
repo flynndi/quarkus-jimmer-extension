@@ -31,6 +31,7 @@ import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
+import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
@@ -118,6 +119,7 @@ public class JimmerProcessor {
             BuildProducer<RouteBuildItem> routes,
             LaunchModeBuildItem launchModeBuildItem,
             BuildProducer<RegistryBuildItem> registries,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             MicroServiceExporterIdsRecorder microServiceExporterIdsRecorder,
             MicroServiceExporterAssociatedIdsRecorder microServiceExporterAssociatedIdsRecorder,
             NonApplicationRootPathBuildItem nonApplicationRootPathBuildItem,
@@ -147,13 +149,16 @@ public class JimmerProcessor {
                     .blockingRoute()
                     .build());
 
-            String microServiceExporterAssociatedPath = nonApplicationRootPathBuildItem.resolveManagementPath(
+            String microServiceExporterAssociatedIdsPath = nonApplicationRootPathBuildItem.resolveManagementPath(
                     Constant.BY_ASSOCIATED_IDS,
                     managementInterfaceBuildTimeConfig, launchModeBuildItem);
             log.debug("Initialized a Jimmer microServiceExporterAssociatedPath meter registry on path = "
-                    + microServiceExporterAssociatedPath);
+                    + microServiceExporterAssociatedIdsPath);
 
-            registries.produce(new RegistryBuildItem("microServiceExporterAssociatedPath", microServiceExporterAssociatedPath));
+            registries.produce(
+                    new RegistryBuildItem("microServiceExporterAssociatedPath", microServiceExporterAssociatedIdsPath));
+
+            additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(QuarkusExchange.class));
 
             additionalIndexedClassesBuildItem
                     .produce(new AdditionalIndexedClassesBuildItem(ExchangeRestClient.class.getName()));
