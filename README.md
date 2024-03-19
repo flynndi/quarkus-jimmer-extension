@@ -213,6 +213,8 @@ quarkus datasource documentation https://quarkus.io/guides/datasource
 ```
 # Configuration file example
 quarkus:
+  application:
+    name: quarkus-jimmer-integration-tests
   package:
     type: uber-jar
   http:
@@ -235,7 +237,15 @@ quarkus:
         url:
   log:
     level: DEBUG
+## If you want to enable Remote Associations 
+## You must configure rest-client and jimmer.micro-service-name
+  rest-client:
+    other-service:    Customize the service name
+      url: http://localhost:8888   other-service url
+    good-service:     Customize the service name
+      url: http://localhost:9090   good-service  url
   jimmer:           jimmer config see https://github.com/babyfish-ct/jimmer
+    micro-service-name: ${quarkus.application.name} If you want to enable Remote Associations You must configure rest-client and jimmer.micro-service-name
     show-sql:
     pretty-sql:
     inline-sql-variables:
