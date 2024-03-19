@@ -6,6 +6,7 @@ import java.util.List;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
+import org.babyfish.jimmer.impl.util.Classes;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.runtime.ImmutableSpi;
 import org.babyfish.jimmer.sql.ast.tuple.Tuple2;
@@ -13,6 +14,7 @@ import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.babyfish.jimmer.sql.runtime.MicroServiceExchange;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
 import io.quarkus.restclient.config.RestClientConfig;
@@ -50,6 +52,23 @@ public class QuarkusExchange implements MicroServiceExchange {
     @Override
     public List<Tuple2<Object, ImmutableSpi>> findByAssociatedIds(String microServiceName, ImmutableProp prop,
             Collection<?> targetIds, Fetcher<?> fetcher) throws Exception {
-        return null;
+        RestClientConfig restClientConfig = restClientsConfig.getClientConfig(microServiceName);
+        if (restClientConfig.url.isPresent()) {
+            ExchangeRestClient quarkusExchangeRestClient = QuarkusRestClientBuilder.newBuilder()
+                    .baseUrl(URI.create(restClientConfig.url.get()).toURL()).build(ExchangeRestClient.class);
+            String json = quarkusExchangeRestClient.findByAssociatedIds(prop.getName(), targetIds.toString(),
+                    fetcher.toString());
+            TypeFactory typeFactory = objectMapper.getTypeFactory();
+            return objectMapper.readValue(
+                    json,
+                    typeFactory.constructParametricType(
+                            List.class,
+                            typeFactory.constructParametricType(
+                                    Tuple2.class,
+                                    Classes.boxTypeOf(prop.getTargetType().getIdProp().getElementClass()),
+                                    fetcher.getImmutableType().getJavaClass())));
+        } else {
+            throw new IllegalArgumentException("Can not find restClientConfig.url by microServiceName: " + microServiceName);
+        }
     }
 }
