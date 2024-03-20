@@ -115,7 +115,7 @@ public class UserRoleService {
 
 # Cache
 
-example: /src/main/java/io/quarkiverse/jimmer/it/config/CacheConfig.java
+example: [CacheConfig.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fconfig%2FCacheConfig.java)   
 use blocking RedisDataSource 
 
 The difference with spring integration is need 
@@ -208,61 +208,65 @@ public class CacheConfig {
 }
 ```
 
-# Configuration file example
-quarkus datasource documentation https://quarkus.io/guides/datasource
-```
-# Configuration file example
+# Remote Associations
+## reference
+Quarkus remote associations Depend on quarkus-rest-client-reactive-jackson   
+Read the Quarkus-rest-client-reaction-jackson documentation before you begin   
+https://quarkus.io/guides/rest-client-reactive
+
+## application.yml
+```yaml
 quarkus:
   application:
-    name: quarkus-jimmer-integration-tests
-  package:
-    type: uber-jar
-  http:
-    port: 8080
-  datasource:       default db
-    db-kind:
-    username:
-    password:
-    jdbc:
-      min-size: 2
-      max-size: 8
-      url:
-    DB2:            other db
-      db-kind:
-      username:
-      password:
-      jdbc:
-        min-size: 2
-        max-size: 8
-        url:
-  log:
-    level: DEBUG
-## If you want to enable Remote Associations 
-## You must configure rest-client and jimmer.micro-service-name
+    name: Your application name
+  jimmer:
+    micro-service-name: ${quarkus.application.name}
   rest-client:
-    other-service:    Customize the service name
-      url: http://localhost:8888   other-service url
-    good-service:     Customize the service name
-      url: http://localhost:9090   good-service  url
-  jimmer:           jimmer config see https://github.com/babyfish-ct/jimmer
-    micro-service-name: ${quarkus.application.name} If you want to enable Remote Associations You must configure rest-client and jimmer.micro-service-name
-    show-sql:
-    pretty-sql:
-    inline-sql-variables:
-    trigger-type:
+    other-service:  # Target service name
+      url: http://localhost:8888 
+    good-service:   # Target service name
+      url: http://localhost:9090
+```
+## current service entity
+```java
+// The entity of the current service
+@Entity(microServiceName = "Your application name")
+public interface Book {}
+```
+## target service entity
+```java
+// Target service entity 
+// "other-service" is the service name configured under the rest-client node in the application.yml file
+@Entity(microServiceName = "other-service")
+public interface BookStore {}
+```
+
+# Configuration file example
+quarkus datasource documentation https://quarkus.io/guides/datasource
+```yml
+# Configuration file example
+quarkus:
+  jimmer:           # jimmer config see https://github.com/babyfish-ct/jimmer
+    show-sql: true
+    pretty-sql: true
+    inline-sql-variables: true
+    trigger-type: TRANSACTION_ONLY
     database-validation:
-      mode:
-        client:
+      mode: NONE
+    error-translator:
+      disabled: false
+      debug-info-supported: true
+    client:
       ts:
-        path: /youPath/ts.zip
+        path: /Code/ts.zip
       openapi:
         path: /openapi.yml
         ui-path: /openapi.html
         properties:
           info:
             title: Jimmer REST Example(Java)
-            description: This is the OpenAPI UI of Jimmer REST Example(Java)
-            version: 0.0.1.CR5
+            description: This is the OpenAPI UI of Quarkus-Jimmer-Extension REST Example (Java)
+            version: latest
           securities:
             - tenantHeader: [1, 2, 3]
             - oauthHeader: [4, 5, 6]
