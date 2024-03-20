@@ -1,8 +1,11 @@
 package io.quarkiverse.jimmer.runtime.cloud;
 
+import java.nio.charset.StandardCharsets;
+
 import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.spi.CDI;
+import jakarta.ws.rs.core.MediaType;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.runtime.MicroServiceExporter;
@@ -11,6 +14,9 @@ import org.jboss.logging.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
 public abstract class AbstractMicroServiceExporterHandler implements Handler<RoutingContext> {
@@ -58,5 +64,10 @@ public abstract class AbstractMicroServiceExporterHandler implements Handler<Rou
         exporter = new MicroServiceExporter(jSqlClient);
 
         setup = true;
+    }
+
+    protected void doHandle(HttpServerResponse response, String stringResult) {
+        response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .end(Buffer.buffer(stringResult.getBytes(StandardCharsets.UTF_8)));
     }
 }
