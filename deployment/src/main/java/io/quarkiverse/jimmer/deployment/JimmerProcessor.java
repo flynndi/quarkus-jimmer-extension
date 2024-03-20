@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
@@ -113,7 +114,7 @@ public class JimmerProcessor {
         }
     }
 
-    @BuildStep
+    @BuildStep(onlyIf = IsMicroServiceEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
     void setUpMicroService(JimmerBuildTimeConfig config,
             BuildProducer<RouteBuildItem> routes,
@@ -408,6 +409,21 @@ public class JimmerProcessor {
                     }
                 }
             }
+        }
+    }
+
+    static final class IsMicroServiceEnable implements BooleanSupplier {
+
+        private final JimmerBuildTimeConfig jimmerBuildTimeConfig;
+
+        public IsMicroServiceEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
+            this.jimmerBuildTimeConfig = jimmerBuildTimeConfig;
+        }
+
+        @Override
+        public boolean getAsBoolean() {
+            return jimmerBuildTimeConfig.microServiceName().isPresent()
+                    && !jimmerBuildTimeConfig.microServiceName().get().isEmpty();
         }
     }
 }
