@@ -240,6 +240,19 @@ public interface Book {}
 @Entity(microServiceName = "other-service")
 public interface BookStore {}
 ```
+## start query
+[TestResources.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fresource%2FTestResources.java)
+```java
+@Inject
+BookStoreRepository bookStoreRepository;
+
+@GET
+@Path("/path")
+@Api
+public Response testBookRepositoryViewById(@RestQuery long id) {
+    return Response.ok(bookRepository.viewer(BookDetailView.class).findNullable(id)).build();
+}
+```
 
 # Configuration file example
 quarkus datasource documentation https://quarkus.io/guides/datasource
