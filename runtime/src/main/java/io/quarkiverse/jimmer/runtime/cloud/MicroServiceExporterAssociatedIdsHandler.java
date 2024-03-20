@@ -1,9 +1,6 @@
 package io.quarkiverse.jimmer.runtime.cloud;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-
-import jakarta.ws.rs.core.MediaType;
 
 import org.babyfish.jimmer.impl.util.Classes;
 import org.babyfish.jimmer.meta.ImmutableProp;
@@ -19,8 +16,6 @@ import com.fasterxml.jackson.databind.type.SimpleType;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ManagedContext;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
@@ -58,19 +53,14 @@ public class MicroServiceExporterAssociatedIdsHandler extends AbstractMicroServi
         HttpServerResponse response = routingContext.response();
         ManagedContext requestContext = Arc.container().requestContext();
         if (requestContext.isActive()) {
-            doHandle(response, result);
+            doHandle(response, result.toString());
         } else {
             requestContext.activate();
             try {
-                doHandle(response, result);
+                doHandle(response, result.toString());
             } finally {
                 requestContext.terminate();
             }
         }
-    }
-
-    private void doHandle(HttpServerResponse response, List<Tuple2<Object, ImmutableSpi>> result) {
-        response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .end(Buffer.buffer(result.toString().getBytes(StandardCharsets.UTF_8)));
     }
 }
