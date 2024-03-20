@@ -116,8 +116,7 @@ public class JimmerProcessor {
 
     @BuildStep(onlyIf = IsMicroServiceEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
-    void setUpMicroService(JimmerBuildTimeConfig config,
-            BuildProducer<RouteBuildItem> routes,
+    void setUpMicroService(BuildProducer<RouteBuildItem> routes,
             LaunchModeBuildItem launchModeBuildItem,
             BuildProducer<RegistryBuildItem> registries,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
@@ -127,43 +126,41 @@ public class JimmerProcessor {
             ManagementInterfaceBuildTimeConfig managementInterfaceBuildTimeConfig,
             BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClassesBuildItem) {
 
-        if (config.microServiceName().isPresent()) {
-            routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
-                    .management()
-                    .routeFunction(Constant.BY_IDS, microServiceExporterIdsRecorder.route())
-                    .handler(microServiceExporterIdsRecorder.getHandler())
-                    .blockingRoute()
-                    .build());
+        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
+                .management()
+                .routeFunction(Constant.BY_IDS, microServiceExporterIdsRecorder.route())
+                .handler(microServiceExporterIdsRecorder.getHandler())
+                .blockingRoute()
+                .build());
 
-            String microServiceExporterIdsPath = nonApplicationRootPathBuildItem.resolveManagementPath(
-                    Constant.BY_IDS,
-                    managementInterfaceBuildTimeConfig, launchModeBuildItem);
-            log.debug(
-                    "Initialized a Jimmer microServiceExporterIdsPath meter registry on path = " + microServiceExporterIdsPath);
+        String microServiceExporterIdsPath = nonApplicationRootPathBuildItem.resolveManagementPath(
+                Constant.BY_IDS,
+                managementInterfaceBuildTimeConfig, launchModeBuildItem);
+        log.debug(
+                "Initialized a Jimmer microServiceExporterIdsPath meter registry on path = " + microServiceExporterIdsPath);
 
-            registries.produce(new RegistryBuildItem("microServiceExporterIdsPath", microServiceExporterIdsPath));
+        registries.produce(new RegistryBuildItem("microServiceExporterIdsPath", microServiceExporterIdsPath));
 
-            routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
-                    .management()
-                    .routeFunction(Constant.BY_ASSOCIATED_IDS, microServiceExporterAssociatedIdsRecorder.route())
-                    .handler(microServiceExporterAssociatedIdsRecorder.getHandler())
-                    .blockingRoute()
-                    .build());
+        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
+                .management()
+                .routeFunction(Constant.BY_ASSOCIATED_IDS, microServiceExporterAssociatedIdsRecorder.route())
+                .handler(microServiceExporterAssociatedIdsRecorder.getHandler())
+                .blockingRoute()
+                .build());
 
-            String microServiceExporterAssociatedIdsPath = nonApplicationRootPathBuildItem.resolveManagementPath(
-                    Constant.BY_ASSOCIATED_IDS,
-                    managementInterfaceBuildTimeConfig, launchModeBuildItem);
-            log.debug("Initialized a Jimmer microServiceExporterAssociatedPath meter registry on path = "
-                    + microServiceExporterAssociatedIdsPath);
+        String microServiceExporterAssociatedIdsPath = nonApplicationRootPathBuildItem.resolveManagementPath(
+                Constant.BY_ASSOCIATED_IDS,
+                managementInterfaceBuildTimeConfig, launchModeBuildItem);
+        log.debug("Initialized a Jimmer microServiceExporterAssociatedPath meter registry on path = "
+                + microServiceExporterAssociatedIdsPath);
 
-            registries.produce(
-                    new RegistryBuildItem("microServiceExporterAssociatedPath", microServiceExporterAssociatedIdsPath));
+        registries.produce(
+                new RegistryBuildItem("microServiceExporterAssociatedPath", microServiceExporterAssociatedIdsPath));
 
-            additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(QuarkusExchange.class));
+        additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(QuarkusExchange.class));
 
-            additionalIndexedClassesBuildItem
-                    .produce(new AdditionalIndexedClassesBuildItem(ExchangeRestClient.class.getName()));
-        }
+        additionalIndexedClassesBuildItem
+                .produce(new AdditionalIndexedClassesBuildItem(ExchangeRestClient.class.getName()));
     }
 
     @BuildStep
