@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BooleanSupplier;
 
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
@@ -13,11 +12,11 @@ import jakarta.ws.rs.Priorities;
 import org.babyfish.jimmer.error.CodeBasedException;
 import org.babyfish.jimmer.error.CodeBasedRuntimeException;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.event.TriggerType;
 import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.jimmer.runtime.*;
-import io.quarkiverse.jimmer.runtime.cache.impl.QuarkusTransactionCacheOperator;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.SqlClientInitializer;
@@ -244,16 +243,12 @@ public class JimmerProcessor {
         registries.produce(new RegistryBuildItem("OpenApiUiResource", uiPath));
     }
 
-    @BuildStep
-    void registerBeanProducers(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-        JimmerBeanNameToDotNameBuildItem buildItem = collectBuildItem(combinedIndex);
-        if (buildItem.getMap().containsKey(DotName.createSimple(QuarkusTransactionCacheOperator.class))) {
-            AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
-            builder.addBeanClass(TransactionCacheOperatorFlusherConfig.class);
-            builder.addBeanClass(TransactionCacheOperatorFlusher.class);
-            additionalBeans.produce(builder.build());
-        }
+    @BuildStep(onlyIf = IsTransactionOnlyEnable.class)
+    void registerBeanProducers(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
+        AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
+        builder.addBeanClass(TransactionCacheOperatorFlusherConfig.class);
+        builder.addBeanClass(TransactionCacheOperatorFlusher.class);
+        additionalBeans.produce(builder.build());
     }
 
     @BuildStep
@@ -382,40 +377,9 @@ public class JimmerProcessor {
                 Constant.IMMUTABLES_RESOURCE));
     }
 
-    private JimmerBeanNameToDotNameBuildItem collectBuildItem(CombinedIndexBuildItem combinedIndex) {
-        Map<DotName, Boolean> map = new HashMap<>();
-        Collection<AnnotationInstance> singletonInstances = combinedIndex.getIndex().getAnnotations(DotNames.SINGLETON);
-        Collection<AnnotationInstance> applicationScopedInstances = combinedIndex.getIndex()
-                .getAnnotations(DotNames.APPLICATION_SCOPED);
-        generateBuildItem(map, singletonInstances);
-        generateBuildItem(map, applicationScopedInstances);
-        return new JimmerBeanNameToDotNameBuildItem(map);
-    }
-
-    private void generateBuildItem(Map<DotName, Boolean> map, Collection<AnnotationInstance> instances) {
-        for (AnnotationInstance instance : instances) {
-            if (instance.target().kind().equals(AnnotationTarget.Kind.METHOD)) {
-                MethodInfo method = instance.target().asMethod();
-                ClassInfo classInfo = method.declaringClass();
-                if (classInfo.hasDeclaredAnnotation(DotNames.APPLICATION_SCOPED)
-                        || classInfo.hasDeclaredAnnotation(DotNames.SINGLETON)) {
-                    if (method.hasDeclaredAnnotation(DotNames.SINGLETON)
-                            || method.hasDeclaredAnnotation(DotNames.APPLICATION_SCOPED)) {
-                        if (method.returnType().name().equals(DotName.createSimple(QuarkusTransactionCacheOperator.class))) {
-                            map.put(DotName.createSimple(QuarkusTransactionCacheOperator.class), Boolean.TRUE);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    static final class JimmerEnable implements BooleanSupplier {
-
-        private final JimmerBuildTimeConfig jimmerBuildTimeConfig;
-
-        public JimmerEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
-            this.jimmerBuildTimeConfig = jimmerBuildTimeConfig;
+    static final class JimmerEnable extends AbstractJimmerBooleanSupplier {
+        private JimmerEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
+            super(jimmerBuildTimeConfig);
         }
 
         @Override
@@ -424,18 +388,29 @@ public class JimmerProcessor {
         }
     }
 
-    static final class IsMicroServiceEnable implements BooleanSupplier {
+    static final class IsMicroServiceEnable extends AbstractJimmerBooleanSupplier {
 
-        private final JimmerBuildTimeConfig jimmerBuildTimeConfig;
-
-        public IsMicroServiceEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
-            this.jimmerBuildTimeConfig = jimmerBuildTimeConfig;
+        private IsMicroServiceEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
+            super(jimmerBuildTimeConfig);
         }
 
         @Override
         public boolean getAsBoolean() {
             return jimmerBuildTimeConfig.microServiceName().isPresent()
                     && !jimmerBuildTimeConfig.microServiceName().get().isEmpty();
+        }
+    }
+
+    static final class IsTransactionOnlyEnable extends AbstractJimmerBooleanSupplier {
+
+        private IsTransactionOnlyEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
+            super(jimmerBuildTimeConfig);
+        }
+
+        @Override
+        public boolean getAsBoolean() {
+            return jimmerBuildTimeConfig.triggerType().equals(TriggerType.TRANSACTION_ONLY)
+                    || jimmerBuildTimeConfig.triggerType().equals(TriggerType.BOTH);
         }
     }
 }
