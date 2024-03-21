@@ -58,6 +58,7 @@ import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig;
 
+@BuildSteps(onlyIf = JimmerProcessor.JimmerEnable.class)
 public class JimmerProcessor {
 
     private static final Logger log = Logger.getLogger(JimmerProcessor.class);
@@ -406,6 +407,20 @@ public class JimmerProcessor {
                     }
                 }
             }
+        }
+    }
+
+    static final class JimmerEnable implements BooleanSupplier {
+
+        private final JimmerBuildTimeConfig jimmerBuildTimeConfig;
+
+        public JimmerEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
+            this.jimmerBuildTimeConfig = jimmerBuildTimeConfig;
+        }
+
+        @Override
+        public boolean getAsBoolean() {
+            return jimmerBuildTimeConfig.enable();
         }
     }
 
