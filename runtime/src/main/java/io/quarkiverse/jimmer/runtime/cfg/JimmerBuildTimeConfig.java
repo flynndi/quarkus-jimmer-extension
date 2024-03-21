@@ -28,6 +28,12 @@ import io.smallrye.config.WithName;
 public interface JimmerBuildTimeConfig {
 
     /**
+     * jimmer.enable
+     */
+    @WithDefault("true")
+    boolean enable();
+
+    /**
      * jimmer.language
      */
     @WithDefault("java")
