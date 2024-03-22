@@ -2,7 +2,7 @@ package io.quarkiverse.jimmer.deployment;
 
 import io.quarkus.builder.item.MultiBuildItem;
 
-public final class RegistryBuildItem extends MultiBuildItem {
+final class RegistryBuildItem extends MultiBuildItem {
 
     private final String name;
 

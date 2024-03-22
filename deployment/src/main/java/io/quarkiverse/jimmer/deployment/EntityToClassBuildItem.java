@@ -2,7 +2,7 @@ package io.quarkiverse.jimmer.deployment;
 
 import io.quarkus.builder.item.MultiBuildItem;
 
-public final class EntityToClassBuildItem extends MultiBuildItem {
+final class EntityToClassBuildItem extends MultiBuildItem {
 
     private final String entityClass;
 

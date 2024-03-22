@@ -17,7 +17,7 @@ import io.quarkus.arc.ManagedContext;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
-public class MicroServiceExporterIdsHandler extends AbstractMicroServiceExporterHandler {
+class MicroServiceExporterIdsHandler extends AbstractMicroServiceExporterHandler {
 
     @Override
     public void handle(RoutingContext routingContext) {
