@@ -58,7 +58,7 @@ import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig;
 
 @BuildSteps(onlyIf = JimmerProcessor.JimmerEnable.class)
-public class JimmerProcessor {
+class JimmerProcessor {
 
     private static final Logger log = Logger.getLogger(JimmerProcessor.class);
 

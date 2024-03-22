@@ -5,7 +5,7 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.jackson.spi.ClassPathJacksonModuleBuildItem;
 
-public class JimmerJacksonProcessor {
+class JimmerJacksonProcessor {
 
     private static final String JIMMER_JACKSON_MODULE = "org.babyfish.jimmer.jackson.ImmutableModule";
 
