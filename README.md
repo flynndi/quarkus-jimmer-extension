@@ -17,7 +17,7 @@ implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR5'
 annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.109'
 ```
 Maven
-```maven
+```xml
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
@@ -45,7 +45,7 @@ Maven
 ```
 
 # JPA
-```
+```java
 // default db
 
 // repository
@@ -90,7 +90,7 @@ public class UserRoleService {
 ```
 
 # Code
-```
+```java
     // default db
     @Inject
     JSqlClient jSqlClient;
@@ -124,13 +124,13 @@ ValueCommands and HashCommands
 
 quarkus-jimmer-extension static methods are provided
 
-```
+```java
 ValueCommands<String, byte[]> stringValueCommands = RedisCaches.cacheRedisValueCommands(redisDataSource);
 
 HashCommands<String, String, byte[]> stringHashCommands = RedisCaches.cacheRedisHashCommands(redisDataSource);
 ```
 
-```
+```java
 @ApplicationScoped
 public class CacheConfig {
 
