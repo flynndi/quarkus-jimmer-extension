@@ -13,7 +13,7 @@ Please let me know if you have any suggestions on these two parts
 ## dependency
 Gradle:
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR5'
+implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR6'
 annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.109'
 ```
 Maven
@@ -21,7 +21,7 @@ Maven
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR5</version>
+   <version>0.0.1.CR6</version>
 </dependency>
 
 <build>
