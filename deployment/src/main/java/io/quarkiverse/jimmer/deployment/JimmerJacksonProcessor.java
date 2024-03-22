@@ -10,7 +10,7 @@ public class JimmerJacksonProcessor {
     private static final String JIMMER_JACKSON_MODULE = "org.babyfish.jimmer.jackson.ImmutableModule";
 
     @BuildStep
-    void registerKotlinJacksonModule(BuildProducer<ClassPathJacksonModuleBuildItem> classPathJacksonModules) {
+    void registerJimmerJacksonModule(BuildProducer<ClassPathJacksonModuleBuildItem> classPathJacksonModules) {
         if (!QuarkusClassLoader.isClassPresentAtRuntime(JIMMER_JACKSON_MODULE)) {
             return;
         }
