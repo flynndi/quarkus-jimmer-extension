@@ -19,7 +19,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
-public abstract class AbstractMicroServiceExporterHandler implements Handler<RoutingContext> {
+abstract class AbstractMicroServiceExporterHandler implements Handler<RoutingContext> {
 
     private static final Logger log = Logger.getLogger(AbstractMicroServiceExporterHandler.class);
 
