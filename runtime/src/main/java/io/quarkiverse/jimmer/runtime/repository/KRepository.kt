@@ -6,15 +6,14 @@ import io.quarkiverse.jimmer.runtime.repository.support.JpaOperationsData
 import io.quarkiverse.jimmer.runtime.repository.support.Pagination
 import io.quarkiverse.jimmer.runtime.repository.support.Utils
 import io.quarkus.agroal.DataSource
+import org.babyfish.jimmer.ImmutableObjects
 import org.babyfish.jimmer.Input
 import org.babyfish.jimmer.Page
 import org.babyfish.jimmer.View
 import org.babyfish.jimmer.meta.ImmutableType
-import org.babyfish.jimmer.meta.TypedProp
 import org.babyfish.jimmer.sql.ast.mutation.DeleteMode
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode
 import org.babyfish.jimmer.sql.fetcher.Fetcher
-import org.babyfish.jimmer.sql.fetcher.ViewMetadata
 import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.babyfish.jimmer.sql.kt.ast.mutation.KBatchSaveResult
 import org.babyfish.jimmer.sql.kt.ast.mutation.KSaveCommandDsl
@@ -49,7 +48,13 @@ interface KRepository<E: Any, ID: Any> {
     /*
      * For consumer
      */
-    fun findNullable(id: ID, fetcher: Fetcher<E>? = null): E?
+    fun findNullable(id: ID, fetcher: Fetcher<E>? = null): E? {
+        return if (fetcher !== null) {
+            sql().entities.findById(fetcher, id)
+        } else {
+            sql().entities.findById(entityType(), id)
+        }
+    }
 
     fun findById(id: ID): Optional<E> =
         Optional.ofNullable(findNullable(id))
@@ -57,47 +62,151 @@ interface KRepository<E: Any, ID: Any> {
     fun findById(id: ID, fetcher: Fetcher<E>): Optional<E> =
         Optional.ofNullable(findNullable(id, fetcher))
 
-    fun findByIds(ids: Iterable<ID>, fetcher: Fetcher<E>? = null): List<E>
+    fun findByIds(ids: Iterable<ID>, fetcher: Fetcher<E>? = null): List<E> {
+        if (fetcher !== null) {
+            return sql().entities.findByIds(fetcher, Utils.toCollection(ids))
+        } else {
+            return sql().entities.findByIds(entityType(), Utils.toCollection(ids))
+        }
+    }
 
     fun findAllById(ids: Iterable<ID>): List<E> =
         findByIds(ids)
 
-    fun findMapByIds(ids: Iterable<ID>, fetcher: Fetcher<E>? = null): Map<ID, E>
+    fun findMapByIds(ids: Iterable<ID>, fetcher: Fetcher<E>? = null): Map<ID, E> {
+        if (fetcher !== null) {
+            return sql().entities.findMapByIds(fetcher, Utils.toCollection(ids))
+        } else {
+            return sql().entities.findMapByIds(entityType(), Utils.toCollection(ids))
+        }
+    }
 
     fun findAll(): List<E> =
         findAll(null)
 
-    fun findAll(fetcher: Fetcher<E>? = null): List<E>
+    fun findAll(fetcher: Fetcher<E>? = null): List<E> {
+        return if (fetcher !== null) {
+            sql().entities.findAll(fetcher)
+        } else {
+            sql().entities.findAll(entityType())
+        }
+    }
 
-    fun findAll(fetcher: Fetcher<E>? = null, block: (SortDsl<E>.() -> Unit)): List<E>
+    fun findAll(fetcher: Fetcher<E>? = null, block: (SortDsl<E>.() -> Unit)): List<E> {
+        if (fetcher !== null) {
+            return sql().entities.findAll(fetcher, block)
+        } else {
+            return sql().entities.findAll(entityType(), block)
+        }
+    }
 
     fun findAll(sort: Sort): List<E> =
         findAll(null, sort)
 
-    fun findAll(fetcher: Fetcher<E>? = null, sort: Sort): List<E>
+    fun findAll(fetcher: Fetcher<E>? = null, sort: Sort): List<E> {
+        return sql().createQuery(entityType()) {
+            orderBy(sort)
+            select(table.fetch(fetcher))
+        }.execute()
+    }
 
     fun findAll(
         pageIndex: Int,
         pageSize: Int,
         fetcher: Fetcher<E>? = null,
         block: (SortDsl<E>.() -> Unit)? = null
-    ): Page<E>
+    ): Page<E> {
+        return sql().createQuery(entityType()) {
+            orderBy(block)
+            select(table.fetch(fetcher))
+        }.fetchPage(pageIndex, pageSize)
+    }
 
     fun findAll(
         pageIndex: Int,
         pageSize: Int,
         fetcher: Fetcher<E>? = null,
         sort: Sort
-    ): Page<E>
+    ): Page<E> {
+        return sql().createQuery(entityType()) {
+            orderBy(sort)
+            select(table.fetch(fetcher))
+        }.fetchPage(pageIndex, pageSize)
+    }
 
-    fun findAll(pagination: Pagination): Page<E>
+    fun findAll(pagination: Pagination): Page<E> {
+        return findAll(pagination, null)
+    }
 
-    fun findAll(pagination: Pagination, fetcher: Fetcher<E>? = null): Page<E>
+    fun findAll(pagination: Pagination, fetcher: Fetcher<E>? = null): Page<E> {
+        return sql().createQuery(entityType()) {
+            select(table.fetch(fetcher))
+        }.fetchPage(pagination.index, pagination.size)
+    }
 
     fun existsById(id: ID): Boolean =
         findNullable(id) != null
 
-    fun count(): Long
+    fun count(): Long {
+        return sql().createQuery(entityType()) {
+            select(org.babyfish.jimmer.sql.kt.ast.expression.count(table))
+        }.fetchOne()
+    }
+
+    fun <S: E> save(entity: S, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S> {
+        return sql().entities.save(entity, block = block)
+    }
+
+    fun <S: E> save(input: Input<S>, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S> {
+        return sql().entities.save(input, block = block)
+    }
+
+    fun <S : E> saveEntities(entities: Iterable<S>, block: KSaveCommandDsl.() -> Unit): KBatchSaveResult<S> {
+        return sql().entities.saveEntities(Utils.toCollection(entities), block = block)
+    }
+
+    fun <S : E> saveInputs(inputs: Iterable<Input<S>>, block: KSaveCommandDsl.() -> Unit): KBatchSaveResult<S> {
+        return sql().entities.saveEntities(inputs.map { it.toEntity() }, block = block)
+    }
+
+    fun delete(entity: E, mode: DeleteMode): Int {
+        return sql().entities.delete(
+            entityType(),
+            ImmutableObjects.get(entity, type().idProp)
+        ) {
+            setMode(mode)
+        }.affectedRowCount(entityType())
+    }
+
+    fun deleteById(id: ID, mode: DeleteMode): Int {
+        return sql().entities.delete(entityType(), id) {
+            setMode(mode)
+        }.affectedRowCount(entityType())
+    }
+
+    fun deleteByIds(ids: Iterable<ID>, mode: DeleteMode): Int {
+        return sql().entities.deleteAll(entityType(), Utils.toCollection(ids)) {
+            setMode(mode)
+        }.affectedRowCount(entityType())
+    }
+
+    fun deleteAll(entities: Iterable<E>, mode: DeleteMode): Int {
+        return sql()
+            .entities
+            .deleteAll(
+                entityType(),
+                entities.map {
+                    ImmutableObjects.get(it, type().idProp)
+                }
+            ) {
+                setMode(mode)
+            }.affectedRowCount(entityType())
+    }
+
+    fun deleteAll() {
+        sql().createDelete(entityType()) {
+        }.execute()
+    }
 
     fun insert(input: Input<E>): E =
         save(input.toEntity(), SaveMode.INSERT_ONLY).modifiedEntity
@@ -124,10 +233,6 @@ interface KRepository<E: Any, ID: Any> {
         save(entity) {
             setMode(mode)
         }
-
-    fun <S: E> save(entity: S, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S>
-
-    fun <S: E> save(input: Input<S>, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S>
 
     /**
      * Unlike save, merge is significantly different,
@@ -196,8 +301,6 @@ interface KRepository<E: Any, ID: Any> {
             setMode(mode)
         }
 
-    fun <S : E> saveEntities(entities: Iterable<S>, block: KSaveCommandDsl.() -> Unit): KBatchSaveResult<S>
-
     fun <S : E> saveInputs(inputs: Iterable<Input<S>>): KBatchSaveResult<S> =
         saveInputs(inputs, SaveMode.UPSERT)
 
@@ -206,19 +309,13 @@ interface KRepository<E: Any, ID: Any> {
             setMode(mode)
         }
 
-    fun <S : E> saveInputs(inputs: Iterable<Input<S>>, block: KSaveCommandDsl.() -> Unit): KBatchSaveResult<S>
-
     fun delete(entity: E) {
         delete(entity, DeleteMode.AUTO)
     }
 
-    fun delete(entity: E, mode: DeleteMode): Int
-
     fun deleteById(id: ID) {
         deleteById(id, DeleteMode.AUTO)
     }
-
-    fun deleteById(id: ID, mode: DeleteMode): Int
 
     fun deleteByIds(ids: Iterable<ID>) {
         deleteByIds(ids, DeleteMode.AUTO)
@@ -228,15 +325,9 @@ interface KRepository<E: Any, ID: Any> {
         deleteByIds(ids, DeleteMode.AUTO)
     }
 
-    fun deleteByIds(ids: Iterable<ID>, mode: DeleteMode): Int
-
     fun deleteAll(entities: Iterable<E>) {
         deleteAll(entities, DeleteMode.AUTO)
     }
-
-    fun deleteAll(entities: Iterable<E>, mode: DeleteMode): Int
-
-    fun deleteAll()
 
     fun <V: View<E>> viewer(viewType: KClass<V>): Viewer<E, ID, V> {
         return object : Viewer<E, ID, V> {
@@ -255,6 +346,13 @@ interface KRepository<E: Any, ID: Any> {
 
             override fun findAll(): List<V> {
                 return sql().entities.findAll(viewType)
+            }
+
+            override fun findAll(block: SortDsl<E>.() -> Unit): List<V> {
+                return sql().createQuery(entityType()) {
+                    orderBy(block)
+                    select(table.fetch(viewType))
+                }.execute()
             }
 
             override fun findAll(sort: Sort): List<V> {
@@ -276,13 +374,6 @@ interface KRepository<E: Any, ID: Any> {
                 }.fetchPage(pageIndex, pageSize)
             }
 
-            override fun findAll(pageIndex: Int, pageSize: Int, sort: Sort): Page<V> {
-                return sql().createQuery(entityType()) {
-                    orderBy(sort)
-                    select(table.fetch(viewType))
-                }.fetchPage(pageIndex, pageSize)
-            }
-
             override fun findAll(pageIndex: Int, pageSize: Int, block: SortDsl<E>.() -> Unit): Page<V> {
                 return sql().createQuery(entityType()) {
                     orderBy(block)
@@ -290,13 +381,12 @@ interface KRepository<E: Any, ID: Any> {
                 }.fetchPage(pageIndex, pageSize)
             }
 
-            override fun findAll(block: SortDsl<E>.() -> Unit): List<V> {
+            override fun findAll(pageIndex: Int, pageSize: Int, sort: Sort): Page<V> {
                 return sql().createQuery(entityType()) {
-                    orderBy(block)
+                    orderBy(sort)
                     select(table.fetch(viewType))
-                }.execute()
+                }.fetchPage(pageIndex, pageSize)
             }
-
         }
     }
 
