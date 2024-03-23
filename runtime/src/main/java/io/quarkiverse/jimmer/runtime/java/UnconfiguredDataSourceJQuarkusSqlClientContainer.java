@@ -1,7 +1,5 @@
 package io.quarkiverse.jimmer.runtime.java;
 
-import io.quarkiverse.jimmer.runtime.JQuarkusSqlClient;
-
 public class UnconfiguredDataSourceJQuarkusSqlClientContainer extends JQuarkusSqlClientContainer {
 
     private final String message;
