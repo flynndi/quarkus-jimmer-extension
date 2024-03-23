@@ -1,4 +1,4 @@
-package io.quarkiverse.jimmer.runtime;
+package io.quarkiverse.jimmer.runtime.repository;
 
 import java.util.Map;
 

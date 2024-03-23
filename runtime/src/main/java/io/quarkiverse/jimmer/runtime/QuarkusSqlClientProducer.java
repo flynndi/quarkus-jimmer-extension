@@ -8,6 +8,8 @@ import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
+import io.quarkiverse.jimmer.runtime.java.JQuarkusSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.kotlin.KQuarkusSqlClientContainer;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
 
@@ -20,7 +22,7 @@ import io.quarkus.arc.ArcContainer;
  * any CDI annotations
  *
  */
-public class JQuarkusSqlClientProducer {
+public class QuarkusSqlClientProducer {
 
     private final JimmerBuildTimeConfig config;
 
@@ -28,21 +30,20 @@ public class JQuarkusSqlClientProducer {
 
     private final Event<Object> event;
 
-    public JQuarkusSqlClientProducer(JimmerBuildTimeConfig config, Event<Object> event) {
+    public QuarkusSqlClientProducer(JimmerBuildTimeConfig config, Event<Object> event) {
         this.config = config;
         this.event = event;
     }
 
     public JQuarkusSqlClientContainer createJQuarkusSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect) {
-        final boolean isKotlin = config.language().equalsIgnoreCase("kotlin");
-        final JQuarkusSqlClient JQuarkusSqlClient = new JQuarkusSqlClient(config, dataSource, dataSourceName, container, null,
+        final JQuarkusSqlClient JQuarkusSqlClient = SqlClients.java(config, dataSource, dataSourceName, container, null,
                 event,
-                dialect, isKotlin);
+                dialect);
         return new JQuarkusSqlClientContainer(JQuarkusSqlClient, dataSourceName);
     }
 
     public KQuarkusSqlClientContainer createKQuarkusSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect) {
-        KSqlClient kSqlClient = SqlClients.kotlin(config, dataSource, dataSourceName, container, null, event, dialect);
+        final KSqlClient kSqlClient = SqlClients.kotlin(config, dataSource, dataSourceName, container, null, event, dialect);
         return new KQuarkusSqlClientContainer(kSqlClient, dataSourceName);
     }
 }

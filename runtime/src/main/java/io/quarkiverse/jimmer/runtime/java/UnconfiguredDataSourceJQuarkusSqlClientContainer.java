@@ -1,4 +1,6 @@
-package io.quarkiverse.jimmer.runtime;
+package io.quarkiverse.jimmer.runtime.java;
+
+import io.quarkiverse.jimmer.runtime.JQuarkusSqlClient;
 
 public class UnconfiguredDataSourceJQuarkusSqlClientContainer extends JQuarkusSqlClientContainer {
 
@@ -11,7 +13,7 @@ public class UnconfiguredDataSourceJQuarkusSqlClientContainer extends JQuarkusSq
         this.cause = cause;
     }
 
-    public JQuarkusSqlClient getQuarkusJSqlClient() {
+    public io.quarkiverse.jimmer.runtime.JQuarkusSqlClient getQuarkusJSqlClient() {
         throw new UnsupportedOperationException(message, cause);
     }
 }
