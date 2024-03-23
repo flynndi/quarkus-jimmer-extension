@@ -4,7 +4,7 @@ import io.quarkiverse.jimmer.runtime.JQuarkusSqlClient;
 
 public class JQuarkusSqlClientContainer {
 
-    private final io.quarkiverse.jimmer.runtime.JQuarkusSqlClient JQuarkusSqlClient;
+    private final JQuarkusSqlClient JQuarkusSqlClient;
 
     private final String dataSourceName;
 
