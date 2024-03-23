@@ -286,7 +286,7 @@ class JimmerProcessor {
         additionalBeans.produce(new AdditionalBeanBuildItem(SqlClientInitializer.class));
     }
 
-    @BuildStep
+    @BuildStep(onlyIf = IsJavaEnable.class)
     @Produce(SyntheticBeansRuntimeInitBuildItem.class)
     @Consume(LoggingSetupBuildItem.class)
     @Record(ExecutionTime.RUNTIME_INIT)
@@ -301,18 +301,18 @@ class JimmerProcessor {
         additionalBeans.produce(new AdditionalBeanBuildItem(JSqlClient.class));
 
         additionalBeans
-                .produce(AdditionalBeanBuildItem.builder().addBeanClasses(QuarkusJSqlClientProducer.class).setUnremovable()
+                .produce(AdditionalBeanBuildItem.builder().addBeanClasses(JQuarkusSqlClientProducer.class).setUnremovable()
                         .setDefaultScope(DotNames.SINGLETON).build());
 
         for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
 
             SyntheticBeanBuildItem.ExtendedBeanConfigurator quarkusJSqlClientContainerConfigurator = SyntheticBeanBuildItem
-                    .configure(QuarkusJSqlClientContainer.class)
+                    .configure(JQuarkusSqlClientContainer.class)
                     .scope(Singleton.class)
                     .setRuntimeInit()
                     .unremovable()
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusJSqlClientProducer.class)))
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(JQuarkusSqlClientProducer.class)))
                     .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
                     .createWith(recorder.sqlClientContainerFunction(dataSourceName,
                             DBKindEnum.selectDialect(jdbcDataSourceBuildItem.getDbKind())));
@@ -346,9 +346,89 @@ class JimmerProcessor {
                     .scope(Singleton.class)
                     .setRuntimeInit()
                     .unremovable()
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusJSqlClientContainer.class)),
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(JQuarkusSqlClientContainer.class)),
                             quarkusJSqlClientContainerQualifier)
                     .createWith(recorder.quarkusJSqlClientFunction(dataSourceName));
+
+            if (DataSourceUtil.isDefault(dataSourceName)) {
+                configurator.addQualifier(Default.class);
+                configurator.priority(10);
+            } else {
+                String beanName = FEATURE + "_" + dataSourceName;
+                configurator.name(beanName);
+                configurator.priority(5);
+
+                configurator.addQualifier().annotation(DotNames.NAMED).addValue("value", beanName).done();
+                configurator.addQualifier().annotation(DataSource.class).addValue("value", dataSourceName).done();
+            }
+
+            syntheticBeanBuildItemBuildProducer.produce(configurator.done());
+        }
+    }
+
+    @BuildStep(onlyIf = IsKotlinEnable.class)
+    @Produce(SyntheticBeansRuntimeInitBuildItem.class)
+    @Consume(LoggingSetupBuildItem.class)
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void generateKSqlClientBeans(JimmerDataSourcesRecorder recorder,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
+            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer,
+            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems) {
+        if (jdbcDataSourceBuildItems.isEmpty()) {
+            return;
+        }
+
+        additionalBeans.produce(new AdditionalBeanBuildItem(JSqlClient.class));
+
+        additionalBeans
+                .produce(AdditionalBeanBuildItem.builder().addBeanClasses(JQuarkusSqlClientProducer.class).setUnremovable()
+                        .setDefaultScope(DotNames.SINGLETON).build());
+
+        for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
+            String dataSourceName = jdbcDataSourceBuildItem.getName();
+
+            SyntheticBeanBuildItem.ExtendedBeanConfigurator quarkusKSqlClientContainerConfigurator = SyntheticBeanBuildItem
+                    .configure(KQuarkusSqlClientContainer.class)
+                    .scope(Singleton.class)
+                    .setRuntimeInit()
+                    .unremovable()
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(JQuarkusSqlClientProducer.class)))
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
+                    .createWith(recorder.kSqlClientContainerFunction(dataSourceName,
+                            DBKindEnum.selectDialect(jdbcDataSourceBuildItem.getDbKind())));
+
+            AnnotationInstance quarkusKSqlClientContainerQualifier;
+
+            if (DataSourceUtil.isDefault(dataSourceName)) {
+                quarkusKSqlClientContainerConfigurator.addQualifier(Default.class);
+
+                quarkusKSqlClientContainerConfigurator.priority(10);
+
+                quarkusKSqlClientContainerQualifier = AnnotationInstance.builder(Default.class).build();
+            } else {
+                String beanName = JIMMER_CONTAINER_BEAN_NAME_PREFIX + dataSourceName;
+                quarkusKSqlClientContainerConfigurator.name(beanName);
+
+                quarkusKSqlClientContainerConfigurator.addQualifier().annotation(DotNames.NAMED).addValue("value", beanName)
+                        .done();
+                quarkusKSqlClientContainerConfigurator.addQualifier().annotation(DataSource.class)
+                        .addValue("value", dataSourceName).done();
+                quarkusKSqlClientContainerConfigurator.priority(5);
+
+                quarkusKSqlClientContainerQualifier = AnnotationInstance.builder(DataSource.class).add("value", dataSourceName)
+                        .build();
+            }
+
+            syntheticBeanBuildItemBuildProducer.produce(quarkusKSqlClientContainerConfigurator.done());
+
+            SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
+                    .configure(JSqlClient.class)
+                    .scope(Singleton.class)
+                    .setRuntimeInit()
+                    .unremovable()
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(JQuarkusSqlClientContainer.class)),
+                            quarkusKSqlClientContainerQualifier)
+                    .createWith(recorder.quarkusKSqlClientFunction(dataSourceName));
 
             if (DataSourceUtil.isDefault(dataSourceName)) {
                 configurator.addQualifier(Default.class);
@@ -411,6 +491,30 @@ class JimmerProcessor {
         public boolean getAsBoolean() {
             return jimmerBuildTimeConfig.triggerType().equals(TriggerType.TRANSACTION_ONLY)
                     || jimmerBuildTimeConfig.triggerType().equals(TriggerType.BOTH);
+        }
+    }
+
+    static final class IsKotlinEnable extends AbstractJimmerBooleanSupplier {
+
+        private IsKotlinEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
+            super(jimmerBuildTimeConfig);
+        }
+
+        @Override
+        public boolean getAsBoolean() {
+            return jimmerBuildTimeConfig.language().equalsIgnoreCase("kotlin");
+        }
+    }
+
+    static final class IsJavaEnable extends AbstractJimmerBooleanSupplier {
+
+        private IsJavaEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
+            super(jimmerBuildTimeConfig);
+        }
+
+        @Override
+        public boolean getAsBoolean() {
+            return jimmerBuildTimeConfig.language().equalsIgnoreCase("java");
         }
     }
 }
