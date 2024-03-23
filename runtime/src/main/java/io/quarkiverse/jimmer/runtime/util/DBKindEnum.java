@@ -1,4 +1,4 @@
-package io.quarkiverse.jimmer.runtime;
+package io.quarkiverse.jimmer.runtime.util;
 
 import java.util.function.Supplier;
 
