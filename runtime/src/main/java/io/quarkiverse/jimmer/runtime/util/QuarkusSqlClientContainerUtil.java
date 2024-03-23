@@ -5,20 +5,25 @@ import java.lang.annotation.Annotation;
 import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.inject.Instance;
 
-import io.quarkiverse.jimmer.runtime.QuarkusJSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.java.JQuarkusSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.kotlin.KQuarkusSqlClientContainer;
 import io.quarkus.arc.Arc;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 
-public final class QuarkusJSqlClientContainerUtil {
+public final class QuarkusSqlClientContainerUtil {
 
-    private QuarkusJSqlClientContainerUtil() {
+    private QuarkusSqlClientContainerUtil() {
     }
 
-    public static QuarkusJSqlClientContainer getQuarkusJSqlClientContainer(String dataSourceName) {
-        return instantiateBeanOrClass(QuarkusJSqlClientContainer.class, getQuarkusJSqlClientContainerQualifier(dataSourceName));
+    public static JQuarkusSqlClientContainer getJquarkusSqlClientContainer(String dataSourceName) {
+        return instantiateBeanOrClass(JQuarkusSqlClientContainer.class, getQuarkusSqlClientContainerQualifier(dataSourceName));
     }
 
-    public static Annotation getQuarkusJSqlClientContainerQualifier(String dataSourceName) {
+    public static KQuarkusSqlClientContainer getKquarkusSqlClientContainer(String dataSourceName) {
+        return instantiateBeanOrClass(KQuarkusSqlClientContainer.class, getQuarkusSqlClientContainerQualifier(dataSourceName));
+    }
+
+    public static Annotation getQuarkusSqlClientContainerQualifier(String dataSourceName) {
         if (DataSourceUtil.isDefault(dataSourceName)) {
             return Default.Literal.INSTANCE;
         }

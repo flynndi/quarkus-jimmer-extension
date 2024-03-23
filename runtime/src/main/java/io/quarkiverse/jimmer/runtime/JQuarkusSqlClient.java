@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
@@ -42,9 +43,9 @@ import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InstanceHandle;
 
-class QuarkusJSqlClient extends JLazyInitializationSqlClient {
+public class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusJSqlClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JQuarkusSqlClient.class);
 
     private final JimmerBuildTimeConfig config;
 
@@ -54,18 +55,22 @@ class QuarkusJSqlClient extends JLazyInitializationSqlClient {
 
     private final ArcContainer container;
 
+    private final Consumer<JSqlClient.Builder> block;
+
     private final Event<Object> event;
 
     private final Dialect dialect;
 
     private final boolean isKotlin;
 
-    public QuarkusJSqlClient(JimmerBuildTimeConfig config, DataSource dataSource, String dataSourceName,
-            ArcContainer container, Event<Object> event, Dialect dialect, boolean isKotlin) {
+    public JQuarkusSqlClient(JimmerBuildTimeConfig config, DataSource dataSource, String dataSourceName,
+            ArcContainer container, Consumer<JSqlClient.Builder> block, Event<Object> event, Dialect dialect,
+            boolean isKotlin) {
         this.config = config;
         this.dataSource = dataSource;
         this.dataSourceName = dataSourceName;
         this.container = container;
+        this.block = block;
         this.event = event;
         this.dialect = dialect;
         this.isKotlin = isKotlin;
@@ -92,6 +97,9 @@ class QuarkusJSqlClient extends JLazyInitializationSqlClient {
         Collection<DraftInterceptor<?, ?>> interceptors = getObjects(Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL);
 
         JSqlClient.Builder builder = JSqlClient.newBuilder();
+        if (block != null) {
+            block.accept(builder);
+        }
         if (null != connectionManager) {
             builder.setConnectionManager(connectionManager);
         } else if (null != dataSource) {

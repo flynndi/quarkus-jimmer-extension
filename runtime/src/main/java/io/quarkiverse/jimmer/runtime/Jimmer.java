@@ -5,21 +5,32 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.jetbrains.annotations.NotNull;
 
-import io.quarkiverse.jimmer.runtime.util.QuarkusJSqlClientContainerUtil;
+import io.quarkiverse.jimmer.runtime.java.JQuarkusSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.kotlin.KQuarkusSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.util.QuarkusSqlClientContainerUtil;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 
 public class Jimmer {
 
+    /**
+     * Java SqlClients ConcurrentMap
+     */
     private static final ConcurrentMap<String, JSqlClient> jSqlClients = new ConcurrentHashMap<>();
+
+    /**
+     * Kotlin SqlClients ConcurrentMap
+     */
+    private static final ConcurrentMap<String, KSqlClient> kSqlClients = new ConcurrentHashMap<>();
 
     public static JSqlClient getDefaultJSqlClient() {
         return jSqlClients.computeIfAbsent(DataSourceUtil.DEFAULT_DATASOURCE_NAME, new Function<String, JSqlClient>() {
             @Override
             public JSqlClient apply(String s) {
-                return QuarkusJSqlClientContainerUtil.instantiateBeanOrClass(JSqlClient.class, QuarkusJSqlClientContainerUtil
-                        .getQuarkusJSqlClientContainerQualifier(DataSourceUtil.DEFAULT_DATASOURCE_NAME));
+                return QuarkusSqlClientContainerUtil.instantiateBeanOrClass(JSqlClient.class, QuarkusSqlClientContainerUtil
+                        .getQuarkusSqlClientContainerQualifier(DataSourceUtil.DEFAULT_DATASOURCE_NAME));
             }
         });
     }
@@ -28,13 +39,37 @@ public class Jimmer {
         return jSqlClients.computeIfAbsent(dataSourceName, new Function<String, JSqlClient>() {
             @Override
             public JSqlClient apply(String s) {
-                return QuarkusJSqlClientContainerUtil.instantiateBeanOrClass(JSqlClient.class,
-                        QuarkusJSqlClientContainerUtil.getQuarkusJSqlClientContainerQualifier(dataSourceName));
+                return QuarkusSqlClientContainerUtil.instantiateBeanOrClass(JSqlClient.class,
+                        QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName));
             }
         });
     }
 
-    public static QuarkusJSqlClientContainer getJSqlClientContainer(@NotNull String dataSourceName) {
-        return QuarkusJSqlClientContainerUtil.getQuarkusJSqlClientContainer(dataSourceName);
+    public static JQuarkusSqlClientContainer getJSqlClientContainer(@NotNull String dataSourceName) {
+        return QuarkusSqlClientContainerUtil.getJquarkusSqlClientContainer(dataSourceName);
+    }
+
+    public static KSqlClient getDefaultKSqlClient() {
+        return kSqlClients.computeIfAbsent(DataSourceUtil.DEFAULT_DATASOURCE_NAME, new Function<String, KSqlClient>() {
+            @Override
+            public KSqlClient apply(String s) {
+                return QuarkusSqlClientContainerUtil.instantiateBeanOrClass(KSqlClient.class, QuarkusSqlClientContainerUtil
+                        .getQuarkusSqlClientContainerQualifier(DataSourceUtil.DEFAULT_DATASOURCE_NAME));
+            }
+        });
+    }
+
+    public static KSqlClient getKSqlClient(@NotNull String dataSourceName) {
+        return kSqlClients.computeIfAbsent(dataSourceName, new Function<String, KSqlClient>() {
+            @Override
+            public KSqlClient apply(String s) {
+                return QuarkusSqlClientContainerUtil.instantiateBeanOrClass(KSqlClient.class,
+                        QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName));
+            }
+        });
+    }
+
+    public static KQuarkusSqlClientContainer getKSqlClientContainer(@NotNull String dataSourceName) {
+        return QuarkusSqlClientContainerUtil.getKquarkusSqlClientContainer(dataSourceName);
     }
 }
