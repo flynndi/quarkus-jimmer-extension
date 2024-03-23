@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.jimmer.it.Constant;
 import io.quarkiverse.jimmer.it.entity.*;
-import io.quarkiverse.jimmer.runtime.JQuarkusSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.Jimmer;
+import io.quarkiverse.jimmer.runtime.java.JQuarkusSqlClientContainer;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.test.junit.QuarkusTest;
 
