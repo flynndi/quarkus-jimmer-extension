@@ -5,6 +5,9 @@ import java.util.Map;
 
 import org.babyfish.jimmer.meta.ImmutableType;
 
+import kotlin.jvm.internal.Reflection;
+import kotlin.reflect.KClass;
+
 public class JpaOperationsData {
 
     private static volatile Map<String, Class<?>> entityToClassUnit = Collections.emptyMap();
@@ -21,5 +24,11 @@ public class JpaOperationsData {
     public static Class<?> getEntityClass(Class<?> clazz) {
         String clazzName = clazz.getName();
         return entityToClassUnit.get(clazzName);
+    }
+
+    public static KClass<?> getEntityKClass(Class<?> clazz) {
+        String clazzName = clazz.getName();
+        Class<?> aClass = entityToClassUnit.get(clazzName);
+        return Reflection.createKotlinClass(aClass);
     }
 }
