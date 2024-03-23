@@ -38,6 +38,7 @@ import io.quarkiverse.jimmer.runtime.java.JQuarkusSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.KQuarkusSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.repository.JimmerJpaRecorder;
+import io.quarkiverse.jimmer.runtime.repository.KRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkiverse.jimmer.runtime.util.DBKindEnum;
 import io.quarkus.agroal.DataSource;
@@ -257,9 +258,9 @@ class JimmerProcessor {
         additionalBeans.produce(builder.build());
     }
 
-    @BuildStep
+    @BuildStep(onlyIf = IsJavaEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
-    void registerRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+    void registerJRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
             CombinedIndexBuildItem combinedIndex,
             BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
             BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
@@ -269,6 +270,23 @@ class JimmerProcessor {
 
             List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
                     DotName.createSimple(JRepository.class), combinedIndex.getComputingIndex());
+            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
+                    JandexReflection.loadRawType(typeParameters.get(0))));
+        }
+    }
+
+    @BuildStep(onlyIf = IsKotlinEnable.class)
+    @Record(ExecutionTime.STATIC_INIT)
+    void registerKRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
+            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
+        Collection<ClassInfo> repositoryBeans = combinedIndex.getComputingIndex().getAllKnownImplementors(KRepository.class);
+        for (ClassInfo repositoryBean : repositoryBeans) {
+            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
+
+            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
+                    DotName.createSimple(KRepository.class), combinedIndex.getComputingIndex());
             entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
                     JandexReflection.loadRawType(typeParameters.get(0))));
         }
