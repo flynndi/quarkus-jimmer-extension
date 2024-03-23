@@ -42,7 +42,7 @@ interface KRepository<E: Any, ID: Any> {
 
     @Suppress("UNCHECKED_CAST")
     fun entityType(): KClass<E> {
-        return JpaOperationsData.getEntityClass(this.javaClass) as KClass<E>
+        return JpaOperationsData.getEntityKClass(this.javaClass) as KClass<E>
     }
 
     /*
