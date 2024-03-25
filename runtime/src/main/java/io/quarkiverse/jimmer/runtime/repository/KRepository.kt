@@ -41,9 +41,9 @@ interface KRepository<E: Any, ID: Any> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun entityType(): KClass<E> {
-        return JpaOperationsData.getEntityKClass(this.javaClass) as KClass<E>
-    }
+    fun entityType(): KClass<E> =
+        JpaOperationsData.getEntityClass(this.javaClass).let { it.kotlin as KClass<E> }
+
 
     /*
      * For consumer
