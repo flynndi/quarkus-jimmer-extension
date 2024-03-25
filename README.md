@@ -12,9 +12,8 @@ Please let me know if you have any suggestions on these parts
 
 
 # Quick Start
-## Java
-### dependency
-Gradle:
+## Dependency
+Gradle
 ```groovy
 implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR7'
 annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.109'
@@ -46,7 +45,7 @@ Maven
     </plugins>
 </build>
 ```
-
+## Java
 ### JPA
 ```java
 // default db
@@ -94,6 +93,7 @@ public class UserRoleService {
 
 ### Code
 ```java
+    // Inject JSqlClient or static method Jimmer.getJSqlClient
     // default db
     @Inject
     JSqlClient jSqlClient;
@@ -105,15 +105,13 @@ public class UserRoleService {
     
     public Book findById(int id) {
         return jSqlClient.findById(Book.class, id);
-    or  return Jimmer.getDefaultJSqlClient().findById(Book.class, id);    
+//  or  return Jimmer.getDefaultJSqlClient().findById(Book.class, id);    
     }
     
     public Book2 findById(int id) {
         return jSqlClientDB2.findById(Book2.class, id);
-    or  return Jimmer.getJSqlClient(DB2).findById(Book2.class, id);
+//  or  return Jimmer.getJSqlClient(DB2).findById(Book2.class, id);
     }
-    
-    Inject JSqlClient or static method Jimmer.getJSqlClient
 ```
 
 ### Cache
@@ -296,6 +294,74 @@ quarkus:
                 type: apiKey
                 name: tenant
                 in: QUERY
+```
+## Kotlin
+### JPA
+```kotlin
+// default db
+
+// repository
+@ApplicationScoped
+class BookRepository : KRepository<Book, Long>
+
+// service
+@ApplicationScoped
+class BookService {
+
+    @Inject
+    @field:Default
+    lateinit var bookRepository: BookRepository
+
+    fun findById (id : Long) : Book? {
+        return bookRepository.findNullable(id)
+    }
+}
+
+// if other databases exist
+
+// repository
+@ApplicationScoped
+@DataSource("DB2")
+class UserRoleRepository : KRepository<UserRole, UUID>
+
+// service
+@ApplicationScoped
+@DataSource("DB2")
+class UserRoleService {
+
+    @Inject
+    @field:DataSource("DB2")
+    lateinit var userRoleRepository: UserRoleRepository
+
+    fun findById(id : UUID) : UserRole? {
+        return userRoleRepository.findNullable(id)
+    }
+}
+```
+
+### Code
+```kotlin
+    // Inject KSqlClient or static method Jimmer.getKSqlClient
+
+    // default db
+    @Inject
+    @field: Default
+    lateinit var kSqlClient: KSqlClient
+    
+    // if other databases exist
+    @Inject
+    @field:DataSource("DB2")
+    lateinit var kSqlClientDB2: KSqlClient
+
+    fun findById(id : Long) : Book? {
+        return kSqlClient.findById(Book::class, id)
+//  or  return Jimmer.getDefaultKSqlClient().findById(Book::class, id)
+    }
+
+    fun findById(id : Long) : Book2? {
+        return kSqlClientDB2.findById(Book2::class, id)
+//  or  return Jimmer.getKSqlClient("DB2").findById(Book2::class, id)
+    }
 ```
 
 # Version
