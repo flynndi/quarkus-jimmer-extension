@@ -1,8 +1,9 @@
 # Quarkus Jimmer Extension
 
-# Support Kotlin Support Kotlin Support Kotlin Support Kotlin
-
 # Note
+Support Kotlin   
+Kotlin has been supported since 0.0.1.CR7
+
 In most cases you can refer to jimmer's configuration of spring, there is no real difference between the two, only a few differences   
 Refer to: https://github.com/babyfish-ct/jimmer   
 
@@ -11,8 +12,8 @@ Please let me know if you have any suggestions on these parts
 
 
 # Quick Start
-
-## dependency
+## Java
+### dependency
 Gradle:
 ```groovy
 implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR7'
@@ -46,7 +47,7 @@ Maven
 </build>
 ```
 
-# JPA
+### JPA
 ```java
 // default db
 
@@ -91,7 +92,7 @@ public class UserRoleService {
 }
 ```
 
-# Code
+### Code
 ```java
     // default db
     @Inject
@@ -115,7 +116,7 @@ public class UserRoleService {
     Inject JSqlClient or static method Jimmer.getJSqlClient
 ```
 
-# Cache
+### Cache
 
 example: [CacheConfig.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fconfig%2FCacheConfig.java)   
 use blocking RedisDataSource 
@@ -210,13 +211,13 @@ public class CacheConfig {
 }
 ```
 
-# Remote Associations
-## reference
+### Remote Associations
+#### reference
 Quarkus remote associations Depend on quarkus-rest-client-reactive-jackson   
 Read the Quarkus-rest-client-reaction-jackson documentation before you begin   
 https://quarkus.io/guides/rest-client-reactive
 
-## application.yml
+#### application.yml
 ```yaml
 quarkus:
   application:
@@ -229,20 +230,20 @@ quarkus:
     good-service:   # Target service name
       url: http://localhost:9090
 ```
-## current service entity
+#### current service entity
 ```java
 // The entity of the current service
 @Entity(microServiceName = "Your application name")
 public interface Book {}
 ```
-## target service entity
+#### target service entity
 ```java
 // Target service entity 
 // "other-service" is the service name configured under the rest-client node in the application.yml file
 @Entity(microServiceName = "other-service")
 public interface BookStore {}
 ```
-## start query
+#### start query
 [TestResources.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fresource%2FTestResources.java)
 ```java
 @Inject
@@ -256,7 +257,7 @@ public Response testBookRepositoryViewById(@RestQuery long id) {
 }
 ```
 
-# Configuration file example
+### Configuration file example
 quarkus datasource documentation https://quarkus.io/guides/datasource
 ```yml
 # Configuration file example
