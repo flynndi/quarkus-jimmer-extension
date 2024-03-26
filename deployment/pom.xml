@@ -5,7 +5,7 @@
   <parent>
     <groupId>io.github.flynndi</groupId>
     <artifactId>quarkus-jimmer-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>0.0.1.CR8</version>
   </parent>
   <artifactId>quarkus-jimmer-deployment</artifactId>
   <name>Quarkus Quarkus Jimmer Extension - Deployment</name>
