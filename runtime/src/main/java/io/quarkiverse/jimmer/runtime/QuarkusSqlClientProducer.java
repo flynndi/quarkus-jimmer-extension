@@ -4,6 +4,7 @@ import javax.sql.DataSource;
 
 import jakarta.enterprise.event.Event;
 
+import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
@@ -38,10 +39,10 @@ public class QuarkusSqlClientProducer {
     }
 
     public JQuarkusSqlClientContainer createJQuarkusSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect) {
-        final JQuarkusSqlClient JQuarkusSqlClient = SqlClients.java(config, dataSource, dataSourceName, container, null,
+        final JSqlClient jSqlClient = SqlClients.java(config, dataSource, dataSourceName, container, null,
                 event,
                 dialect);
-        return new JQuarkusSqlClientContainer(JQuarkusSqlClient, dataSourceName);
+        return new JQuarkusSqlClientContainer(jSqlClient, dataSourceName);
     }
 
     public KQuarkusSqlClientContainer createKQuarkusSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect) {

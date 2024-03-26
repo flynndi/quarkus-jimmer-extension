@@ -218,21 +218,22 @@ endif::add-copy-button-to-env-var[]
 |`true`
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-save-command-pessimistic-lock]]`link:#quarkus-jimmer_quarkus-jimmer-save-command-pessimistic-lock[quarkus.jimmer.save-command-pessimistic-lock]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-lock-mode]]`link:#quarkus-jimmer_quarkus-jimmer-lock-mode[quarkus.jimmer.lock-mode]`
 
 
 [.description]
 --
-jimmer.saveCommandPessimisticLock
+jimmer.lockMode
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_SAVE_COMMAND_PESSIMISTIC_LOCK+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_LOCK_MODE+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_SAVE_COMMAND_PESSIMISTIC_LOCK+++`
+Environment variable: `+++QUARKUS_JIMMER_LOCK_MODE+++`
 endif::add-copy-button-to-env-var[]
---|boolean 
-|`false`
+-- a|
+`auto`, `none`, `optimistic`, `pessimistic` 
+|`optimistic`
 
 
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-micro-service-name]]`link:#quarkus-jimmer_quarkus-jimmer-micro-service-name[quarkus.jimmer.micro-service-name]`
