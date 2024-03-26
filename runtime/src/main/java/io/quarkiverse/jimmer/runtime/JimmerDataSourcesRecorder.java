@@ -10,8 +10,9 @@ import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
 import io.quarkiverse.jimmer.runtime.java.JQuarkusSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.java.UnconfiguredDataSourceJQuarkusSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.java.UnConfiguredDataSourceJQuarkusSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.KQuarkusSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.kotlin.UnConfiguredDataSourceKQuarkusSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.util.QuarkusSqlClientContainerUtil;
 import io.quarkus.agroal.runtime.DataSources;
 import io.quarkus.agroal.runtime.UnconfiguredDataSource;
@@ -36,7 +37,7 @@ public class JimmerDataSourcesRecorder {
                             dataSourceName, dataSourceName));
                 }
             } catch (ConfigurationException e) {
-                return new UnconfiguredDataSourceJQuarkusSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
+                return new UnConfiguredDataSourceJQuarkusSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
                         "Unable to find datasource '%s' for Jimmer: %s",
                         dataSourceName, e.getMessage()), e);
             }
@@ -50,7 +51,7 @@ public class JimmerDataSourcesRecorder {
             JQuarkusSqlClientContainer JQuarkusSqlClientContainer = context.getInjectedReference(
                     JQuarkusSqlClientContainer.class,
                     QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName));
-            return JQuarkusSqlClientContainer.getQuarkusJSqlClient();
+            return JQuarkusSqlClientContainer.getjSqlClient();
         };
     }
 
@@ -68,7 +69,9 @@ public class JimmerDataSourcesRecorder {
                             dataSourceName, dataSourceName));
                 }
             } catch (ConfigurationException e) {
-                throw new RuntimeException("Unable to find datasource '%s' for Jimmer");
+                return new UnConfiguredDataSourceKQuarkusSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
+                        "Unable to find datasource '%s' for Jimmer: %s",
+                        dataSourceName, e.getMessage()), e);
             }
             QuarkusSqlClientProducer producer = context.getInjectedReference(QuarkusSqlClientProducer.class);
             return producer.createKQuarkusSqlClient(dataSource, dataSourceName, dialect);

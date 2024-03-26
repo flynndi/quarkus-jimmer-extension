@@ -43,7 +43,7 @@ import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InstanceHandle;
 
-public class JQuarkusSqlClient extends JLazyInitializationSqlClient {
+class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JQuarkusSqlClient.class);
 
