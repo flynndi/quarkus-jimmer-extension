@@ -2,9 +2,9 @@ package io.quarkiverse.jimmer.runtime.kotlin
 
 import org.babyfish.jimmer.sql.kt.KSqlClient
 
-class KQuarkusSqlClientContainer() {
+open class KQuarkusSqlClientContainer() {
 
-    var kSqlClient: KSqlClient? = null
+    open var kSqlClient: KSqlClient? = null
 
     var dataSourceName: String? = null
 
