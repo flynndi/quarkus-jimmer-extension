@@ -9,6 +9,7 @@ import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
 import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.ast.mutation.LockMode;
 import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
 import org.babyfish.jimmer.sql.runtime.IdOnlyTargetCheckingLevel;
@@ -116,8 +117,15 @@ public interface JimmerBuildTimeConfig {
     /**
      * jimmer.saveCommandPessimisticLock
      */
+    @Deprecated
     @WithDefault("false")
     boolean saveCommandPessimisticLock();
+
+    /**
+     * jimmer.lockMode
+     */
+    @WithDefault("OPTIMISTIC")
+    LockMode lockMode();
 
     /**
      * jimmer.executorContextPrefixes

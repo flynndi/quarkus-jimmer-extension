@@ -43,7 +43,7 @@ import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InstanceHandle;
 
-public class JQuarkusSqlClient extends JLazyInitializationSqlClient {
+class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JQuarkusSqlClient.class);
 
@@ -141,7 +141,7 @@ public class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         config.defaultListBatchSize.ifPresent(builder::setDefaultListBatchSize);
         config.offsetOptimizingThreshold.ifPresent(builder::setOffsetOptimizingThreshold);
         builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
-        builder.setSaveCommandPessimisticLock(config.saveCommandPessimisticLock());
+        builder.setDefaultLockMode(config.lockMode());
         config.executorContextPrefixes.ifPresent(builder::setExecutorContextPrefixes);
 
         if (config.showSql()) {

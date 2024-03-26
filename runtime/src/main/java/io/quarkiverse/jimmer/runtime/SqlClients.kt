@@ -3,6 +3,7 @@ package io.quarkiverse.jimmer.runtime
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig
 import io.quarkus.arc.ArcContainer
 import jakarta.enterprise.event.Event
+import org.babyfish.jimmer.sql.JSqlClient
 import org.babyfish.jimmer.sql.dialect.Dialect
 import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.babyfish.jimmer.sql.kt.cfg.KSqlClientDsl
@@ -21,7 +22,7 @@ object SqlClients {
         block: (KSqlClientDsl.() -> Unit)?,
         event: Event<Any>,
         dialect: Dialect
-    ): JQuarkusSqlClient =
+    ): JSqlClient =
         JQuarkusSqlClient(config,
             dataSource,
             dataSourceName,

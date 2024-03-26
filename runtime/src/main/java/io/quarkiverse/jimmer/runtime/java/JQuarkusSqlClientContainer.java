@@ -1,23 +1,23 @@
 package io.quarkiverse.jimmer.runtime.java;
 
-import io.quarkiverse.jimmer.runtime.JQuarkusSqlClient;
+import org.babyfish.jimmer.sql.JSqlClient;
 
 public class JQuarkusSqlClientContainer {
 
-    private final JQuarkusSqlClient JQuarkusSqlClient;
+    private final JSqlClient jSqlClient;
 
     private final String dataSourceName;
 
     private final String id;
 
-    public JQuarkusSqlClientContainer(JQuarkusSqlClient JQuarkusSqlClient, String dataSourceName) {
-        this.JQuarkusSqlClient = JQuarkusSqlClient;
+    public JQuarkusSqlClientContainer(JSqlClient jSqlClient, String dataSourceName) {
+        this.jSqlClient = jSqlClient;
         this.dataSourceName = dataSourceName;
         this.id = dataSourceName.replace("<", "").replace(">", "");
     }
 
-    public JQuarkusSqlClient getQuarkusJSqlClient() {
-        return JQuarkusSqlClient;
+    public JSqlClient getjSqlClient() {
+        return jSqlClient;
     }
 
     public String getDataSourceName() {
