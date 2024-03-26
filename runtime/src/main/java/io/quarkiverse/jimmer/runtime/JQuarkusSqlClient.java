@@ -141,7 +141,7 @@ public class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         config.defaultListBatchSize.ifPresent(builder::setDefaultListBatchSize);
         config.offsetOptimizingThreshold.ifPresent(builder::setOffsetOptimizingThreshold);
         builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
-        builder.setSaveCommandPessimisticLock(config.saveCommandPessimisticLock());
+        builder.setDefaultLockMode(config.lockMode());
         config.executorContextPrefixes.ifPresent(builder::setExecutorContextPrefixes);
 
         if (config.showSql()) {
