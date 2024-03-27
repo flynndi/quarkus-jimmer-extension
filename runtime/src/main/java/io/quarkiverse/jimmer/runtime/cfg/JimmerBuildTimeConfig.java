@@ -84,8 +84,8 @@ public interface JimmerBuildTimeConfig {
     /**
      * jimmer.transactionCacheOperatorFixedDelay
      */
-    @WithDefault("5000")
-    OptionalInt transactionCacheOperatorFixedDelay();
+    @WithDefault("5s")
+    String transactionCacheOperatorFixedDelay();
 
     /**
      * jimmer.defaultEnumStrategy

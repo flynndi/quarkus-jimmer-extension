@@ -179,8 +179,8 @@ endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
 Environment variable: `+++QUARKUS_JIMMER_TRANSACTION_CACHE_OPERATOR_FIXED_DELAY+++`
 endif::add-copy-button-to-env-var[]
---|int 
-|`5000`
+--|string 
+|`5s`
 
 
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-default-enum-strategy]]`link:#quarkus-jimmer_quarkus-jimmer-default-enum-strategy[quarkus.jimmer.default-enum-strategy]`
