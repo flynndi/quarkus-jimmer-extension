@@ -19,10 +19,10 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.jimmer.runtime.*;
 import io.quarkiverse.jimmer.runtime.QuarkusSqlClientProducer;
+import io.quarkiverse.jimmer.runtime.cache.impl.QuarkusTransactionCacheOperator;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.SqlClientInitializer;
-import io.quarkiverse.jimmer.runtime.cfg.TransactionCacheOperatorFlusherConfig;
 import io.quarkiverse.jimmer.runtime.client.CodeBasedExceptionAdvice;
 import io.quarkiverse.jimmer.runtime.client.CodeBasedRuntimeExceptionAdvice;
 import io.quarkiverse.jimmer.runtime.client.openapi.CssRecorder;
@@ -250,14 +250,6 @@ class JimmerProcessor {
         registries.produce(new RegistryBuildItem("OpenApiUiResource", uiPath));
     }
 
-    @BuildStep(onlyIf = IsTransactionOnlyEnable.class)
-    void registerBeanProducers(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-        AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
-        builder.addBeanClass(TransactionCacheOperatorFlusherConfig.class);
-        builder.addBeanClass(TransactionCacheOperatorFlusher.class);
-        additionalBeans.produce(builder.build());
-    }
-
     @BuildStep(onlyIf = IsJavaEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
     void registerJRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
@@ -301,6 +293,88 @@ class JimmerProcessor {
             map.put(entityToClassBuildItem.getEntityClass(), entityToClassBuildItem.getClazz());
         }
         jimmerJpaRecorder.setEntityToClassUnit(map);
+    }
+
+    @BuildStep(onlyIf = { IsJavaEnable.class, IsTransactionOnlyEnable.class })
+    @Record(ExecutionTime.STATIC_INIT)
+    void setTransactionJCacheOperatorBean(JimmerTransactionCacheOperatorRecorder recorder,
+            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
+            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
+        if (jdbcDataSourceBuildItems.isEmpty()) {
+            return;
+        }
+
+        AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
+        builder.addBeanClass(TransactionCacheOperatorFlusher.class);
+        additionalBeans.produce(builder.build());
+
+        for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
+            String dataSourceName = jdbcDataSourceBuildItem.getName();
+
+            SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
+                    .configure(QuarkusTransactionCacheOperator.class)
+                    .scope(Singleton.class)
+                    .unremovable()
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
+                    .createWith(recorder.transactionJCacheOperatorFunction(dataSourceName));
+
+            if (DataSourceUtil.isDefault(dataSourceName)) {
+                transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
+                        .addValue("value", dataSourceName).done();
+
+                transactionCacheOperatorConfigurator.priority(10);
+
+            } else {
+                transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
+                        .addValue("value", dataSourceName).done();
+
+                transactionCacheOperatorConfigurator.priority(5);
+            }
+
+            syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
+        }
+    }
+
+    @BuildStep(onlyIf = { IsKotlinEnable.class, IsTransactionOnlyEnable.class })
+    @Record(ExecutionTime.STATIC_INIT)
+    void setTransactionKCacheOperatorBean(JimmerTransactionCacheOperatorRecorder recorder,
+            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
+            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
+        if (jdbcDataSourceBuildItems.isEmpty()) {
+            return;
+        }
+
+        AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
+        builder.addBeanClass(TransactionCacheOperatorFlusher.class);
+        additionalBeans.produce(builder.build());
+
+        for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
+            String dataSourceName = jdbcDataSourceBuildItem.getName();
+
+            SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
+                    .configure(QuarkusTransactionCacheOperator.class)
+                    .scope(Singleton.class)
+                    .unremovable()
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
+                    .createWith(recorder.transactionKCacheOperatorFunction(dataSourceName));
+
+            if (DataSourceUtil.isDefault(dataSourceName)) {
+                transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
+                        .addValue("value", dataSourceName).done();
+
+                transactionCacheOperatorConfigurator.priority(10);
+
+            } else {
+                transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
+                        .addValue("value", dataSourceName).done();
+
+                transactionCacheOperatorConfigurator.priority(5);
+            }
+
+            syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
+        }
     }
 
     @BuildStep
