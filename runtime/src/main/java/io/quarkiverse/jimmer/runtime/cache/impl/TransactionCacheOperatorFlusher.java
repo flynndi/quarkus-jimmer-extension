@@ -29,7 +29,7 @@ public class TransactionCacheOperatorFlusher {
         dirtyLocal.set(Boolean.TRUE);
     }
 
-    public void afterCommit(@Observes(during = TransactionPhase.AFTER_SUCCESS) DatabaseEvent e) {
+    public void afterCommit(@Observes(during = TransactionPhase.AFTER_COMPLETION) DatabaseEvent e) {
         if (dirtyLocal.get() != null) {
             dirtyLocal.remove();
             flush();
