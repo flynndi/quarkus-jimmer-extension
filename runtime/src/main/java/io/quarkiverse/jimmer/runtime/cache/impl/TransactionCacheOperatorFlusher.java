@@ -36,7 +36,7 @@ public class TransactionCacheOperatorFlusher {
         }
     }
 
-    @Scheduled(every = "5s", identity = "jimmer-trans-cache-operator-job")
+    @Scheduled(every = "${quarkus.jimmer.transaction-cache-operator-fixed-delay}", identity = "jimmer.transaction-cache-operator-job")
     public void retry() {
         flush();
     }
