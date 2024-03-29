@@ -15,7 +15,7 @@ Please let me know if you have any suggestions on these parts
 ## Dependency
 Gradle
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR8'
+implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR9'
 annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.114'
 ```
 Maven
@@ -23,7 +23,7 @@ Maven
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR8</version>
+   <version>0.0.1.CR9</version>
 </dependency>
 
 <build>
