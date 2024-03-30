@@ -7,6 +7,7 @@ import org.babyfish.jimmer.sql.*;
 import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.it.resolver.BookStoreAvgPriceResolver;
+import io.quarkiverse.jimmer.it.resolver.BookStoreNewestBooksResolver;
 
 @Entity
 public interface BookStore {
@@ -30,6 +31,6 @@ public interface BookStore {
     @Transient(value = BookStoreAvgPriceResolver.class)
     BigDecimal avgPrice();
 
-    //    @Transient(ref = "bookStoreNewestBooksResolver")
-    //    List<Book> newestBooks();
+    @Transient(value = BookStoreNewestBooksResolver.class)
+    List<Book> newestBooks();
 }
