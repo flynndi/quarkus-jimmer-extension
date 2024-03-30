@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.it.resource;
 
 import static io.restassured.RestAssured.given;
 
+import java.util.Map;
 import java.util.UUID;
 
 import jakarta.inject.Inject;
@@ -17,12 +18,15 @@ import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import io.restassured.http.Header;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.vertx.core.http.HttpHeaders;
 
 @QuarkusTest
+@TestProfile(TestResourceTestCase.TestResourceTestCaseProfile.class)
 public class TestResourceTestCase {
 
     @Inject
@@ -886,5 +890,18 @@ public class TestResourceTestCase {
                 .post("testResources/testBookRepositoryFindMapByIdsView");
         Assertions.assertNotNull(response.jsonPath().getMap(""));
         Assertions.assertNotNull(response.jsonPath().get("1"));
+    }
+
+    public static class TestResourceTestCaseProfile implements QuarkusTestProfile {
+
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of(
+                    "quarkus.datasource.db-kind", "h2",
+                    "quarkus.datasource.username", "default",
+                    "quarkus.datasource.jdbc.url", "jdbc:h2:mem:aaa",
+                    "quarkus.datasource.jdbc.min-size", "2",
+                    "quarkus.datasource.jdbc.max-size", "8");
+        }
     }
 }
