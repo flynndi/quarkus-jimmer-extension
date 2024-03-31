@@ -71,7 +71,8 @@ public class CacheConfig {
             @Override
             public Cache<?, ?> createResolverCache(ImmutableProp prop) {
                 return createPropCache(
-                        prop.equals(BookStoreProps.AVG_PRICE.unwrap()),
+                        prop.equals(BookStoreProps.AVG_PRICE.unwrap()) ||
+                                prop.equals(BookStoreProps.NEWEST_BOOKS.unwrap()),
                         prop,
                         stringValueCommands,
                         stringHashCommands,
