@@ -2,7 +2,7 @@ package io.quarkiverse.jimmer.runtime.java;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 
-public class JQuarkusSqlClientContainer {
+public class QuarkusJSqlClientContainer {
 
     private final JSqlClient jSqlClient;
 
@@ -10,7 +10,7 @@ public class JQuarkusSqlClientContainer {
 
     private final String id;
 
-    public JQuarkusSqlClientContainer(JSqlClient jSqlClient, String dataSourceName) {
+    public QuarkusJSqlClientContainer(JSqlClient jSqlClient, String dataSourceName) {
         this.jSqlClient = jSqlClient;
         this.dataSourceName = dataSourceName;
         this.id = dataSourceName.replace("<", "").replace(">", "");
