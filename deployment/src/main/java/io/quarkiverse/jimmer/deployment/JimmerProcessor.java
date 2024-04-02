@@ -34,8 +34,8 @@ import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
-import io.quarkiverse.jimmer.runtime.java.JQuarkusSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.kotlin.KQuarkusSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.repository.JimmerJpaRecorder;
 import io.quarkiverse.jimmer.runtime.repository.KRepository;
@@ -406,7 +406,7 @@ class JimmerProcessor {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
 
             SyntheticBeanBuildItem.ExtendedBeanConfigurator quarkusJSqlClientContainerConfigurator = SyntheticBeanBuildItem
-                    .configure(JQuarkusSqlClientContainer.class)
+                    .configure(QuarkusJSqlClientContainer.class)
                     .scope(Singleton.class)
                     .setRuntimeInit()
                     .unremovable()
@@ -444,7 +444,7 @@ class JimmerProcessor {
                     .scope(Singleton.class)
                     .setRuntimeInit()
                     .unremovable()
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(JQuarkusSqlClientContainer.class)),
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusJSqlClientContainer.class)),
                             quarkusJSqlClientContainerQualifier)
                     .createWith(recorder.quarkusJSqlClientFunction(dataSourceName));
 
@@ -486,7 +486,7 @@ class JimmerProcessor {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
 
             SyntheticBeanBuildItem.ExtendedBeanConfigurator quarkusKSqlClientContainerConfigurator = SyntheticBeanBuildItem
-                    .configure(KQuarkusSqlClientContainer.class)
+                    .configure(QuarkusKSqlClientContainer.class)
                     .scope(Singleton.class)
                     .setRuntimeInit()
                     .unremovable()
@@ -524,7 +524,7 @@ class JimmerProcessor {
                     .scope(Singleton.class)
                     .setRuntimeInit()
                     .unremovable()
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(KQuarkusSqlClientContainer.class)),
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusKSqlClientContainer.class)),
                             quarkusKSqlClientContainerQualifier)
                     .createWith(recorder.quarkusKSqlClientFunction(dataSourceName));
 

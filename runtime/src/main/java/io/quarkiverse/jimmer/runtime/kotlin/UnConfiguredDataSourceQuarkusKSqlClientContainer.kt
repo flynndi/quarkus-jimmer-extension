@@ -2,7 +2,7 @@ package io.quarkiverse.jimmer.runtime.kotlin
 
 import org.babyfish.jimmer.sql.kt.KSqlClient
 
-class UnConfiguredDataSourceKQuarkusSqlClientContainer() : KQuarkusSqlClientContainer() {
+class UnConfiguredDataSourceQuarkusKSqlClientContainer() : QuarkusKSqlClientContainer() {
 
     private var message: String? = null
 
