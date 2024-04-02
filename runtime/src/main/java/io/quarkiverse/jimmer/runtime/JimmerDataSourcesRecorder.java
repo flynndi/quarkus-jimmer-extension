@@ -9,10 +9,10 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
-import io.quarkiverse.jimmer.runtime.java.JQuarkusSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.java.UnConfiguredDataSourceJQuarkusSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.kotlin.KQuarkusSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.kotlin.UnConfiguredDataSourceKQuarkusSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.java.UnConfiguredDataSourceQuarkusJSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.kotlin.UnConfiguredDataSourceQuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.util.QuarkusSqlClientContainerUtil;
 import io.quarkus.agroal.runtime.DataSources;
 import io.quarkus.agroal.runtime.UnconfiguredDataSource;
@@ -23,7 +23,7 @@ import io.quarkus.runtime.configuration.ConfigurationException;
 @Recorder
 public class JimmerDataSourcesRecorder {
 
-    public Function<SyntheticCreationalContext<JQuarkusSqlClientContainer>, JQuarkusSqlClientContainer> jSqlClientContainerFunction(
+    public Function<SyntheticCreationalContext<QuarkusJSqlClientContainer>, QuarkusJSqlClientContainer> jSqlClientContainerFunction(
             String dataSourceName, Dialect dialect) {
         return context -> {
             DataSource dataSource;
@@ -37,7 +37,7 @@ public class JimmerDataSourcesRecorder {
                             dataSourceName, dataSourceName));
                 }
             } catch (ConfigurationException e) {
-                return new UnConfiguredDataSourceJQuarkusSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
+                return new UnConfiguredDataSourceQuarkusJSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
                         "Unable to find datasource '%s' for Jimmer: %s",
                         dataSourceName, e.getMessage()), e);
             }
@@ -48,14 +48,14 @@ public class JimmerDataSourcesRecorder {
 
     public Function<SyntheticCreationalContext<JSqlClient>, JSqlClient> quarkusJSqlClientFunction(String dataSourceName) {
         return context -> {
-            JQuarkusSqlClientContainer JQuarkusSqlClientContainer = context.getInjectedReference(
-                    JQuarkusSqlClientContainer.class,
+            QuarkusJSqlClientContainer QuarkusJSqlClientContainer = context.getInjectedReference(
+                    QuarkusJSqlClientContainer.class,
                     QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName));
-            return JQuarkusSqlClientContainer.getjSqlClient();
+            return QuarkusJSqlClientContainer.getjSqlClient();
         };
     }
 
-    public Function<SyntheticCreationalContext<KQuarkusSqlClientContainer>, KQuarkusSqlClientContainer> kSqlClientContainerFunction(
+    public Function<SyntheticCreationalContext<QuarkusKSqlClientContainer>, QuarkusKSqlClientContainer> kSqlClientContainerFunction(
             String dataSourceName, Dialect dialect) {
         return context -> {
             DataSource dataSource;
@@ -69,7 +69,7 @@ public class JimmerDataSourcesRecorder {
                             dataSourceName, dataSourceName));
                 }
             } catch (ConfigurationException e) {
-                return new UnConfiguredDataSourceKQuarkusSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
+                return new UnConfiguredDataSourceQuarkusKSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
                         "Unable to find datasource '%s' for Jimmer: %s",
                         dataSourceName, e.getMessage()), e);
             }
@@ -80,10 +80,10 @@ public class JimmerDataSourcesRecorder {
 
     public Function<SyntheticCreationalContext<KSqlClient>, KSqlClient> quarkusKSqlClientFunction(String dataSourceName) {
         return context -> {
-            KQuarkusSqlClientContainer KQuarkusSqlClientContainer = context.getInjectedReference(
-                    KQuarkusSqlClientContainer.class,
+            QuarkusKSqlClientContainer QuarkusKSqlClientContainer = context.getInjectedReference(
+                    QuarkusKSqlClientContainer.class,
                     QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName));
-            return KQuarkusSqlClientContainer.getKSqlClient();
+            return QuarkusKSqlClientContainer.getKSqlClient();
         };
     }
 }

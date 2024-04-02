@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import io.quarkiverse.jimmer.it.Constant;
 import io.quarkiverse.jimmer.it.entity.*;
 import io.quarkiverse.jimmer.runtime.Jimmer;
-import io.quarkiverse.jimmer.runtime.java.JQuarkusSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.test.junit.QuarkusTest;
 
@@ -29,11 +29,11 @@ public class JSqlClientTestCase {
     JSqlClient jSqlClientDB2;
 
     @Inject
-    JQuarkusSqlClientContainer JQuarkusSqlClientContainer;
+    QuarkusJSqlClientContainer QuarkusJSqlClientContainer;
 
     @Inject
     @Named(Constant.CONTAINER_DATASOURCE2)
-    JQuarkusSqlClientContainer JQuarkusSqlClientContainerDB2;
+    QuarkusJSqlClientContainer QuarkusJSqlClientContainerDB2;
 
     @Test
     public void testBean() {
@@ -43,14 +43,14 @@ public class JSqlClientTestCase {
         Assertions.assertNotEquals(jSqlClient, Jimmer.getJSqlClient(Constant.DATASOURCE2));
         Assertions.assertNotEquals(jSqlClientDB2, Jimmer.getDefaultJSqlClient());
 
-        Assertions.assertNotEquals(JQuarkusSqlClientContainer, JQuarkusSqlClientContainerDB2);
-        Assertions.assertNotEquals(JQuarkusSqlClientContainer.getjSqlClient(),
-                JQuarkusSqlClientContainerDB2.getjSqlClient());
-        Assertions.assertEquals(JQuarkusSqlClientContainer.getjSqlClient(), jSqlClient);
-        Assertions.assertEquals(JQuarkusSqlClientContainerDB2.getjSqlClient(), jSqlClientDB2);
+        Assertions.assertNotEquals(QuarkusJSqlClientContainer, QuarkusJSqlClientContainerDB2);
+        Assertions.assertNotEquals(QuarkusJSqlClientContainer.getjSqlClient(),
+                QuarkusJSqlClientContainerDB2.getjSqlClient());
+        Assertions.assertEquals(QuarkusJSqlClientContainer.getjSqlClient(), jSqlClient);
+        Assertions.assertEquals(QuarkusJSqlClientContainerDB2.getjSqlClient(), jSqlClientDB2);
 
-        Assertions.assertEquals(Jimmer.getJSqlClientContainer(Constant.DEFAULT), JQuarkusSqlClientContainer);
-        Assertions.assertEquals(Jimmer.getJSqlClientContainer(Constant.DATASOURCE2), JQuarkusSqlClientContainerDB2);
+        Assertions.assertEquals(Jimmer.getJSqlClientContainer(Constant.DEFAULT), QuarkusJSqlClientContainer);
+        Assertions.assertEquals(Jimmer.getJSqlClientContainer(Constant.DATASOURCE2), QuarkusJSqlClientContainerDB2);
         Assertions.assertEquals(Jimmer.getJSqlClientContainer(Constant.DEFAULT).getjSqlClient(), jSqlClient);
         Assertions.assertEquals(Jimmer.getJSqlClientContainer(Constant.DATASOURCE2).getjSqlClient(), jSqlClientDB2);
     }

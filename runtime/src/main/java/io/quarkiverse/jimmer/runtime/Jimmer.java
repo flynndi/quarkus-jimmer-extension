@@ -8,8 +8,8 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.jetbrains.annotations.NotNull;
 
-import io.quarkiverse.jimmer.runtime.java.JQuarkusSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.kotlin.KQuarkusSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.util.QuarkusSqlClientContainerUtil;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 
@@ -45,7 +45,7 @@ public class Jimmer {
         });
     }
 
-    public static JQuarkusSqlClientContainer getJSqlClientContainer(@NotNull String dataSourceName) {
+    public static QuarkusJSqlClientContainer getJSqlClientContainer(@NotNull String dataSourceName) {
         return QuarkusSqlClientContainerUtil.getJquarkusSqlClientContainer(dataSourceName);
     }
 
@@ -69,7 +69,7 @@ public class Jimmer {
         });
     }
 
-    public static KQuarkusSqlClientContainer getKSqlClientContainer(@NotNull String dataSourceName) {
+    public static QuarkusKSqlClientContainer getKSqlClientContainer(@NotNull String dataSourceName) {
         return QuarkusSqlClientContainerUtil.getKquarkusSqlClientContainer(dataSourceName);
     }
 }
