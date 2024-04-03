@@ -99,6 +99,12 @@ public interface JimmerBuildTimeConfig {
     OptionalInt defaultBatchSize = OptionalInt.of(JSqlClient.Builder.DEFAULT_BATCH_SIZE);
 
     /**
+     * jimmer.inListPaddingEnabled
+     */
+    @WithDefault("false")
+    boolean inListPaddingEnabled();
+
+    /**
      * jimmer.defaultListBatchSize
      */
     OptionalInt defaultListBatchSize = OptionalInt.of(JSqlClient.Builder.DEFAULT_LIST_BATCH_SIZE);
