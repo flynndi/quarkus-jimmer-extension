@@ -138,6 +138,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setIdOnlyTargetCheckingLevel(config.idOnlyTargetCheckingLevel());
         builder.setDefaultEnumStrategy(config.defaultEnumStrategy());
         config.defaultBatchSize.ifPresent(builder::setDefaultBatchSize);
+        builder.setInListPaddingEnabled(config.inListPaddingEnabled());
         config.defaultListBatchSize.ifPresent(builder::setDefaultListBatchSize);
         config.offsetOptimizingThreshold.ifPresent(builder::setOffsetOptimizingThreshold);
         builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
