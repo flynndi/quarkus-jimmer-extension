@@ -42,7 +42,7 @@ public class JimmerDataSourcesRecorder {
                         dataSourceName, e.getMessage()), e);
             }
             QuarkusSqlClientProducer producer = context.getInjectedReference(QuarkusSqlClientProducer.class);
-            return producer.createJQuarkusSqlClient(dataSource, dataSourceName, dialect);
+            return producer.createQuarkusJSqlClient(dataSource, dataSourceName, dialect);
         };
     }
 
@@ -74,7 +74,7 @@ public class JimmerDataSourcesRecorder {
                         dataSourceName, e.getMessage()), e);
             }
             QuarkusSqlClientProducer producer = context.getInjectedReference(QuarkusSqlClientProducer.class);
-            return producer.createKQuarkusSqlClient(dataSource, dataSourceName, dialect);
+            return producer.createQuarkusKSqlClient(dataSource, dataSourceName, dialect);
         };
     }
 
