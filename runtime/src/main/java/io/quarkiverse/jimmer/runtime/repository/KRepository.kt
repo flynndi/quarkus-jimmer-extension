@@ -11,6 +11,7 @@ import org.babyfish.jimmer.Input
 import org.babyfish.jimmer.Page
 import org.babyfish.jimmer.View
 import org.babyfish.jimmer.meta.ImmutableType
+import org.babyfish.jimmer.sql.ast.mutation.AssociatedSaveMode
 import org.babyfish.jimmer.sql.ast.mutation.DeleteMode
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode
 import org.babyfish.jimmer.sql.fetcher.Fetcher
@@ -243,7 +244,7 @@ interface KRepository<E: Any, ID: Any> {
      */
     fun <S: E> merge(entity: S, mode: SaveMode = SaveMode.UPSERT): KSimpleSaveResult<S> =
         save(entity) {
-            setMergeMode()
+            setAssociatedModeAll(AssociatedSaveMode.MERGE)
             setMode(mode)
         }
 
@@ -256,7 +257,7 @@ interface KRepository<E: Any, ID: Any> {
      */
     fun <S: E> merge(input: Input<S>, mode: SaveMode = SaveMode.UPSERT): KSimpleSaveResult<S> =
         save(input.toEntity()) {
-            setMergeMode()
+            setAssociatedModeAll(AssociatedSaveMode.MERGE)
             setMode(mode)
         }
 
@@ -270,7 +271,7 @@ interface KRepository<E: Any, ID: Any> {
     fun <S: E> merge(entity: S, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S> =
         save(entity) {
             block()
-            setMergeMode()
+            setAssociatedModeAll(AssociatedSaveMode.MERGE)
         }
 
     /**
@@ -283,7 +284,43 @@ interface KRepository<E: Any, ID: Any> {
     fun <S: E> merge(input: Input<S>, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S> =
         save(input.toEntity()) {
             block()
-            setMergeMode()
+            setAssociatedModeAll(AssociatedSaveMode.MERGE)
+        }
+
+    /**
+     * For associated objects, only insert operations are executed.
+     */
+    fun <S: E> append(entity: S, mode: SaveMode = SaveMode.UPSERT): KSimpleSaveResult<S> =
+        save(entity) {
+            setAssociatedModeAll(AssociatedSaveMode.APPEND)
+            setMode(mode)
+        }
+
+    /**
+     * For associated objects, only insert operations are executed.
+     */
+    fun <S: E> append(input: Input<S>, mode: SaveMode = SaveMode.UPSERT): KSimpleSaveResult<S> =
+        save(input.toEntity()) {
+            setAssociatedModeAll(AssociatedSaveMode.APPEND)
+            setMode(mode)
+        }
+
+    /**
+     * For associated objects, only insert operations are executed.
+     */
+    fun <S: E> append(entity: S, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S> =
+        save(entity) {
+            block()
+            setAssociatedModeAll(AssociatedSaveMode.APPEND)
+        }
+
+    /**
+     * For associated objects, only insert operations are executed.
+     */
+    fun <S: E> append(input: Input<S>, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S> =
+        save(input.toEntity()) {
+            block()
+            setAssociatedModeAll(AssociatedSaveMode.APPEND)
         }
 
     @Deprecated(

@@ -201,6 +201,23 @@ endif::add-copy-button-to-env-var[]
 |`name`
 
 
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-in-list-padding-enabled]]`link:#quarkus-jimmer_quarkus-jimmer-in-list-padding-enabled[quarkus.jimmer.in-list-padding-enabled]`
+
+
+[.description]
+--
+jimmer.inListPaddingEnabled
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_IN_LIST_PADDING_ENABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_IN_LIST_PADDING_ENABLED+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-is-foreign-key-enabled-by-default]]`link:#quarkus-jimmer_quarkus-jimmer-is-foreign-key-enabled-by-default[quarkus.jimmer.is-foreign-key-enabled-by-default]`
 
 

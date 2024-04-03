@@ -36,7 +36,7 @@ public class Metadatas {
         return Metadata
                 .newBuilder()
                 .setOperationParser(new OperationParserImpl())
-                .setParameterParameter(new ParameterParserImpl())
+                .setParameterParser(new ParameterParserImpl())
                 .setVirtualTypeMap(
                         Collections.singletonMap(
                                 TypeName.of(FilePart.class),
