@@ -41,13 +41,13 @@ import io.quarkus.agroal.DataSource;
 
 public interface JRepository<E, ID> {
 
-    default JSqlClientImplementor sqlClient() {
-        return Utils.validateSqlClient(sql());
-    }
-
     /*
      * For provider
      */
+    private JSqlClientImplementor sqlClient() {
+        return Utils.validateSqlClient(sql());
+    }
+
     default JSqlClient sql() {
         if (null != this.getClass().getAnnotation(DataSource.class)) {
             return Jimmer.getJSqlClient(this.getClass().getAnnotation(DataSource.class).value());

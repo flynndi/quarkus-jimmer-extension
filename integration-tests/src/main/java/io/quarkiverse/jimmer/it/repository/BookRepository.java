@@ -22,13 +22,13 @@ public class BookRepository implements JRepository<Book, Long> {
 
     public Map<Long, List<Long>> findNewestIdsGroupByStoreId(Collection<Long> ids) {
         return Tuple2.toMultiMap(
-                sqlClient()
+                sql()
                         .createQuery(Tables.BOOK_TABLE)
                         .where(
                                 Expression.tuple(
                                         Tables.BOOK_TABLE.name(),
                                         Tables.BOOK_TABLE.edition()).in(
-                                                sqlClient().createSubQuery(Tables.BOOK_TABLE)
+                                                sql().createSubQuery(Tables.BOOK_TABLE)
                                                         .where(Tables.BOOK_TABLE.storeId().in(ids))
                                                         .groupBy(Tables.BOOK_TABLE.name())
                                                         .select(
