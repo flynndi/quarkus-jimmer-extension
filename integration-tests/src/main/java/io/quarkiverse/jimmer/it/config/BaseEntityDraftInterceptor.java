@@ -37,7 +37,6 @@ public class BaseEntityDraftInterceptor implements DraftInterceptor<BaseEntity, 
     public Collection<TypedProp<BaseEntity, ?>> dependencies() {
         return Arrays.asList(
                 BaseEntityProps.CREATED_TIME,
-                BaseEntityProps.MODIFIED_TIME
-        );
+                BaseEntityProps.MODIFIED_TIME);
     }
 }
