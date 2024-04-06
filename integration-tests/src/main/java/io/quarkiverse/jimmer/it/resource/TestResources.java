@@ -21,6 +21,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 
 import io.quarkiverse.jimmer.it.entity.*;
 import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
+import io.quarkiverse.jimmer.it.entity.dto.BookInput;
 import io.quarkiverse.jimmer.it.entity.dto.UserRoleInput;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
@@ -426,6 +427,20 @@ public class TestResources {
     @Api
     public Response testBookRepositoryFindMapByIdsView(List<Long> ids) {
         return Response.ok(bookRepository.viewer(BookDetailView.class).findMapByIds(ids)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryMerge")
+    @Api
+    public Response testBookRepositoryMerge(Book book) {
+        return Response.ok(bookRepository.merge(book)).build();
+    }
+
+    @POST
+    @Path("/testBookRepositoryMergeInput")
+    @Api
+    public Response testBookRepositoryMergeInput(BookInput bookInput) {
+        return Response.ok(bookRepository.merge(bookInput)).build();
     }
 
     private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()

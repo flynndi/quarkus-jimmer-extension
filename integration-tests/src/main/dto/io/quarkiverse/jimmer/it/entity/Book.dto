@@ -10,7 +10,7 @@ BookDetailView {
 
 input BookInput {
 
-    #allScalars(Book)
+    #allScalars(this,TenantAware)
 
     id(store)
 
