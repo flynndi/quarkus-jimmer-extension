@@ -931,17 +931,17 @@ public class TestResourceTestCase {
     void testBookRepositoryMergeInput() {
         String body = """
                 {
-                    "id": 22,
-                    "name": "merge",
+                    "id": 55,
+                    "name": "mergeInput",
                     "edition": 1,
                     "price": "10.00",
-                    "tenant": "c",
+                    "tenant": "d",
                     "storeId": 1,
                     "authors": [
                         {
-                            "id": 10,
-                            "firstName": "merge",
-                            "lastName": "merge",
+                            "id": 11,
+                            "firstName": "mergeInput",
+                            "lastName": "mergeInput",
                             "gender": "FEMALE"
                         }
                     ]
