@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.quarkiverse.jimmer.it.entity.*;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
@@ -890,6 +891,70 @@ public class TestResourceTestCase {
                 .post("testResources/testBookRepositoryFindMapByIdsView");
         Assertions.assertNotNull(response.jsonPath().getMap(""));
         Assertions.assertNotNull(response.jsonPath().get("1"));
+    }
+
+    @Test
+    void testBookRepositoryMerge() {
+        String body = """
+                {
+                    "id": 22,
+                    "name": "merge",
+                    "edition": 1,
+                    "price": "10.00",
+                    "tenant": "c",
+                    "store": {
+                        "id": 6,
+                        "name": "mergeStore",
+                        "website": "mergeWebsite"
+                    },
+                    "authors": [
+                        {
+                            "id": 10,
+                            "firstName": "merge",
+                            "lastName": "merge",
+                            "gender": "FEMALE"
+                        }
+                    ]
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryMerge");
+        Assertions.assertEquals(4, response.jsonPath().getInt("totalAffectedRowCount"));
+    }
+
+    @Test
+    void testBookRepositoryMergeInput() {
+        String body = """
+                {
+                    "id": 22,
+                    "name": "merge",
+                    "edition": 1,
+                    "price": "10.00",
+                    "tenant": "c",
+                    "storeId": 1,
+                    "authors": [
+                        {
+                            "id": 10,
+                            "firstName": "merge",
+                            "lastName": "merge",
+                            "gender": "FEMALE"
+                        }
+                    ]
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryMergeInput");
+        Assertions.assertEquals(3, response.jsonPath().getInt("totalAffectedRowCount"));
     }
 
     public static class TestResourceTestCaseProfile implements QuarkusTestProfile {

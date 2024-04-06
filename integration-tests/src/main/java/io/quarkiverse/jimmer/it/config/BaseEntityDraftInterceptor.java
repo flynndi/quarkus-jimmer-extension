@@ -22,5 +22,10 @@ public class BaseEntityDraftInterceptor implements DraftInterceptor<BaseEntity, 
         if (!ImmutableObjects.isLoaded(draft, BaseEntityProps.MODIFIED_TIME)) {
             draft.setModifiedTime(LocalDateTime.now());
         }
+        if (original == null) {
+            if (!ImmutableObjects.isLoaded(draft, BaseEntityProps.CREATED_TIME)) {
+                draft.setCreatedTime(LocalDateTime.now());
+            }
+        }
     }
 }
