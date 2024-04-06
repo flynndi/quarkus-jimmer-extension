@@ -1,10 +1,13 @@
 package io.quarkiverse.jimmer.it.config;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collection;
 
 import jakarta.inject.Singleton;
 
 import org.babyfish.jimmer.ImmutableObjects;
+import org.babyfish.jimmer.meta.TypedProp;
 import org.babyfish.jimmer.sql.DraftInterceptor;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,5 +30,14 @@ public class BaseEntityDraftInterceptor implements DraftInterceptor<BaseEntity, 
                 draft.setCreatedTime(LocalDateTime.now());
             }
         }
+    }
+
+    @Nullable
+    @Override
+    public Collection<TypedProp<BaseEntity, ?>> dependencies() {
+        return Arrays.asList(
+                BaseEntityProps.CREATED_TIME,
+                BaseEntityProps.MODIFIED_TIME
+        );
     }
 }
