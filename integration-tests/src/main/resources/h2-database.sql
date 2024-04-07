@@ -8,8 +8,8 @@ create table book_store(
     id identity(100, 1) not null,
     name varchar(50) not null,
     website varchar(100),
-    created_time timestamp,
-    modified_time timestamp
+    created_time timestamp not null,
+    modified_time timestamp not null
 );
 alter table book_store
     add constraint business_key_book_store
@@ -41,8 +41,8 @@ create table author(
     first_name varchar(25) not null,
     last_name varchar(25) not null,
     gender char(1) not null,
-    created_time timestamp,
-    modified_time timestamp
+    created_time timestamp not null,
+    modified_time timestamp not null
 );
 alter table author
     add constraint business_key_author

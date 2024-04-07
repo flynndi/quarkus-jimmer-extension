@@ -5,7 +5,7 @@ import java.util.List;
 import org.babyfish.jimmer.sql.*;
 
 @Entity
-public interface Author {
+public interface Author extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
