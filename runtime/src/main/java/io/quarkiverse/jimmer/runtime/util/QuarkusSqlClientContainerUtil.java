@@ -7,6 +7,7 @@ import jakarta.enterprise.inject.Instance;
 
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
+import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 
@@ -27,7 +28,7 @@ public final class QuarkusSqlClientContainerUtil {
         if (DataSourceUtil.isDefault(dataSourceName)) {
             return Default.Literal.INSTANCE;
         }
-        return new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName);
+        return new DataSource.DataSourceLiteral(dataSourceName);
     }
 
     public static <T> T instantiateBeanOrClass(Class<T> type, Annotation annotation) {
