@@ -17,9 +17,9 @@ import io.quarkus.arc.ArcContainer;
 /**
  * This class is sort of a producer for {@link JQuarkusSqlClient}.
  * It isn't a CDI producer in the literal sense, but it is marked as a bean,
- * and it's {@code createQuarkusJSqlClient} or {@code createQuarkusKSqlClient}
+ * and it's {@link #createQuarkusJSqlClient} or {@link #createQuarkusKSqlClient}
  * method is called at runtime in order to produce
- * the actual {@code JSqlClient} or {@code KSqlClient} objects.
+ * the actual {@link JSqlClient} or {@link KSqlClient} objects.
  * CDI scopes and qualifiers are set up at build-time, which is why this class is devoid of
  * any CDI annotations
  * <p>
