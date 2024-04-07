@@ -957,6 +957,40 @@ public class TestResourceTestCase {
         Assertions.assertEquals(3, response.jsonPath().getInt("totalAffectedRowCount"));
     }
 
+    @Test
+    void testBookRepositoryMergeSaveMode() {
+        String body = """
+                {
+                    "id": 77,
+                    "name": "mergeSaveMode",
+                    "edition": 1,
+                    "price": "10.00",
+                    "tenant": "c",
+                    "store": {
+                        "id": 10,
+                        "name": "mergeSaveMode",
+                        "website": "mergeSaveMode"
+                    },
+                    "authors": [
+                        {
+                            "id": 20,
+                            "firstName": "mergeSaveMode",
+                            "lastName": "mergeSaveMode",
+                            "gender": "FEMALE"
+                        }
+                    ]
+                }
+                """;
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testBookRepositoryMergeSaveMode");
+        Assertions.assertEquals(4, response.jsonPath().getInt("totalAffectedRowCount"));
+    }
+
     public static class TestResourceTestCaseProfile implements QuarkusTestProfile {
 
         @Override

@@ -443,6 +443,13 @@ public class TestResources {
         return Response.ok(bookRepository.merge(bookInput)).build();
     }
 
+    @POST
+    @Path("/testBookRepositoryMergeSaveMode")
+    @Api
+    public Response testBookRepositoryMergeSaveMode(Book book) {
+        return Response.ok(bookRepository.merge(book, SaveMode.INSERT_ONLY)).build();
+    }
+
     private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()
             .store(BOOK_STORE_FETCHER.name())
             .authors(AUTHOR_FETCHER.firstName().lastName());
