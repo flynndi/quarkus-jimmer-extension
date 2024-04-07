@@ -16,14 +16,15 @@ import io.quarkus.arc.ArcContainer;
 
 /**
  * This class is sort of a producer for {@link JQuarkusSqlClient}.
- * It isn't a CDI producer in the literal sense, but it is marked as a bean
+ * It isn't a CDI producer in the literal sense, but it is marked as a bean,
  * and it's {@code createQuarkusJSqlClient} or {@code createQuarkusKSqlClient}
  * method is called at runtime in order to produce
  * the actual {@code JSqlClient} or {@code KSqlClient} objects.
  * CDI scopes and qualifiers are set up at build-time, which is why this class is devoid of
  * any CDI annotations
  * <p>
- * * @author <a href="mailto:lixuan0520@gmail.com">flynndi</a>
+ *
+ * @author <a href="mailto:lixuan0520@gmail.com">flynndi</a>
  */
 public class QuarkusSqlClientProducer {
 

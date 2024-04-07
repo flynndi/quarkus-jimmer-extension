@@ -10,7 +10,7 @@ import io.quarkiverse.jimmer.it.resolver.BookStoreAvgPriceResolver;
 import io.quarkiverse.jimmer.it.resolver.BookStoreNewestBooksResolver;
 
 @Entity
-public interface BookStore {
+public interface BookStore extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
