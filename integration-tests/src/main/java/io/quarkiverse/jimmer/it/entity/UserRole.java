@@ -6,13 +6,13 @@ import org.babyfish.jimmer.sql.Entity;
 import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.Id;
 
-import io.quarkiverse.jimmer.it.config.UUIdGenerator;
+import io.quarkiverse.jimmer.it.config.UUIDGenerator;
 
 @Entity
 public interface UserRole {
 
     @Id
-    @GeneratedValue(generatorType = UUIdGenerator.class)
+    @GeneratedValue(generatorType = UUIDGenerator.class)
     UUID id();
 
     String userId();
