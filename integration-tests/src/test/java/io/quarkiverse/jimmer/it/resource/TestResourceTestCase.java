@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.quarkiverse.jimmer.it.Constant;
 import io.quarkiverse.jimmer.it.entity.*;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
@@ -34,7 +35,7 @@ public class TestResourceTestCase {
     BookRepository bookRepository;
 
     @Inject
-    @DataSource("DB2")
+    @DataSource(Constant.DATASOURCE2)
     UserRoleRepository userRoleRepository;
 
     @Test
