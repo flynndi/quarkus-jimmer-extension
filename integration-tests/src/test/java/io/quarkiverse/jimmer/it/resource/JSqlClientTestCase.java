@@ -25,7 +25,7 @@ public class JSqlClientTestCase {
     JSqlClient jSqlClient;
 
     @Inject
-    @DataSource("DB2")
+    @DataSource(Constant.DATASOURCE2)
     JSqlClient jSqlClientDB2;
 
     @Inject
