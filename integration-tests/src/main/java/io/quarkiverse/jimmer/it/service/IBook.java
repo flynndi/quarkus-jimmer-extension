@@ -13,7 +13,7 @@ import io.quarkiverse.jimmer.it.entity.Book;
 
 public interface IBook {
 
-    Book findById(int id);
+    Book findById(long id);
 
     Book findById(int id, Fetcher<Book> fetcher);
 
