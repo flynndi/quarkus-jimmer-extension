@@ -25,7 +25,7 @@ public class BookImpl implements IBook {
     BookTable table = BOOK_TABLE;
 
     @Override
-    public Book findById(int id) {
+    public Book findById(long id) {
         return Jimmer.getDefaultJSqlClient().findById(Book.class, id);
     }
 
