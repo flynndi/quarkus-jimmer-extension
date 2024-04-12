@@ -35,7 +35,7 @@ public class BookResources implements Fetchers {
     @GET
     @Path("/book")
     @Api
-    public Response getBookById(@RestQuery int id) {
+    public Response getBookById(@RestQuery long id) {
         return Response.ok(iBook.findById(id)).build();
     }
 
