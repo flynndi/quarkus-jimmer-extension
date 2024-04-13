@@ -35,4 +35,18 @@ public class UserRoleResources {
         iUserRoleService.updateById(id);
         return Response.ok().build();
     }
+
+    @DELETE
+    @Path("/delete")
+    @Transactional(rollbackOn = Exception.class)
+    public Response delete(@RestQuery UUID id) {
+        iUserRoleService.deleteById(id);
+        return Response.ok().build();
+    }
+
+    @GET
+    @Path("/deleteReverseById")
+    public Response deleteReverseById(@RestQuery UUID id) {
+        return Response.ok(iUserRoleService.deleteReverseById(id)).build();
+    }
 }

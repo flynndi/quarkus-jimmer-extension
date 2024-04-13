@@ -7,6 +7,7 @@ import jakarta.annotation.Nullable;
 import org.babyfish.jimmer.sql.Entity;
 import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.Id;
+import org.babyfish.jimmer.sql.LogicalDeleted;
 
 import io.quarkiverse.jimmer.it.config.UUIDGenerator;
 import io.quarkiverse.jimmer.it.config.jsonmapping.AuthUser;
@@ -22,6 +23,7 @@ public interface UserRole {
 
     String roleId();
 
+    @LogicalDeleted("true")
     boolean deleteFlag();
 
     @Nullable
