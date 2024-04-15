@@ -1,21 +1,25 @@
-package io.quarkiverse.jimmer.it.resource;
+package io.quarkiverse.jimmer.it;
 
-import java.util.List;
 import java.util.UUID;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.ast.table.Props;
+import org.babyfish.jimmer.sql.filter.Filter;
+import org.babyfish.jimmer.sql.filter.Filters;
 import org.jboss.jandex.DotName;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.jimmer.it.Constant;
+import io.quarkiverse.jimmer.it.config.TenantFilter;
 import io.quarkiverse.jimmer.it.entity.*;
 import io.quarkiverse.jimmer.runtime.Jimmer;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkus.agroal.DataSource;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.InstanceHandle;
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
@@ -57,11 +61,14 @@ public class JSqlClientTestCase {
 
     @Test
     public void testTenantFilter() {
-        List<Book> list = jSqlClient
-                .createQuery(BookTable.$)
-                .select(BookTable.$.fetch(Fetchers.BOOK_FETCHER.allTableFields()))
-                .execute();
-        Assertions.assertNotNull(list);
+        Filters filters = jSqlClient.getFilters();
+        Filter<Props> filter = filters.getFilter(Book.class);
+        InstanceHandle<TenantFilter> instance = Arc.container().instance(TenantFilter.class);
+        Assertions.assertTrue(instance.isAvailable());
+        Assertions.assertNotNull(instance.get());
+        TenantFilter tenantFilter = instance.get();
+        Assertions.assertEquals(filter.toString().replace("ExportedFilter{filters=[", "").replace("]}", ""),
+                tenantFilter.toString());
     }
 
     @Test
