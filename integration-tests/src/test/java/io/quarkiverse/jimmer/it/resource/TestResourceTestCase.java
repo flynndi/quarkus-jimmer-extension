@@ -578,7 +578,7 @@ public class TestResourceTestCase {
         Assertions.assertEquals(1, response.jsonPath().getInt("totalAffectedRowCount"));
         Assertions.assertEquals("e85fc166-66dd-f496-f733-22ba38dc807d", response.jsonPath().getString("originalEntity.id"));
         Assertions.assertEquals("e85fc166-66dd-f496-f733-22ba38dc807d", response.jsonPath().getString("modifiedEntity.id"));
-        Assertions.assertFalse(response.jsonPath().getBoolean("modified"));
+        Assertions.assertTrue(response.jsonPath().getBoolean("modified"));
     }
 
     @Test
