@@ -9,7 +9,7 @@ public interface Author extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int id();
+    long id();
 
     @Key
     String firstName();
