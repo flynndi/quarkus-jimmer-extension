@@ -1,4 +1,4 @@
-name: "Quarkus Jimmer Extension"
+name: "Jimmer"
 artifact: "io.github.flynndi:quarkus-jimmer:999-SNAPSHOT"
 description: "A revolutionary ORM framework for both java and kotlin, and a complete integrated solution"
 metadata:
