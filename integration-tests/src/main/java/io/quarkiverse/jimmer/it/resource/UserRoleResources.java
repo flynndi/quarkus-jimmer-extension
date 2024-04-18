@@ -23,13 +23,13 @@ public class UserRoleResources {
     }
 
     @GET
-    @Path("/userRole")
-    public Response getUserRoleById(@RestQuery UUID id) {
+    @Path("/userRoleFindById")
+    public Response userRoleFindById(@RestQuery UUID id) {
         return Response.ok(iUserRoleService.findById(id)).build();
     }
 
     @PUT
-    @Path("/userRole")
+    @Path("/updateUserRoleById")
     @Transactional(rollbackOn = Exception.class)
     public Response updateUserRoleById(@RestQuery UUID id) {
         iUserRoleService.updateById(id);
