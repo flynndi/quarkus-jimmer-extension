@@ -1,15 +1,16 @@
 package io.quarkiverse.jimmer.it.resource;
 
+import static io.restassured.RestAssured.given;
+
+import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import io.quarkiverse.jimmer.it.Constant;
 import io.quarkiverse.jimmer.it.IntegrationTestsProfile;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import io.restassured.response.Response;
-import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import static io.restassured.RestAssured.given;
 
 @QuarkusTest
 @TestProfile(IntegrationTestsProfile.class)
