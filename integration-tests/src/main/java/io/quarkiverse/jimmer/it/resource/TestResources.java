@@ -450,6 +450,19 @@ public class TestResources {
         return Response.ok(bookRepository.merge(book, SaveMode.INSERT_ONLY)).build();
     }
 
+    @POST
+    @Path("/testEvent")
+    @Transactional
+    @Api
+    public Response testEvent() {
+        Jimmer.getDefaultJSqlClient()
+                .createUpdate(Tables.BOOK_TABLE)
+                .set(Tables.BOOK_TABLE.storeId(), 2L)
+                .where(Tables.BOOK_TABLE.id().eq(7L))
+                .execute();
+        return Response.ok().build();
+    }
+
     private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()
             .store(BOOK_STORE_FETCHER.name())
             .authors(AUTHOR_FETCHER.firstName().lastName());
