@@ -20,6 +20,7 @@ import org.babyfish.jimmer.sql.cache.CacheFactory;
 import org.babyfish.jimmer.sql.cache.CacheOperator;
 import org.babyfish.jimmer.sql.di.*;
 import org.babyfish.jimmer.sql.dialect.Dialect;
+import org.babyfish.jimmer.sql.event.AssociationEvent;
 import org.babyfish.jimmer.sql.event.EntityEvent;
 import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.event.Triggers;
@@ -320,12 +321,13 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
             Triggers[] triggersArr = ((JSqlClientImplementor) sqlClient).getTriggerType() == TriggerType.BOTH
                     ? new Triggers[] { sqlClient.getTriggers(), sqlClient.getTriggers(true) }
                     : new Triggers[] { sqlClient.getTriggers() };
+            Event<EntityEvent<?>> entityEvent = event.select(new TypeLiteral<>() {
+            });
+            Event<AssociationEvent> associationEvent = event.select(new TypeLiteral<>() {
+            });
             for (Triggers triggers : triggersArr) {
-                // Maybe there's a better way to handle this
-                Event<EntityEvent<?>> eventEvent = event.select(new TypeLiteral<>() {
-                });
-                triggers.addEntityListener(eventEvent::fire);
-                triggers.addAssociationListener(event::fire);
+                triggers.addEntityListener(entityEvent::fire);
+                triggers.addAssociationListener(associationEvent::fire);
             }
         }
     }
