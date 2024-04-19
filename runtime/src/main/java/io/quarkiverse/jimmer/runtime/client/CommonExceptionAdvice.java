@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 
-public abstract class CommonExceptionAdvice {
+abstract class CommonExceptionAdvice {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonExceptionAdvice.class);
 
