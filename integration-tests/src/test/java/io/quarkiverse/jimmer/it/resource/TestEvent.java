@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 
 import jakarta.inject.Inject;
 
+import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,5 +63,19 @@ public class TestEvent {
         Assertions.assertEquals(1, testChangeEventObserves.getEntityEventStorage().size());
         Assertions.assertEquals(1, testChangeEventObserves.getAssociationEventStorageOne().size());
         Assertions.assertEquals(1, testChangeEventObserves.getAssociationEventStorageTwo().size());
+    }
+
+    @Test
+    void testEvent2() {
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .log()
+                .all()
+                .when()
+                .post("testResources/testEvent");
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(1, testChangeEventObserves.getEntityEventStorage().size());
+        Assertions.assertEquals(1, testChangeEventObserves.getAssociationEventStorageOne().size());
+        Assertions.assertEquals(2, testChangeEventObserves.getAssociationEventStorageTwo().size());
     }
 }
