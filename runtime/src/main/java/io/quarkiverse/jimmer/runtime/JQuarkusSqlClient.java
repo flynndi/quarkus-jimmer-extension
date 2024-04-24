@@ -56,8 +56,6 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
     private final ArcContainer container;
 
-    private final Consumer<JSqlClient.Builder> block;
-
     private final Event<Object> event;
 
     private final Dialect dialect;
@@ -65,13 +63,12 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
     private final boolean isKotlin;
 
     public JQuarkusSqlClient(JimmerBuildTimeConfig config, DataSource dataSource, String dataSourceName,
-            ArcContainer container, Consumer<JSqlClient.Builder> block, Event<Object> event, Dialect dialect,
+            ArcContainer container, Event<Object> event, Dialect dialect,
             boolean isKotlin) {
         this.config = config;
         this.dataSource = dataSource;
         this.dataSourceName = dataSourceName;
         this.container = container;
-        this.block = block;
         this.event = event;
         this.dialect = dialect;
         this.isKotlin = isKotlin;
@@ -94,6 +91,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         CacheOperator cacheOperator = getOptionalBean(CacheOperator.class, dataSourceName);
         MicroServiceExchange exchange = getOptionalBean(MicroServiceExchange.class);
         Collection<CacheAbandonedCallback> callbacks = getObjects(CacheAbandonedCallback.class);
+        Consumer<JSqlClient.Builder> block = getObject(Constant.J_SQL_CLIENT_BUILDER_TYPE_LITERAL);
         Collection<ScalarProvider<?, ?>> providers = getObjects(Constant.SCALAR_PROVIDER_TYPE_LITERAL);
         Collection<DraftInterceptor<?, ?>> interceptors = getObjects(Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL);
 
@@ -310,6 +308,24 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
             }
         }
         return collection;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <E> E getObject(TypeLiteral<?> typeLiteral) {
+        for (InstanceHandle<?> instanceHandle : container.listAll(typeLiteral)) {
+            if (instanceHandle.isAvailable()) {
+                Optional<Annotation> annotationOptional = instanceHandle.getBean().getQualifiers().stream()
+                        .filter(x -> x.annotationType().equals(io.quarkus.agroal.DataSource.class)).findFirst();
+                if (annotationOptional.isPresent()) {
+                    if (dataSourceName.equals(((io.quarkus.agroal.DataSource) annotationOptional.get()).value())) {
+                        return ((E) instanceHandle.get());
+                    }
+                } else {
+                    return ((E) instanceHandle.get());
+                }
+            }
+        }
+        return null;
     }
 
     private static class QuarkusEventInitializer implements Initializer {
