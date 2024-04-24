@@ -19,7 +19,6 @@ object SqlClients {
         dataSource: DataSource?,
         dataSourceName: String,
         container: ArcContainer,
-        block: (KSqlClientDsl.() -> Unit)?,
         event: Event<Any>,
         dialect: Dialect
     ): JSqlClient =
@@ -27,11 +26,6 @@ object SqlClients {
             dataSource,
             dataSourceName,
             container,
-            block?.let {
-                Consumer {
-                    KSqlClientDsl(it).block()
-                }
-            },
             event,
             dialect,
             false)
@@ -42,7 +36,6 @@ object SqlClients {
         dataSource: DataSource?,
         dataSourceName: String,
         container: ArcContainer,
-        block: (KSqlClientDsl.() -> Unit)?,
         event: Event<Any>,
         dialect: Dialect
     ): KSqlClient =
@@ -51,11 +44,6 @@ object SqlClients {
             dataSource,
             dataSourceName,
             container,
-            block?.let {
-                Consumer {
-                    KSqlClientDsl(it).block()
-                }
-            },
             event,
             dialect,
             true

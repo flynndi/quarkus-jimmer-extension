@@ -40,14 +40,12 @@ public class QuarkusSqlClientProducer {
     }
 
     public QuarkusJSqlClientContainer createQuarkusJSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect) {
-        final JSqlClient jSqlClient = SqlClients.java(config, dataSource, dataSourceName, container, null,
-                event,
-                dialect);
+        final JSqlClient jSqlClient = SqlClients.java(config, dataSource, dataSourceName, container, event, dialect);
         return new QuarkusJSqlClientContainer(jSqlClient, dataSourceName);
     }
 
     public QuarkusKSqlClientContainer createQuarkusKSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect) {
-        final KSqlClient kSqlClient = SqlClients.kotlin(config, dataSource, dataSourceName, container, null, event, dialect);
+        final KSqlClient kSqlClient = SqlClients.kotlin(config, dataSource, dataSourceName, container, event, dialect);
         return new QuarkusKSqlClientContainer(kSqlClient, dataSourceName);
     }
 }
