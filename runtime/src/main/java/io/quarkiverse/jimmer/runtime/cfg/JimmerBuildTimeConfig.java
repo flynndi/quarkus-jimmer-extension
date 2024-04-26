@@ -14,8 +14,6 @@ import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
 import org.babyfish.jimmer.sql.runtime.IdOnlyTargetCheckingLevel;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.quarkus.runtime.annotations.ConfigDocMapKey;
 import io.quarkus.runtime.annotations.ConfigGroup;
 import io.quarkus.runtime.annotations.ConfigPhase;
@@ -301,7 +299,7 @@ public interface JimmerBuildTimeConfig {
         /**
          * Properties.securities
          */
-        @JsonProperty
+        //        @JsonProperty
         Optional<List<Map<String, List<String>>>> securities();
 
         /**
@@ -494,6 +492,7 @@ public interface JimmerBuildTimeConfig {
         /**
          * Flows.authorizationCode
          */
+        @WithName("authorizationCode")
         Flow authorizationCode();
     }
 
@@ -503,16 +502,19 @@ public interface JimmerBuildTimeConfig {
         /**
          * Flow.authorizationUrl
          */
+        @WithName("authorizationUrl")
         Optional<String> authorizationUrl();
 
         /**
          * Flow.tokenUrl
          */
+        @WithName("tokenUrl")
         Optional<String> tokenUrl();
 
         /**
          * Flow.refreshUrl
          */
+        @WithName("refreshUrl")
         Optional<String> refreshUrl();
 
         /**
