@@ -71,22 +71,30 @@ public class OpenApiHandler implements Handler<RoutingContext> {
                             v.scheme().orElse(null),
                             v.bearerFormat().orElse(null),
                             new OpenApiProperties.Flows(
-                                    new OpenApiProperties.Flow(v.flows().implicit().authorizationUrl().orElse(null),
-                                            v.flows().implicit().tokenUrl().orElse(null),
-                                            v.flows().implicit().refreshUrl().orElse(null),
-                                            v.flows().implicit().scopes()),
-                                    new OpenApiProperties.Flow(v.flows().password().authorizationUrl().orElse(null),
-                                            v.flows().password().tokenUrl().orElse(null),
-                                            v.flows().password().refreshUrl().orElse(null),
-                                            v.flows().password().scopes()),
-                                    new OpenApiProperties.Flow(v.flows().clientCredentials().authorizationUrl().orElse(null),
-                                            v.flows().clientCredentials().tokenUrl().orElse(null),
-                                            v.flows().clientCredentials().refreshUrl().orElse(null),
-                                            v.flows().clientCredentials().scopes()),
-                                    new OpenApiProperties.Flow(v.flows().authorizationCode().authorizationUrl().orElse(null),
-                                            v.flows().authorizationCode().tokenUrl().orElse(null),
-                                            v.flows().authorizationCode().refreshUrl().orElse(null),
-                                            v.flows().authorizationCode().scopes())),
+                                    v.flows().implicit().isEmpty() ? null
+                                            : new OpenApiProperties.Flow(
+                                                    v.flows().implicit().get().authorizationUrl().orElse(null),
+                                                    v.flows().implicit().get().tokenUrl().orElse(null),
+                                                    v.flows().implicit().get().refreshUrl().orElse(null),
+                                                    v.flows().implicit().get().scopes()),
+                                    v.flows().password().isEmpty() ? null
+                                            : new OpenApiProperties.Flow(
+                                                    v.flows().password().get().authorizationUrl().orElse(null),
+                                                    v.flows().password().get().tokenUrl().orElse(null),
+                                                    v.flows().password().get().refreshUrl().orElse(null),
+                                                    v.flows().password().get().scopes()),
+                                    v.flows().clientCredentials().isEmpty() ? null
+                                            : new OpenApiProperties.Flow(
+                                                    v.flows().clientCredentials().get().authorizationUrl().orElse(null),
+                                                    v.flows().clientCredentials().get().tokenUrl().orElse(null),
+                                                    v.flows().clientCredentials().get().refreshUrl().orElse(null),
+                                                    v.flows().clientCredentials().get().scopes()),
+                                    v.flows().authorizationCode().isEmpty() ? null
+                                            : new OpenApiProperties.Flow(
+                                                    v.flows().authorizationCode().get().authorizationUrl().orElse(null),
+                                                    v.flows().authorizationCode().get().tokenUrl().orElse(null),
+                                                    v.flows().authorizationCode().get().refreshUrl().orElse(null),
+                                                    v.flows().authorizationCode().get().scopes())),
                             v.openIdConnectUrl().orElse(null))));
         } else {
             map = null;
