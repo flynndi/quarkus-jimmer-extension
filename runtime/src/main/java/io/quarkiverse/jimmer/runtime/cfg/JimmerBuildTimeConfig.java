@@ -299,7 +299,6 @@ public interface JimmerBuildTimeConfig {
         /**
          * Properties.securities
          */
-        //        @JsonProperty
         Optional<List<Map<String, List<String>>>> securities();
 
         /**
@@ -477,23 +476,26 @@ public interface JimmerBuildTimeConfig {
         /**
          * Flows.implicit
          */
-        Flow implicit();
+        @WithName("implicit")
+        Optional<Flow> implicit();
 
         /**
          * Flows.password
          */
-        Flow password();
+        @WithName("password")
+        Optional<Flow> password();
 
         /**
          * Flows.clientCredentials
          */
-        Flow clientCredentials();
+        @WithName("clientCredentials")
+        Optional<Flow> clientCredentials();
 
         /**
          * Flows.authorizationCode
          */
         @WithName("authorizationCode")
-        Flow authorizationCode();
+        Optional<Flow> authorizationCode();
     }
 
     @ConfigGroup
