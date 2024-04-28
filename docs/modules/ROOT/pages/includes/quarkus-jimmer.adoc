@@ -714,7 +714,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-authorization-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-authorization-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.implicit.authorization-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-authorizationurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-authorizationurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.implicit.authorizationUrl]`
 
 
 [.description]
@@ -722,16 +722,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.authorizationUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_AUTHORIZATION_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_AUTHORIZATIONURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_AUTHORIZATION_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_AUTHORIZATIONURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-token-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-token-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.implicit.token-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-tokenurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-tokenurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.implicit.tokenUrl]`
 
 
 [.description]
@@ -739,16 +739,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.tokenUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_TOKEN_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_TOKENURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_TOKEN_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_TOKENURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-refresh-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-refresh-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.implicit.refresh-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-refreshurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-implicit-refreshurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.implicit.refreshUrl]`
 
 
 [.description]
@@ -756,10 +756,10 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.refreshUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_REFRESH_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_REFRESHURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_REFRESH_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_IMPLICIT_REFRESHURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
@@ -782,7 +782,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-authorization-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-authorization-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.password.authorization-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-authorizationurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-authorizationurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.password.authorizationUrl]`
 
 
 [.description]
@@ -790,16 +790,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.authorizationUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_AUTHORIZATION_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_AUTHORIZATIONURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_AUTHORIZATION_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_AUTHORIZATIONURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-token-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-token-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.password.token-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-tokenurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-tokenurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.password.tokenUrl]`
 
 
 [.description]
@@ -807,16 +807,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.tokenUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_TOKEN_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_TOKENURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_TOKEN_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_TOKENURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-refresh-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-refresh-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.password.refresh-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-refreshurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-password-refreshurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.password.refreshUrl]`
 
 
 [.description]
@@ -824,10 +824,10 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.refreshUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_REFRESH_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_REFRESHURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_REFRESH_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_PASSWORD_REFRESHURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
@@ -850,7 +850,7 @@ endif::add-copy-button-to-env-var[]
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-client-credentials-authorization-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-client-credentials-authorization-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.client-credentials.authorization-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-clientcredentials-authorizationurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-clientcredentials-authorizationurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.clientCredentials.authorizationUrl]`
 
 
 [.description]
@@ -858,16 +858,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.authorizationUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENT_CREDENTIALS_AUTHORIZATION_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENTCREDENTIALS_AUTHORIZATIONURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENT_CREDENTIALS_AUTHORIZATION_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENTCREDENTIALS_AUTHORIZATIONURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-client-credentials-token-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-client-credentials-token-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.client-credentials.token-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-clientcredentials-tokenurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-clientcredentials-tokenurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.clientCredentials.tokenUrl]`
 
 
 [.description]
@@ -875,16 +875,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.tokenUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENT_CREDENTIALS_TOKEN_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENTCREDENTIALS_TOKENURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENT_CREDENTIALS_TOKEN_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENTCREDENTIALS_TOKENURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-client-credentials-refresh-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-client-credentials-refresh-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.client-credentials.refresh-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-clientcredentials-refreshurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-clientcredentials-refreshurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.clientCredentials.refreshUrl]`
 
 
 [.description]
@@ -892,16 +892,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.refreshUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENT_CREDENTIALS_REFRESH_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENTCREDENTIALS_REFRESHURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENT_CREDENTIALS_REFRESH_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENTCREDENTIALS_REFRESHURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-client-credentials-scopes-flowscopes]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-client-credentials-scopes-flowscopes[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.client-credentials.scopes]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-clientcredentials-scopes-flowscopes]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-clientcredentials-scopes-flowscopes[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.clientCredentials.scopes]`
 
 
 [.description]
@@ -909,16 +909,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.scopes
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENT_CREDENTIALS_SCOPES+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENTCREDENTIALS_SCOPES+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENT_CREDENTIALS_SCOPES+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_CLIENTCREDENTIALS_SCOPES+++`
 endif::add-copy-button-to-env-var[]
 --|`Map<String,String>` 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorization-code-authorization-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorization-code-authorization-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.authorization-code.authorization-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorizationcode-authorizationurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorizationcode-authorizationurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.authorizationCode.authorizationUrl]`
 
 
 [.description]
@@ -926,16 +926,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.authorizationUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATION_CODE_AUTHORIZATION_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATIONCODE_AUTHORIZATIONURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATION_CODE_AUTHORIZATION_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATIONCODE_AUTHORIZATIONURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorization-code-token-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorization-code-token-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.authorization-code.token-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorizationcode-tokenurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorizationcode-tokenurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.authorizationCode.tokenUrl]`
 
 
 [.description]
@@ -943,16 +943,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.tokenUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATION_CODE_TOKEN_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATIONCODE_TOKENURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATION_CODE_TOKEN_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATIONCODE_TOKENURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorization-code-refresh-url]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorization-code-refresh-url[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.authorization-code.refresh-url]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorizationcode-refreshurl]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorizationcode-refreshurl[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.authorizationCode.refreshUrl]`
 
 
 [.description]
@@ -960,16 +960,16 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.refreshUrl
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATION_CODE_REFRESH_URL+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATIONCODE_REFRESHURL+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATION_CODE_REFRESH_URL+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATIONCODE_REFRESHURL+++`
 endif::add-copy-button-to-env-var[]
 --|string 
 |
 
 
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorization-code-scopes-flowscopes]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorization-code-scopes-flowscopes[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.authorization-code.scopes]`
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorizationcode-scopes-flowscopes]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-components-securityschemes-scheme-flows-authorizationcode-scopes-flowscopes[quarkus.jimmer.client.openapi.properties.components.securitySchemes."scheme".flows.authorizationCode.scopes]`
 
 
 [.description]
@@ -977,10 +977,10 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 Flow.scopes
 
 ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATION_CODE_SCOPES+++[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATIONCODE_SCOPES+++[]
 endif::add-copy-button-to-env-var[]
 ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATION_CODE_SCOPES+++`
+Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PROPERTIES_COMPONENTS_SECURITYSCHEMES__SCHEME__FLOWS_AUTHORIZATIONCODE_SCOPES+++`
 endif::add-copy-button-to-env-var[]
 --|`Map<String,String>` 
 |
