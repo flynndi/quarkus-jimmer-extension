@@ -45,7 +45,7 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         }
 
         Metadata metadata = Metadatas.create(false, routingContext.request().getParam("groups"),
-                config.client().uriPrefix.orElse(null),
+                config.client().uriPrefix().orElse(null),
                 config.client().controllerNullityChecked());
 
         List<OpenApiProperties.Server> servers = null;
@@ -53,9 +53,9 @@ public class OpenApiHandler implements Handler<RoutingContext> {
             servers = new ArrayList<>(config.client().openapi().properties().servers().get().size());
             for (JimmerBuildTimeConfig.Server server : config.client().openapi().properties().servers().get()) {
                 Map<String, OpenApiProperties.Variable> map = new HashMap<>();
-                server.variables().forEach((k, v) -> map.put(k, new OpenApiProperties.Variable(v.enums.orElse(null),
-                        v.defaultValue.orElse(null), v.description.orElse(null))));
-                servers.add(new OpenApiProperties.Server(server.url.orElse(null), server.description.orElse(null), map));
+                server.variables().forEach((k, v) -> map.put(k, new OpenApiProperties.Variable(v.enums().orElse(null),
+                        v.defaultValue().orElse(null), v.description().orElse(null))));
+                servers.add(new OpenApiProperties.Server(server.url().orElse(null), server.description().orElse(null), map));
             }
         }
 

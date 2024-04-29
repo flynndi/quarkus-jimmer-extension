@@ -142,7 +142,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         config.offsetOptimizingThreshold.ifPresent(builder::setOffsetOptimizingThreshold);
         builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
         builder.setDefaultLockMode(config.lockMode());
-        config.executorContextPrefixes.ifPresent(builder::setExecutorContextPrefixes);
+        config.executorContextPrefixes().ifPresent(builder::setExecutorContextPrefixes);
 
         if (config.showSql()) {
             builder.setExecutor(Executor.log(executor));
@@ -164,8 +164,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         }
         builder
                 .setDatabaseValidationMode(config.databaseValidation().mode())
-                .setDatabaseValidationCatalog(config.databaseValidation().catalog.orElse(null))
-                .setDatabaseValidationSchema(config.databaseValidation().schema.orElse(null))
+                .setDatabaseValidationCatalog(config.databaseValidation().catalog().orElse(null))
+                .setDatabaseValidationSchema(config.databaseValidation().schema().orElse(null))
                 .setCacheFactory(cacheFactory)
                 .setCacheOperator(cacheOperator)
                 .addCacheAbandonedCallbacks(callbacks);

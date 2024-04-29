@@ -134,7 +134,7 @@ public interface JimmerBuildTimeConfig {
     /**
      * jimmer.executorContextPrefixes
      */
-    Optional<List<String>> executorContextPrefixes = Optional.empty();
+    Optional<List<String>> executorContextPrefixes();
 
     /**
      * jimmer.microServiceName
@@ -163,12 +163,12 @@ public interface JimmerBuildTimeConfig {
         /**
          * catalog
          */
-        Optional<String> catalog = Optional.empty();
+        Optional<String> catalog();
 
         /**
          * schema
          */
-        Optional<String> schema = Optional.empty();
+        Optional<String> schema();
     }
 
     @ConfigGroup
@@ -209,7 +209,7 @@ public interface JimmerBuildTimeConfig {
         /**
          * jimmer.Client.uriPrefix
          */
-        Optional<String> uriPrefix = Optional.empty();
+        Optional<String> uriPrefix();
 
         /**
          * jimmer.Client.controllerNullityChecked
@@ -380,12 +380,14 @@ public interface JimmerBuildTimeConfig {
         /**
          * Server.url
          */
-        Optional<String> url = Optional.empty();
+        @WithName("url")
+        Optional<String> url();
 
         /**
          * Server.description
          */
-        Optional<String> description = Optional.empty();
+        @WithName("description")
+        Optional<String> description();
 
         /**
          * Server.variables
@@ -401,17 +403,20 @@ public interface JimmerBuildTimeConfig {
         /**
          * Variable.enums
          */
-        Optional<List<String>> enums = Optional.empty();
+        @WithName("enums")
+        Optional<List<String>> enums();
 
         /**
          * Variable.defaultValue
          */
-        Optional<String> defaultValue = Optional.empty();
+        @WithName("defaultValue")
+        Optional<String> defaultValue();
 
         /**
          * Variable.description
          */
-        Optional<String> description = Optional.empty();
+        @WithName("description")
+        Optional<String> description();
     }
 
     @ConfigGroup
