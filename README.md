@@ -23,7 +23,7 @@ Maven
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR10</version>
+   <version>0.0.1.CR12</version>
 </dependency>
 
 <build>
