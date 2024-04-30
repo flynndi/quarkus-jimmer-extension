@@ -15,8 +15,8 @@ Please let me know if you have any suggestions on these parts
 ## Dependency
 Gradle
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR11'
-annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.121'
+implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR12'
+annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.129'
 ```
 Maven
 ```xml
@@ -37,7 +37,7 @@ Maven
                     <path>
                         <groupId>org.babyfish.jimmer</groupId>
                         <artifactId>jimmer-apt</artifactId>
-                        <version>0.8.121</version>
+                        <version>0.8.129</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
