@@ -22,6 +22,7 @@ quarkus:
   log:
     level: DEBUG
   jimmer:
+    language: java
     show-sql: true
     pretty-sql: true
     inline-sql-variables: true
@@ -43,15 +44,46 @@ quarkus:
             description: This is the OpenAPI UI of Quarkus-Jimmer-Extension REST Example (Java)
             version: 0.0.1.CR1
           securities:
-            - tenantHeader: [1, 2, 3]
-            - oauthHeader: [4, 5, 6]
+            - tenantHeader: [1]
+            - OAuth2: [2]
           components:
             securitySchemes:
               tenantHeader:
                 type: apiKey
                 name: tenant
                 in: HEADER
-              oauthHeader:
-                type: apiKey
-                name: tenant
-                in: QUERY
+              OAuth2:
+                type: oauth2
+                flows:
+                  authorizationCode:
+                    authorizationUrl: https://example.com/oauth/authorize
+                    tokenUrl: https://example.com/oauth/token
+                    scopes:
+                      read: Grants read access
+                      write: Grants write access
+                      admin: Grants access to admin operations
+                  password:
+                    tokenUrl: http://localhost:9000/oauth2/token
+                    scopes:
+                      address: address
+                      openid: openid
+                      message.read: message.read
+                      groups: groups
+                      perms: perms
+                      client.create: client.create
+          servers:
+            - url: http://${quarkus.jimmer.client.openapi.properties.servers[0].variables.username.defaultValue}:${quarkus.jimmer.client.openapi.properties.servers[0].variables.port.defaultValue}
+              description: The production API server
+              variables:
+                username:
+                  # note! no enum here means it is an open value
+                  defaultValue: localhost
+                  description: this value is assigned by the service provider, in this example `gigantic-server.com`
+                port:
+                  enums:
+                    - '8080'
+                    - '443'
+                  defaultValue: '8080'
+                basePath:
+                  # open meaning there is the opportunity to use special base paths as assigned by the provider, default is `v2`
+                  defaultValue: v2
