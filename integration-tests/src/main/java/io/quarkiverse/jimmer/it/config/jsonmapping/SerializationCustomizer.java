@@ -1,7 +1,6 @@
 package io.quarkiverse.jimmer.it.config.jsonmapping;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.runtime.Customizer;
@@ -15,8 +14,11 @@ import io.quarkus.arc.Unremovable;
 @Unremovable
 public class SerializationCustomizer implements Customizer {
 
-    @Inject
-    ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public SerializationCustomizer(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void customize(JSqlClient.Builder builder) {
