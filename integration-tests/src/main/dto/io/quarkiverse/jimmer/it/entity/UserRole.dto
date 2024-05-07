@@ -7,3 +7,8 @@ input UserRoleInput {
 UserRoleDetailView {
     #allScalars
 }
+
+specification UserRoleSpecification {
+    eq(userId)
+    like/i(roleId)
+}
