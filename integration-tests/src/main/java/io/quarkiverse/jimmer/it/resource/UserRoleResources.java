@@ -9,7 +9,10 @@ import jakarta.ws.rs.core.Response;
 
 import org.jboss.resteasy.reactive.RestQuery;
 
+import io.quarkiverse.jimmer.it.entity.dto.UserRoleSpecification;
+import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
 import io.quarkiverse.jimmer.it.service.IUserRoleService;
+import io.quarkus.agroal.DataSource;
 
 @Path("/userRoleResources")
 @Produces(MediaType.APPLICATION_JSON)
@@ -18,8 +21,11 @@ public class UserRoleResources {
 
     private final IUserRoleService iUserRoleService;
 
-    public UserRoleResources(IUserRoleService iUserRoleService) {
+    private final UserRoleRepository userRoleRepository;
+
+    public UserRoleResources(IUserRoleService iUserRoleService, @DataSource("DB2") UserRoleRepository userRoleRepository) {
         this.iUserRoleService = iUserRoleService;
+        this.userRoleRepository = userRoleRepository;
     }
 
     @GET
@@ -48,5 +54,11 @@ public class UserRoleResources {
     @Path("/deleteReverseById")
     public Response deleteReverseById(@RestQuery UUID id) {
         return Response.ok(iUserRoleService.deleteReverseById(id)).build();
+    }
+
+    @POST
+    @Path("/testUserRoleSpecification")
+    public Response testUserRoleSpecification(UserRoleSpecification userRoleSpecification) {
+        return Response.ok(userRoleRepository.find(userRoleSpecification)).build();
     }
 }
