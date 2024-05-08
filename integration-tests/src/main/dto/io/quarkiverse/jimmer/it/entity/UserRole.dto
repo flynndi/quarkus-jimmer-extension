@@ -1,3 +1,5 @@
+import org.jboss.resteasy.reactive.RestQuery
+
 input UserRoleInput {
 
     #allScalars(UserRole)
@@ -9,6 +11,8 @@ UserRoleDetailView {
 }
 
 specification UserRoleSpecification {
+    @RestQuery
     eq(userId)
+    @RestQuery
     like/i(roleId)
 }
