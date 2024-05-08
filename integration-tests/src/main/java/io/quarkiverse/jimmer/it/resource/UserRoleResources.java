@@ -56,7 +56,7 @@ public class UserRoleResources {
         return Response.ok(iUserRoleService.deleteReverseById(id)).build();
     }
 
-    @POST
+    @GET
     @Path("/testUserRoleSpecification")
     public Response testUserRoleSpecification(UserRoleSpecification userRoleSpecification) {
         return Response.ok(userRoleRepository.find(userRoleSpecification)).build();
