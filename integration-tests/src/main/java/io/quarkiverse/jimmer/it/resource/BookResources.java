@@ -18,7 +18,11 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import io.quarkiverse.jimmer.it.config.error.UserInfoException;
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.Fetchers;
+import io.quarkiverse.jimmer.it.entity.Tables;
+import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
+import io.quarkiverse.jimmer.it.entity.dto.BookSpecification;
 import io.quarkiverse.jimmer.it.service.IBook;
+import io.quarkiverse.jimmer.runtime.Jimmer;
 
 @Path("/bookResource")
 @Produces(MediaType.APPLICATION_JSON)
@@ -120,6 +124,18 @@ public class BookResources implements Fetchers {
         List<Character> illegalChars = new ArrayList<>();
         illegalChars.add('a');
         throw UserInfoException.illegalUserName("testError", illegalChars);
+    }
+
+    @GET
+    @Path("/testBookSpecification")
+    @Api
+    public Response testBoolSpecification(BookSpecification bookSpecification) {
+        return Response.ok(
+                Jimmer.getDefaultJSqlClient().createQuery(Tables.BOOK_TABLE)
+                        .where(bookSpecification)
+                        .select(Tables.BOOK_TABLE.fetch(BookDetailView.class))
+                        .execute())
+                .build();
     }
 
     private static final Fetcher<Book> SIMPLE_BOOK = BOOK_FETCHER.name();
