@@ -1,0 +1,5 @@
+TreeNodeDetailView {
+    #allScalars
+    parent*
+    childNodes*
+}
