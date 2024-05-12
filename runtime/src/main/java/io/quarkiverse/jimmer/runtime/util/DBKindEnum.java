@@ -11,7 +11,7 @@ public enum DBKindEnum {
     DB2("db2", () -> DefaultDialect.INSTANCE),
     DERBY("derby", () -> DefaultDialect.INSTANCE),
     MARIADB("mariadb", () -> DefaultDialect.INSTANCE),
-    MSSQL("mssql", () -> DefaultDialect.INSTANCE),
+    MSSQL("mssql", SqlServerDialect::new),
     MYSQL("mysql", MySqlDialect::new),
     ORACLE("oracle", OracleDialect::new),
     TIDB("tidb", TiDBDialect::new);
