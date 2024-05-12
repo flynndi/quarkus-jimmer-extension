@@ -6,9 +6,7 @@ import jakarta.enterprise.event.Event
 import org.babyfish.jimmer.sql.JSqlClient
 import org.babyfish.jimmer.sql.dialect.Dialect
 import org.babyfish.jimmer.sql.kt.KSqlClient
-import org.babyfish.jimmer.sql.kt.cfg.KSqlClientDsl
 import org.babyfish.jimmer.sql.kt.toKSqlClient
-import java.util.function.Consumer
 import javax.sql.DataSource
 
 object SqlClients {
