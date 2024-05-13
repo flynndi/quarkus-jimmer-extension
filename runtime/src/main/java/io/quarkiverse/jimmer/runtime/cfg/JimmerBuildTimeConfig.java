@@ -284,6 +284,12 @@ public interface JimmerBuildTimeConfig {
         String uiPath();
 
         /**
+         * Openapi.refPath
+         */
+        @WithDefault("/openapi.yml")
+        String refPath();
+
+        /**
          * Openapi.properties
          */
         Properties properties();
