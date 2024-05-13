@@ -79,10 +79,10 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
     }
 
     private String html(String groups) {
-        String path = config.client().openapi().path();
+        String refPath = config.client().openapi().refPath();
         String resource;
         if (hasMetadata()) {
-            resource = path != null && !path.isEmpty() ? "META-INF/jimmer/openapi/index.html.template"
+            resource = refPath != null && !refPath.isEmpty() ? "META-INF/jimmer/openapi/index.html.template"
                     : "META-INF/jimmer/openapi/no-api.html";
         } else {
             resource = "META-INF/jimmer/openapi/no-metadata.html";
@@ -104,7 +104,7 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
             return builder.toString();
         }
         if (groups != null && !groups.isEmpty()) {
-            path += "?groups=" + URLEncoder.encode(groups, StandardCharsets.UTF_8);
+            refPath += "?groups=" + URLEncoder.encode(groups, StandardCharsets.UTF_8);
         }
         return builder
                 .toString()
@@ -115,8 +115,8 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
                         exists(Constant.JS_RESOURCE) ? Constant.JS_URL
                                 : "https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-bundle.js")
                 .replace(
-                        "${openapi.path}",
-                        path);
+                        "${openapi.refPath}",
+                        refPath);
     }
 
     private boolean hasMetadata() {
