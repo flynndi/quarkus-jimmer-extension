@@ -523,7 +523,7 @@ ifndef::add-copy-button-to-env-var[]
 Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_REF_PATH+++`
 endif::add-copy-button-to-env-var[]
 --|string 
-|`/openapi.html`
+|`/openapi.yml`
 
 
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-info-title]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-info-title[quarkus.jimmer.client.openapi.properties.info.title]`
