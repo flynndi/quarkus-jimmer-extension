@@ -1,10 +1,7 @@
 package io.quarkiverse.jimmer.runtime.graal;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.function.BooleanSupplier;
 
-import org.babyfish.jimmer.sql.dialect.UpdateJoin;
 import org.babyfish.jimmer.sql.runtime.Reader;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -17,21 +14,6 @@ public class JimmerSubstitutions {
 
     @TargetClass(className = "org.babyfish.jimmer.sql.dialect.PostgresDialect", onlyWith = JimmerSubstitutions.IsPGAbsent.class)
     public static final class PostgresDialectSubstitutions {
-
-        @Substitute
-        public UpdateJoin getUpdateJoin() {
-            return null;
-        }
-
-        @Substitute
-        public String getSelectIdFromSequenceSql(String sequenceName) {
-            return null;
-        }
-
-        @Substitute
-        public String getOverrideIdentityIdSql() {
-            return null;
-        }
 
         @Substitute
         public Class<?> getJsonBaseType() {
@@ -49,37 +31,7 @@ public class JimmerSubstitutions {
         }
 
         @Substitute
-        public boolean isIgnoreCaseLikeSupported() {
-            return true;
-        }
-
-        @Substitute
-        public boolean isArraySupported() {
-            return true;
-        }
-
-        @Substitute
-        public String arrayTypeSuffix() {
-            return null;
-        }
-
-        @Substitute
-        public String sqlType(Class<?> elementType) {
-            return null;
-        }
-
-        @Substitute
-        public <T> T[] getArray(ResultSet rs, int col, Class<T[]> arrayType) throws SQLException {
-            return null;
-        }
-
-        @Substitute
         public Reader<?> unknownReader(Class<?> sqlType) {
-            return null;
-        }
-
-        @Substitute
-        public String transCacheOperatorTableDDL() {
             return null;
         }
     }
