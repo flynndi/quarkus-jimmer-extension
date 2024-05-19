@@ -103,6 +103,12 @@ public interface JimmerBuildTimeConfig {
     boolean inListPaddingEnabled();
 
     /**
+     * jimmer.expandedInListPaddingEnabled
+     */
+    @WithDefault("false")
+    boolean expandedInListPaddingEnabled();
+
+    /**
      * jimmer.inListToAnyEqualityEnabled
      */
     @WithDefault("false")

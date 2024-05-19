@@ -138,6 +138,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setDefaultEnumStrategy(config.defaultEnumStrategy());
         config.defaultBatchSize.ifPresent(builder::setDefaultBatchSize);
         builder.setInListPaddingEnabled(config.inListPaddingEnabled());
+        builder.setExpandedInListPaddingEnabled(config.expandedInListPaddingEnabled());
         builder.setInListToAnyEqualityEnabled(config.inListToAnyEqualityEnabled());
         config.defaultListBatchSize.ifPresent(builder::setDefaultListBatchSize);
         config.offsetOptimizingThreshold.ifPresent(builder::setOffsetOptimizingThreshold);
