@@ -10,6 +10,7 @@ import jakarta.ws.rs.core.Response;
 import org.babyfish.jimmer.client.meta.Api;
 import org.jboss.resteasy.reactive.RestQuery;
 
+import io.quarkiverse.jimmer.it.entity.dto.TreeNodeDetailView;
 import io.quarkiverse.jimmer.it.repository.TreeNodeRepository;
 
 @Path("/treeNodeResources")
@@ -29,5 +30,12 @@ public class TreeNodeResources {
     @Api
     public Response infiniteRecursion(@RestQuery Long parentId) {
         return Response.ok(treeNodeRepository.infiniteRecursion(parentId)).build();
+    }
+
+    @GET
+    @Path("/all")
+    @Api
+    public Response all() {
+        return Response.ok(treeNodeRepository.viewer(TreeNodeDetailView.class).findAll()).build();
     }
 }
