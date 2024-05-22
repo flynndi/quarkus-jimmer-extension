@@ -13,6 +13,7 @@ public class JimmerDevModeTest {
     // Start hot reload (DevMode) test with your extension loaded
     @RegisterExtension
     static final QuarkusDevModeTest devModeTest = new QuarkusDevModeTest()
+            .setBuildSystemProperty("quarkus.redis.hosts", "redis://localhost:6379")
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class));
 
     @Test
