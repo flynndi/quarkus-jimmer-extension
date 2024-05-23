@@ -34,6 +34,7 @@ import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
+import io.quarkiverse.jimmer.runtime.graal.JimmerFeature;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
@@ -54,6 +55,7 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.*;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
+import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
@@ -545,6 +547,11 @@ class JimmerProcessor {
 
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
         }
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
+    NativeImageFeatureBuildItem nativeImageFeature() {
+        return new NativeImageFeatureBuildItem(JimmerFeature.class);
     }
 
     @BuildStep
