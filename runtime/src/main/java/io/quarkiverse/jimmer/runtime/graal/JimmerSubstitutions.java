@@ -9,6 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
 
+/**
+ * Have no effect
+ */
 public class JimmerSubstitutions {
 
     @TargetClass(className = "org.babyfish.jimmer.sql.dialect.PostgresDialect", onlyWith = JimmerSubstitutions.IsPGAbsent.class)
