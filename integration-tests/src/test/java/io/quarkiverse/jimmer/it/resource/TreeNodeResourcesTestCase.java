@@ -37,4 +37,17 @@ public class TreeNodeResourcesTestCase {
         Assertions.assertEquals(1, response.jsonPath().getLong("[0].id"));
         Assertions.assertEquals(2, response.jsonPath().getList("[0].childNodes").size());
     }
+
+    @Test
+    public void testAll() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("treeNodeResources/all");
+        Assertions.assertEquals(24, response.jsonPath().getList("").size());
+        Assertions.assertEquals(2, response.jsonPath().getList("[0].childNodes").size());
+        Assertions.assertEquals(9, response.jsonPath().getInt("[0].childNodes[0].id"));
+        Assertions.assertEquals(2, response.jsonPath().getList("[0].childNodes[0].childNodes").size());
+    }
 }
