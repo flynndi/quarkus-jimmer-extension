@@ -29,14 +29,17 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy-reactive-deployment</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-redis-client-deployment</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-caffeine-deployment</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
