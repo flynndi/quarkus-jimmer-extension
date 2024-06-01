@@ -20,6 +20,10 @@
             <artifactId>quarkus-jimmer-deployment</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-resteasy-reactive-deployment</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
