@@ -9,6 +9,7 @@ public class IntegrationTestsProfile implements QuarkusTestProfile {
     @Override
     public Map<String, String> getConfigOverrides() {
         return Map.ofEntries(
+                Map.entry("quarkus.application.name", "quarkus-jimmer-integration-tests-test"),
                 Map.entry("quarkus.package.type", "uber-jar"),
                 Map.entry("quarkus.datasource.db-kind", "h2"),
                 Map.entry("quarkus.datasource.username", "default"),
