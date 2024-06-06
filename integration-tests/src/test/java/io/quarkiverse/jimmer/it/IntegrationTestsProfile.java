@@ -23,6 +23,7 @@ public class IntegrationTestsProfile implements QuarkusTestProfile {
                 Map.entry("quarkus.datasource.DB2.jdbc.max-size", "8"),
                 Map.entry("quarkus.jimmer.language", "java"),
                 Map.entry("quarkus.jimmer.show-sql", "true"),
-                Map.entry("quarkus.jimmer.pretty-sql", "true"));
+                Map.entry("quarkus.jimmer.pretty-sql", "true"),
+                Map.entry("quarkus.jimmer.inline-sql-variables", "true"));
     }
 }
