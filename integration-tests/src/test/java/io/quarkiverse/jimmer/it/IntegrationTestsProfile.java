@@ -24,6 +24,7 @@ public class IntegrationTestsProfile implements QuarkusTestProfile {
                 Map.entry("quarkus.jimmer.language", "java"),
                 Map.entry("quarkus.jimmer.show-sql", "true"),
                 Map.entry("quarkus.jimmer.pretty-sql", "true"),
-                Map.entry("quarkus.jimmer.inline-sql-variables", "true"));
+                Map.entry("quarkus.jimmer.inline-sql-variables", "true"),
+                Map.entry("quarkus.jimmer.trigger-type", "TRANSACTION_ONLY"));
     }
 }
