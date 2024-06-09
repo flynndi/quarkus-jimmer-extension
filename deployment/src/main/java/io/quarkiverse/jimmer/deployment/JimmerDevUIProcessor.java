@@ -18,10 +18,19 @@ class JimmerDevUIProcessor {
                 .map(RegistryBuildItem::path)
                 .findFirst();
 
+        Optional<String> openApiUiPath = registries.stream().filter(r -> "OpenApiUiResource".equals(r.name()))
+                .map(RegistryBuildItem::path)
+                .findFirst();
+
         schemaYaml.ifPresent(s -> card.addPage(Page.externalPageBuilder("Schema yaml")
                 .icon("font-awesome-solid:file-lines")
                 .isYamlContent()
                 .url(s)));
+
+        openApiUiPath.ifPresent(s -> card.addPage(Page.externalPageBuilder("Jimmer swagger")
+                .url(s, s)
+                .isHtmlContent()
+                .icon("font-awesome-solid:signs-post")));
         return card;
     }
 }
