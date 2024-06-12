@@ -2,19 +2,8 @@ package io.quarkiverse.jimmer.runtime.kotlin
 
 import org.babyfish.jimmer.sql.kt.KSqlClient
 
-class UnConfiguredDataSourceQuarkusKSqlClientContainer() : QuarkusKSqlClientContainer() {
+class UnConfiguredDataSourceQuarkusKSqlClientContainer(dataSourceName: String, private val message: String, private val cause: Throwable): QuarkusKSqlClientContainer(null, dataSourceName) {
 
-    private var message: String? = null
-
-    private var cause: Throwable? = null
-
-    constructor(dataSourceName: String, message: String, cause: Throwable) : this() {
-        this.dataSourceName = dataSourceName
-        this.message = message
-        this.cause = cause
-    }
-
-    override var kSqlClient: KSqlClient?
+    override val kSqlClient: KSqlClient
         get() = throw UnsupportedOperationException(message, cause)
-        set(value) {}
 }
