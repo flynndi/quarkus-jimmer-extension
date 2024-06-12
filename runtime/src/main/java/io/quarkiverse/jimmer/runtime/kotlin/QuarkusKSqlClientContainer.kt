@@ -2,19 +2,7 @@ package io.quarkiverse.jimmer.runtime.kotlin
 
 import org.babyfish.jimmer.sql.kt.KSqlClient
 
-open class QuarkusKSqlClientContainer() {
+open class QuarkusKSqlClientContainer(open val kSqlClient: KSqlClient?, val dataSourceName: String) {
 
-    open var kSqlClient: KSqlClient? = null
-
-    var dataSourceName: String? = null
-
-    var id: String? = null
-
-    constructor(kSqlClient: KSqlClient?, dataSourceName: String?) : this() {
-        this.kSqlClient = kSqlClient
-        this.dataSourceName = dataSourceName
-        if (dataSourceName != null) {
-            this.id = dataSourceName.replace("<", "").replace(">", "")
-        }
-    }
+    val id: String = dataSourceName.replace("<", "").replace(">", "")
 }
