@@ -11,7 +11,7 @@ import io.quarkus.devui.spi.page.Page;
 class JimmerDevUIProcessor {
 
     @BuildStep(onlyIf = IsDevelopment.class)
-    public CardPageBuildItem createCard(List<RegistryBuildItem> registries) {
+    CardPageBuildItem createCard(List<RegistryBuildItem> registries) {
         CardPageBuildItem card = new CardPageBuildItem();
 
         Optional<String> schemaYaml = registries.stream().filter(r -> "OpenApiResource".equals(r.name()))
