@@ -8,3 +8,6 @@ metadata:
   categories:
     - "miscellaneous"
   status: "preview"
+  config:
+    - "quarkus.jimmer."
+  minimum-java-version: "9"
