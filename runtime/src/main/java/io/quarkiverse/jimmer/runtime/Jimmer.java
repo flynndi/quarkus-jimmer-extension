@@ -46,7 +46,7 @@ public class Jimmer {
     }
 
     public static QuarkusJSqlClientContainer getJSqlClientContainer(@NotNull String dataSourceName) {
-        return QuarkusSqlClientContainerUtil.getJquarkusSqlClientContainer(dataSourceName);
+        return QuarkusSqlClientContainerUtil.getQuarkusJSqlClientContainer(dataSourceName);
     }
 
     public static KSqlClient getDefaultKSqlClient() {
@@ -70,6 +70,6 @@ public class Jimmer {
     }
 
     public static QuarkusKSqlClientContainer getKSqlClientContainer(@NotNull String dataSourceName) {
-        return QuarkusSqlClientContainerUtil.getKquarkusSqlClientContainer(dataSourceName);
+        return QuarkusSqlClientContainerUtil.getQuarkusKSqlClientContainer(dataSourceName);
     }
 }

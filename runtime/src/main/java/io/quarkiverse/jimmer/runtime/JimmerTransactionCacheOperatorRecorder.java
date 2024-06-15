@@ -17,7 +17,7 @@ public class JimmerTransactionCacheOperatorRecorder {
     public Function<SyntheticCreationalContext<QuarkusTransactionCacheOperator>, QuarkusTransactionCacheOperator> transactionJCacheOperatorFunction(
             String dataSourceName) {
         return quarkusTransactionCacheOperatorSyntheticCreationalContext -> {
-            JSqlClient jSqlClient = QuarkusSqlClientContainerUtil.getJquarkusSqlClientContainer(dataSourceName).getjSqlClient();
+            JSqlClient jSqlClient = QuarkusSqlClientContainerUtil.getQuarkusJSqlClientContainer(dataSourceName).getjSqlClient();
             QuarkusTransactionCacheOperator quarkusTransactionCacheOperator = new QuarkusTransactionCacheOperator();
             quarkusTransactionCacheOperator.initialize(jSqlClient);
             return quarkusTransactionCacheOperator;
@@ -27,7 +27,7 @@ public class JimmerTransactionCacheOperatorRecorder {
     public Function<SyntheticCreationalContext<QuarkusTransactionCacheOperator>, QuarkusTransactionCacheOperator> transactionKCacheOperatorFunction(
             String dataSourceName) {
         return quarkusTransactionCacheOperatorSyntheticCreationalContext -> {
-            KSqlClient kSqlClient = QuarkusSqlClientContainerUtil.getKquarkusSqlClientContainer(dataSourceName).getKSqlClient();
+            KSqlClient kSqlClient = QuarkusSqlClientContainerUtil.getQuarkusKSqlClientContainer(dataSourceName).getKSqlClient();
             QuarkusTransactionCacheOperator quarkusTransactionCacheOperator = new QuarkusTransactionCacheOperator();
             Assert.notNull(kSqlClient, "KSqlClient is not null");
             quarkusTransactionCacheOperator.initialize(kSqlClient.getJavaClient());
