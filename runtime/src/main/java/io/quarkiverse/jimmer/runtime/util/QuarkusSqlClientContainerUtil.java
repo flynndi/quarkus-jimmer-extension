@@ -16,11 +16,11 @@ public final class QuarkusSqlClientContainerUtil {
     private QuarkusSqlClientContainerUtil() {
     }
 
-    public static QuarkusJSqlClientContainer getJquarkusSqlClientContainer(String dataSourceName) {
+    public static QuarkusJSqlClientContainer getQuarkusJSqlClientContainer(String dataSourceName) {
         return instantiateBeanOrClass(QuarkusJSqlClientContainer.class, getQuarkusSqlClientContainerQualifier(dataSourceName));
     }
 
-    public static QuarkusKSqlClientContainer getKquarkusSqlClientContainer(String dataSourceName) {
+    public static QuarkusKSqlClientContainer getQuarkusKSqlClientContainer(String dataSourceName) {
         return instantiateBeanOrClass(QuarkusKSqlClientContainer.class, getQuarkusSqlClientContainerQualifier(dataSourceName));
     }
 
