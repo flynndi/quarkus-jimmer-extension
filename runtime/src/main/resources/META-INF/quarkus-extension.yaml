@@ -4,9 +4,11 @@ description: "A revolutionary ORM framework for both java and kotlin, and a comp
 metadata:
   keywords:
     - "jimmer"
+    - "jpa"
+    - "orm"
   guide: "https://github.com/flynndi/quarkus-jimmer-extension"
   categories:
-    - "miscellaneous"
+    - "data"
   status: "preview"
   config:
     - "quarkus.jimmer."
