@@ -27,6 +27,7 @@ public class IntegrationTestsProfile implements QuarkusTestProfile {
                 Map.entry("quarkus.jimmer.inline-sql-variables", "true"),
                 Map.entry("quarkus.jimmer.trigger-type", "TRANSACTION_ONLY"),
                 Map.entry("quarkus.jimmer.database-validation.mode", "NONE"),
-                Map.entry("quarkus.jimmer.error-translator.disabled", "false"));
+                Map.entry("quarkus.jimmer.error-translator.disabled", "false"),
+                Map.entry("quarkus.jimmer.error-translator.debug-info-supported", "true"));
     }
 }
