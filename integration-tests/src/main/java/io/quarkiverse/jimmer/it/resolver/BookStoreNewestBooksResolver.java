@@ -3,7 +3,6 @@ package io.quarkiverse.jimmer.it.resolver;
 import java.util.*;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
 
 import org.babyfish.jimmer.lang.Ref;
 import org.babyfish.jimmer.sql.JSqlClient;
@@ -18,9 +17,10 @@ import io.quarkiverse.jimmer.it.entity.BookProps;
 import io.quarkiverse.jimmer.it.entity.BookStore;
 import io.quarkiverse.jimmer.it.entity.BookStoreProps;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
+import io.quarkus.arc.Unremovable;
 
 @ApplicationScoped
-@Named("bookStoreNewestBooksResolver")
+@Unremovable
 public class BookStoreNewestBooksResolver implements TransientResolver<Long, List<Long>> {
 
     private final BookRepository bookRepository;
