@@ -82,6 +82,11 @@ class JimmerProcessor {
     }
 
     @BuildStep
+    AnnotationsTransformerBuildItem transform(CustomScopeAnnotationsBuildItem customScopes) {
+        return new AnnotationsTransformerBuildItem(new TransientResolverTransformer(customScopes));
+    }
+
+    @BuildStep
     void setUpExceptionMapper(JimmerBuildTimeConfig config, BuildProducer<ExceptionMapperBuildItem> exceptionMapperProducer) {
         if (config.errorTranslator().isPresent()) {
             if (!config.errorTranslator().get().disabled()) {
