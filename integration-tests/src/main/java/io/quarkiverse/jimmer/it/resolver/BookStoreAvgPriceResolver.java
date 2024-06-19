@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
 
 import org.babyfish.jimmer.lang.Ref;
 import org.babyfish.jimmer.sql.TransientResolver;
@@ -21,9 +20,10 @@ import io.quarkiverse.jimmer.it.entity.BookStore;
 import io.quarkiverse.jimmer.it.entity.BookStoreProps;
 import io.quarkiverse.jimmer.it.service.IBook;
 import io.quarkiverse.jimmer.runtime.Jimmer;
+import io.quarkus.arc.Unremovable;
 
 @ApplicationScoped
-@Named("bookStoreAvgPriceResolver")
+@Unremovable
 public class BookStoreAvgPriceResolver implements TransientResolver<Long, BigDecimal> {
 
     private final IBook iBook;
