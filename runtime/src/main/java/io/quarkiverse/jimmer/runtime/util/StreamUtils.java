@@ -11,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 public interface StreamUtils {
 
+    public static final int BUFFER_SIZE = 8192;
+
     public static <T> Stream<T> createStreamFromIterator(Iterator<T> iterator) {
 
         Spliterator<T> spliterator = Spliterators.spliteratorUnknownSize(iterator, Spliterator.NONNULL);

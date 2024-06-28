@@ -68,4 +68,6 @@ public class Constant {
     public static final String TARGET_IDS = "targetIds";
 
     public static final String FETCHER = "fetcher";
+
+    public static final String URL_PROTOCOL_FILE = "file";
 }
