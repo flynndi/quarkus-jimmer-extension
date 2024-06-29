@@ -6,11 +6,15 @@ import jakarta.json.bind.Jsonb;
 
 import graphql.GraphQL;
 import graphql.schema.*;
-import io.quarkiverse.jimmer.runtime.util.GraphQLSchemaBuilder;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.ArcContainer;
 import io.smallrye.graphql.api.Context;
 import io.smallrye.graphql.execution.event.InvokeInfo;
 import io.smallrye.graphql.schema.model.Operation;
 import io.smallrye.graphql.spi.EventingService;
+import org.jboss.jandex.JandexAntTask;
+import org.jboss.jandex.JandexReflection;
+import org.jboss.jandex.JarIndexer;
 
 public class JimmerGraphqlEventService implements EventingService {
 
@@ -23,66 +27,10 @@ public class JimmerGraphqlEventService implements EventingService {
     public GraphQLSchema.Builder beforeSchemaBuild(GraphQLSchema.Builder builder) {
         //        GraphQLSchema graphQLSchema = new DefaultSchemaResourceGraphQlSourceBuilder().initGraphQlSchema();
         //        return GraphQLSchema.newSchema(graphQLSchema);
-
-        ClassNameTypeResolver classNameTypeResolver = new ClassNameTypeResolver();
-        GraphQLCodeRegistry codeRegistry = GraphQLCodeRegistry.newCodeRegistry()
-                .typeResolver("io_quarkiverse_jimmer_it_entity_UserRole", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_Author", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_Book", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_BookStore", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_TreeNode", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_BaseEntity", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_TenantAware", classNameTypeResolver)
-                .typeResolver("org_babyfish_jimmer_runtime_ImmutableSpi", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_UserRoleDraftProducerImplementor", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_AuthorDraftProducerImplementor", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_BookDraftProducerImplementor", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_BookStoreDraftProducerImplementor", classNameTypeResolver)
-                .typeResolver("io_quarkiverse_jimmer_it_entity_TreeNodeDraftProducerImplementor", classNameTypeResolver)
-                .build();
-
-        GraphQLInterfaceType one = GraphQLSchemaBuilder
-                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.UserRole");
-        GraphQLInterfaceType two = GraphQLSchemaBuilder
-                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.Author");
-        GraphQLInterfaceType three = GraphQLSchemaBuilder
-                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.Book");
-        GraphQLInterfaceType four = GraphQLSchemaBuilder
-                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.BookStore");
-        GraphQLInterfaceType five = GraphQLSchemaBuilder
-                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.TreeNode");
-        GraphQLInterfaceType evelen = GraphQLSchemaBuilder
-                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.BaseEntity");
-        GraphQLInterfaceType threetin = GraphQLSchemaBuilder
-                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.TenantAware");
-        GraphQLInterfaceType tw = GraphQLSchemaBuilder
-                .buildInterfaceType("org.babyfish.jimmer.runtime.ImmutableSpi");
-        //        GraphQLInterfaceType six = GraphQLSchemaBuilder
-        //                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.UserRoleDraft$Producer$Implementor");
-        //        GraphQLInterfaceType seven = GraphQLSchemaBuilder
-        //                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.AuthorDraft$Producer$Implementor");
-        //        GraphQLInterfaceType eight = GraphQLSchemaBuilder
-        //                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.BookDraft$Producer$Implementor");
-        //        GraphQLInterfaceType nine = GraphQLSchemaBuilder
-        //                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.BookStoreDraft$Producer$Implementor");
-        //        GraphQLInterfaceType ten = GraphQLSchemaBuilder
-        //                .buildInterfaceType("io.quarkiverse.jimmer.it.entity.TreeNodeDraft$Producer$Implementor");
-
-        return builder.codeRegistry(codeRegistry)
-                .additionalType(one)
-                .additionalType(two)
-                .additionalType(three)
-                .additionalType(four)
-                .additionalType(five)
-                .additionalType(evelen)
-                .additionalType(tw)
-                .additionalType(threetin);
-        //                .additionalType(six)
-        //                .additionalType(seven)
-        //                .additionalType(eight)
-        //                .additionalType(nine)
-        //                .additionalType(ten);
-        //        return EventingService.super.beforeSchemaBuild(builder);
+        ArcContainer container = Arc.container();
+        System.out.println("container = " + container);
+        GraphQLSchema graphQLSchema = new DefaultSchemaResourceGraphQlSourceBuilder().initGraphQlSchema();
+        return GraphQLSchema.newSchema(graphQLSchema);
     }
 
     @Override
