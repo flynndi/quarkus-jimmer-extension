@@ -12,6 +12,7 @@ import jakarta.ws.rs.Priorities;
 import org.babyfish.jimmer.error.CodeBasedException;
 import org.babyfish.jimmer.error.CodeBasedRuntimeException;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.jboss.jandex.*;
@@ -19,7 +20,6 @@ import org.jboss.logging.Logger;
 
 import io.quarkiverse.jimmer.runtime.*;
 import io.quarkiverse.jimmer.runtime.QuarkusSqlClientProducer;
-import io.quarkiverse.jimmer.runtime.cache.impl.QuarkusTransactionCacheOperator;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.SqlClientInitializer;
@@ -321,7 +321,7 @@ class JimmerProcessor {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
 
             SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
-                    .configure(QuarkusTransactionCacheOperator.class)
+                    .configure(TransactionCacheOperator.class)
                     .scope(Singleton.class)
                     .unremovable()
                     .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
@@ -362,7 +362,7 @@ class JimmerProcessor {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
 
             SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
-                    .configure(QuarkusTransactionCacheOperator.class)
+                    .configure(TransactionCacheOperator.class)
                     .scope(Singleton.class)
                     .unremovable()
                     .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
