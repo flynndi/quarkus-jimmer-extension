@@ -6,6 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.event.TransactionPhase;
 
+import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.event.DatabaseEvent;
 
 import io.quarkus.arc.All;
@@ -14,11 +15,11 @@ import io.quarkus.scheduler.Scheduled;
 @ApplicationScoped
 public class TransactionCacheOperatorFlusher {
 
-    private final List<QuarkusTransactionCacheOperator> operators;
+    private final List<TransactionCacheOperator> operators;
 
     private final ThreadLocal<Boolean> dirtyLocal = new ThreadLocal<>();
 
-    public TransactionCacheOperatorFlusher(@All List<QuarkusTransactionCacheOperator> operators) {
+    public TransactionCacheOperatorFlusher(@All List<TransactionCacheOperator> operators) {
         if (operators.isEmpty()) {
             throw new IllegalArgumentException("`operators` cannot be empty");
         }
@@ -43,11 +44,11 @@ public class TransactionCacheOperatorFlusher {
 
     private void flush() {
         if (operators.size() == 1) {
-            QuarkusTransactionCacheOperator operator = operators.get(0);
+            TransactionCacheOperator operator = operators.get(0);
             operator.flush();
         } else {
             Throwable throwable = null;
-            for (QuarkusTransactionCacheOperator operator : operators) {
+            for (TransactionCacheOperator operator : operators) {
                 try {
                     operator.flush();
                 } catch (RuntimeException | Error ex) {
