@@ -25,8 +25,8 @@ import org.babyfish.jimmer.sql.ast.mutation.*;
 import org.babyfish.jimmer.sql.ast.query.ConfigurableRootQuery;
 import org.babyfish.jimmer.sql.ast.query.Order;
 import org.babyfish.jimmer.sql.ast.table.Table;
+import org.babyfish.jimmer.sql.fetcher.DtoMetadata;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
-import org.babyfish.jimmer.sql.fetcher.ViewMetadata;
 import org.babyfish.jimmer.sql.runtime.ExecutionPurpose;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.jetbrains.annotations.NotNull;
@@ -415,7 +415,7 @@ public interface JRepository<E, ID> {
 
         return new Viewer<E, ID, V>() {
 
-            private final ViewMetadata<E, V> metadata = ViewMetadata.of(viewType);
+            private final DtoMetadata<E, V> metadata = DtoMetadata.of(viewType);
 
             @Override
             public V findNullable(ID id) {
