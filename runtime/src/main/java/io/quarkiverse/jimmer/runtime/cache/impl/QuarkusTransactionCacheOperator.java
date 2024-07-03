@@ -9,7 +9,6 @@ import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.cache.Cache;
 import org.babyfish.jimmer.sql.cache.CacheOperator;
 import org.babyfish.jimmer.sql.cache.LocatedCache;
-import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.cache.spi.AbstractCacheOperator;
 import org.babyfish.jimmer.sql.runtime.ConnectionManager;
 import org.babyfish.jimmer.sql.runtime.ExecutionException;
@@ -21,9 +20,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+/**
+ * @see org.babyfish.jimmer.sql.cache.TransactionCacheOperator
+ */
+@Deprecated
 public class QuarkusTransactionCacheOperator extends AbstractCacheOperator {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransactionCacheOperator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusTransactionCacheOperator.class);
 
     public static final String TABLE_NAME = "JIMMER_TRANS_CACHE_OPERATOR";
 
@@ -138,7 +141,7 @@ public class QuarkusTransactionCacheOperator extends AbstractCacheOperator {
             } catch (SQLException ex) {
                 throw new ExecutionException(
                         "Cannot create table `" +
-                                TransactionCacheOperator.TABLE_NAME +
+                                QuarkusTransactionCacheOperator.TABLE_NAME +
                                 "`",
                         ex);
             }
