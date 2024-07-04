@@ -17,7 +17,8 @@ import io.quarkus.arc.ArcContainer;
 /**
  * This class is sort of a producer for {@link JQuarkusSqlClient}.
  * It isn't a CDI producer in the literal sense, but it is marked as a bean,
- * and it's {@link #createQuarkusJSqlClient} or {@link #createQuarkusKSqlClient}
+ * and it's {@link #createQuarkusJSqlClientContainer} or
+ * {@link #createQuarkusKSqlClientContainer}
  * method is called at runtime in order to produce
  * the actual {@link JSqlClient} or {@link KSqlClient} objects.
  * CDI scopes and qualifiers are set up at build-time, which is why this class is devoid of
@@ -39,12 +40,14 @@ public class QuarkusSqlClientProducer {
         this.event = event;
     }
 
-    public QuarkusJSqlClientContainer createQuarkusJSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect) {
+    public QuarkusJSqlClientContainer createQuarkusJSqlClientContainer(DataSource dataSource, String dataSourceName,
+            Dialect dialect) {
         final JSqlClient jSqlClient = SqlClients.java(config, dataSource, dataSourceName, container, event, dialect);
         return new QuarkusJSqlClientContainer(jSqlClient, dataSourceName);
     }
 
-    public QuarkusKSqlClientContainer createQuarkusKSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect) {
+    public QuarkusKSqlClientContainer createQuarkusKSqlClientContainer(DataSource dataSource, String dataSourceName,
+            Dialect dialect) {
         final KSqlClient kSqlClient = SqlClients.kotlin(config, dataSource, dataSourceName, container, event, dialect);
         return new QuarkusKSqlClientContainer(kSqlClient, dataSourceName);
     }
