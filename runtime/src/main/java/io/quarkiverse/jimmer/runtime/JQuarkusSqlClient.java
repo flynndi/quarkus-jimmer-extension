@@ -41,6 +41,7 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGener
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusUserIdGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.util.Constant;
+import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InstanceHandle;
 
@@ -48,28 +49,19 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JQuarkusSqlClient.class);
 
-    private final JimmerBuildTimeConfig config;
-
     private final DataSource dataSource;
 
     private final String dataSourceName;
 
-    private final ArcContainer container;
-
-    private final Event<Object> event;
+    private final ArcContainer container = Arc.container();
 
     private final Dialect dialect;
 
     private final boolean isKotlin;
 
-    public JQuarkusSqlClient(JimmerBuildTimeConfig config, DataSource dataSource, String dataSourceName,
-            ArcContainer container, Event<Object> event, Dialect dialect,
-            boolean isKotlin) {
-        this.config = config;
+    public JQuarkusSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect, boolean isKotlin) {
         this.dataSource = dataSource;
         this.dataSourceName = dataSourceName;
-        this.container = container;
-        this.event = event;
         this.dialect = dialect;
         this.isKotlin = isKotlin;
     }
@@ -77,6 +69,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
     @Override
     protected JSqlClient.Builder createBuilder() {
 
+        JimmerBuildTimeConfig config = getOptionalBean(JimmerBuildTimeConfig.class);
         ConnectionManager connectionManager = getOptionalBean(ConnectionManager.class);
         UserIdGeneratorProvider userIdGeneratorProvider = getOptionalBean(UserIdGeneratorProvider.class);
         LogicalDeletedValueGeneratorProvider logicalDeletedValueGeneratorProvider = getOptionalBean(
@@ -178,7 +171,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
         builder.addDraftInterceptors(interceptors);
         initializeByLanguage(builder);
-        builder.addInitializers(new QuarkusEventInitializer(event));
+        builder.addInitializers(new QuarkusEventInitializer());
 
         builder.setMicroServiceName(config.microServiceName().orElse(null));
         if (config.microServiceName().isPresent()) {
@@ -332,17 +325,12 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
     private static class QuarkusEventInitializer implements Initializer {
 
-        private final Event<Object> event;
-
-        public QuarkusEventInitializer(Event<Object> event) {
-            this.event = event;
-        }
-
         @Override
         public void initialize(JSqlClient sqlClient) {
             Triggers[] triggersArr = ((JSqlClientImplementor) sqlClient).getTriggerType() == TriggerType.BOTH
                     ? new Triggers[] { sqlClient.getTriggers(), sqlClient.getTriggers(true) }
                     : new Triggers[] { sqlClient.getTriggers() };
+            Event<Object> event = Arc.container().beanManager().getEvent();
             Event<EntityEvent<?>> entityEvent = event.select(new TypeLiteral<>() {
             });
             Event<AssociationEvent> associationEvent = event.select(new TypeLiteral<>() {
