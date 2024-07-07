@@ -49,10 +49,8 @@ public interface JRepository<E, ID> {
     }
 
     default JSqlClient sql() {
-        if (null != this.getClass().getAnnotation(DataSource.class)) {
-            return Jimmer.getJSqlClient(this.getClass().getAnnotation(DataSource.class).value());
-        }
-        return Jimmer.getDefaultJSqlClient();
+        DataSource dataSource = this.getClass().getAnnotation(DataSource.class);
+        return dataSource == null ? Jimmer.getDefaultJSqlClient() : Jimmer.getJSqlClient(dataSource.value());
     }
 
     default ImmutableType type() {
