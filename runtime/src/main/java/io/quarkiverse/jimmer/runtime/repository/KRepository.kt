@@ -31,10 +31,8 @@ interface KRepository<E: Any, ID: Any> {
     }
 
     fun sql(): KSqlClient {
-        if (null != this.javaClass.getAnnotation(DataSource::class.java)) {
-            return Jimmer.getKSqlClient(this.javaClass.getAnnotation(DataSource::class.java).value)
-        }
-        return Jimmer.getDefaultKSqlClient()
+        val dataSource = this.javaClass.getAnnotation(DataSource::class.java)
+        return if (dataSource == null) Jimmer.getDefaultKSqlClient() else Jimmer.getKSqlClient(dataSource.value)
     }
 
     fun type(): ImmutableType {
