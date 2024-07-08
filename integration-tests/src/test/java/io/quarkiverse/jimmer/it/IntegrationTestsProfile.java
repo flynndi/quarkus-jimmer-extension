@@ -30,6 +30,7 @@ public class IntegrationTestsProfile implements QuarkusTestProfile {
                 Map.entry("quarkus.jimmer.error-translator.disabled", "false"),
                 Map.entry("quarkus.jimmer.error-translator.debug-info-supported", "true"),
                 Map.entry("quarkus.jimmer.client.ts.path", "/Code/ts.zip"),
-                Map.entry("quarkus.jimmer.client.openapi.path", "/openapi.yml"));
+                Map.entry("quarkus.jimmer.client.openapi.path", "/openapi.yml"),
+                Map.entry("quarkus.jimmer.client.openapi.ui-path", "/openapi.html"));
     }
 }
