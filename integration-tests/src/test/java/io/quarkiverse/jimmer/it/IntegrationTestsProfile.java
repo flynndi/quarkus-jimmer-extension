@@ -32,6 +32,7 @@ public class IntegrationTestsProfile implements QuarkusTestProfile {
                 Map.entry("quarkus.jimmer.client.ts.path", "/Code/ts.zip"),
                 Map.entry("quarkus.jimmer.client.openapi.path", "/openapi.yml"),
                 Map.entry("quarkus.jimmer.client.openapi.ui-path", "/openapi.html"),
-                Map.entry("quarkus.jimmer.client.openapi.properties.info.title", "Jimmer REST Example(Java)"));
+                Map.entry("quarkus.jimmer.client.openapi.properties.info.title", "Jimmer REST Example(Java)"),
+                Map.entry("quarkus.jimmer.client.openapi.properties.info.description", "test"));
     }
 }
