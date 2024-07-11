@@ -8,7 +8,7 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.devui.spi.page.CardPageBuildItem;
 import io.quarkus.devui.spi.page.Page;
 
-class JimmerDevUIProcessor {
+final class JimmerDevUIProcessor {
 
     @BuildStep(onlyIf = IsDevelopment.class)
     CardPageBuildItem createCard(List<RegistryBuildItem> registries) {
