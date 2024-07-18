@@ -109,12 +109,6 @@ public interface JimmerBuildTimeConfig {
     boolean expandedInListPaddingEnabled();
 
     /**
-     * jimmer.inListToAnyEqualityEnabled
-     */
-    @WithDefault("false")
-    boolean inListToAnyEqualityEnabled();
-
-    /**
      * jimmer.defaultListBatchSize
      */
     OptionalInt defaultListBatchSize = OptionalInt.of(JSqlClient.Builder.DEFAULT_LIST_BATCH_SIZE);
