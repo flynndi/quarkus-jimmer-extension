@@ -108,6 +108,18 @@ jobs:
           profile-properties-gpg.executable: ${{ vars.PROFILE_OSSRH_GPG_EXECUTABLE }}
           profile-properties-gpg.passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Connect to Redis
+        run: node client.js
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
       - name: Build with Maven
         run: mvn -B clean install -Dno-format
 
