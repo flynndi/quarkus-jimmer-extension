@@ -11,6 +11,7 @@
   <name>Quarkus Quarkus Jimmer Extension - Integration Tests</name>
   <properties>
     <skipITs>true</skipITs>
+    <redisson.version>3.32.0</redisson.version>
   </properties>
   <dependencies>
     <dependency>
@@ -51,6 +52,11 @@
       <groupId>io.github.flynndi</groupId>
       <artifactId>quarkus-jimmer</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.redisson</groupId>
+      <artifactId>redisson-quarkus-30</artifactId>
+      <version>${redisson.version}</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
