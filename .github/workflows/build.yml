@@ -51,20 +51,6 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: Install dependencies
-        run: |
-          if [ -e yarn.lock ]; then
-          yarn install --frozen-lockfile
-          elif [ -e package-lock.json ]; then
-          npm ci
-          else
-          npm i
-          fi
-      - name: Connect to Redis
-        run: node client.js
-        env:
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
   build:
     name: Build on ${{ matrix.os }}
     strategy:
