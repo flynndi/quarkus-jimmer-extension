@@ -21,6 +21,15 @@ quarkus:
         url: jdbc:h2:mem:bd2
   log:
     level: DEBUG
+  redisson:
+    single-server-config:
+      address: redis://localhost:6379
+#      password: password
+    threads: 64
+    netty-threads: 128
+  redis:
+    hosts: redis://localhost:6379
+    timeout: 10s
   jimmer:
     language: java
     show-sql: true
