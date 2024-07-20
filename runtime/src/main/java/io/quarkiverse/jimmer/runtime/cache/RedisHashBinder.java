@@ -8,7 +8,10 @@ import java.util.Map;
 
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
+import org.babyfish.jimmer.sql.cache.CacheTracker;
 import org.babyfish.jimmer.sql.cache.spi.AbstractRemoteHashBinder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,46 +30,17 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
 
     private final ValueCommands<String, byte[]> valueCommands;
 
-    public RedisHashBinder(
-            HashCommands<String, String, byte[]> hashCommands,
-            ValueCommands<String, byte[]> valueCommands,
-            ObjectMapper objectMapper,
-            ImmutableType type,
-            Duration duration) {
-        super(objectMapper, type, null, duration, 30);
-        this.hashCommands = hashCommands;
-        this.valueCommands = valueCommands;
-    }
-
-    public RedisHashBinder(
-            RedisDataSource redisDataSource,
-            ObjectMapper objectMapper,
-            ImmutableType type,
-            Duration duration) {
-        super(objectMapper, type, null, duration, 30);
-        this.hashCommands = RedisCaches.cacheRedisHashCommands(redisDataSource);
-        this.valueCommands = RedisCaches.cacheRedisValueCommands(redisDataSource);
-    }
-
-    public RedisHashBinder(
-            HashCommands<String, String, byte[]> hashCommands,
-            ValueCommands<String, byte[]> valueCommands,
-            ObjectMapper objectMapper,
-            ImmutableProp prop,
-            Duration duration) {
-        super(objectMapper, null, prop, duration, 30);
-        this.hashCommands = hashCommands;
-        this.valueCommands = valueCommands;
-    }
-
-    public RedisHashBinder(
-            RedisDataSource redisDataSource,
-            ObjectMapper objectMapper,
-            ImmutableProp prop,
-            Duration duration) {
-        super(objectMapper, null, prop, duration, 30);
-        this.hashCommands = RedisCaches.cacheRedisHashCommands(redisDataSource);
-        this.valueCommands = RedisCaches.cacheRedisValueCommands(redisDataSource);
+    protected RedisHashBinder(
+            @Nullable ImmutableType type,
+            @Nullable ImmutableProp prop,
+            @Nullable CacheTracker tracker,
+            @Nullable ObjectMapper objectMapper,
+            @NotNull Duration duration,
+            int randomPercent,
+            @NotNull RedisDataSource redisDataSource) {
+        super(type, prop, tracker, objectMapper, duration, randomPercent);
+        this.hashCommands = redisDataSource.hash(byte[].class);
+        this.valueCommands = redisDataSource.value(byte[].class);
     }
 
     @SuppressWarnings("unchecked")
@@ -94,15 +68,41 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
     }
 
     @Override
-    protected void delete(Collection<String> keys) {
-        LOGGER.info("Delete data from redis: {}", keys);
-        for (String key : keys) {
+    protected void deleteAllSerializedKeys(List<String> serializedKeys) {
+        LOGGER.info("Delete data from redis: {}", serializedKeys);
+        for (String key : serializedKeys) {
             valueCommands.getdel(key);
         }
     }
 
     @Override
-    protected String reason() {
-        return "redis";
+    protected boolean matched(@Nullable Object reason) {
+        return "redis".equals(reason);
+    }
+
+    @NotNull
+    public static <K, V> Builder<K, V> forProp(ImmutableProp prop) {
+        return new Builder<>(null, prop);
+    }
+
+    public static class Builder<K, V> extends AbstractBuilder<K, V, Builder<K, V>> {
+
+        private RedisDataSource redisDataSource;
+
+        protected Builder(ImmutableType type, ImmutableProp prop) {
+            super(type, prop);
+        }
+
+        public Builder<K, V> redis(RedisDataSource redisDataSource) {
+            this.redisDataSource = redisDataSource;
+            return this;
+        }
+
+        public RedisHashBinder<K, V> build() {
+            if (null == redisDataSource) {
+                throw new IllegalStateException("RedisDataSource has not been specified");
+            }
+            return new RedisHashBinder<>(type, prop, tracker, objectMapper, duration, randomPercent, redisDataSource);
+        }
     }
 }
