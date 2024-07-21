@@ -69,14 +69,14 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-          cache: 'maven'
+#          cache: 'maven'
 
       - name: Set up OSSRH
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 17
-          cache: 'maven'
+#          cache: 'maven'
           server-id: ossrh
           server-username: ${{ vars.SERVER_OSSRH_USERNAME }}
           server-password: ${{ secrets.SERVER_OSSRH_PASSWORD }}
@@ -86,7 +86,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-          cache: 'maven'
+#          cache: 'maven'
           server-id: central
           server-username: ${{ vars.SERVER_CENTRAL_USERNAME }}
           server-password: ${{ secrets.SERVER_CENTRAL_PASSWORD }}
@@ -96,7 +96,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-          cache: 'maven'
+#          cache: 'maven'
           profile-id: ossrh
           profile-properties-gpg.executable: ${{ vars.PROFILE_OSSRH_GPG_EXECUTABLE }}
           profile-properties-gpg.passphrase: ${{ secrets.GPG_PASSPHRASE }}
