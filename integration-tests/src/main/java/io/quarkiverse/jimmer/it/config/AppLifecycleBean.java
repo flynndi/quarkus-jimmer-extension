@@ -49,35 +49,18 @@ public class AppLifecycleBean {
     }
 
     private void initH2DB1() throws Exception {
-        try (Connection con = agroalDataSource.getConnection()) {
-            InputStream inputStream = AppLifecycleBean.class
-                    .getClassLoader()
-                    .getResourceAsStream("h2-database.sql");
-            if (inputStream == null) {
-                throw new RuntimeException("no `h2-database.sql`");
-            }
-            try (Reader reader = new InputStreamReader(inputStream)) {
-                char[] buf = new char[1024];
-                StringBuilder builder = new StringBuilder();
-                while (true) {
-                    int len = reader.read(buf);
-                    if (len == -1) {
-                        break;
-                    }
-                    builder.append(buf, 0, len);
-                }
-                con.createStatement().execute(builder.toString());
-            }
-        }
+        this.readResource(agroalDataSource, "h2-database.sql");
     }
 
     private void initH2DB2() throws Exception {
-        try (Connection con = agroalDataSourceDB2.getConnection()) {
-            InputStream inputStream = AppLifecycleBean.class
-                    .getClassLoader()
-                    .getResourceAsStream("h2-database2.sql");
+        this.readResource(agroalDataSourceDB2, "h2-database2.sql");
+    }
+
+    private void readResource(AgroalDataSource agroalDataSource, String resourceName) throws Exception {
+        try (Connection connection = agroalDataSource.getConnection()) {
+            InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
             if (inputStream == null) {
-                throw new RuntimeException("no `h2-database2.sql`");
+                throw new RuntimeException("no " + resourceName);
             }
             try (Reader reader = new InputStreamReader(inputStream)) {
                 char[] buf = new char[1024];
@@ -89,7 +72,7 @@ public class AppLifecycleBean {
                     }
                     builder.append(buf, 0, len);
                 }
-                con.createStatement().execute(builder.toString());
+                connection.createStatement().execute(builder.toString());
             }
         }
     }
