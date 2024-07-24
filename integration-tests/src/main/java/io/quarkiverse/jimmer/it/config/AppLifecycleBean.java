@@ -30,11 +30,11 @@ public class AppLifecycleBean {
     AgroalDataSource agroalDataSourceDB2;
 
     void onStart(@Observes StartupEvent ev) throws Exception {
-        LOGGER.info("Default Charset = " + Charset.defaultCharset());
-        LOGGER.info("file.encoding = " + Charset.defaultCharset().displayName());
-        LOGGER.info("Default Charset in use = " + this.getDefaultCharset());
         LOGGER.info("The application is starting...");
-        LOGGER.info("The application model is " + LaunchMode.current().getDefaultProfile());
+        LOGGER.info("Default Charset = {}", Charset.defaultCharset());
+        LOGGER.info("file.encoding = {}", Charset.defaultCharset().displayName());
+        LOGGER.info("Default Charset in use = {}", this.getDefaultCharset());
+        LOGGER.info("The application model is {}", LaunchMode.current().getDefaultProfile());
         this.initH2DB1();
         this.initH2DB2();
     }
