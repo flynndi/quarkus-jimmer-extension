@@ -34,8 +34,8 @@ public class AuthUser implements Serializable {
     public AuthUser() {
     }
 
-    public AuthUser(String id, String password, String username, String authorities, Boolean accountNonExpired,
-            Boolean accountNonLocked, Boolean credentialsNonExpired, Boolean enabled, String tenantId, boolean deleteFlag) {
+    public AuthUser(String id, String password, String username, String authorities, boolean accountNonExpired,
+            boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled, String tenantId, boolean deleteFlag) {
         this.id = id;
         this.password = password;
         this.username = username;
