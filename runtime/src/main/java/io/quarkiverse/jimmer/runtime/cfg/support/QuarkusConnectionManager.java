@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 
 import org.babyfish.jimmer.sql.runtime.ConnectionManager;
 
+@Deprecated
 public class QuarkusConnectionManager implements ConnectionManager {
 
     private final DataSource dataSource;
