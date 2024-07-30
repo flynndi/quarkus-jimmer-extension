@@ -19,6 +19,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.quarkus.redis.datasource.RedisDataSource;
 
+@Deprecated
 public class RedisCacheCreator extends AbstractCacheCreator {
 
     public RedisCacheCreator(RedisDataSource redisDataSource) {
