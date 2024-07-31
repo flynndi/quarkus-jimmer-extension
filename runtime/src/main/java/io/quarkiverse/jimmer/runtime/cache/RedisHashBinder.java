@@ -22,6 +22,7 @@ import io.quarkus.redis.datasource.hash.HashCommands;
 import io.quarkus.redis.datasource.value.GetExArgs;
 import io.quarkus.redis.datasource.value.ValueCommands;
 
+@Deprecated
 public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisHashBinder.class);
