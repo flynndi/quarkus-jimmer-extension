@@ -18,6 +18,7 @@ import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.value.GetExArgs;
 import io.quarkus.redis.datasource.value.ValueCommands;
 
+@Deprecated
 public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisValueBinder.class);
