@@ -12,13 +12,13 @@ import org.babyfish.jimmer.sql.cache.AbstractCacheFactory;
 import org.babyfish.jimmer.sql.cache.Cache;
 import org.babyfish.jimmer.sql.cache.CacheCreator;
 import org.babyfish.jimmer.sql.cache.CacheFactory;
+import org.babyfish.jimmer.sql.cache.redis.quarkus.RedisCacheCreator;
 import org.babyfish.jimmer.sql.cache.redisson.RedissonCacheLocker;
 import org.babyfish.jimmer.sql.cache.redisson.RedissonCacheTracker;
 import org.redisson.api.RedissonClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.quarkiverse.jimmer.runtime.cache.RedisCacheCreator;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.redis.datasource.RedisDataSource;
 
