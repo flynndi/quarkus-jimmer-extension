@@ -10,7 +10,7 @@
 
   <groupId>io.github.flynndi</groupId>
   <artifactId>quarkus-jimmer-parent</artifactId>
-  <version>999-SNAPSHOT</version>
+  <version>0.0.1.CR21</version>
   <packaging>pom</packaging>
   <name>Quarkus Jimmer Extension - Parent</name>
 
