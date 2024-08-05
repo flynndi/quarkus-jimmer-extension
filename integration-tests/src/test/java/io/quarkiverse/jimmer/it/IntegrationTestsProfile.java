@@ -1,6 +1,12 @@
 package io.quarkiverse.jimmer.it;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkus.test.junit.QuarkusTestProfile;
 
@@ -8,6 +14,18 @@ public class IntegrationTestsProfile implements QuarkusTestProfile {
 
     @Override
     public Map<String, String> getConfigOverrides() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, List<String>>> securities = new ArrayList<>();
+        Map<String, List<String>> security = new HashMap<>();
+        security.put("tenantHeader", List.of("1"));
+        security.put("OAuth2", List.of("2"));
+        securities.add(security);
+        String securitiesJson;
+        try {
+            securitiesJson = objectMapper.writeValueAsString(securities);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         return Map.ofEntries(
                 Map.entry("quarkus.application.name", "quarkus-jimmer-integration-tests-test"),
                 Map.entry("quarkus.package.type", "uber-jar"),
@@ -34,6 +52,7 @@ public class IntegrationTestsProfile implements QuarkusTestProfile {
                 Map.entry("quarkus.jimmer.client.openapi.ui-path", "/openapi.html"),
                 Map.entry("quarkus.jimmer.client.openapi.properties.info.title", "Jimmer REST Example(Java)"),
                 Map.entry("quarkus.jimmer.client.openapi.properties.info.description", "test"),
-                Map.entry("quarkus.jimmer.client.openapi.properties.info.version", "test.version"));
+                Map.entry("quarkus.jimmer.client.openapi.properties.info.version", "test.version"),
+                Map.entry("quarkus.jimmer.client.openapi.properties.securities", securitiesJson));
     }
 }
