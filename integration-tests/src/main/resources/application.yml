@@ -25,6 +25,7 @@ quarkus:
     single-server-config:
       address: redis://localhost:6379
 #      password: password
+      database: 0
     threads: 64
     netty-threads: 128
   redis:
