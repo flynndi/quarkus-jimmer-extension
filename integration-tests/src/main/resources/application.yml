@@ -26,6 +26,7 @@ quarkus:
       address: redis://localhost:6379
 #      password: password
       database: 0
+      idleConnectionTimeout: 10000
     threads: 64
     netty-threads: 128
   redis:
