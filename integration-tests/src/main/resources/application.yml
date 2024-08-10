@@ -28,6 +28,7 @@ quarkus:
       database: 0
       idleConnectionTimeout: 10000
       connectTimeout: 10000
+      timeout: 3000
     threads: 64
     netty-threads: 128
   redis:
