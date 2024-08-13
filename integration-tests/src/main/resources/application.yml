@@ -31,6 +31,7 @@ quarkus:
       timeout: 3000
       retryAttempts: 3
       retryInterval: 1500
+      subscriptionsPerConnection: 1
     threads: 64
     netty-threads: 128
   redis:
