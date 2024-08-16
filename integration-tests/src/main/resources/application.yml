@@ -32,6 +32,7 @@ quarkus:
       retryAttempts: 3
       retryInterval: 1500
       subscriptionsPerConnection: 1
+      clientName: null
     threads: 64
     netty-threads: 128
   redis:
