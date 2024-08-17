@@ -33,6 +33,7 @@ quarkus:
       retryInterval: 1500
       subscriptionsPerConnection: 1
       clientName: null
+      subscriptionConnectionMinimumIdleSize: 1
     threads: 64
     netty-threads: 128
   redis:
