@@ -23,9 +23,9 @@ quarkus:
     level: DEBUG
   redisson:
     single-server-config:
-      address: redis://localhost:6379
-#      password: password
-      database: 0
+      address: redis://47.103.57.78:30506
+      password: aiot
+      database: 1
       idleConnectionTimeout: 10000
       connectTimeout: 10000
       timeout: 3000
@@ -37,7 +37,7 @@ quarkus:
     threads: 64
     netty-threads: 128
   redis:
-    hosts: redis://localhost:6379
+    hosts: redis://:aiot@47.103.57.78:30506/1
     timeout: 10s
   jimmer:
     language: java
