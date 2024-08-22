@@ -37,8 +37,8 @@ quarkus:
       subscriptionConnectionPoolSize: 1
       connectionMinimumIdleSize: 1
       connectionPoolSize: 1
-    threads: 64
-    netty-threads: 128
+    threads: 2
+    netty-threads: 2
   redis:
     hosts: redis://localhost:6379
     timeout: 10s
