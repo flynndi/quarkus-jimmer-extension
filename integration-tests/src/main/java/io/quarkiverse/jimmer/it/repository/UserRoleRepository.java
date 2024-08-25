@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
+import io.quarkiverse.jimmer.it.config.Constant;
 import io.quarkiverse.jimmer.it.entity.Fetchers;
 import io.quarkiverse.jimmer.it.entity.Tables;
 import io.quarkiverse.jimmer.it.entity.UserRole;
@@ -13,7 +14,7 @@ import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkus.agroal.DataSource;
 
 @ApplicationScoped
-@DataSource("DB2")
+@DataSource(Constant.DATASOURCE2)
 public class UserRoleRepository implements JRepository<UserRole, UUID> {
 
     public List<UserRole> find(UserRoleSpecification userRoleSpecification) {
