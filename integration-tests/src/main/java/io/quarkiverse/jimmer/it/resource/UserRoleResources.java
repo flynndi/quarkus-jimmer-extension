@@ -9,6 +9,7 @@ import jakarta.ws.rs.core.Response;
 
 import org.jboss.resteasy.reactive.RestQuery;
 
+import io.quarkiverse.jimmer.it.config.Constant;
 import io.quarkiverse.jimmer.it.entity.dto.UserRoleSpecification;
 import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
 import io.quarkiverse.jimmer.it.service.IUserRoleService;
@@ -23,7 +24,8 @@ public class UserRoleResources {
 
     private final UserRoleRepository userRoleRepository;
 
-    public UserRoleResources(IUserRoleService iUserRoleService, @DataSource("DB2") UserRoleRepository userRoleRepository) {
+    public UserRoleResources(IUserRoleService iUserRoleService,
+            @DataSource(Constant.DATASOURCE2) UserRoleRepository userRoleRepository) {
         this.iUserRoleService = iUserRoleService;
         this.userRoleRepository = userRoleRepository;
     }
