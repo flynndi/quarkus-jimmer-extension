@@ -26,7 +26,7 @@ public class AppLifecycleBean {
     AgroalDataSource agroalDataSource;
 
     @Inject
-    @DataSource("DB2")
+    @DataSource(Constant.DATASOURCE2)
     AgroalDataSource agroalDataSourceDB2;
 
     void onStart(@Observes StartupEvent ev) throws Exception {
