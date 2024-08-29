@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
+import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusUserIdGeneratorProvider;
@@ -95,7 +96,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         if (null != connectionManager) {
             builder.setConnectionManager(connectionManager);
         } else if (null != dataSource) {
-            builder.setConnectionManager(ConnectionManager.simpleConnectionManager(dataSource));
+            builder.setConnectionManager(new QuarkusConnectionManager(dataSource));
         }
         if (null != userIdGeneratorProvider) {
             builder.setUserIdGeneratorProvider(userIdGeneratorProvider);
