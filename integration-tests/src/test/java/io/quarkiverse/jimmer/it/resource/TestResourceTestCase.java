@@ -655,7 +655,7 @@ public class TestResourceTestCase {
                 .when()
                 .post("testResources/testUserRoleRepositorySaveEntitiesSaveMode");
         Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
-        Assertions.assertEquals(2, response.jsonPath().getInt("totalAffectedRowCount"));
+        Assertions.assertEquals(4, response.jsonPath().getInt("totalAffectedRowCount"));
         Assertions.assertEquals(2, response.jsonPath().getInt("simpleResults[0].totalAffectedRowCount"));
     }
 
