@@ -286,6 +286,40 @@ endif::add-copy-button-to-env-var[]
 |`true`
 
 
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-max-command-join-depth]]`link:#quarkus-jimmer_quarkus-jimmer-max-command-join-depth[quarkus.jimmer.max-command-join-depth]`
+
+
+[.description]
+--
+jimmer.maxCommandJoinDepth
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_MAX_COMMAND_JOIN_DEPTH+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_MAX_COMMAND_JOIN_DEPTH+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|`2`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-target-transferable]]`link:#quarkus-jimmer_quarkus-jimmer-target-transferable[quarkus.jimmer.target-transferable]`
+
+
+[.description]
+--
+jimmer.targetTransferable
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_TARGET_TRANSFERABLE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_TARGET_TRANSFERABLE+++`
+endif::add-copy-button-to-env-var[]
+--|boolean 
+|`false`
+
+
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-lock-mode]]`link:#quarkus-jimmer_quarkus-jimmer-lock-mode[quarkus.jimmer.lock-mode]`
 
 

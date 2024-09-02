@@ -88,6 +88,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         Consumer<JSqlClient.Builder> block = getObject(Constant.J_SQL_CLIENT_BUILDER_TYPE_LITERAL);
         Collection<ScalarProvider<?, ?>> providers = getObjects(Constant.SCALAR_PROVIDER_TYPE_LITERAL);
         Collection<DraftInterceptor<?, ?>> interceptors = getObjects(Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL);
+        Collection<ExceptionTranslator<?>> exceptionTranslators = getObjects(ExceptionTranslator.class);
 
         JSqlClient.Builder builder = JSqlClient.newBuilder();
         if (block != null) {
@@ -137,6 +138,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         config.offsetOptimizingThreshold.ifPresent(builder::setOffsetOptimizingThreshold);
         builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
         builder.setDefaultLockMode(config.lockMode());
+        builder.setMaxCommandJoinCount(config.maxCommandJoinDepth());
+        builder.setTargetTransferable(config.targetTransferable());
         config.executorContextPrefixes().ifPresent(builder::setExecutorContextPrefixes);
 
         if (config.showSql()) {
@@ -170,6 +173,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         }
 
         builder.addDraftInterceptors(interceptors);
+        builder.addExceptionTranslators(exceptionTranslators);
         initializeByLanguage(builder);
         builder.addInitializers(new QuarkusEventInitializer());
 
