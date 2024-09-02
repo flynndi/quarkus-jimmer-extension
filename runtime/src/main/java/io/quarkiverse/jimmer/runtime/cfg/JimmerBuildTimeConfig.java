@@ -125,6 +125,18 @@ public interface JimmerBuildTimeConfig {
     boolean isForeignKeyEnabledByDefault();
 
     /**
+     * jimmer.maxCommandJoinDepth
+     */
+    @WithDefault("2")
+    int maxCommandJoinDepth();
+
+    /**
+     * jimmer.targetTransferable
+     */
+    @WithDefault("false")
+    boolean targetTransferable();
+
+    /**
      * jimmer.saveCommandPessimisticLock
      */
     @Deprecated
