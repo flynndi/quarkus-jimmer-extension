@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.it.resource;
 
 import static io.restassured.RestAssured.given;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import jakarta.inject.Inject;
@@ -10,9 +11,14 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.quarkiverse.jimmer.it.Constant;
 import io.quarkiverse.jimmer.it.IntegrationTestsProfile;
+import io.quarkiverse.jimmer.it.entity.UserRole;
+import io.quarkiverse.jimmer.it.entity.UserRoleDraft;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
@@ -35,6 +41,9 @@ public class TestResourceTestCase {
     @Inject
     @DataSource(Constant.DATASOURCE2)
     UserRoleRepository userRoleRepository;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     @Test
     void testRepository() {
@@ -465,14 +474,20 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositoryInsert() {
-        String body = """
-                {
-                     "id": "029253C4-35D3-F78B-5A21-E12D7F358A0B",
-                     "userId": "12",
-                     "roleId": "213",
-                     "deleteFlag": false
-                 }
-                """;
+        String body;
+        UUID id = UUID.randomUUID();
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -481,22 +496,28 @@ public class TestResourceTestCase {
                 .when()
                 .post("testResources/testUserRoleRepositoryInsert");
         System.out.println("response.body().prettyPrint() = " + response.body().prettyPrint());
-        Assertions.assertEquals("029253c4-35d3-f78b-5a21-e12d7f358a0b", response.jsonPath().getString("id"));
-        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
-        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertEquals(id.toString(), response.jsonPath().getString("id"));
+        Assertions.assertEquals(userId, response.jsonPath().getString("userId"));
+        Assertions.assertEquals(roleId, response.jsonPath().getString("roleId"));
         Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
     }
 
     @Test
     void testUserRoleRepositoryInsertInput() {
-        String body = """
-                {
-                     "id": "81D8F7AB-C3FB-A8B6-3B22-C20A26C83B72",
-                     "userId": "12",
-                     "roleId": "213",
-                     "deleteFlag": false
-                 }
-                """;
+        String body;
+        UUID id = UUID.randomUUID();
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -504,22 +525,28 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testUserRoleRepositoryInsertInput");
-        Assertions.assertEquals("81d8f7ab-c3fb-a8b6-3b22-c20a26c83b72", response.jsonPath().getString("id"));
-        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
-        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertEquals(id.toString(), response.jsonPath().getString("id"));
+        Assertions.assertEquals(userId, response.jsonPath().getString("userId"));
+        Assertions.assertEquals(roleId, response.jsonPath().getString("roleId"));
         Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
     }
 
     @Test
     void testUserRoleRepositorySave() {
-        String body = """
-                {
-                     "id": "0C844055-A86E-94D9-2C50-77CAFBBC20AB",
-                     "userId": "12",
-                     "roleId": "213",
-                     "deleteFlag": false
-                 }
-                """;
+        String body;
+        UUID id = UUID.randomUUID();
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -527,22 +554,28 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testUserRoleRepositorySave");
-        Assertions.assertEquals("0c844055-a86e-94d9-2c50-77cafbbc20ab", response.jsonPath().getString("id"));
-        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
-        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertEquals(id.toString(), response.jsonPath().getString("id"));
+        Assertions.assertEquals(userId, response.jsonPath().getString("userId"));
+        Assertions.assertEquals(roleId, response.jsonPath().getString("roleId"));
         Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
     }
 
     @Test
     void testUserRoleRepositorySaveInput() {
-        String body = """
-                {
-                     "id": "EEB27AAA-8FEA-4177-0179-183FCB154B36",
-                     "userId": "12",
-                     "roleId": "213",
-                     "deleteFlag": false
-                 }
-                """;
+        String body;
+        UUID id = UUID.randomUUID();
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -550,22 +583,28 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testUserRoleRepositorySaveInput");
-        Assertions.assertEquals("eeb27aaa-8fea-4177-0179-183fcb154b36", response.jsonPath().getString("id"));
-        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
-        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertEquals(id.toString(), response.jsonPath().getString("id"));
+        Assertions.assertEquals(userId, response.jsonPath().getString("userId"));
+        Assertions.assertEquals(roleId, response.jsonPath().getString("roleId"));
         Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
     }
 
     @Test
     void testUserRoleRepositorySaveInputSaveMode() {
-        String body = """
-                {
-                     "id": "E85FC166-66DD-F496-F733-22BA38DC807D",
-                     "userId": "12",
-                     "roleId": "213",
-                     "deleteFlag": false
-                 }
-                """;
+        String body;
+        UUID id = UUID.randomUUID();
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -574,21 +613,27 @@ public class TestResourceTestCase {
                 .when()
                 .post("testResources/testUserRoleRepositorySaveInputSaveMode");
         Assertions.assertEquals(1, response.jsonPath().getInt("totalAffectedRowCount"));
-        Assertions.assertEquals("e85fc166-66dd-f496-f733-22ba38dc807d", response.jsonPath().getString("originalEntity.id"));
-        Assertions.assertEquals("e85fc166-66dd-f496-f733-22ba38dc807d", response.jsonPath().getString("modifiedEntity.id"));
+        Assertions.assertEquals(id.toString(), response.jsonPath().getString("originalEntity.id"));
+        Assertions.assertEquals(id.toString(), response.jsonPath().getString("modifiedEntity.id"));
         Assertions.assertTrue(response.jsonPath().getBoolean("modified"));
     }
 
     @Test
     void testUserRoleRepositorySaveCommand() {
-        String body = """
-                {
-                     "id": "83282150-7E51-D3A9-0EB6-CB606A56873B",
-                     "userId": "12",
-                     "roleId": "213",
-                     "deleteFlag": false
-                 }
-                """;
+        String body;
+        UUID id = UUID.randomUUID();
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -601,22 +646,28 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositorySaveEntities() {
-        String body = """
-                [
-                      {
-                          "id": "D45493FF-5770-C90D-CFFF-DA11A8C07264",
-                          "userId": "12",
-                          "roleId": "213",
-                          "deleteFlag": false
-                      },
-                      {
-                          "id": "AC3CEADF-151E-BD7E-2D73-D50E5F86B31D",
-                          "userId": "333",
-                          "roleId": "333",
-                          "deleteFlag": false
-                      }
-                  ]
-                """;
+        String body;
+        UUID id1 = UUID.randomUUID();
+        String userId1 = UUID.randomUUID().toString();
+        String roleId1 = UUID.randomUUID().toString();
+        UserRole userRole1 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id1);
+            draft.setUserId(userId1);
+            draft.setRoleId(roleId1);
+        });
+        UUID id2 = UUID.randomUUID();
+        String userId2 = UUID.randomUUID().toString();
+        String roleId2 = UUID.randomUUID().toString();
+        UserRole userRole2 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id2);
+            draft.setUserId(userId2);
+            draft.setRoleId(roleId2);
+        });
+        try {
+            body = objectMapper.writeValueAsString(Arrays.asList(userRole1, userRole2));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -625,28 +676,34 @@ public class TestResourceTestCase {
                 .when()
                 .post("testResources/testUserRoleRepositorySaveEntities");
         Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
-        Assertions.assertEquals("d45493ff-5770-c90d-cfff-da11a8c07264", response.jsonPath().getString("[0].id"));
-        Assertions.assertEquals("ac3ceadf-151e-bd7e-2d73-d50e5f86b31d", response.jsonPath().getString("[1].id"));
+        Assertions.assertEquals(id1.toString(), response.jsonPath().getString("[0].id"));
+        Assertions.assertEquals(id2.toString(), response.jsonPath().getString("[1].id"));
     }
 
     @Test
     void testUserRoleRepositorySaveEntitiesSaveMode() {
-        String body = """
-                [
-                      {
-                          "id": "4C1710D4-46E6-33D3-DC53-8492F6664050",
-                          "userId": "12",
-                          "roleId": "213",
-                          "deleteFlag": false
-                      },
-                      {
-                          "id": "10C40E99-B6EB-A6AE-B1C5-61FA87FEF236",
-                          "userId": "333",
-                          "roleId": "333",
-                          "deleteFlag": false
-                      }
-                  ]
-                """;
+        String body;
+        UUID id1 = UUID.randomUUID();
+        String userId1 = UUID.randomUUID().toString();
+        String roleId1 = UUID.randomUUID().toString();
+        UserRole userRole1 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id1);
+            draft.setUserId(userId1);
+            draft.setRoleId(roleId1);
+        });
+        UUID id2 = UUID.randomUUID();
+        String userId2 = UUID.randomUUID().toString();
+        String roleId2 = UUID.randomUUID().toString();
+        UserRole userRole2 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id2);
+            draft.setUserId(userId2);
+            draft.setRoleId(roleId2);
+        });
+        try {
+            body = objectMapper.writeValueAsString(Arrays.asList(userRole1, userRole2));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -661,22 +718,28 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositorySaveEntitiesCommand() {
-        String body = """
-                [
-                      {
-                          "id": "8BAD0B39-3BEC-00F8-BE42-7F0D9671A28C",
-                          "userId": "12",
-                          "roleId": "213",
-                          "deleteFlag": false
-                      },
-                      {
-                          "id": "F6EADECF-EE6D-FFC6-F0FA-E7DC353EE735",
-                          "userId": "333",
-                          "roleId": "333",
-                          "deleteFlag": false
-                      }
-                  ]
-                """;
+        String body;
+        UUID id1 = UUID.randomUUID();
+        String userId1 = UUID.randomUUID().toString();
+        String roleId1 = UUID.randomUUID().toString();
+        UserRole userRole1 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id1);
+            draft.setUserId(userId1);
+            draft.setRoleId(roleId1);
+        });
+        UUID id2 = UUID.randomUUID();
+        String userId2 = UUID.randomUUID().toString();
+        String roleId2 = UUID.randomUUID().toString();
+        UserRole userRole2 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id2);
+            draft.setUserId(userId2);
+            draft.setRoleId(roleId2);
+        });
+        try {
+            body = objectMapper.writeValueAsString(Arrays.asList(userRole1, userRole2));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -689,14 +752,21 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositoryUpdate() {
-        String body = """
-                {
-                     "id": "defc2d01-fb38-4d31-b006-fd182b25aa33",
-                     "userId": "12",
-                     "roleId": "213",
-                     "deleteFlag": false
-                 }
-                """;
+        String body;
+        UUID id = UUID.fromString("defc2d01-fb38-4d31-b006-fd182b25aa33");
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+            draft.setDeleteFlag(false);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -705,8 +775,8 @@ public class TestResourceTestCase {
                 .when()
                 .post("testResources/testUserRoleRepositoryUpdate");
         Assertions.assertEquals("defc2d01-fb38-4d31-b006-fd182b25aa33", response.jsonPath().getString("id"));
-        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
-        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertEquals(userId, response.jsonPath().getString("userId"));
+        Assertions.assertEquals(roleId, response.jsonPath().getString("roleId"));
         Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
     }
 
@@ -724,13 +794,21 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositoryUpdateInput() {
-        String body = """
-                {
-                    "id": "defc2d01-fb38-4d31-b006-fd182b25aa33",
-                    "userId": "3",
-                    "roleId": "4"
-                }
-                """;
+        String body;
+        UUID id = UUID.fromString("defc2d01-fb38-4d31-b006-fd182b25aa33");
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+            draft.setDeleteFlag(false);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .body(body)
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
@@ -988,5 +1066,31 @@ public class TestResourceTestCase {
                 .when()
                 .post("testResources/testBookRepositoryMergeSaveMode");
         Assertions.assertEquals(4, response.jsonPath().getInt("totalAffectedRowCount"));
+    }
+
+    @Test
+    void testExceptionTranslator() {
+        UserRole userRole1 = UserRoleDraft.$.produce(draft -> {
+            draft.setUserId("1");
+            draft.setRoleId("1");
+        });
+        UserRole userRole2 = UserRoleDraft.$.produce(draft -> {
+            draft.setUserId("1");
+            draft.setRoleId("1");
+        });
+        String body;
+        try {
+            body = objectMapper.writeValueAsString(Arrays.asList(userRole1, userRole2));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        Response response = given()
+                .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
+                .body(body)
+                .log()
+                .all()
+                .when()
+                .post("testResources/testExceptionTranslator");
+        System.out.println("response = " + response);
     }
 }

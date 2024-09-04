@@ -8,7 +8,9 @@ create table public.user_role (
     auth_user varchar(64) null,
     constraint user_role_pkey primary key (id)
 );
-
+alter table public.user_role
+    add constraint business_key_user_role
+        unique(user_id, role_id);
 
 insert into public.user_role
 (id, user_id, role_id, delete_flag, auth_user)

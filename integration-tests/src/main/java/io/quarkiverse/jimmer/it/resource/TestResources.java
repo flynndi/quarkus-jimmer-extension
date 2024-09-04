@@ -17,8 +17,13 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.DeleteMode;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.babyfish.jimmer.sql.runtime.ExceptionTranslator;
+import org.babyfish.jimmer.sql.runtime.SaveException;
 import org.jboss.resteasy.reactive.RestQuery;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import io.quarkiverse.jimmer.it.config.Constant;
 import io.quarkiverse.jimmer.it.entity.*;
 import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
 import io.quarkiverse.jimmer.it.entity.dto.BookInput;
@@ -459,6 +464,30 @@ public class TestResources {
                 .createUpdate(Tables.BOOK_TABLE)
                 .set(Tables.BOOK_TABLE.storeId(), 2L)
                 .where(Tables.BOOK_TABLE.id().eq(7L))
+                .execute();
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("/testExceptionTranslator")
+    @Transactional
+    @Api
+    public Response testExceptionTranslator(List<UserRole> userRoles) {
+        Jimmer.getJSqlClient(Constant.DATASOURCE2)
+                .getEntities()
+                .saveEntitiesCommand(userRoles)
+                .setMode(SaveMode.INSERT_ONLY)
+                .addExceptionTranslator(new ExceptionTranslator<SaveException.NotUnique>() {
+                    @Override
+                    public @Nullable Exception translate(@NotNull SaveException.NotUnique exception, @NotNull Args args) {
+                        if (exception.isMatched(UserRoleProps.USER_ID, UserRoleProps.ROLE_ID)) {
+                            return new IllegalArgumentException("The userRole whose user_id is \""
+                                    + exception.getValue(UserRoleProps.USER_ID)
+                                    + "\" and role_id is \"" + exception.getValue(UserRoleProps.ROLE_ID) + "\" already exists");
+                        }
+                        return null;
+                    }
+                })
                 .execute();
         return Response.ok().build();
     }
