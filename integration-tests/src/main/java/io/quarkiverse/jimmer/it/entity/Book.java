@@ -23,10 +23,17 @@ public interface Book extends TenantAware, BaseEntity {
     @ManyToOne
     BookStore store();
 
+    @IdView
+    @Nullable
+    Long storeId();
+
     @ManyToMany(orderedProps = {
             @OrderedProp("firstName"),
             @OrderedProp("lastName")
     })
     @JoinTable(name = "BOOK_AUTHOR_MAPPING", joinColumnName = "BOOK_ID", inverseJoinColumnName = "AUTHOR_ID")
     List<Author> authors();
+
+    @IdView("authors")
+    List<Long> authorIds();
 }

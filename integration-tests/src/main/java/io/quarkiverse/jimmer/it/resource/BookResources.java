@@ -10,13 +10,19 @@ import jakarta.ws.rs.core.Response;
 
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.Api;
+import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.babyfish.jimmer.sql.runtime.ExceptionTranslator;
+import org.babyfish.jimmer.sql.runtime.SaveException;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.it.config.error.UserInfoException;
 import io.quarkiverse.jimmer.it.entity.Book;
+import io.quarkiverse.jimmer.it.entity.BookProps;
 import io.quarkiverse.jimmer.it.entity.Fetchers;
 import io.quarkiverse.jimmer.it.entity.Tables;
 import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
@@ -134,6 +140,32 @@ public class BookResources implements Fetchers {
                 Jimmer.getDefaultJSqlClient().createQuery(Tables.BOOK_TABLE)
                         .where(bookSpecification)
                         .select(Tables.BOOK_TABLE.fetch(BookDetailView.class))
+                        .execute())
+                .build();
+    }
+
+    @POST
+    @Path("/testSave")
+    @Api
+    @Transactional(rollbackOn = Exception.class)
+    public Response testSave(List<Book> books) {
+        return Response.ok(
+                Jimmer.getDefaultJSqlClient()
+                        .getEntities()
+                        .saveEntitiesCommand(books)
+                        .setMode(SaveMode.INSERT_ONLY)
+                        .addExceptionTranslator(new ExceptionTranslator<SaveException.NotUnique>() {
+                            @Override
+                            public @Nullable Exception translate(@NotNull SaveException.NotUnique exception,
+                                    @NotNull Args args) {
+                                if (exception.isMatched(BookProps.NAME, BookProps.EDITION)) {
+                                    return new IllegalArgumentException(
+                                            "Illegal name and edition: " +
+                                                    exception.getValueMap().values());
+                                }
+                                return null;
+                            }
+                        })
                         .execute())
                 .build();
     }
