@@ -19,6 +19,10 @@ public interface Book extends TenantAware, BaseEntity {
 
     BigDecimal price();
 
+    @IdView
+    @Nullable
+    Long storeId();
+
     @Nullable
     @ManyToOne
     BookStore store();
@@ -29,4 +33,7 @@ public interface Book extends TenantAware, BaseEntity {
     })
     @JoinTable(name = "BOOK_AUTHOR_MAPPING", joinColumnName = "BOOK_ID", inverseJoinColumnName = "AUTHOR_ID")
     List<Author> authors();
+
+    @IdView("authors")
+    List<Long> authorIds();
 }
