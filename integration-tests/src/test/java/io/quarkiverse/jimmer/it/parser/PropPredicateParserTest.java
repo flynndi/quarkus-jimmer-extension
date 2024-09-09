@@ -147,7 +147,7 @@ public class PropPredicateParserTest {
     @Test
     public void testIn() {
         Assertions.assertEquals(
-                "UnresolvedPredicate{path=store.id, op=IN, insensitive=false, likeMode=EXACT}",
+                "UnresolvedPredicate{path=storeId, op=IN, insensitive=false, likeMode=EXACT}",
                 PropPredicate.of(
                         new Context(),
                         false,
@@ -159,7 +159,7 @@ public class PropPredicateParserTest {
     @Test
     public void testNotIn() {
         Assertions.assertEquals(
-                "UnresolvedPredicate{path=store.id, op=NOT_IN, insensitive=false, likeMode=EXACT}",
+                "UnresolvedPredicate{path=storeId, op=NOT_IN, insensitive=false, likeMode=EXACT}",
                 PropPredicate.of(
                         new Context(),
                         false,
