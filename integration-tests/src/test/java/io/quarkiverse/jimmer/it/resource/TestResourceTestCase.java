@@ -10,12 +10,16 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.quarkiverse.jimmer.it.Constant;
 import io.quarkiverse.jimmer.it.IntegrationTestsProfile;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
+import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.junit.QuarkusTest;
@@ -36,6 +40,9 @@ public class TestResourceTestCase {
     @DataSource(Constant.DATASOURCE2)
     UserRoleRepository userRoleRepository;
 
+    @Inject
+    ObjectMapper objectMapper;
+
     @Test
     void testRepository() {
         BookRepository bookRepository = Arc.container().instance(BookRepository.class).get();
@@ -50,12 +57,12 @@ public class TestResourceTestCase {
 
     @Test
     void testPage() {
-        String body = """
-                {
-                    "index": 0,
-                    "size": 1
-                }
-                """;
+        String body;
+        try {
+            body = objectMapper.writeValueAsString(Pagination.of(0, 1));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .body(body)
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
@@ -70,12 +77,12 @@ public class TestResourceTestCase {
 
     @Test
     void testPageOther() {
-        String body = """
-                {
-                    "index": 0,
-                    "size": 1
-                }
-                """;
+        String body;
+        try {
+            body = objectMapper.writeValueAsString(Pagination.of(0, 1));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .body(body)
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
@@ -90,12 +97,12 @@ public class TestResourceTestCase {
 
     @Test
     void testBookRepositoryPageSort() {
-        String body = """
-                {
-                    "index": 0,
-                    "size": 1
-                }
-                """;
+        String body;
+        try {
+            body = objectMapper.writeValueAsString(Pagination.of(0, 1));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .body(body)
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
@@ -111,12 +118,12 @@ public class TestResourceTestCase {
 
     @Test
     void testPageFetcher() {
-        String body = """
-                {
-                    "index": 0,
-                    "size": 1
-                }
-                """;
+        String body;
+        try {
+            body = objectMapper.writeValueAsString(Pagination.of(0, 1));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .body(body)
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
