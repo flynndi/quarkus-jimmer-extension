@@ -278,9 +278,12 @@ public class TestResourceTestCase {
 
     @Test
     void testBookRepositoryFindMapByIdsFetcher() {
-        String body = """
-                [1, 2]
-                """;
+        String body;
+        try {
+            body = objectMapper.writeValueAsString(Arrays.asList(1, 2));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
