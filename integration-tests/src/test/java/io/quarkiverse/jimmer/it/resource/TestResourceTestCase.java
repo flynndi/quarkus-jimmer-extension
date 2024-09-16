@@ -49,7 +49,7 @@ public class TestResourceTestCase {
         BookRepository bookRepository = Arc.container().instance(BookRepository.class).get();
         BookStoreRepository bookStoreRepository = Arc.container().instance(BookStoreRepository.class).get();
         UserRoleRepository userRoleRepository = Arc.container()
-                .instance(UserRoleRepository.class, new DataSource.DataSourceLiteral("DB2")).get();
+                .instance(UserRoleRepository.class, new DataSource.DataSourceLiteral(Constant.DATASOURCE2)).get();
         Assertions.assertNotNull(bookRepository);
         Assertions.assertNotNull(bookStoreRepository);
         Assertions.assertEquals(bookRepository, this.bookRepository);
