@@ -356,12 +356,12 @@ public class TestResourceTestCase {
 
     @Test
     void testBookRepositoryFindAllPageFetcher() {
-        String body = """
-                {
-                    "index": 0,
-                    "size": 1
-                }
-                """;
+        String body;
+        try {
+            body = objectMapper.writeValueAsString(Pagination.of(0, 1));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
