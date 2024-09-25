@@ -36,9 +36,7 @@ import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.repository.JRepository;
-import io.quarkiverse.jimmer.runtime.repository.JimmerJpaRecorder;
-import io.quarkiverse.jimmer.runtime.repository.KRepository;
+import io.quarkiverse.jimmer.runtime.repository.*;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkiverse.jimmer.runtime.util.DBKindEnum;
 import io.quarkus.agroal.DataSource;
@@ -469,6 +467,27 @@ final class JimmerProcessor {
             }
 
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
+        }
+    }
+
+    @BuildStep(onlyIf = IsJavaEnable.class)
+    @Produce(SyntheticBeansRuntimeInitBuildItem.class)
+    @Consume(LoggingSetupBuildItem.class)
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void test(TestInterfaceRecorder testInterfaceRecorder, BeanArchiveIndexBuildItem beanArchiveIndexBuildItem,
+            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
+        Collection<ClassInfo> testInterfaces = beanArchiveIndexBuildItem.getIndex()
+                .getAllKnownSubinterfaces(TestInterface.class);
+        for (ClassInfo testInterface : testInterfaces) {
+            SyntheticBeanBuildItem.ExtendedBeanConfigurator testInterfaceConfigurator = SyntheticBeanBuildItem
+                    .configure(testInterface.name())
+                    .scope(Singleton.class)
+                    .setRuntimeInit()
+                    .unremovable()
+                    .createWith(testInterfaceRecorder.createTestInterface(testInterface.name().toString()))
+                    .addQualifier(Default.class)
+                    .priority(10);
+            syntheticBeanBuildItemBuildProducer.produce(testInterfaceConfigurator.done());
         }
     }
 

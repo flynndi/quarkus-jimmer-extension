@@ -1,17 +1,25 @@
 package io.quarkiverse.jimmer.it.config;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.sql.Connection;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.agroal.api.AgroalDataSource;
+import io.quarkiverse.jimmer.it.config.h.TestRepository;
+import io.quarkiverse.jimmer.it.entity.Author;
+import io.quarkiverse.jimmer.it.entity.Book;
+import io.quarkiverse.jimmer.it.entity.BookStore;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.ShutdownEvent;
@@ -29,12 +37,73 @@ public class AppLifecycleBean {
     @DataSource(Constant.DATASOURCE2)
     AgroalDataSource agroalDataSourceDB2;
 
+    @Inject
+    TestRepository testRepository;
+
     void onStart(@Observes StartupEvent ev) throws Exception {
         LOGGER.info("The application is starting...");
         LOGGER.info("Default Charset = {}", Charset.defaultCharset());
         LOGGER.info("file.encoding = {}", Charset.defaultCharset().displayName());
         LOGGER.info("Default Charset in use = {}", this.getDefaultCharset());
         LOGGER.info("The application model is {}", LaunchMode.current().getDefaultProfile());
+        System.out.println("testRepository = " + testRepository);
+        String test = testRepository.test(new Book() {
+            @Override
+            public long id() {
+                return 0;
+            }
+
+            @Override
+            public String name() {
+                return "";
+            }
+
+            @Override
+            public int edition() {
+                return 0;
+            }
+
+            @Override
+            public BigDecimal price() {
+                return null;
+            }
+
+            @Override
+            public @Nullable Long storeId() {
+                return 0L;
+            }
+
+            @Override
+            public @Nullable BookStore store() {
+                return null;
+            }
+
+            @Override
+            public List<Author> authors() {
+                return List.of();
+            }
+
+            @Override
+            public List<Long> authorIds() {
+                return List.of();
+            }
+
+            @Override
+            public LocalDateTime createdTime() {
+                return null;
+            }
+
+            @Override
+            public LocalDateTime modifiedTime() {
+                return null;
+            }
+
+            @Override
+            public String tenant() {
+                return "";
+            }
+        });
+        System.out.println("test = " + test);
         this.initH2DB1();
         this.initH2DB2();
     }
