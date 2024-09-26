@@ -1,10 +1,8 @@
 package io.quarkiverse.jimmer.deployment;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import io.quarkus.deployment.proxy.ProxyFactory;
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.Priorities;
@@ -261,7 +259,8 @@ final class JimmerProcessor {
     void registerJRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
             CombinedIndexBuildItem combinedIndex,
             BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
-            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
+            BuildProducer<EntityToClassBuildItem> entityToClassProducer,
+            BuildProducer<RepositoryBuildItem> repositoryBuildProducer) {
         Collection<ClassInfo> repositoryBeans = combinedIndex.getComputingIndex().getAllKnownImplementors(JRepository.class);
         for (ClassInfo repositoryBean : repositoryBeans) {
             unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
@@ -270,6 +269,22 @@ final class JimmerProcessor {
                     DotName.createSimple(JRepository.class), combinedIndex.getComputingIndex());
             entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
                     JandexReflection.loadRawType(typeParameters.get(0))));
+        }
+
+        Collection<ClassInfo> testInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(TestInterface.class);
+        for (ClassInfo testInterface : testInterfaces) {
+            DotName dotName = testInterface.asClass().name();
+            Optional<AnnotationInstance> mapperDatasource = testInterface.asClass().annotationsMap().entrySet().stream()
+                    .filter(entry -> entry.getKey().equals(DotName.createSimple(DataSource.class)))
+                    .map(Map.Entry::getValue)
+                    .map(annotationList -> annotationList.get(0))
+                    .findFirst();
+            if (mapperDatasource.isPresent()) {
+                String dataSourceName = mapperDatasource.get().value().asString();
+                repositoryBuildProducer.produce(new RepositoryBuildItem(dotName, dataSourceName));
+            } else {
+                repositoryBuildProducer.produce(new RepositoryBuildItem(dotName, "<default>"));
+            }
         }
     }
 
@@ -471,22 +486,18 @@ final class JimmerProcessor {
     }
 
     @BuildStep(onlyIf = IsJavaEnable.class)
-    @Produce(SyntheticBeansRuntimeInitBuildItem.class)
-    @Consume(LoggingSetupBuildItem.class)
     @Record(ExecutionTime.RUNTIME_INIT)
-    void test(TestInterfaceRecorder testInterfaceRecorder, BeanArchiveIndexBuildItem beanArchiveIndexBuildItem,
+    void test(TestInterfaceRecorder testInterfaceRecorder, List<RepositoryBuildItem> repositoryBuildItems,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
-        Collection<ClassInfo> testInterfaces = beanArchiveIndexBuildItem.getIndex()
-                .getAllKnownSubinterfaces(TestInterface.class);
-        for (ClassInfo testInterface : testInterfaces) {
+        for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
             SyntheticBeanBuildItem.ExtendedBeanConfigurator testInterfaceConfigurator = SyntheticBeanBuildItem
-                    .configure(testInterface.name())
+                    .configure(repositoryBuildItem.getRepositoryName())
                     .scope(Singleton.class)
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(JSqlClient.class)))
                     .setRuntimeInit()
                     .unremovable()
-                    .createWith(testInterfaceRecorder.createTestInterface(testInterface.name().toString()))
-                    .addQualifier(Default.class)
-                    .priority(10);
+                    .supplier(testInterfaceRecorder
+                            .testInterfaceSupply(DotName.createSimple(TestInterfaceImpl.class).toString()));
             syntheticBeanBuildItemBuildProducer.produce(testInterfaceConfigurator.done());
         }
     }
