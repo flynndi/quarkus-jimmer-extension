@@ -2,7 +2,6 @@ package io.quarkiverse.jimmer.deployment;
 
 import java.util.*;
 
-import io.quarkus.deployment.proxy.ProxyFactory;
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.Priorities;
@@ -51,6 +50,7 @@ import io.quarkus.deployment.builditem.*;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
+import io.quarkus.gizmo.ClassOutput;
 import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
@@ -486,19 +486,14 @@ final class JimmerProcessor {
     }
 
     @BuildStep(onlyIf = IsJavaEnable.class)
-    @Record(ExecutionTime.RUNTIME_INIT)
-    void test(TestInterfaceRecorder testInterfaceRecorder, List<RepositoryBuildItem> repositoryBuildItems,
-            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
-        for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
-            SyntheticBeanBuildItem.ExtendedBeanConfigurator testInterfaceConfigurator = SyntheticBeanBuildItem
-                    .configure(repositoryBuildItem.getRepositoryName())
-                    .scope(Singleton.class)
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(JSqlClient.class)))
-                    .setRuntimeInit()
-                    .unremovable()
-                    .supplier(testInterfaceRecorder
-                            .testInterfaceSupply(DotName.createSimple(TestInterfaceImpl.class).toString()));
-            syntheticBeanBuildItemBuildProducer.produce(testInterfaceConfigurator.done());
+    void test(CombinedIndexBuildItem index, List<RepositoryBuildItem> repositoryBuildItems,
+            BuildProducer<GeneratedBeanBuildItem> generatedBeans,
+            BuildProducer<GeneratedClassBuildItem> generatedClasses) {
+        Collection<ClassInfo> testInterfaces = index.getIndex().getAllKnownSubinterfaces(TestInterface.class);
+        ClassOutput beansClassOutput = new GeneratedBeanGizmoAdaptor(generatedBeans);
+        for (ClassInfo classInfo : testInterfaces) {
+            RepositoryCreator repositoryCreator = new RepositoryCreator(beansClassOutput, index.getComputingIndex());
+            repositoryCreator.implementCrudRepository(classInfo, index.getComputingIndex());
         }
     }
 
