@@ -1,15 +1,15 @@
 package io.quarkiverse.jimmer.deployment;
 
 import java.lang.reflect.Modifier;
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
+import org.babyfish.jimmer.sql.JSqlClient;
 import org.jboss.jandex.*;
 import org.jboss.jandex.Type;
 
+import io.quarkus.arc.Unremovable;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.*;
 import io.quarkus.runtime.util.HashUtil;
@@ -41,9 +41,15 @@ public class RepositoryCreator {
                 .interfaces(repositoryToImplementStr)
                 .build()) {
             classCreator.addAnnotation(ApplicationScoped.class);
+            classCreator.addAnnotation(Unremovable.class);
 
             FieldCreator entityClassFieldCreator = classCreator.getFieldCreator("entityClass", Class.class.getName())
                     .setModifiers(Modifier.PRIVATE | Modifier.FINAL);
+
+            AnnotationCreator jSqlClientAnnotationCreator = classCreator
+                    .getFieldCreator("jSqlClient", JSqlClient.class)
+                    .setModifiers(Modifier.PUBLIC)
+                    .addAnnotation(ApplicationScoped.class);
 
             try (MethodCreator ctor = classCreator.getMethodCreator("<init>", "V")) {
                 ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(Object.class, "<init>", void.class), ctor.getThis());
@@ -51,8 +57,18 @@ public class RepositoryCreator {
                 ctor.writeInstanceField(entityClassFieldCreator.getFieldDescriptor(), ctor.getThis(),
                         ctor.loadClassFromTCCL(entityTypeStr));
                 ctor.returnValue(null);
-
             }
+
+            Set<MethodInfo> methodInfos = GenerationUtil
+                    .interfaceMethods(Collections.singletonList(repositoryToImplement.interfaceNames().get(0)), indexView);
+
+            for (MethodInfo methodInfo : methodInfos) {
+                try (MethodCreator ctor = classCreator.getMethodCreator(methodInfo.name(), String.class, Object.class,
+                        Object.class)) {
+                    ctor.returnNull();
+                }
+            }
+
             classCreator.writeTo(classOutput);
 
         }

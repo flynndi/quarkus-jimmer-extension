@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import io.agroal.api.AgroalDataSource;
 import io.quarkiverse.jimmer.it.config.h.TestRepository;
+import io.quarkiverse.jimmer.it.entity.Book;
+import io.quarkiverse.jimmer.it.entity.BookDraft;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.InstanceHandle;
@@ -32,6 +34,9 @@ public class AppLifecycleBean {
     @DataSource(Constant.DATASOURCE2)
     AgroalDataSource agroalDataSourceDB2;
 
+    @Inject
+    TestRepository testRepository;
+
     void onStart(@Observes StartupEvent ev) throws Exception {
         LOGGER.info("The application is starting...");
         LOGGER.info("Default Charset = {}", Charset.defaultCharset());
@@ -41,6 +46,12 @@ public class AppLifecycleBean {
         InstanceHandle<TestRepository> instance = Arc.container().instance(TestRepository.class);
         if (instance.isAvailable()) {
             System.out.println("instance.get() = " + instance.get());
+            TestRepository testRepository = instance.get();
+            Book book = BookDraft.$.produce(x -> {
+                x.setName("1111");
+            });
+            String test = testRepository.test(book, 1L);
+            System.out.println("test = " + test);
         }
         this.initH2DB1();
         this.initH2DB2();
