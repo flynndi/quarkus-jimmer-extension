@@ -63,12 +63,11 @@ public class RepositoryCreator {
                     .interfaceMethods(Collections.singletonList(repositoryToImplement.interfaceNames().get(0)), indexView);
 
             for (MethodInfo methodInfo : methodInfos) {
-                try (MethodCreator ctor = classCreator.getMethodCreator(methodInfo.name(), String.class, Object.class,
-                        Object.class)) {
+                try (MethodCreator ctor = classCreator.getMethodCreator(MethodDescriptor.of(methodInfo))) {
                     ctor.returnNull();
                 }
-            }
 
+            }
             classCreator.writeTo(classOutput);
 
         }
