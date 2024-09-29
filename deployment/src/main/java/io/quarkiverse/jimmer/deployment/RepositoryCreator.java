@@ -4,6 +4,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.jboss.jandex.*;
@@ -49,7 +50,7 @@ public class RepositoryCreator {
             AnnotationCreator jSqlClientAnnotationCreator = classCreator
                     .getFieldCreator("jSqlClient", JSqlClient.class)
                     .setModifiers(Modifier.PUBLIC)
-                    .addAnnotation(ApplicationScoped.class);
+                    .addAnnotation(Inject.class);
 
             try (MethodCreator ctor = classCreator.getMethodCreator("<init>", "V")) {
                 ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(Object.class, "<init>", void.class), ctor.getThis());
@@ -64,7 +65,20 @@ public class RepositoryCreator {
 
             for (MethodInfo methodInfo : methodInfos) {
                 try (MethodCreator ctor = classCreator.getMethodCreator(MethodDescriptor.of(methodInfo))) {
-                    ctor.returnNull();
+
+                    ResultHandle jSqlClient = ctor.readInstanceField(
+                            FieldDescriptor.of(ctor.getMethodDescriptor().getDeclaringClass(), "jSqlClient",
+                                    JSqlClient.class.getName()),
+                            ctor.getThis());
+
+                    ResultHandle id = ctor.getMethodParam(0);
+                    ResultHandle result = ctor.invokeInterfaceMethod(
+                            MethodDescriptor.ofMethod(JSqlClient.class, "findById", Object.class, Class.class, Object.class),
+                            jSqlClient,
+                            ctor.loadClassFromTCCL(entityTypeStr),
+                            id);
+
+                    ctor.returnValue(result);
                 }
 
             }
