@@ -13,6 +13,7 @@ import jakarta.enterprise.event.Event;
 import jakarta.enterprise.util.TypeLiteral;
 import jakarta.interceptor.InvocationContext;
 
+import org.babyfish.jimmer.impl.util.ObjectUtil;
 import org.babyfish.jimmer.sql.DraftInterceptor;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.CacheAbandonedCallback;
@@ -71,7 +72,6 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
     protected JSqlClient.Builder createBuilder() {
 
         JimmerBuildTimeConfig config = getOptionalBean(JimmerBuildTimeConfig.class);
-        ConnectionManager connectionManager = getOptionalBean(ConnectionManager.class);
         UserIdGeneratorProvider userIdGeneratorProvider = getOptionalBean(UserIdGeneratorProvider.class);
         LogicalDeletedValueGeneratorProvider logicalDeletedValueGeneratorProvider = getOptionalBean(
                 LogicalDeletedValueGeneratorProvider.class);
@@ -93,11 +93,6 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         JSqlClient.Builder builder = JSqlClient.newBuilder();
         if (block != null) {
             block.accept(builder);
-        }
-        if (null != connectionManager) {
-            builder.setConnectionManager(connectionManager);
-        } else if (null != dataSource) {
-            builder.setConnectionManager(new QuarkusConnectionManager(dataSource));
         }
         if (null != userIdGeneratorProvider) {
             builder.setUserIdGeneratorProvider(userIdGeneratorProvider);
@@ -181,6 +176,14 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         if (config.microServiceName().isPresent()) {
             builder.setMicroServiceExchange(exchange);
         }
+
+        ConnectionManager connectionManager = ObjectUtil.firstNonNullOf(
+                () -> ((JSqlClientImplementor.Builder) builder).getConnectionManager(),
+                () -> getOptionalBean(ConnectionManager.class),
+                () -> dataSource == null ? null : new QuarkusConnectionManager(dataSource),
+                () -> new QuarkusConnectionManager(getOptionalBean(DataSource.class)));
+
+        builder.setConnectionManager(connectionManager);
 
         return builder;
     }
