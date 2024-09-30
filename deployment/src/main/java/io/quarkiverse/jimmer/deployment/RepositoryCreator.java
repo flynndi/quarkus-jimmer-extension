@@ -44,7 +44,7 @@ public class RepositoryCreator {
             classCreator.addAnnotation(ApplicationScoped.class);
             classCreator.addAnnotation(Unremovable.class);
 
-            FieldCreator entityClassFieldCreator = classCreator.getFieldCreator("entityClass", Class.class.getName())
+            FieldCreator entityClassFieldCreator = classCreator.getFieldCreator("entityType", Class.class.getName())
                     .setModifiers(Modifier.PRIVATE | Modifier.FINAL);
 
             AnnotationCreator jSqlClientAnnotationCreator = classCreator
@@ -65,20 +65,14 @@ public class RepositoryCreator {
 
             for (MethodInfo methodInfo : methodInfos) {
                 try (MethodCreator ctor = classCreator.getMethodCreator(MethodDescriptor.of(methodInfo))) {
-
-                    ResultHandle jSqlClient = ctor.readInstanceField(
-                            FieldDescriptor.of(ctor.getMethodDescriptor().getDeclaringClass(), "jSqlClient",
-                                    JSqlClient.class.getName()),
-                            ctor.getThis());
-
-                    ResultHandle id = ctor.getMethodParam(0);
-                    ResultHandle result = ctor.invokeInterfaceMethod(
-                            MethodDescriptor.ofMethod(JSqlClient.class, "findById", Object.class, Class.class, Object.class),
-                            jSqlClient,
-                            ctor.loadClassFromTCCL(entityTypeStr),
-                            id);
-
-                    ctor.returnValue(result);
+                    FieldDescriptor jSqlClientFieldDescriptor = classCreator.getFieldCreator("jSqlClient", JSqlClient.class)
+                            .getFieldDescriptor();
+                    ResultHandle delegate = ctor.readInstanceField(jSqlClientFieldDescriptor, ctor.getThis());
+                    ResultHandle[] args = new ResultHandle[methodInfo.parametersCount()];
+                    for (int i = 0; i < methodInfo.parametersCount(); i++) {
+                        args[i] = ctor.getMethodParam(i);
+                    }
+                    ctor.returnValue(ctor.invokeInterfaceMethod(methodInfo, delegate, args));
                 }
 
             }

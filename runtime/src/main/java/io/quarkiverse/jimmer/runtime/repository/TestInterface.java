@@ -1,6 +1,12 @@
 package io.quarkiverse.jimmer.runtime.repository;
 
-public interface TestInterface<T, ID> {
+import org.babyfish.jimmer.sql.JSqlClient;
 
-    String test(T t, ID id);
+public interface TestInterface<E, ID> {
+
+    JSqlClient sql();
+
+    Class<E> entityType();
+
+    E findNullable(ID id);
 }
