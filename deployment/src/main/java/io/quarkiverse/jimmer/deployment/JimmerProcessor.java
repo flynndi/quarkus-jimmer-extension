@@ -255,6 +255,20 @@ final class JimmerProcessor {
     }
 
     @BuildStep(onlyIf = IsJavaEnable.class)
+    void collectInfo(CombinedIndexBuildItem combinedIndex, BuildProducer<SomeInfos> someInfosBuildProducer) {
+        Collection<ClassInfo> testInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(TestInterface.class);
+        for (ClassInfo testInterface : testInterfaces) {
+            Map.Entry<DotName, DotName> dotNameDotNameEntry = this.extractIdAndEntityTypes(testInterface,
+                    combinedIndex.getComputingIndex());
+            Set<MethodInfo> methodInfos = GenerationUtil
+                    .interfaceMethods(Collections.singletonList(testInterface.interfaceNames().get(0)),
+                            combinedIndex.getComputingIndex());
+            someInfosBuildProducer.produce(new SomeInfos(testInterface, methodInfos, dotNameDotNameEntry));
+        }
+
+    }
+
+    @BuildStep(onlyIf = IsJavaEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
     void registerJRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
             CombinedIndexBuildItem combinedIndex,
@@ -412,7 +426,8 @@ final class JimmerProcessor {
     void generateJSqlClientBeans(JimmerDataSourcesRecorder recorder,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer,
-            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems) {
+            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
+            BuildProducer<JSqlClientBeansBuildItems> jSqlClientBeansBuildItems) {
         if (jdbcDataSourceBuildItems.isEmpty()) {
             return;
         }
@@ -482,18 +497,22 @@ final class JimmerProcessor {
             }
 
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
+
+            jSqlClientBeansBuildItems.produce(new JSqlClientBeansBuildItems(dataSourceName));
         }
     }
 
     @BuildStep(onlyIf = IsJavaEnable.class)
-    void test(CombinedIndexBuildItem index, List<RepositoryBuildItem> repositoryBuildItems,
+    @Record(ExecutionTime.RUNTIME_INIT)
+    @Consume(PreBeanContainerBuildItem.class)
+    void test(JimmerDataSourcesRecorder recorder, List<SomeInfos> someInfos, List<RepositoryBuildItem> repositoryBuildItems,
             BuildProducer<GeneratedBeanBuildItem> generatedBeans,
             BuildProducer<GeneratedClassBuildItem> generatedClasses) {
-        Collection<ClassInfo> testInterfaces = index.getIndex().getAllKnownSubinterfaces(TestInterface.class);
         ClassOutput beansClassOutput = new GeneratedBeanGizmoAdaptor(generatedBeans);
-        for (ClassInfo classInfo : testInterfaces) {
-            RepositoryCreator repositoryCreator = new RepositoryCreator(beansClassOutput, index.getComputingIndex());
-            repositoryCreator.implementCrudRepository(classInfo, index.getComputingIndex());
+        for (SomeInfos info : someInfos) {
+            RepositoryCreator repositoryCreator = new RepositoryCreator(beansClassOutput);
+            repositoryCreator.implementCrudRepository(info.getRepositoryToImplement(), info.getExtraTypesResult(),
+                    info.getMethodInfos());
         }
     }
 
@@ -647,5 +666,41 @@ final class JimmerProcessor {
         public boolean getAsBoolean() {
             return jimmerBuildTimeConfig.language().equalsIgnoreCase("java");
         }
+    }
+
+    private Map.Entry<DotName, DotName> extractIdAndEntityTypes(ClassInfo repositoryToImplement, IndexView indexView) {
+
+        DotName entityDotName = null;
+        DotName idDotName = null;
+
+        // we need to pull the entity and ID types for the Spring Data generic types
+        // we also need to make sure that the user didn't try to specify multiple different types
+        // in the same interface (which is possible if only Repository is used)
+        for (DotName extendedSpringDataRepo : GenerationUtil.extendedSpringDataRepos(repositoryToImplement, indexView)) {
+            List<Type> types = JandexUtil.resolveTypeParameters(repositoryToImplement.name(), extendedSpringDataRepo,
+                    indexView);
+            if (!(types.get(0) instanceof ClassType)) {
+                throw new IllegalArgumentException(
+                        "Entity generic argument of " + repositoryToImplement + " is not a regular class type");
+            }
+            DotName newEntityDotName = types.get(0).name();
+            if ((entityDotName != null) && !newEntityDotName.equals(entityDotName)) {
+                throw new IllegalArgumentException("Repository " + repositoryToImplement + " specifies multiple Entity types");
+            }
+            entityDotName = newEntityDotName;
+
+            DotName newIdDotName = types.get(1).name();
+            if ((idDotName != null) && !newIdDotName.equals(idDotName)) {
+                throw new IllegalArgumentException("Repository " + repositoryToImplement + " specifies multiple ID types");
+            }
+            idDotName = newIdDotName;
+        }
+
+        if (idDotName == null || entityDotName == null) {
+            throw new IllegalArgumentException(
+                    "Repository " + repositoryToImplement + " does not specify ID and/or Entity type");
+        }
+
+        return new AbstractMap.SimpleEntry<>(idDotName, entityDotName);
     }
 }

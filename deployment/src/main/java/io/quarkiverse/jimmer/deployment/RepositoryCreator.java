@@ -4,15 +4,14 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.jboss.jandex.*;
-import org.jboss.jandex.Type;
 
 import io.quarkiverse.jimmer.runtime.repository.TestInterface;
 import io.quarkiverse.jimmer.runtime.repository.TestInterfaceImpl;
 import io.quarkus.arc.Unremovable;
-import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.*;
 import io.quarkus.runtime.util.HashUtil;
 
@@ -20,16 +19,12 @@ public class RepositoryCreator {
 
     private final ClassOutput classOutput;
 
-    private final IndexView index;
-
-    public RepositoryCreator(ClassOutput classOutput, IndexView index) {
+    public RepositoryCreator(ClassOutput classOutput) {
         this.classOutput = classOutput;
-        this.index = index;
     }
 
-    public Result implementCrudRepository(ClassInfo repositoryToImplement, IndexView indexView) {
-        Map.Entry<DotName, DotName> extraTypesResult = extractIdAndEntityTypes(repositoryToImplement, indexView);
-
+    public Result implementCrudRepository(ClassInfo repositoryToImplement, Map.Entry<DotName, DotName> extraTypesResult,
+            Set<MethodInfo> methodInfos) {
         DotName idTypeDotName = extraTypesResult.getKey();
         String idTypeStr = idTypeDotName.toString();
         DotName entityDotName = extraTypesResult.getValue();
@@ -57,27 +52,30 @@ public class RepositoryCreator {
                     .getFieldCreator("defaultImpl", TestInterface.class.getName())
                     .setModifiers(Modifier.PRIVATE | Modifier.FINAL);
 
+            FieldCreator jSqlClientFieldCreator = classCreator.getFieldCreator("jSqlClient", JSqlClient.class.getName());
+            jSqlClientFieldCreator.setModifiers(jSqlClientFieldCreator.getModifiers() & ~Modifier.PRIVATE)
+                    .addAnnotation(Inject.class);
+
             //            MethodCreator constructor = classCreator.getMethodCreator("<init>", "V");
             //            constructor.invokeSpecialMethod(MethodDescriptor.ofConstructor(Object.class), constructor.getThis());
             //            constructor.returnValue(null);
 
+            //            try (MethodCreator ctor = classCreator.getMethodCreator("<init>", "V")) {
+            //                ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(Object.class, "<init>", void.class), ctor.getThis());
+            //                ctor.returnValue(null);
+            //            }
+
             try (MethodCreator ctor = classCreator.getMethodCreator("<init>", "V")) {
                 ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(Object.class, "<init>", void.class), ctor.getThis());
-                ctor.returnValue(null);
-            }
-
-            try (MethodCreator ctor = classCreator.getMethodCreator("<init>", "V", JSqlClient.class.getName())) {
-                ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(Object.class, "<init>", void.class), ctor.getThis());
+                FieldDescriptor jSqlClientFieldDescriptor = classCreator.getFieldCreator("jSqlClient", JSqlClient.class)
+                        .getFieldDescriptor();
                 ResultHandle entityType = ctor.loadClassFromTCCL(entityTypeStr);
                 ResultHandle resultHandle = ctor.newInstance(
                         MethodDescriptor.ofConstructor(TestInterfaceImpl.class, JSqlClient.class, Class.class),
-                        ctor.getMethodParam(0), entityType);
+                        ctor.readInstanceField(jSqlClientFieldDescriptor, ctor.getThis()), entityType);
                 ctor.writeInstanceField(entityClassFieldCreator.getFieldDescriptor(), ctor.getThis(), resultHandle);
                 ctor.returnValue(null);
             }
-
-            Set<MethodInfo> methodInfos = GenerationUtil
-                    .interfaceMethods(Collections.singletonList(repositoryToImplement.interfaceNames().get(0)), indexView);
 
             for (MethodInfo methodInfo : methodInfos) {
                 try (MethodCreator ctor = classCreator.getMethodCreator(MethodDescriptor.of(methodInfo))) {
@@ -96,41 +94,6 @@ public class RepositoryCreator {
         }
 
         return new Result(entityDotName, idTypeDotName, generatedClassName);
-    }
-
-    private Map.Entry<DotName, DotName> extractIdAndEntityTypes(ClassInfo repositoryToImplement, IndexView indexView) {
-
-        DotName entityDotName = null;
-        DotName idDotName = null;
-
-        // we need to pull the entity and ID types for the Spring Data generic types
-        // we also need to make sure that the user didn't try to specify multiple different types
-        // in the same interface (which is possible if only Repository is used)
-        for (DotName extendedSpringDataRepo : GenerationUtil.extendedSpringDataRepos(repositoryToImplement, indexView)) {
-            List<Type> types = JandexUtil.resolveTypeParameters(repositoryToImplement.name(), extendedSpringDataRepo, index);
-            if (!(types.get(0) instanceof ClassType)) {
-                throw new IllegalArgumentException(
-                        "Entity generic argument of " + repositoryToImplement + " is not a regular class type");
-            }
-            DotName newEntityDotName = types.get(0).name();
-            if ((entityDotName != null) && !newEntityDotName.equals(entityDotName)) {
-                throw new IllegalArgumentException("Repository " + repositoryToImplement + " specifies multiple Entity types");
-            }
-            entityDotName = newEntityDotName;
-
-            DotName newIdDotName = types.get(1).name();
-            if ((idDotName != null) && !newIdDotName.equals(idDotName)) {
-                throw new IllegalArgumentException("Repository " + repositoryToImplement + " specifies multiple ID types");
-            }
-            idDotName = newIdDotName;
-        }
-
-        if (idDotName == null || entityDotName == null) {
-            throw new IllegalArgumentException(
-                    "Repository " + repositoryToImplement + " does not specify ID and/or Entity type");
-        }
-
-        return new AbstractMap.SimpleEntry<>(idDotName, entityDotName);
     }
 
     public static final class Result {
