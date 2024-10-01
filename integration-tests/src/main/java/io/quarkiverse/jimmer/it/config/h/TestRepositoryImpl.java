@@ -3,6 +3,7 @@ package io.quarkiverse.jimmer.it.config.h;
 import org.babyfish.jimmer.sql.JSqlClient;
 
 import io.quarkiverse.jimmer.it.entity.Book;
+import io.quarkiverse.jimmer.runtime.repository.TestInterface;
 import io.quarkiverse.jimmer.runtime.repository.TestInterfaceImpl;
 
 /**
@@ -12,26 +13,25 @@ import io.quarkiverse.jimmer.runtime.repository.TestInterfaceImpl;
 //@ApplicationScoped
 public class TestRepositoryImpl implements TestRepository {
 
-    private final TestInterfaceImpl testInterface;
+    private final TestInterface defaultImpl;
 
-    public TestRepositoryImpl(JSqlClient jSqlClient) throws ClassNotFoundException {
-        ClassLoader var1 = Thread.currentThread().getContextClassLoader();
-        Class var2 = Class.forName("io.quarkiverse.jimmer.it.entity.Book", false, var1);
-        this.testInterface = new TestInterfaceImpl<>(jSqlClient, var2);
-    }
-
-    @Override
-    public JSqlClient sql() {
-        return testInterface.sql();
-    }
-
-    @Override
-    public Class<Book> entityType() {
-        return testInterface.entityType();
+    public TestRepositoryImpl(JSqlClient var1) throws ClassNotFoundException {
+        ClassLoader var2 = Thread.currentThread().getContextClassLoader();
+        Class var3 = Class.forName("io.quarkiverse.jimmer.it.entity.Book", false, var2);
+        TestInterface var4 = new TestInterfaceImpl(var1, var3);
+        this.defaultImpl = var4;
     }
 
     @Override
     public Book findNullable(Long aLong) {
-        return (Book) testInterface.findNullable(aLong);
+        return (Book) this.defaultImpl.findNullable(aLong);
+    }
+
+    public JSqlClient sql() {
+        return this.defaultImpl.sql();
+    }
+
+    public Class entityType() {
+        return this.defaultImpl.entityType();
     }
 }

@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.agroal.api.AgroalDataSource;
+import io.quarkiverse.jimmer.it.config.h.TestRepository;
+import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.ShutdownEvent;
@@ -29,6 +31,9 @@ public class AppLifecycleBean {
     @DataSource(Constant.DATASOURCE2)
     AgroalDataSource agroalDataSourceDB2;
 
+    @Inject
+    TestRepository testRepository;
+
     void onStart(@Observes StartupEvent ev) throws Exception {
         LOGGER.info("The application is starting...");
         LOGGER.info("Default Charset = {}", Charset.defaultCharset());
@@ -37,6 +42,11 @@ public class AppLifecycleBean {
         LOGGER.info("The application model is {}", LaunchMode.current().getDefaultProfile());
         this.initH2DB1();
         this.initH2DB2();
+        System.out.println("testRepository = " + testRepository);
+        Book b1 = testRepository.findNullable(1L);
+        System.out.println("b1 = " + b1);
+        Book b2 = testRepository.findNullable(2L);
+        System.out.println("b2 = " + b2);
     }
 
     private String getDefaultCharset() {

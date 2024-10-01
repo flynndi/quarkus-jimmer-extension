@@ -4,12 +4,13 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.jboss.jandex.*;
 import org.jboss.jandex.Type;
 
+import io.quarkiverse.jimmer.runtime.repository.TestInterface;
+import io.quarkiverse.jimmer.runtime.repository.TestInterfaceImpl;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.*;
@@ -44,19 +45,34 @@ public class RepositoryCreator {
             classCreator.addAnnotation(ApplicationScoped.class);
             classCreator.addAnnotation(Unremovable.class);
 
-            FieldCreator entityClassFieldCreator = classCreator.getFieldCreator("entityType", Class.class.getName())
+            //            FieldCreator entityClassFieldCreator = classCreator.getFieldCreator("entityType", Class.class.getName())
+            //                    .setModifiers(Modifier.PRIVATE | Modifier.FINAL);
+
+            //            AnnotationCreator jSqlClientAnnotationCreator = classCreator
+            //                    .getFieldCreator("jSqlClient", JSqlClient.class)
+            //                    .setModifiers(Modifier.PUBLIC)
+            //                    .addAnnotation(Inject.class);
+
+            FieldCreator entityClassFieldCreator = classCreator
+                    .getFieldCreator("defaultImpl", TestInterface.class.getName())
                     .setModifiers(Modifier.PRIVATE | Modifier.FINAL);
 
-            AnnotationCreator jSqlClientAnnotationCreator = classCreator
-                    .getFieldCreator("jSqlClient", JSqlClient.class)
-                    .setModifiers(Modifier.PUBLIC)
-                    .addAnnotation(Inject.class);
+            //            MethodCreator constructor = classCreator.getMethodCreator("<init>", "V");
+            //            constructor.invokeSpecialMethod(MethodDescriptor.ofConstructor(Object.class), constructor.getThis());
+            //            constructor.returnValue(null);
 
             try (MethodCreator ctor = classCreator.getMethodCreator("<init>", "V")) {
                 ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(Object.class, "<init>", void.class), ctor.getThis());
-                // initialize the entityClass field
-                ctor.writeInstanceField(entityClassFieldCreator.getFieldDescriptor(), ctor.getThis(),
-                        ctor.loadClassFromTCCL(entityTypeStr));
+                ctor.returnValue(null);
+            }
+
+            try (MethodCreator ctor = classCreator.getMethodCreator("<init>", "V", JSqlClient.class.getName())) {
+                ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(Object.class, "<init>", void.class), ctor.getThis());
+                ResultHandle entityType = ctor.loadClassFromTCCL(entityTypeStr);
+                ResultHandle resultHandle = ctor.newInstance(
+                        MethodDescriptor.ofConstructor(TestInterfaceImpl.class, JSqlClient.class, Class.class),
+                        ctor.getMethodParam(0), entityType);
+                ctor.writeInstanceField(entityClassFieldCreator.getFieldDescriptor(), ctor.getThis(), resultHandle);
                 ctor.returnValue(null);
             }
 
@@ -65,9 +81,8 @@ public class RepositoryCreator {
 
             for (MethodInfo methodInfo : methodInfos) {
                 try (MethodCreator ctor = classCreator.getMethodCreator(MethodDescriptor.of(methodInfo))) {
-                    FieldDescriptor jSqlClientFieldDescriptor = classCreator.getFieldCreator("jSqlClient", JSqlClient.class)
-                            .getFieldDescriptor();
-                    ResultHandle delegate = ctor.readInstanceField(jSqlClientFieldDescriptor, ctor.getThis());
+                    ResultHandle delegate = ctor.readInstanceField(entityClassFieldCreator.getFieldDescriptor(),
+                            ctor.getThis());
                     ResultHandle[] args = new ResultHandle[methodInfo.parametersCount()];
                     for (int i = 0; i < methodInfo.parametersCount(); i++) {
                         args[i] = ctor.getMethodParam(i);
