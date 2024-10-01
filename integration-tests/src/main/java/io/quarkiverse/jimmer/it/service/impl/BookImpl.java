@@ -55,7 +55,7 @@ public class BookImpl implements IBook {
                         .groupBy(table.storeId())
                         .select(
                                 table.storeId(),
-                                table.price().avg())
+                                table.price().avgAsDecimal())
                         .execute());
     }
 
