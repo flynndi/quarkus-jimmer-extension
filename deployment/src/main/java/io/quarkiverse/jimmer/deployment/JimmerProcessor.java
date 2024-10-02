@@ -399,7 +399,8 @@ final class JimmerProcessor {
     void generateJSqlClientBeans(JimmerDataSourcesRecorder recorder,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer,
-            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems) {
+            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
+            BuildProducer<SqlClientBuildItem> sqlClientBuildItemBuildItem) {
         if (jdbcDataSourceBuildItems.isEmpty()) {
             return;
         }
@@ -469,6 +470,8 @@ final class JimmerProcessor {
             }
 
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
+
+            sqlClientBuildItemBuildItem.produce(new SqlClientBuildItem(dataSourceName));
         }
     }
 
@@ -479,7 +482,8 @@ final class JimmerProcessor {
     void generateKSqlClientBeans(JimmerDataSourcesRecorder recorder,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer,
-            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems) {
+            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
+            BuildProducer<SqlClientBuildItem> sqlClientBuildItemBuildItem) {
         if (jdbcDataSourceBuildItems.isEmpty()) {
             return;
         }
@@ -549,6 +553,8 @@ final class JimmerProcessor {
             }
 
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
+
+            sqlClientBuildItemBuildItem.produce(new SqlClientBuildItem(dataSourceName));
         }
     }
 
