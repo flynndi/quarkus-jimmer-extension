@@ -1,17 +1,17 @@
 package io.quarkiverse.jimmer.deployment;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.jboss.jandex.*;
 
 import io.quarkiverse.jimmer.runtime.repository.TestInterface;
 import io.quarkiverse.jimmer.runtime.repository.TestInterfaceImpl;
-import io.quarkus.arc.Unremovable;
+import io.quarkus.arc.*;
 import io.quarkus.gizmo.*;
 import io.quarkus.runtime.util.HashUtil;
 
@@ -40,39 +40,29 @@ public class RepositoryCreator {
             classCreator.addAnnotation(ApplicationScoped.class);
             classCreator.addAnnotation(Unremovable.class);
 
-            //            FieldCreator entityClassFieldCreator = classCreator.getFieldCreator("entityType", Class.class.getName())
-            //                    .setModifiers(Modifier.PRIVATE | Modifier.FINAL);
-
-            //            AnnotationCreator jSqlClientAnnotationCreator = classCreator
-            //                    .getFieldCreator("jSqlClient", JSqlClient.class)
-            //                    .setModifiers(Modifier.PUBLIC)
-            //                    .addAnnotation(Inject.class);
-
             FieldCreator entityClassFieldCreator = classCreator
                     .getFieldCreator("defaultImpl", TestInterface.class.getName())
                     .setModifiers(Modifier.PRIVATE | Modifier.FINAL);
 
-            FieldCreator jSqlClientFieldCreator = classCreator.getFieldCreator("jSqlClient", JSqlClient.class.getName());
-            jSqlClientFieldCreator.setModifiers(jSqlClientFieldCreator.getModifiers() & ~Modifier.PRIVATE)
-                    .addAnnotation(Inject.class);
-
-            //            MethodCreator constructor = classCreator.getMethodCreator("<init>", "V");
-            //            constructor.invokeSpecialMethod(MethodDescriptor.ofConstructor(Object.class), constructor.getThis());
-            //            constructor.returnValue(null);
-
-            //            try (MethodCreator ctor = classCreator.getMethodCreator("<init>", "V")) {
-            //                ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(Object.class, "<init>", void.class), ctor.getThis());
-            //                ctor.returnValue(null);
-            //            }
-
             try (MethodCreator ctor = classCreator.getMethodCreator("<init>", "V")) {
                 ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(Object.class, "<init>", void.class), ctor.getThis());
-                FieldDescriptor jSqlClientFieldDescriptor = classCreator.getFieldCreator("jSqlClient", JSqlClient.class)
-                        .getFieldDescriptor();
                 ResultHandle entityType = ctor.loadClassFromTCCL(entityTypeStr);
+
+                ResultHandle containerHandle = ctor
+                        .invokeStaticMethod(MethodDescriptor.ofMethod(Arc.class, "container", ArcContainer.class));
+
+                ResultHandle instanceHandle = ctor.invokeInterfaceMethod(
+                        MethodDescriptor.ofMethod(ArcContainer.class, "instance", InstanceHandle.class, Class.class,
+                                Annotation[].class),
+                        containerHandle, ctor.loadClass(JSqlClient.class), ctor.loadNull());
+
+                ResultHandle beanInstanceHandle = ctor
+                        .invokeInterfaceMethod(MethodDescriptor.ofMethod(InstanceHandle.class, "get", Object.class),
+                                instanceHandle);
+
                 ResultHandle resultHandle = ctor.newInstance(
                         MethodDescriptor.ofConstructor(TestInterfaceImpl.class, JSqlClient.class, Class.class),
-                        ctor.readInstanceField(jSqlClientFieldDescriptor, ctor.getThis()), entityType);
+                        beanInstanceHandle, entityType);
                 ctor.writeInstanceField(entityClassFieldCreator.getFieldDescriptor(), ctor.getThis(), resultHandle);
                 ctor.returnValue(null);
             }

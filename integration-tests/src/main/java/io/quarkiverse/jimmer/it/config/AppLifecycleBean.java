@@ -3,6 +3,7 @@ package io.quarkiverse.jimmer.it.config;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.sql.Connection;
+import java.util.List;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -47,6 +48,8 @@ public class AppLifecycleBean {
         System.out.println("b1 = " + b1);
         Book b2 = testRepository.findNullable(2L);
         System.out.println("b2 = " + b2);
+        List<Book> books = testRepository.testList();
+        System.out.println("books = " + books);
     }
 
     private String getDefaultCharset() {

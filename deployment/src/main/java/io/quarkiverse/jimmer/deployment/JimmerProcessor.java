@@ -503,15 +503,13 @@ final class JimmerProcessor {
     }
 
     @BuildStep(onlyIf = IsJavaEnable.class)
-    @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(JSqlClientBeansBuildItems.class)
-    void test(JimmerDataSourcesRecorder recorder, List<SomeInfos> someInfos, List<RepositoryBuildItem> repositoryBuildItems,
-            BuildProducer<GeneratedBeanBuildItem> generatedBeans,
-            BuildProducer<GeneratedClassBuildItem> generatedClasses) {
+    void test(List<SomeInfos> someInfos, BuildProducer<GeneratedBeanBuildItem> generatedBeans) {
         ClassOutput beansClassOutput = new GeneratedBeanGizmoAdaptor(generatedBeans);
         for (SomeInfos info : someInfos) {
             RepositoryCreator repositoryCreator = new RepositoryCreator(beansClassOutput);
-            repositoryCreator.implementCrudRepository(info.getRepositoryToImplement(), info.getExtraTypesResult(),
+            RepositoryCreator.Result result = repositoryCreator.implementCrudRepository(info.getRepositoryToImplement(),
+                    info.getExtraTypesResult(),
                     info.getMethodInfos());
         }
     }
