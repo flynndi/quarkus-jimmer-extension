@@ -504,7 +504,7 @@ final class JimmerProcessor {
 
     @BuildStep(onlyIf = IsJavaEnable.class)
     @Record(ExecutionTime.RUNTIME_INIT)
-    @Consume(PreBeanContainerBuildItem.class)
+    @Consume(JSqlClientBeansBuildItems.class)
     void test(JimmerDataSourcesRecorder recorder, List<SomeInfos> someInfos, List<RepositoryBuildItem> repositoryBuildItems,
             BuildProducer<GeneratedBeanBuildItem> generatedBeans,
             BuildProducer<GeneratedClassBuildItem> generatedClasses) {
