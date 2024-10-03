@@ -50,7 +50,6 @@ public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
         this(sqlClient, null);
     }
 
-    @SuppressWarnings("unchecked")
     public JRepositoryImpl(JSqlClient sqlClient, Class<E> entityType) {
         this.sqlClient = Utils.validateSqlClient(sqlClient);
         this.entityType = entityType;
