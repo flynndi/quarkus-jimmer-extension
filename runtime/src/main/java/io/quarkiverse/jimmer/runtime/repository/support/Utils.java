@@ -16,8 +16,10 @@ import org.babyfish.jimmer.sql.ast.table.spi.PropExpressionImplementor;
 import org.babyfish.jimmer.sql.ast.table.spi.TableProxy;
 import org.babyfish.jimmer.sql.meta.EmbeddedColumns;
 import org.babyfish.jimmer.sql.meta.MetadataStrategy;
+import org.babyfish.jimmer.sql.runtime.ConnectionManager;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
+import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 
@@ -46,6 +48,19 @@ public class Utils {
             throw new IllegalArgumentException(
                     "The transient resolver provider of sql client must be instance of \"" +
                             QuarkusTransientResolverProvider.class.getName() +
+                            "\"");
+        }
+        if (!(implementor.getTransientResolverProvider() instanceof QuarkusTransientResolverProvider)) {
+            throw new IllegalArgumentException(
+                    "The transient resolver provider of sql client must be instance of \"" +
+                            QuarkusTransientResolverProvider.class.getName() +
+                            "\"");
+        }
+        ConnectionManager slaveConnectionManager = implementor.getSlaveConnectionManager(false);
+        if (slaveConnectionManager != null && !(slaveConnectionManager instanceof QuarkusConnectionManager)) {
+            throw new IllegalArgumentException(
+                    "The slave connection manager of sql client must be null or instance of \"" +
+                            QuarkusConnectionManager.class.getName() +
                             "\"");
         }
         return implementor;
