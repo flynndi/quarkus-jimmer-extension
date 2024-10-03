@@ -15,8 +15,6 @@ import io.agroal.api.AgroalDataSource;
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkus.agroal.DataSource;
-import io.quarkus.arc.Arc;
-import io.quarkus.arc.InstanceHandle;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -33,6 +31,9 @@ public class AppLifecycleBean {
     @DataSource(Constant.DATASOURCE2)
     AgroalDataSource agroalDataSourceDB2;
 
+    @Inject
+    BookRepository bookRepository;
+
     void onStart(@Observes StartupEvent ev) throws Exception {
         LOGGER.info("The application is starting...");
         LOGGER.info("Default Charset = {}", Charset.defaultCharset());
@@ -41,16 +42,6 @@ public class AppLifecycleBean {
         LOGGER.info("The application model is {}", LaunchMode.current().getDefaultProfile());
         this.initH2DB1();
         this.initH2DB2();
-        InstanceHandle<BookRepository> instance = Arc.container().instance(BookRepository.class);
-        if (instance.isAvailable()) {
-            BookRepository bookRepository = instance.get();
-            Book b1 = bookRepository.selectBookById(1L);
-            System.out.println("b1 = " + b1);
-            Book b2 = bookRepository.selectBookById(2L);
-            System.out.println("b2 = " + b2);
-            Book b3 = bookRepository.selectBookById(3L);
-            System.out.println("b3 = " + b3);
-        }
     }
 
     private String getDefaultCharset() {

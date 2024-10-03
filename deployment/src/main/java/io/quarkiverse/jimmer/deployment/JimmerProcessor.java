@@ -603,8 +603,8 @@ final class JimmerProcessor {
     void registerJRepository(CombinedIndexBuildItem combinedIndex, BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem,
             List<RepositoryBuildItem> repositoryBuildItems) {
         ClassOutput classOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItem);
-        ClassInfo jRepositoryImplClassInfo = combinedIndex.getIndex().getClassByName(JRepositoryImpl.class);
-        List<MethodInfo> methodInfos = jRepositoryImplClassInfo.methods();
+        ClassInfo jRepositoryClassInfo = combinedIndex.getIndex().getClassByName(JRepository.class);
+        List<MethodInfo> methodInfos = jRepositoryClassInfo.methods();
         for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
             RepositoryCreator repositoryCreator = new RepositoryCreator(classOutput, methodInfos,
                     repositoryBuildItem.getRepositoryName(), repositoryBuildItem.getDataSourceName(),

@@ -64,8 +64,8 @@ final class RepositoryCreator {
                     .setModifiers(Modifier.PRIVATE | Modifier.FINAL);
 
             try (MethodCreator ctor = classCreator.getMethodCreator("<init>", "V")) {
+                ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(Object.class, "<init>", void.class), ctor.getThis());
                 ResultHandle entityType = ctor.loadClassFromTCCL(entityTypeStr);
-
                 ResultHandle containerHandle = ctor
                         .invokeStaticMethod(MethodDescriptor.ofMethod(Arc.class, "container", ArcContainer.class));
 
@@ -84,18 +84,18 @@ final class RepositoryCreator {
                 ctor.writeInstanceField(delegateCreator.getFieldDescriptor(), ctor.getThis(), resultHandle);
                 ctor.returnValue(null);
             }
-
             for (MethodInfo methodInfo : methodInfos) {
-                try (MethodCreator ctor = classCreator.getMethodCreator(MethodDescriptor.of(methodInfo))) {
-                    ResultHandle delegate = ctor.readInstanceField(delegateCreator.getFieldDescriptor(),
-                            ctor.getThis());
-                    ResultHandle[] args = new ResultHandle[methodInfo.parametersCount()];
-                    for (int i = 0; i < methodInfo.parametersCount(); i++) {
-                        args[i] = ctor.getMethodParam(i);
+                if (!methodInfo.name().equals("<init>")) {
+                    try (MethodCreator ctor = classCreator.getMethodCreator(MethodDescriptor.of(methodInfo))) {
+                        ResultHandle delegate = ctor.readInstanceField(delegateCreator.getFieldDescriptor(),
+                                ctor.getThis());
+                        ResultHandle[] args = new ResultHandle[methodInfo.parametersCount()];
+                        for (int i = 0; i < methodInfo.parametersCount(); i++) {
+                            args[i] = ctor.getMethodParam(i);
+                        }
+                        ctor.returnValue(ctor.invokeInterfaceMethod(methodInfo, delegate, args));
                     }
-                    ctor.returnValue(ctor.invokeInterfaceMethod(methodInfo, delegate, args));
                 }
-
             }
             classCreator.writeTo(classOutput);
 
