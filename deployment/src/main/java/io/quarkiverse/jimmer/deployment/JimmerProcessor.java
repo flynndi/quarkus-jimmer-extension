@@ -1,9 +1,6 @@
 package io.quarkiverse.jimmer.deployment;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
@@ -37,6 +34,7 @@ import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
+import io.quarkiverse.jimmer.runtime.repository.JRepositoryImpl;
 import io.quarkiverse.jimmer.runtime.repository.JimmerJpaRecorder;
 import io.quarkiverse.jimmer.runtime.repository.KRepository;
 import io.quarkiverse.jimmer.runtime.util.Constant;
@@ -55,6 +53,7 @@ import io.quarkus.deployment.builditem.*;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
+import io.quarkus.gizmo.ClassOutput;
 import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
@@ -258,20 +257,61 @@ final class JimmerProcessor {
         registries.produce(new RegistryBuildItem("OpenApiUiResource", uiPath));
     }
 
+    @BuildStep
+    void contributeClassesToIndex(BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClasses) {
+        additionalIndexedClasses
+                .produce(new AdditionalIndexedClassesBuildItem(JRepository.class.getName(), JRepositoryImpl.class.getName()));
+    }
+
     @BuildStep(onlyIf = IsJavaEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
-    void registerJRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+    void collectRepositoryInfo(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
             CombinedIndexBuildItem combinedIndex,
-            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
-            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
-        Collection<ClassInfo> repositoryBeans = combinedIndex.getComputingIndex().getAllKnownImplementors(JRepository.class);
-        for (ClassInfo repositoryBean : repositoryBeans) {
-            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
+            BuildProducer<RepositoryBuildItem> repositoryBuildProducer) {
+        Collection<ClassInfo> repositoryInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(JRepository.class);
+        for (ClassInfo repositoryInterface : repositoryInterfaces) {
+            DotName dotName = repositoryInterface.asClass().name();
+            Optional<AnnotationInstance> mapperDatasource = repositoryInterface.asClass().annotationsMap().entrySet().stream()
+                    .filter(entry -> entry.getKey().equals(DotName.createSimple(DataSource.class)))
+                    .map(Map.Entry::getValue)
+                    .map(annotationList -> annotationList.get(0))
+                    .findFirst();
 
-            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
-                    DotName.createSimple(JRepository.class), combinedIndex.getComputingIndex());
-            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
-                    JandexReflection.loadRawType(typeParameters.get(0))));
+            DotName entityDotName = null;
+            DotName idDotName = null;
+            for (DotName extendedRepo : repositoryInterface.interfaceNames()) {
+                List<Type> types = JandexUtil.resolveTypeParameters(repositoryInterface.name(), extendedRepo,
+                        combinedIndex.getIndex());
+                if (!(types.get(0) instanceof ClassType)) {
+                    throw new IllegalArgumentException(
+                            "Entity generic argument of " + repositoryInterface + " is not a regular class type");
+                }
+                DotName newEntityDotName = types.get(0).name();
+                if ((entityDotName != null) && !newEntityDotName.equals(entityDotName)) {
+                    throw new IllegalArgumentException(
+                            "Repository " + repositoryInterface + " specifies multiple Entity types");
+                }
+                entityDotName = newEntityDotName;
+
+                DotName newIdDotName = types.get(1).name();
+                if ((idDotName != null) && !newIdDotName.equals(idDotName)) {
+                    throw new IllegalArgumentException("Repository " + repositoryInterface + " specifies multiple ID types");
+                }
+                idDotName = newIdDotName;
+            }
+
+            if (idDotName == null || entityDotName == null) {
+                throw new IllegalArgumentException(
+                        "Repository " + repositoryInterface + " does not specify ID and/or Entity type");
+            }
+            if (mapperDatasource.isPresent()) {
+                String dataSourceName = mapperDatasource.get().value().asString();
+                repositoryBuildProducer.produce(new RepositoryBuildItem(dotName, dataSourceName,
+                        new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
+            } else {
+                repositoryBuildProducer.produce(
+                        new RepositoryBuildItem(dotName, "<default>", new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
+            }
         }
     }
 
@@ -555,6 +595,24 @@ final class JimmerProcessor {
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
 
             sqlClientBuildItemBuildItem.produce(new SqlClientBuildItem(dataSourceName));
+        }
+    }
+
+    @BuildStep(onlyIf = IsJavaEnable.class)
+    @Consume(SqlClientBuildItem.class)
+    void registerJRepository(CombinedIndexBuildItem combinedIndex, BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem,
+            List<RepositoryBuildItem> repositoryBuildItems) {
+        ClassOutput classOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItem);
+        ClassInfo jRepositoryClassInfo = combinedIndex.getIndex().getClassByName(JRepository.class);
+        List<MethodInfo> methodInfos = jRepositoryClassInfo.methods();
+        for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
+            log.trace("Ready to generate the implementation class");
+            RepositoryCreator repositoryCreator = new RepositoryCreator(classOutput, methodInfos,
+                    repositoryBuildItem.getRepositoryName(), repositoryBuildItem.getDataSourceName(),
+                    repositoryBuildItem.getDotIdDotNameEntry());
+            RepositoryCreator.Result result = repositoryCreator.implementCrudRepository();
+            log.tracev("Generation implementation class: {0}, entity: {1}, idType: {2}", result.getGeneratedClassName(),
+                    result.getEntityDotName(), result.getIdTypeDotName());
         }
     }
 
