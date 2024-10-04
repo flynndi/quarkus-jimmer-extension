@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.enterprise.context.ApplicationScoped;
-
 import org.babyfish.jimmer.sql.ast.Expression;
 import org.babyfish.jimmer.sql.ast.tuple.Tuple2;
 
@@ -13,14 +11,13 @@ import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.Tables;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 
-@ApplicationScoped
-public class BookRepository implements JRepository<Book, Long> {
+public interface BookRepository extends JRepository<Book, Long> {
 
-    public Book selectBookById(long id) {
+    default Book selectBookById(long id) {
         return sql().findById(Book.class, id);
     }
 
-    public Map<Long, List<Long>> findNewestIdsGroupByStoreId(Collection<Long> ids) {
+    default Map<Long, List<Long>> findNewestIdsGroupByStoreId(Collection<Long> ids) {
         return Tuple2.toMultiMap(
                 sql()
                         .createQuery(Tables.BOOK_TABLE)
