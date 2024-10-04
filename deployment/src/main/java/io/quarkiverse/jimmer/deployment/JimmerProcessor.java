@@ -606,11 +606,13 @@ final class JimmerProcessor {
         ClassInfo jRepositoryClassInfo = combinedIndex.getIndex().getClassByName(JRepository.class);
         List<MethodInfo> methodInfos = jRepositoryClassInfo.methods();
         for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
+            log.trace("Ready to generate the implementation class");
             RepositoryCreator repositoryCreator = new RepositoryCreator(classOutput, methodInfos,
                     repositoryBuildItem.getRepositoryName(), repositoryBuildItem.getDataSourceName(),
                     repositoryBuildItem.getDotIdDotNameEntry());
             RepositoryCreator.Result result = repositoryCreator.implementCrudRepository();
-            System.out.println("result = " + result);
+            log.tracev("Generation implementation class: {0}, entity: {1}, idType: {2}", result.getGeneratedClassName(),
+                    result.getEntityDotName(), result.getIdTypeDotName());
         }
     }
 
