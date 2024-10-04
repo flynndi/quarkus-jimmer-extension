@@ -69,11 +69,23 @@ final class RepositoryCreator {
                 ResultHandle containerHandle = ctor
                         .invokeStaticMethod(MethodDescriptor.ofMethod(Arc.class, "container", ArcContainer.class));
 
-                ResultHandle instanceHandle = ctor.invokeInterfaceMethod(
-                        MethodDescriptor.ofMethod(ArcContainer.class, "instance", InstanceHandle.class, Class.class,
-                                Annotation[].class),
-                        containerHandle, ctor.loadClass(JSqlClient.class), ctor.loadNull());
-
+                ResultHandle instanceHandle;
+                if (!dataSourceName.equals("<default>")) {
+                    ResultHandle annotationArray = ctor.newArray(Annotation[].class, 1);
+                    ResultHandle arrayValue = ctor.newInstance(
+                            MethodDescriptor.ofConstructor(DataSource.DataSourceLiteral.class, String.class),
+                            ctor.load(dataSourceName));
+                    ctor.writeArrayValue(annotationArray, 0, arrayValue);
+                    instanceHandle = ctor.invokeInterfaceMethod(
+                            MethodDescriptor.ofMethod(ArcContainer.class, "instance", InstanceHandle.class, Class.class,
+                                    Annotation[].class),
+                            containerHandle, ctor.loadClass(JSqlClient.class), annotationArray);
+                } else {
+                    instanceHandle = ctor.invokeInterfaceMethod(
+                            MethodDescriptor.ofMethod(ArcContainer.class, "instance", InstanceHandle.class, Class.class,
+                                    Annotation[].class),
+                            containerHandle, ctor.loadClass(JSqlClient.class), ctor.loadNull());
+                }
                 ResultHandle beanInstanceHandle = ctor
                         .invokeInterfaceMethod(MethodDescriptor.ofMethod(InstanceHandle.class, "get", Object.class),
                                 instanceHandle);
@@ -84,25 +96,22 @@ final class RepositoryCreator {
                 ctor.writeInstanceField(delegateCreator.getFieldDescriptor(), ctor.getThis(), resultHandle);
                 ctor.returnValue(null);
             }
+
             for (MethodInfo methodInfo : methodInfos) {
-                if (!methodInfo.name().equals("<init>")) {
-                    try (MethodCreator ctor = classCreator.getMethodCreator(MethodDescriptor.of(methodInfo))) {
-                        ResultHandle delegate = ctor.readInstanceField(delegateCreator.getFieldDescriptor(),
-                                ctor.getThis());
-                        ResultHandle[] args = new ResultHandle[methodInfo.parametersCount()];
-                        for (int i = 0; i < methodInfo.parametersCount(); i++) {
-                            args[i] = ctor.getMethodParam(i);
-                        }
-                        ctor.returnValue(ctor.invokeInterfaceMethod(methodInfo, delegate, args));
+                try (MethodCreator ctor = classCreator.getMethodCreator(MethodDescriptor.of(methodInfo))) {
+                    ResultHandle delegate = ctor.readInstanceField(delegateCreator.getFieldDescriptor(),
+                            ctor.getThis());
+                    ResultHandle[] args = new ResultHandle[methodInfo.parametersCount()];
+                    for (int i = 0; i < methodInfo.parametersCount(); i++) {
+                        args[i] = ctor.getMethodParam(i);
                     }
+                    ctor.returnValue(ctor.invokeInterfaceMethod(methodInfo, delegate, args));
                 }
             }
             classCreator.writeTo(classOutput);
 
         }
-
         return new Result(entityDotName, idTypeDotName, generatedClassName);
-
     }
 
     public static final class Result {
