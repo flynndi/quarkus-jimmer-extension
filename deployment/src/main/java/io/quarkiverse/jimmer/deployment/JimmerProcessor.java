@@ -254,10 +254,14 @@ final class JimmerProcessor {
         registries.produce(new RegistryBuildItem("OpenApiUiResource", uiPath));
     }
 
-    @BuildStep
-    void contributeClassesToIndex(BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClasses) {
+    @BuildStep(onlyIf = IsJavaEnable.class)
+    void contributeJRepositoryToIndex(BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClasses) {
         additionalIndexedClasses
                 .produce(new AdditionalIndexedClassesBuildItem(JRepository.class.getName(), JRepositoryImpl.class.getName()));
+    }
+
+    @BuildStep(onlyIf = IsKotlinEnable.class)
+    void contributeKRepositoryToIndex(BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClasses) {
         additionalIndexedClasses
                 .produce(new AdditionalIndexedClassesBuildItem(KRepository.class.getName(), KRepositoryImpl.class.getName()));
     }
@@ -634,7 +638,7 @@ final class JimmerProcessor {
 
     @BuildStep(onlyIf = IsJavaEnable.class)
     @Consume(SqlClientBuildItem.class)
-    void registerJRepository(CombinedIndexBuildItem combinedIndex, BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem,
+    void generateJRepository(CombinedIndexBuildItem combinedIndex, BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem,
             List<RepositoryBuildItem> repositoryBuildItems) {
         ClassOutput classOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItem);
         ClassInfo jRepositoryClassInfo = combinedIndex.getIndex().getClassByName(JRepository.class);
@@ -652,7 +656,7 @@ final class JimmerProcessor {
 
     @BuildStep(onlyIf = IsKotlinEnable.class)
     @Consume(SqlClientBuildItem.class)
-    void registerKRepository(CombinedIndexBuildItem combinedIndex, BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem,
+    void generateKRepository(CombinedIndexBuildItem combinedIndex, BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem,
             List<RepositoryBuildItem> repositoryBuildItems) {
         ClassOutput classOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItem);
         ClassInfo kRepositoryClassInfo = combinedIndex.getIndex().getClassByName(KRepository.class);
