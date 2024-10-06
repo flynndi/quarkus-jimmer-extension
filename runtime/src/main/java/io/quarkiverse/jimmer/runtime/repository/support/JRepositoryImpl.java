@@ -1,4 +1,4 @@
-package io.quarkiverse.jimmer.runtime.repository;
+package io.quarkiverse.jimmer.runtime.repository.support;
 
 import java.util.List;
 import java.util.Map;
@@ -34,9 +34,9 @@ import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import io.quarkiverse.jimmer.runtime.repository.JRepository;
+import io.quarkiverse.jimmer.runtime.repository.QuarkusOrders;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
-import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
-import io.quarkiverse.jimmer.runtime.repository.support.Utils;
 
 public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
 

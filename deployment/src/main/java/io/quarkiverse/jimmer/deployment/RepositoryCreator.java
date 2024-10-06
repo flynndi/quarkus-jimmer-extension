@@ -13,9 +13,9 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
 
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
-import io.quarkiverse.jimmer.runtime.repository.JRepositoryImpl;
 import io.quarkiverse.jimmer.runtime.repository.KRepository;
-import io.quarkiverse.jimmer.runtime.repository.KRepositoryImpl;
+import io.quarkiverse.jimmer.runtime.repository.support.JRepositoryImpl;
+import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
