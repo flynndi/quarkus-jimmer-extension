@@ -34,6 +34,8 @@ import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.repository.*;
+import io.quarkiverse.jimmer.runtime.repository.support.JRepositoryImpl;
+import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkiverse.jimmer.runtime.util.DBKindEnum;
 import io.quarkus.agroal.DataSource;

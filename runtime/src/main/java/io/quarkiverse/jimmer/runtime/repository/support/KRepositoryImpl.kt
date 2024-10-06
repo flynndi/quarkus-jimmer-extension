@@ -1,8 +1,8 @@
-package io.quarkiverse.jimmer.runtime.repository
+package io.quarkiverse.jimmer.runtime.repository.support
 
+import io.quarkiverse.jimmer.runtime.repository.KRepository
 import io.quarkiverse.jimmer.runtime.repository.common.Sort
-import io.quarkiverse.jimmer.runtime.repository.support.Pagination
-import io.quarkiverse.jimmer.runtime.repository.support.Utils
+import io.quarkiverse.jimmer.runtime.repository.orderBy
 import org.babyfish.jimmer.ImmutableObjects
 import org.babyfish.jimmer.Input
 import org.babyfish.jimmer.Page
@@ -17,7 +17,8 @@ import org.babyfish.jimmer.sql.kt.ast.mutation.KSimpleSaveResult
 import org.babyfish.jimmer.sql.kt.ast.query.SortDsl
 import kotlin.reflect.KClass
 
-open class KRepositoryImpl<E: Any, ID: Any> (override val sql: KSqlClient, entityType: Class<E>? = null): KRepository<E, ID> {
+open class KRepositoryImpl<E: Any, ID: Any> (override val sql: KSqlClient, entityType: Class<E>? = null):
+    KRepository<E, ID> {
 
     init {
         Utils.validateSqlClient(sql.javaClient)
