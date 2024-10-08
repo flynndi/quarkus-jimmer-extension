@@ -33,6 +33,8 @@ import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
+import io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository;
 import io.quarkiverse.jimmer.runtime.repository.*;
 import io.quarkiverse.jimmer.runtime.repository.support.JRepositoryImpl;
 import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
@@ -317,6 +319,42 @@ final class JimmerProcessor {
                 repositoryBuildProducer.produce(
                         new RepositoryBuildItem(dotName, "<default>", new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
             }
+        }
+    }
+
+    @BuildStep(onlyIf = IsJavaEnable.class)
+    @Record(ExecutionTime.STATIC_INIT)
+    void analyzeJavaRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
+            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
+        Collection<ClassInfo> repositoryBeans = combinedIndex.getComputingIndex()
+                .getAllKnownSubclasses(AbstractJavaRepository.class);
+        for (ClassInfo repositoryBean : repositoryBeans) {
+            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
+
+            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
+                    DotName.createSimple(AbstractJavaRepository.class), combinedIndex.getComputingIndex());
+            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
+                    JandexReflection.loadRawType(typeParameters.get(0))));
+        }
+    }
+
+    @BuildStep(onlyIf = IsKotlinEnable.class)
+    @Record(ExecutionTime.STATIC_INIT)
+    void analyzeKotlinRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
+            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
+        Collection<ClassInfo> repositoryBeans = combinedIndex.getComputingIndex()
+                .getAllKnownSubclasses(AbstractKotlinRepository.class);
+        for (ClassInfo repositoryBean : repositoryBeans) {
+            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
+
+            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
+                    DotName.createSimple(AbstractKotlinRepository.class), combinedIndex.getComputingIndex());
+            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
+                    JandexReflection.loadRawType(typeParameters.get(0))));
         }
     }
 
