@@ -322,42 +322,6 @@ final class JimmerProcessor {
         }
     }
 
-    @BuildStep(onlyIf = IsJavaEnable.class)
-    @Record(ExecutionTime.STATIC_INIT)
-    void analyzeJavaRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
-            CombinedIndexBuildItem combinedIndex,
-            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
-            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
-        Collection<ClassInfo> repositoryBeans = combinedIndex.getComputingIndex()
-                .getAllKnownSubclasses(AbstractJavaRepository.class);
-        for (ClassInfo repositoryBean : repositoryBeans) {
-            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
-
-            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
-                    DotName.createSimple(AbstractJavaRepository.class), combinedIndex.getComputingIndex());
-            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
-                    JandexReflection.loadRawType(typeParameters.get(0))));
-        }
-    }
-
-    @BuildStep(onlyIf = IsKotlinEnable.class)
-    @Record(ExecutionTime.STATIC_INIT)
-    void analyzeKotlinRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
-            CombinedIndexBuildItem combinedIndex,
-            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
-            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
-        Collection<ClassInfo> repositoryBeans = combinedIndex.getComputingIndex()
-                .getAllKnownSubclasses(AbstractKotlinRepository.class);
-        for (ClassInfo repositoryBean : repositoryBeans) {
-            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
-
-            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
-                    DotName.createSimple(AbstractKotlinRepository.class), combinedIndex.getComputingIndex());
-            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
-                    JandexReflection.loadRawType(typeParameters.get(0))));
-        }
-    }
-
     @BuildStep(onlyIf = IsKotlinEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
     void collectKRepositoryInfo(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
@@ -407,6 +371,42 @@ final class JimmerProcessor {
                 repositoryBuildProducer.produce(
                         new RepositoryBuildItem(dotName, "<default>", new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
             }
+        }
+    }
+
+    @BuildStep(onlyIf = IsJavaEnable.class)
+    @Record(ExecutionTime.STATIC_INIT)
+    void analyzeJavaRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
+            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
+        Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex()
+                .getAllKnownSubclasses(AbstractJavaRepository.class);
+        for (ClassInfo repositoryBean : repositoryBeans) {
+            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
+
+            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
+                    DotName.createSimple(AbstractJavaRepository.class), combinedIndex.getComputingIndex());
+            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
+                    JandexReflection.loadRawType(typeParameters.get(0))));
+        }
+    }
+
+    @BuildStep(onlyIf = IsKotlinEnable.class)
+    @Record(ExecutionTime.STATIC_INIT)
+    void analyzeKotlinRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
+            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
+        Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex()
+                .getAllKnownSubclasses(AbstractKotlinRepository.class);
+        for (ClassInfo repositoryBean : repositoryBeans) {
+            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
+
+            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
+                    DotName.createSimple(AbstractKotlinRepository.class), combinedIndex.getComputingIndex());
+            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
+                    JandexReflection.loadRawType(typeParameters.get(0))));
         }
     }
 
