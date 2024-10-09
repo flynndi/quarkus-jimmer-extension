@@ -377,9 +377,9 @@ final class JimmerProcessor {
     @BuildStep(onlyIf = IsJavaEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
     void analyzeJavaRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
-                               CombinedIndexBuildItem combinedIndex,
-                               BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
-                               BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
+            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
         Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex()
                 .getAllKnownSubclasses(AbstractJavaRepository.class);
         for (ClassInfo repositoryBean : repositoryBeans) {
@@ -395,9 +395,9 @@ final class JimmerProcessor {
     @BuildStep(onlyIf = IsKotlinEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
     void analyzeKotlinRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
-                                 CombinedIndexBuildItem combinedIndex,
-                                 BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
-                                 BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
+            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
         Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex()
                 .getAllKnownSubclasses(AbstractKotlinRepository.class);
         for (ClassInfo repositoryBean : repositoryBeans) {
