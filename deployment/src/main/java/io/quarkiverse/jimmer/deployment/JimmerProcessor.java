@@ -317,7 +317,8 @@ final class JimmerProcessor {
                         new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
             } else {
                 repositoryBuildProducer.produce(
-                        new RepositoryBuildItem(dotName, "<default>", new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
+                        new RepositoryBuildItem(dotName, DataSourceUtil.DEFAULT_DATASOURCE_NAME,
+                                new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
             }
         }
     }
@@ -369,7 +370,8 @@ final class JimmerProcessor {
                         new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
             } else {
                 repositoryBuildProducer.produce(
-                        new RepositoryBuildItem(dotName, "<default>", new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
+                        new RepositoryBuildItem(dotName, DataSourceUtil.DEFAULT_DATASOURCE_NAME,
+                                new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
             }
         }
     }
