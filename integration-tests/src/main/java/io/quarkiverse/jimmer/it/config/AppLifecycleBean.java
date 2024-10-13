@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.agroal.api.AgroalDataSource;
-import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.ShutdownEvent;
@@ -29,9 +28,6 @@ public class AppLifecycleBean {
     @Inject
     @DataSource(Constant.DATASOURCE2)
     AgroalDataSource agroalDataSourceDB2;
-
-    @Inject
-    BookRepository bookRepository;
 
     void onStart(@Observes StartupEvent ev) throws Exception {
         LOGGER.info("The application is starting...");
