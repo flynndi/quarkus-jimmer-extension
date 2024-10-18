@@ -694,8 +694,12 @@ public class TestResourceTestCase {
                 .when()
                 .post("testResources/testUserRoleRepositorySaveEntitiesSaveMode");
         Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
-        Assertions.assertEquals(4, response.jsonPath().getInt("totalAffectedRowCount"));
-        Assertions.assertEquals(2, response.jsonPath().getInt("simpleResults[0].totalAffectedRowCount"));
+        Assertions.assertEquals("4c1710d4-46e6-33d3-dc53-8492f6664050", response.jsonPath().getString("[0].id"));
+        Assertions.assertEquals("12", response.jsonPath().getString("[0].userId"));
+        Assertions.assertEquals("213", response.jsonPath().getString("[0].roleId"));
+        Assertions.assertEquals("10c40e99-b6eb-a6ae-b1c5-61fa87fef236", response.jsonPath().getString("[1].id"));
+        Assertions.assertEquals("333", response.jsonPath().getString("[1].userId"));
+        Assertions.assertEquals("333", response.jsonPath().getString("[1].roleId"));
     }
 
     @Test

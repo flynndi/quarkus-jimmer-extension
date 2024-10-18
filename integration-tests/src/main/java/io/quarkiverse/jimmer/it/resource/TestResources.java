@@ -433,14 +433,14 @@ public class TestResources {
     @Path("/testBookRepositoryMerge")
     @Api
     public Response testBookRepositoryMerge(Book book) {
-        return Response.ok(bookRepository.merge(book)).build();
+        return Response.ok(bookRepository.merge(book, SaveMode.UPSERT)).build();
     }
 
     @POST
     @Path("/testBookRepositoryMergeInput")
     @Api
     public Response testBookRepositoryMergeInput(BookInput bookInput) {
-        return Response.ok(bookRepository.merge(bookInput)).build();
+        return Response.ok(bookRepository.merge(bookInput, SaveMode.UPSERT)).build();
     }
 
     @POST
