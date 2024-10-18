@@ -13,12 +13,10 @@ import org.babyfish.jimmer.sql.fetcher.Fetcher
 import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.babyfish.jimmer.sql.kt.ast.mutation.KBatchSaveResult
 import org.babyfish.jimmer.sql.kt.ast.mutation.KSaveCommandDsl
-import org.babyfish.jimmer.sql.kt.ast.mutation.KSimpleSaveResult
 import org.babyfish.jimmer.sql.kt.ast.query.SortDsl
 import kotlin.reflect.KClass
 
-open class KRepositoryImpl<E: Any, ID: Any> (override val sql: KSqlClient, entityType: Class<E>? = null):
-    KRepository<E, ID> {
+open class KRepositoryImpl<E: Any, ID: Any> (override val sql: KSqlClient, entityType: Class<E>? = null): KRepository<E, ID> {
 
     init {
         Utils.validateSqlClient(sql.javaClient)
@@ -100,12 +98,6 @@ open class KRepositoryImpl<E: Any, ID: Any> (override val sql: KSqlClient, entit
         sql.createQuery(entityType) {
             select(org.babyfish.jimmer.sql.kt.ast.expression.count(table))
         }.fetchOne()
-
-    override fun <S: E> save(entity: S, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S> =
-        sql.entities.save(entity, block = block)
-
-    override fun <S: E> save(input: Input<S>, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S> =
-        sql.entities.save(input, block = block)
 
     override fun <S : E> saveEntities(entities: Iterable<S>, block: KSaveCommandDsl.() -> Unit): KBatchSaveResult<S> =
         sql.entities.saveEntities(Utils.toCollection(entities), block = block)
