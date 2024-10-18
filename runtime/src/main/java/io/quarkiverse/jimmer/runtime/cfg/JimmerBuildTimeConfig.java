@@ -8,7 +8,6 @@ import java.util.OptionalInt;
 import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
 import org.babyfish.jimmer.sql.EnumType;
-import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.LockMode;
 import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
@@ -94,7 +93,8 @@ public interface JimmerBuildTimeConfig {
     /**
      * jimmer.defaultBatchSize
      */
-    OptionalInt defaultBatchSize = OptionalInt.of(JSqlClient.Builder.DEFAULT_BATCH_SIZE);
+    @WithDefault("128")
+    OptionalInt defaultBatchSize();
 
     /**
      * jimmer.inListPaddingEnabled
@@ -111,12 +111,14 @@ public interface JimmerBuildTimeConfig {
     /**
      * jimmer.defaultListBatchSize
      */
-    OptionalInt defaultListBatchSize = OptionalInt.of(JSqlClient.Builder.DEFAULT_LIST_BATCH_SIZE);
+    @WithDefault("16")
+    OptionalInt defaultListBatchSize();
 
     /**
      * jimmer.offsetOptimizingThreshold
      */
-    OptionalInt offsetOptimizingThreshold = OptionalInt.of(Integer.MAX_VALUE);
+    @WithDefault("2147483647")
+    OptionalInt offsetOptimizingThreshold();
 
     /**
      * jimmer.isForeignKeyEnabledByDefault
