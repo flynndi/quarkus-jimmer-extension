@@ -126,11 +126,11 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setDefaultDissociateActionCheckable(config.defaultDissociationActionCheckable());
         builder.setIdOnlyTargetCheckingLevel(config.idOnlyTargetCheckingLevel());
         builder.setDefaultEnumStrategy(config.defaultEnumStrategy());
-        config.defaultBatchSize.ifPresent(builder::setDefaultBatchSize);
+        config.defaultBatchSize().ifPresent(builder::setDefaultBatchSize);
         builder.setInListPaddingEnabled(config.inListPaddingEnabled());
         builder.setExpandedInListPaddingEnabled(config.expandedInListPaddingEnabled());
-        config.defaultListBatchSize.ifPresent(builder::setDefaultListBatchSize);
-        config.offsetOptimizingThreshold.ifPresent(builder::setOffsetOptimizingThreshold);
+        config.defaultListBatchSize().ifPresent(builder::setDefaultListBatchSize);
+        config.offsetOptimizingThreshold().ifPresent(builder::setOffsetOptimizingThreshold);
         builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
         builder.setDefaultLockMode(config.lockMode());
         builder.setMaxCommandJoinCount(config.maxCommandJoinDepth());

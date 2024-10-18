@@ -235,6 +235,23 @@ endif::add-copy-button-to-env-var[]
 |`name`
 
 
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-default-batch-size]]`link:#quarkus-jimmer_quarkus-jimmer-default-batch-size[quarkus.jimmer.default-batch-size]`
+
+
+[.description]
+--
+jimmer.defaultBatchSize
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_DEFAULT_BATCH_SIZE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_DEFAULT_BATCH_SIZE+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|`128`
+
+
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-in-list-padding-enabled]]`link:#quarkus-jimmer_quarkus-jimmer-in-list-padding-enabled[quarkus.jimmer.in-list-padding-enabled]`
 
 
@@ -267,6 +284,40 @@ Environment variable: `+++QUARKUS_JIMMER_EXPANDED_IN_LIST_PADDING_ENABLED+++`
 endif::add-copy-button-to-env-var[]
 --|boolean 
 |`false`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-default-list-batch-size]]`link:#quarkus-jimmer_quarkus-jimmer-default-list-batch-size[quarkus.jimmer.default-list-batch-size]`
+
+
+[.description]
+--
+jimmer.defaultListBatchSize
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_DEFAULT_LIST_BATCH_SIZE+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_DEFAULT_LIST_BATCH_SIZE+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|`16`
+
+
+a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-offset-optimizing-threshold]]`link:#quarkus-jimmer_quarkus-jimmer-offset-optimizing-threshold[quarkus.jimmer.offset-optimizing-threshold]`
+
+
+[.description]
+--
+jimmer.offsetOptimizingThreshold
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_OFFSET_OPTIMIZING_THRESHOLD+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_JIMMER_OFFSET_OPTIMIZING_THRESHOLD+++`
+endif::add-copy-button-to-env-var[]
+--|int 
+|`2147483647`
 
 
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-is-foreign-key-enabled-by-default]]`link:#quarkus-jimmer_quarkus-jimmer-is-foreign-key-enabled-by-default[quarkus.jimmer.is-foreign-key-enabled-by-default]`
