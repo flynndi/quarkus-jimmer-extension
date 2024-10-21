@@ -181,50 +181,6 @@ interface KRepository<E: Any, ID: Any> {
     ): E =
         sql.save(input, associatedMode, block).modifiedEntity
 
-    /**
-     * For associated objects, only insert operations are executed.
-     */
-    @Deprecated("The method will be removed in 0.9")
-    fun <S: E> append(entity: S, mode: SaveMode = SaveMode.UPSERT): KSimpleSaveResult<S> =
-        sql.save(entity) {
-            setAssociatedModeAll(AssociatedSaveMode.APPEND)
-            setMode(mode)
-        }
-
-    /**
-     * For associated objects, only insert operations are executed.
-     */
-    @Deprecated("The method will be removed in 0.9")
-    fun <S: E> append(input: Input<S>, mode: SaveMode = SaveMode.UPSERT): KSimpleSaveResult<S> =
-        sql.save(input.toEntity()) {
-            setAssociatedModeAll(AssociatedSaveMode.APPEND)
-            setMode(mode)
-        }
-
-    /**
-     * For associated objects, only insert operations are executed.
-     */
-    @Deprecated("The method will be removed in 0.9")
-    fun <S: E> append(entity: S, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S> =
-        sql.save(entity) {
-            block()
-            setAssociatedModeAll(AssociatedSaveMode.APPEND)
-        }
-
-    /**
-     * For associated objects, only insert operations are executed.
-     */
-    @Deprecated("The method will be removed in 0.9")
-    fun <S: E> append(input: Input<S>, block: KSaveCommandDsl.() -> Unit): KSimpleSaveResult<S> =
-        sql.save(input.toEntity()) {
-            block()
-            setAssociatedModeAll(AssociatedSaveMode.APPEND)
-        }
-
-    @Deprecated(
-        "Replaced by \"saveEntities\", will be removed in 1.0",
-        replaceWith = ReplaceWith("")
-    )
     fun <S : E> saveAll(entities: MutableIterable<S>): List<S> =
         saveEntities(entities, SaveMode.UPSERT).simpleResults.map { it.modifiedEntity }
 
