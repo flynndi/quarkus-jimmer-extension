@@ -15,27 +15,43 @@ import org.babyfish.jimmer.sql.kt.ast.mutation.KSimpleSaveResult
 import org.babyfish.jimmer.sql.kt.ast.query.SortDsl
 import kotlin.reflect.KClass
 
+/**
+ * In earlier versions of Jimmer, type [KotlinRepository]
+ * was used to support spring data style repository support.
+ *
+ * However, based on user feedback, this interface was rarely used. The root causes are:
+ * - Unlike JPA and MyBatis, which have lifecycle management objects like EntityManager/Session,
+ * Jimmer itself is already designed with a stateless API.
+ * Therefore, the stateless abstraction of spring dData style repository is meaningless for Jimmer.</li>
+ * - Jimmer itself emphasizes type safety and strives to detect problems at compile-time.
+ * spring data's approach based on conventional method names and {@code @Query} annotations
+ * would lead to problems only being found at runtime (How Intellij helps certain solutions
+ * cheat is not discussed here), which goes against Jimmer's design philosophy.</li>
+ *
+ * Therefore, developer can simply write a class and annotate it with
+ * [io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository]. Note, that this is optional, not mandatory.
+ */
 interface KotlinRepository<E: Any, ID: Any> {
 
     fun findById(id: ID, fetcher: Fetcher<E>? = null): E?
 
     fun <V : View<E>> findById(id: ID, viewType: KClass<V>): V?
 
-    fun findByIds(ids: Collection<ID>): List<E> {
+    fun findByIds(ids: Iterable<ID>): List<E> {
         return findByIds(ids, null as Fetcher<E>?)
     }
 
-    fun findByIds(ids: Collection<ID>, fetcher: Fetcher<E>?): List<E>
+    fun findByIds(ids: Iterable<ID>, fetcher: Fetcher<E>?): List<E>
 
-    fun <V : View<E>> findByIds(ids: Collection<ID>, viewType: KClass<V>): List<V>
+    fun <V : View<E>> findByIds(ids: Iterable<ID>, viewType: KClass<V>): List<V>
 
-    fun findMapByIds(ids: Collection<ID>): Map<ID, E> {
+    fun findMapByIds(ids: Iterable<ID>): Map<ID, E> {
         return findMapByIds(ids, null as Fetcher<E>?)
     }
 
-    fun findMapByIds(ids: Collection<ID>, fetcher: Fetcher<E>?): Map<ID, E>
+    fun findMapByIds(ids: Iterable<ID>, fetcher: Fetcher<E>?): Map<ID, E>
 
-    fun <V : View<E>> findMapByIds(ids: Collection<ID>, viewType: KClass<V>): Map<ID, V>
+    fun <V : View<E>> findMapByIds(ids: Iterable<ID>, viewType: KClass<V>): Map<ID, V>
 
     fun findAll(block: (SortDsl<E>.() -> Unit)? = null): List<E> {
         return findAll(null as Fetcher<E>?, block)
@@ -74,11 +90,40 @@ interface KotlinRepository<E: Any, ID: Any> {
         block: (SortDsl<E>.() -> Unit)? = null
     ): Slice<V>
 
-    fun save(entity: E, block: (KSaveCommandDsl.() -> Unit)? = null): KSimpleSaveResult<E>
+    fun save(
+        entity: E,
+        block: (KSaveCommandDsl.() -> Unit)? = null
+    ): KSimpleSaveResult<E>
+
+    fun save(
+        entity: E,
+        mode: SaveMode,
+        associatedMode: AssociatedSaveMode = AssociatedSaveMode.REPLACE,
+        block: (KSaveCommandPartialDsl.() -> Unit)? = null
+    ): KSimpleSaveResult<E>
+
+    fun save(
+        entity: E,
+        associatedMode: AssociatedSaveMode,
+        block: (KSaveCommandPartialDsl.() -> Unit)? = null
+    ): KSimpleSaveResult<E>
 
     fun saveEntities(
-        entities: Collection<E>,
+        entities: Iterable<E>,
         block: (KSaveCommandDsl.() -> Unit)? = null
+    ): KBatchSaveResult<E>
+
+    fun saveEntities(
+        entities: Iterable<E>,
+        mode: SaveMode,
+        associatedMode: AssociatedSaveMode = AssociatedSaveMode.REPLACE,
+        block: (KSaveCommandPartialDsl.() -> Unit)? = null
+    ): KBatchSaveResult<E>
+
+    fun saveEntities(
+        entities: Iterable<E>,
+        associatedMode: AssociatedSaveMode,
+        block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): KBatchSaveResult<E>
 
     fun save(
@@ -86,9 +131,35 @@ interface KotlinRepository<E: Any, ID: Any> {
         block: (KSaveCommandDsl.() -> Unit)? = null
     ): KSimpleSaveResult<E>
 
+    fun save(
+        input: Input<E>,
+        mode: SaveMode,
+        associatedMode: AssociatedSaveMode = AssociatedSaveMode.REPLACE,
+        block: (KSaveCommandPartialDsl.() -> Unit)? = null
+    ): KSimpleSaveResult<E>
+
+    fun save(
+        input: Input<E>,
+        associatedMode: AssociatedSaveMode,
+        block: (KSaveCommandPartialDsl.() -> Unit)? = null
+    ): KSimpleSaveResult<E>
+
     fun saveInputs(
-        inputs: Collection<Input<E>>,
+        inputs: Iterable<Input<E>>,
         block: (KSaveCommandDsl.() -> Unit)? = null
+    ): KBatchSaveResult<E>
+
+    fun saveInputs(
+        inputs: Iterable<Input<E>>,
+        mode: SaveMode,
+        associatedMode: AssociatedSaveMode = AssociatedSaveMode.REPLACE,
+        block: (KSaveCommandPartialDsl.() -> Unit)? = null
+    ): KBatchSaveResult<E>
+
+    fun saveInputs(
+        inputs: Iterable<Input<E>>,
+        associatedMode: AssociatedSaveMode,
+        block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): KBatchSaveResult<E>
 
     fun insert(
@@ -173,5 +244,5 @@ interface KotlinRepository<E: Any, ID: Any> {
 
     fun deleteById(id: ID, deleteMode: DeleteMode = DeleteMode.AUTO): Int
 
-    fun deleteByIds(ids: Collection<ID>, deleteMode: DeleteMode = DeleteMode.AUTO): Int
+    fun deleteByIds(ids: Iterable<ID>, deleteMode: DeleteMode = DeleteMode.AUTO): Int
 }

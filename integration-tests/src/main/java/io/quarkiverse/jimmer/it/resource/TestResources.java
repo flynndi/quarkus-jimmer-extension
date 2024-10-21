@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.Response;
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.Api;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.ast.mutation.AssociatedSaveMode;
 import org.babyfish.jimmer.sql.ast.mutation.DeleteMode;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
@@ -433,21 +434,21 @@ public class TestResources {
     @Path("/testBookRepositoryMerge")
     @Api
     public Response testBookRepositoryMerge(Book book) {
-        return Response.ok(bookRepository.merge(book, SaveMode.UPSERT)).build();
+        return Response.ok(bookRepository.save(book, AssociatedSaveMode.MERGE)).build();
     }
 
     @POST
     @Path("/testBookRepositoryMergeInput")
     @Api
     public Response testBookRepositoryMergeInput(BookInput bookInput) {
-        return Response.ok(bookRepository.merge(bookInput, SaveMode.UPSERT)).build();
+        return Response.ok(bookRepository.save(bookInput, AssociatedSaveMode.MERGE)).build();
     }
 
     @POST
     @Path("/testBookRepositoryMergeSaveMode")
     @Api
     public Response testBookRepositoryMergeSaveMode(Book book) {
-        return Response.ok(bookRepository.merge(book, SaveMode.INSERT_ONLY)).build();
+        return Response.ok(bookRepository.save(book, AssociatedSaveMode.APPEND_IF_ABSENT)).build();
     }
 
     @POST

@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.jimmer.it.entity.Book;
-import io.quarkiverse.jimmer.it.entity.Objects;
+import io.quarkiverse.jimmer.it.entity.Immutables;
 import io.quarkiverse.jimmer.it.service.IBook;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.TestTransaction;
@@ -35,7 +35,7 @@ public class TestTransactionTestCase {
     @TestTransaction
     public void testTransactionRollBack() {
         int id = 23;
-        Book book = Objects.createBook(draft -> {
+        Book book = Immutables.createBook(draft -> {
             draft.setId(id);
             draft.setName("Transactional");
             draft.setPrice(new BigDecimal("1"));
@@ -51,7 +51,7 @@ public class TestTransactionTestCase {
     @Test
     public void testTransactionIsRollBack() throws SystemException, NotSupportedException {
         int id = 23;
-        Book book = Objects.createBook(draft -> {
+        Book book = Immutables.createBook(draft -> {
             draft.setId(id);
             draft.setName("Transactional");
             draft.setPrice(new BigDecimal("1"));
@@ -76,7 +76,7 @@ public class TestTransactionTestCase {
     @Transactional(rollbackOn = Exception.class)
     public void testTransactionIsRollBack2() throws SystemException {
         int id = 23;
-        Book book = Objects.createBook(draft -> {
+        Book book = Immutables.createBook(draft -> {
             draft.setId(id);
             draft.setName("Transactional");
             draft.setPrice(new BigDecimal("1"));

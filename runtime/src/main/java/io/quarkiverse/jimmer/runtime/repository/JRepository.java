@@ -209,85 +209,12 @@ public interface JRepository<E, ID> {
         return save(input.toEntity(), SaveMode.UPSERT, associatedMode).getModifiedEntity();
     }
 
-    /**
-     * This method will be deleted in 0.9.
-     * <p>
-     * Note: The 'merge' of 'Jimmer' and the 'merge' of 'JPA' are completely different concepts!
-     * </p>
-     *
-     * <p>
-     * For associated objects, only insert or update operations are executed.
-     * The parent object never dissociates the child objects.
-     * </p>
-     */
-    @Deprecated
-    default <S extends E> SimpleSaveResult<S> merge(@NotNull S entity, SaveMode mode) {
-        return saveCommand(entity).setAssociatedModeAll(AssociatedSaveMode.MERGE).setMode(mode).execute();
-    }
-
-    /**
-     * This method will be deleted in 0.9.
-     *
-     * <p>
-     * Note: The 'merge' of 'Jimmer' and the 'merge' of 'JPA' are completely different concepts!
-     * </p>
-     *
-     * <p>
-     * For associated objects, only insert or update operations are executed.
-     * The parent object never dissociates the child objects.
-     * </p>
-     */
-    @Deprecated
-    default SimpleSaveResult<E> merge(@NotNull Input<E> input, SaveMode mode) {
-        return saveCommand(input.toEntity()).setAssociatedModeAll(AssociatedSaveMode.MERGE).setMode(mode).execute();
-    }
-
-    /**
-     * This method will be deleted in 0.9.
-     * For associated objects, only insert operations are executed.
-     */
-    @Deprecated
-    default <S extends E> SimpleSaveResult<S> append(@NotNull S entity) {
-        return saveCommand(entity).setAssociatedModeAll(AssociatedSaveMode.APPEND).execute();
-    }
-
-    /**
-     * This method will be deleted in 0.9
-     * For associated objects, only insert operations are executed.
-     */
-    @Deprecated
-    default SimpleSaveResult<E> append(@NotNull Input<E> input) {
-        return saveCommand(input.toEntity()).setAssociatedModeAll(AssociatedSaveMode.APPEND).execute();
-    }
-
-    /**
-     * This method will be deleted in 0.9
-     * For associated objects, only insert operations are executed.
-     */
-    @Deprecated
-    default <S extends E> SimpleSaveResult<S> append(@NotNull S entity, SaveMode mode) {
-        return saveCommand(entity).setAssociatedModeAll(AssociatedSaveMode.APPEND).setMode(mode).execute();
-    }
-
-    /**
-     * This method will be deleted in 0.9
-     * For associated objects, only insert operations are executed.
-     */
-    @Deprecated
-    default SimpleSaveResult<E> append(@NotNull Input<E> input, SaveMode mode) {
-        return saveCommand(input.toEntity()).setAssociatedModeAll(AssociatedSaveMode.APPEND).setMode(mode).execute();
-    }
-
     @NotNull
     SimpleEntitySaveCommand<E> saveCommand(@NotNull Input<E> input);
 
     @NotNull
     <S extends E> SimpleEntitySaveCommand<S> saveCommand(@NotNull S entity);
 
-    /**
-     * Replaced by saveEntities, will be removed in 1.0
-     */
-    @Deprecated
     default <S extends E> Iterable<S> saveAll(@NotNull Iterable<S> entities) {
         return saveEntities(entities);
     }
