@@ -1,6 +1,5 @@
 package io.quarkiverse.jimmer.runtime.repo;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +13,28 @@ import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * In earlier versions of Jimmer, type {@link io.quarkiverse.jimmer.runtime.repository.JRepository}
+ * was used to support spring data style repository support.
+ *
+ * <p>
+ * However, based on user feedback, this interface was rarely used. The root causes are:
+ * </p>
+ * <ul>
+ * <li>Unlike JPA and MyBatis, which have lifecycle management objects like EntityManager/Session,
+ * Jimmer itself is already designed with a stateless API.
+ * Therefore, the stateless abstraction of spring dData style repository is meaningless for Jimmer.</li>
+ * <li>Jimmer itself emphasizes type safety and strives to detect problems at compile-time.
+ * spring data's approach based on conventional method names and {@code @Query} annotations
+ * would lead to problems only being found at runtime (How Intellij helps certain solutions
+ * cheat is not discussed here), which goes against Jimmer's design philosophy.</li>
+ * </ul>
+ * Therefore, developer can simply write a class and annotate it with
+ * {@link io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository}. Note, that this is optional, not mandatory.
+ *
+ * @param <E> The entity type
+ * @param <ID> The entity id type
+ */
 public interface JavaRepository<E, ID> {
 
     @Nullable
@@ -28,26 +49,26 @@ public interface JavaRepository<E, ID> {
     <V extends View<E>> V findById(ID id, Class<V> viewType);
 
     @NotNull
-    default List<E> findByIds(Collection<ID> ids) {
+    default List<E> findByIds(Iterable<ID> ids) {
         return findByIds(ids, (Fetcher<E>) null);
     }
 
     @NotNull
-    List<E> findByIds(Collection<ID> ids, @Nullable Fetcher<E> fetcher);
+    List<E> findByIds(Iterable<ID> ids, @Nullable Fetcher<E> fetcher);
 
     @NotNull
-    <V extends View<E>> List<V> findByIds(Collection<ID> ids, Class<V> viewType);
+    <V extends View<E>> List<V> findByIds(Iterable<ID> ids, Class<V> viewType);
 
     @NotNull
-    default Map<ID, E> findMapByIds(Collection<ID> ids) {
+    default Map<ID, E> findMapByIds(Iterable<ID> ids) {
         return findMapByIds(ids, (Fetcher<E>) null);
     }
 
     @NotNull
-    Map<ID, E> findMapByIds(Collection<ID> ids, Fetcher<E> fetcher);
+    Map<ID, E> findMapByIds(Iterable<ID> ids, Fetcher<E> fetcher);
 
     @NotNull
-    <V extends View<E>> Map<ID, V> findMapByIds(Collection<ID> ids, Class<V> viewType);
+    <V extends View<E>> Map<ID, V> findMapByIds(Iterable<ID> ids, Class<V> viewType);
 
     @NotNull
     default List<E> findAll(TypedProp.Scalar<?, ?>... sortedProps) {
@@ -89,132 +110,260 @@ public interface JavaRepository<E, ID> {
             Class<V> viewType,
             TypedProp.Scalar<?, ?>... sortedProps);
 
+    /**
+     * Shortcut or {@link org.babyfish.jimmer.sql.JSqlClient#save(Object)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> save(E entity) {
         return save(entity, SaveMode.UPSERT, AssociatedSaveMode.REPLACE);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#save(Object, SaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> save(E entity, SaveMode mode) {
         return save(entity, mode, AssociatedSaveMode.REPLACE);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#save(Object, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> save(E entity, AssociatedSaveMode associatedMode) {
         return save(entity, SaveMode.UPSERT, associatedMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#save(Object, SaveMode, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     SimpleSaveResult<E> save(E entity, SaveMode mode, AssociatedSaveMode associatedMode);
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insert(Object)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> insert(E entity) {
         return save(entity, SaveMode.INSERT_ONLY, AssociatedSaveMode.APPEND);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insert(Object, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> insert(E entity, AssociatedSaveMode associatedSaveMode) {
         return save(entity, SaveMode.INSERT_ONLY, associatedSaveMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insert(Input)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> insert(Input<E> input) {
         return save(input, SaveMode.INSERT_ONLY, AssociatedSaveMode.APPEND);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insert(Input, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> insert(Input<E> input, AssociatedSaveMode associatedSaveMode) {
         return save(input, SaveMode.INSERT_ONLY, associatedSaveMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insertIfAbsent(Object)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> insertIfAbsent(E entity) {
         return save(entity, SaveMode.INSERT_IF_ABSENT, AssociatedSaveMode.APPEND_IF_ABSENT);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insertIfAbsent(Object, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> insertIfAbsent(E entity, AssociatedSaveMode associatedSaveMode) {
         return save(entity, SaveMode.INSERT_IF_ABSENT, associatedSaveMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insertIfAbsent(Input)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> insertIfAbsent(Input<E> input) {
         return save(input, SaveMode.INSERT_IF_ABSENT, AssociatedSaveMode.APPEND_IF_ABSENT);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insertIfAbsent(Input, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> insertIfAbsent(Input<E> input, AssociatedSaveMode associatedSaveMode) {
         return save(input, SaveMode.INSERT_IF_ABSENT, associatedSaveMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#update(Object)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> update(E entity) {
         return save(entity, SaveMode.UPDATE_ONLY, AssociatedSaveMode.UPDATE);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#update(Object, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> update(E entity, AssociatedSaveMode associatedSaveMode) {
         return save(entity, SaveMode.UPDATE_ONLY, associatedSaveMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#update(Input)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> update(Input<E> input) {
         return save(input, SaveMode.UPDATE_ONLY, AssociatedSaveMode.UPDATE);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#update(Input, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> update(Input<E> input, AssociatedSaveMode associatedSaveMode) {
         return save(input, SaveMode.UPDATE_ONLY, associatedSaveMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Object)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> merge(E entity) {
         return save(entity, SaveMode.UPSERT, AssociatedSaveMode.MERGE);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Object, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> merge(E entity, AssociatedSaveMode associatedSaveMode) {
         return save(entity, SaveMode.UPSERT, associatedSaveMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Input)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> merge(Input<E> input) {
         return save(input, SaveMode.UPSERT, AssociatedSaveMode.MERGE);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Input, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> merge(Input<E> input, AssociatedSaveMode associatedSaveMode) {
         return save(input, SaveMode.UPSERT, associatedSaveMode);
     }
 
-    default BatchSaveResult<E> saveEntities(Collection<E> entities) {
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#saveEntities(Iterable)},
+     * please view that method to know more
+     */
+    default BatchSaveResult<E> saveEntities(Iterable<E> entities) {
         return saveEntities(entities, SaveMode.UPSERT, AssociatedSaveMode.REPLACE);
     }
 
-    default BatchSaveResult<E> saveEntities(Collection<E> entities, SaveMode mode) {
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#saveEntities(Iterable, SaveMode)},
+     * please view that method to know more
+     */
+    default BatchSaveResult<E> saveEntities(Iterable<E> entities, SaveMode mode) {
         return saveEntities(entities, mode, AssociatedSaveMode.REPLACE);
     }
 
-    default BatchSaveResult<E> saveEntities(Collection<E> entities, AssociatedSaveMode associatedMode) {
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#saveEntities(Iterable, AssociatedSaveMode)},
+     * please view that method to know more
+     */
+    default BatchSaveResult<E> saveEntities(Iterable<E> entities, AssociatedSaveMode associatedMode) {
         return saveEntities(entities, SaveMode.UPSERT, associatedMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#saveEntities(Iterable, SaveMode, AssociatedSaveMode)} ,
+     * please view that method to know more
+     */
     BatchSaveResult<E> saveEntities(
-            Collection<E> entities,
+            Iterable<E> entities,
             SaveMode rootSaveMode,
             AssociatedSaveMode associatedSaveMode);
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#save(Input)} )},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> save(Input<E> input) {
         return save(input, SaveMode.UPSERT, AssociatedSaveMode.REPLACE);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#save(Input, SaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> save(Input<E> input, SaveMode mode) {
         return save(input, mode, AssociatedSaveMode.REPLACE);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insertIfAbsent(Input, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     default SimpleSaveResult<E> save(Input<E> input, AssociatedSaveMode associatedMode) {
         return save(input, SaveMode.UPSERT, associatedMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#save(Input, SaveMode, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     SimpleSaveResult<E> save(
             Input<E> input,
             SaveMode rootSaveMode,
             AssociatedSaveMode associatedSaveMode);
 
-    default BatchSaveResult<E> saveInputs(Collection<Input<E>> inputs) {
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#saveInputs(Iterable)},
+     * please view that method to know more
+     */
+    default BatchSaveResult<E> saveInputs(Iterable<Input<E>> inputs) {
         return saveInputs(inputs, SaveMode.UPSERT, AssociatedSaveMode.REPLACE);
     }
 
-    default BatchSaveResult<E> saveInputs(Collection<Input<E>> inputs, SaveMode mode) {
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#save(Input, SaveMode)},
+     * please view that method to know more
+     */
+    default BatchSaveResult<E> saveInputs(Iterable<Input<E>> inputs, SaveMode mode) {
         return saveInputs(inputs, mode, AssociatedSaveMode.REPLACE);
     }
 
-    default BatchSaveResult<E> saveInputs(Collection<Input<E>> inputs, AssociatedSaveMode associatedMode) {
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#saveInputs(Iterable, AssociatedSaveMode)},
+     * please view that method to know more
+     */
+    default BatchSaveResult<E> saveInputs(Iterable<Input<E>> inputs, AssociatedSaveMode associatedMode) {
         return saveInputs(inputs, SaveMode.UPSERT, associatedMode);
     }
 
+    /**
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#saveInputs(Iterable, SaveMode, AssociatedSaveMode)},
+     * please view that method to know more
+     */
     BatchSaveResult<E> saveInputs(
-            Collection<Input<E>> inputs,
+            Iterable<Input<E>> inputs,
             SaveMode rootSaveMode,
             AssociatedSaveMode associatedSaveMode);
 
@@ -224,9 +373,9 @@ public interface JavaRepository<E, ID> {
 
     long deleteById(ID id, DeleteMode deleteMode);
 
-    default long deleteByIds(Collection<ID> ids) {
+    default long deleteByIds(Iterable<ID> ids) {
         return deleteByIds(ids, DeleteMode.AUTO);
     }
 
-    long deleteByIds(Collection<ID> ids, DeleteMode deleteMode);
+    long deleteByIds(Iterable<ID> ids, DeleteMode deleteMode);
 }
