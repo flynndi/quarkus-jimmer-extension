@@ -43,4 +43,11 @@ public class TestJavaRepositoryTestCase {
         Assertions.assertNotNull(userRole);
         Assertions.assertEquals(UUID.fromString(Constant.USER_ROLE_ID), userRole.id());
     }
+
+    @Test
+    void testMethodInBookJavaRepositoryFindById() {
+        Book book = bookJavaRepository.methodInBookJavaRepositoryFindById(1L);
+        Assertions.assertNotNull(book);
+        Assertions.assertEquals(1L, book.id());
+    }
 }
