@@ -42,6 +42,7 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusUserIdGeneratorProvider;
+import io.quarkiverse.jimmer.runtime.util.Assert;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
@@ -72,6 +73,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
     protected JSqlClient.Builder createBuilder() {
 
         JimmerBuildTimeConfig config = getOptionalBean(JimmerBuildTimeConfig.class);
+        Assert.notNull(config, "JimmerBuildTimeConfig must not be null!");
         UserIdGeneratorProvider userIdGeneratorProvider = getOptionalBean(UserIdGeneratorProvider.class);
         LogicalDeletedValueGeneratorProvider logicalDeletedValueGeneratorProvider = getOptionalBean(
                 LogicalDeletedValueGeneratorProvider.class);
