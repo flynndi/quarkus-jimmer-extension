@@ -603,14 +603,20 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositorySaveInputSaveMode() {
-        String body = """
-                {
-                     "id": "E85FC166-66DD-F496-F733-22BA38DC807D",
-                     "userId": "12",
-                     "roleId": "213",
-                     "deleteFlag": false
-                 }
-                """;
+        String body;
+        UUID id = UUID.randomUUID();
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -619,8 +625,8 @@ public class TestResourceTestCase {
                 .when()
                 .post("testResources/testUserRoleRepositorySaveInputSaveMode");
         Assertions.assertEquals(1, response.jsonPath().getInt("totalAffectedRowCount"));
-        Assertions.assertEquals("e85fc166-66dd-f496-f733-22ba38dc807d", response.jsonPath().getString("originalEntity.id"));
-        Assertions.assertEquals("e85fc166-66dd-f496-f733-22ba38dc807d", response.jsonPath().getString("modifiedEntity.id"));
+        Assertions.assertEquals(id.toString(), response.jsonPath().getString("originalEntity.id"));
+        Assertions.assertEquals(id.toString(), response.jsonPath().getString("modifiedEntity.id"));
         Assertions.assertTrue(response.jsonPath().getBoolean("modified"));
     }
 
