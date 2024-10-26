@@ -632,14 +632,20 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositorySaveCommand() {
-        String body = """
-                {
-                     "id": "83282150-7E51-D3A9-0EB6-CB606A56873B",
-                     "userId": "12",
-                     "roleId": "213",
-                     "deleteFlag": false
-                 }
-                """;
+        String body;
+        UUID id = UUID.randomUUID();
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
