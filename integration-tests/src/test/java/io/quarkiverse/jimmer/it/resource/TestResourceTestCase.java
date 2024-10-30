@@ -3,6 +3,7 @@ package io.quarkiverse.jimmer.it.resource;
 import static io.restassured.RestAssured.given;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.inject.Inject;
@@ -658,22 +659,28 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositorySaveEntities() {
-        String body = """
-                [
-                      {
-                          "id": "D45493FF-5770-C90D-CFFF-DA11A8C07264",
-                          "userId": "12",
-                          "roleId": "213",
-                          "deleteFlag": false
-                      },
-                      {
-                          "id": "AC3CEADF-151E-BD7E-2D73-D50E5F86B31D",
-                          "userId": "333",
-                          "roleId": "333",
-                          "deleteFlag": false
-                      }
-                  ]
-                """;
+        String body;
+        UUID id1 = UUID.randomUUID();
+        String userId1 = UUID.randomUUID().toString();
+        String roleId1 = UUID.randomUUID().toString();
+        UserRole userRole1 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id1);
+            draft.setUserId(userId1);
+            draft.setRoleId(roleId1);
+        });
+        UUID id2 = UUID.randomUUID();
+        String userId2 = UUID.randomUUID().toString();
+        String roleId2 = UUID.randomUUID().toString();
+        UserRole userRole2 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id2);
+            draft.setUserId(userId2);
+            draft.setRoleId(roleId2);
+        });
+        try {
+            body = objectMapper.writeValueAsString(List.of(userRole1, userRole2));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -682,8 +689,8 @@ public class TestResourceTestCase {
                 .when()
                 .post("testResources/testUserRoleRepositorySaveEntities");
         Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
-        Assertions.assertEquals("d45493ff-5770-c90d-cfff-da11a8c07264", response.jsonPath().getString("[0].id"));
-        Assertions.assertEquals("ac3ceadf-151e-bd7e-2d73-d50e5f86b31d", response.jsonPath().getString("[1].id"));
+        Assertions.assertEquals(id1.toString(), response.jsonPath().getString("[0].id"));
+        Assertions.assertEquals(id2.toString(), response.jsonPath().getString("[1].id"));
     }
 
     @Test
