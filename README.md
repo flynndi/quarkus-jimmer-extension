@@ -15,15 +15,15 @@ Please let me know if you have any suggestions on these parts
 ## Dependency
 Gradle
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR34'
-annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.9.4'
+implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR35'
+annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.9.6'
 ```
 Maven
 ```xml
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR34</version>
+   <version>0.0.1.CR35</version>
 </dependency>
 
 <build>
@@ -37,7 +37,7 @@ Maven
                     <path>
                         <groupId>org.babyfish.jimmer</groupId>
                         <artifactId>jimmer-apt</artifactId>
-                        <version>0.9.4</version>
+                        <version>0.9.6</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
