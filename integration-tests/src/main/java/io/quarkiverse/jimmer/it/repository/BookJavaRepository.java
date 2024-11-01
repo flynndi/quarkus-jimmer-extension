@@ -14,6 +14,6 @@ public class BookJavaRepository extends AbstractJavaRepository<Book, Long> {
     }
 
     Book methodInBookJavaRepositoryFindById(Long id) {
-        return sqlClient.findById(Book.class, id);
+        return sql.findById(Book.class, id);
     }
 }
