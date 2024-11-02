@@ -49,7 +49,7 @@ public class AbstractJavaRepository<E, ID> implements JavaRepository<E, ID> {
     protected final ImmutableType type;
 
     @SuppressWarnings("unchecked")
-    protected AbstractJavaRepository(JSqlClient sql) {
+    public AbstractJavaRepository(JSqlClient sql) {
         this.sql = Objects.requireNonNull(sql, "sqlClient is required");
         this.entityType = (Class<E>) JpaOperationsData.getEntityClass(this.getClass());
         this.type = ImmutableType.get(entityType);
