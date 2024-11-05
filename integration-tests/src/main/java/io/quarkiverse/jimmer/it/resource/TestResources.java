@@ -20,6 +20,7 @@ import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.jboss.resteasy.reactive.RestQuery;
 
+import io.quarkiverse.jimmer.it.config.Constant;
 import io.quarkiverse.jimmer.it.entity.*;
 import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
 import io.quarkiverse.jimmer.it.entity.dto.BookInput;
@@ -45,7 +46,7 @@ public class TestResources {
     BookStoreRepository bookStoreRepository;
 
     @Inject
-    @DataSource("DB2")
+    @DataSource(Constant.DATASOURCE2)
     UserRoleRepository userRoleRepository;
 
     @GET
