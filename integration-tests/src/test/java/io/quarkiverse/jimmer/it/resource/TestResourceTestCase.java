@@ -695,22 +695,28 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositorySaveEntitiesSaveMode() {
-        String body = """
-                [
-                      {
-                          "id": "4C1710D4-46E6-33D3-DC53-8492F6664050",
-                          "userId": "12",
-                          "roleId": "213",
-                          "deleteFlag": false
-                      },
-                      {
-                          "id": "10C40E99-B6EB-A6AE-B1C5-61FA87FEF236",
-                          "userId": "333",
-                          "roleId": "333",
-                          "deleteFlag": false
-                      }
-                  ]
-                """;
+        String body;
+        UUID id1 = UUID.randomUUID();
+        String userId1 = UUID.randomUUID().toString();
+        String roleId1 = UUID.randomUUID().toString();
+        UserRole userRole1 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id1);
+            draft.setUserId(userId1);
+            draft.setRoleId(roleId1);
+        });
+        UUID id2 = UUID.randomUUID();
+        String userId2 = UUID.randomUUID().toString();
+        String roleId2 = UUID.randomUUID().toString();
+        UserRole userRole2 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id2);
+            draft.setUserId(userId2);
+            draft.setRoleId(roleId2);
+        });
+        try {
+            body = objectMapper.writeValueAsString(List.of(userRole1, userRole2));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -719,12 +725,12 @@ public class TestResourceTestCase {
                 .when()
                 .post("testResources/testUserRoleRepositorySaveEntitiesSaveMode");
         Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
-        Assertions.assertEquals("4c1710d4-46e6-33d3-dc53-8492f6664050", response.jsonPath().getString("[0].id"));
-        Assertions.assertEquals("12", response.jsonPath().getString("[0].userId"));
-        Assertions.assertEquals("213", response.jsonPath().getString("[0].roleId"));
-        Assertions.assertEquals("10c40e99-b6eb-a6ae-b1c5-61fa87fef236", response.jsonPath().getString("[1].id"));
-        Assertions.assertEquals("333", response.jsonPath().getString("[1].userId"));
-        Assertions.assertEquals("333", response.jsonPath().getString("[1].roleId"));
+        Assertions.assertEquals(id1.toString(), response.jsonPath().getString("[0].id"));
+        Assertions.assertEquals(userId1, response.jsonPath().getString("[0].userId"));
+        Assertions.assertEquals(roleId1, response.jsonPath().getString("[0].roleId"));
+        Assertions.assertEquals(id2.toString(), response.jsonPath().getString("[1].id"));
+        Assertions.assertEquals(userId2, response.jsonPath().getString("[1].userId"));
+        Assertions.assertEquals(roleId2, response.jsonPath().getString("[1].roleId"));
     }
 
     @Test
