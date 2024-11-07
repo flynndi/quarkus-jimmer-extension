@@ -2,7 +2,6 @@ package io.quarkiverse.jimmer.it.config.jsonmapping;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -13,7 +12,7 @@ import com.fasterxml.jackson.databind.node.MissingNode;
 class AuthUserDeserializer extends JsonDeserializer<AuthUser> {
     @Override
     public AuthUser deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
-            throws IOException, JacksonException {
+            throws IOException {
         ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
         JsonNode jsonNode = mapper.readTree(jsonParser);
         String authorities = readJsonNode(jsonNode, "authorities").asText();
