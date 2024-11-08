@@ -735,22 +735,28 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositorySaveEntitiesCommand() {
-        String body = """
-                [
-                      {
-                          "id": "8BAD0B39-3BEC-00F8-BE42-7F0D9671A28C",
-                          "userId": "12",
-                          "roleId": "213",
-                          "deleteFlag": false
-                      },
-                      {
-                          "id": "F6EADECF-EE6D-FFC6-F0FA-E7DC353EE735",
-                          "userId": "333",
-                          "roleId": "333",
-                          "deleteFlag": false
-                      }
-                  ]
-                """;
+        String body;
+        UUID id1 = UUID.randomUUID();
+        String userId1 = UUID.randomUUID().toString();
+        String roleId1 = UUID.randomUUID().toString();
+        UserRole userRole1 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id1);
+            draft.setUserId(userId1);
+            draft.setRoleId(roleId1);
+        });
+        UUID id2 = UUID.randomUUID();
+        String userId2 = UUID.randomUUID().toString();
+        String roleId2 = UUID.randomUUID().toString();
+        UserRole userRole2 = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id2);
+            draft.setUserId(userId2);
+            draft.setRoleId(roleId2);
+        });
+        try {
+            body = objectMapper.writeValueAsString(List.of(userRole1, userRole2));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
