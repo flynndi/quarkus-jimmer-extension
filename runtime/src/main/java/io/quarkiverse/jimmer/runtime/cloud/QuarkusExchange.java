@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
-import io.quarkus.restclient.config.RestClientConfig;
 import io.quarkus.restclient.config.RestClientsConfig;
 
 @ApplicationScoped
@@ -34,10 +33,10 @@ public class QuarkusExchange implements MicroServiceExchange {
 
     @Override
     public List<ImmutableSpi> findByIds(String microServiceName, Collection<?> ids, Fetcher<?> fetcher) throws Exception {
-        RestClientConfig restClientConfig = restClientsConfig.getClientConfig(microServiceName);
-        if (restClientConfig.url.isPresent()) {
+        RestClientsConfig.RestClientConfig restClientConfig = restClientsConfig.getClient(microServiceName);
+        if (restClientConfig.url().isPresent()) {
             ExchangeRestClient quarkusExchangeRestClient = QuarkusRestClientBuilder.newBuilder()
-                    .baseUrl(URI.create(restClientConfig.url.get()).toURL()).build(ExchangeRestClient.class);
+                    .baseUrl(URI.create(restClientConfig.url().get()).toURL()).build(ExchangeRestClient.class);
             String json = quarkusExchangeRestClient.findByIds(ids.toString(), fetcher.toString());
             return objectMapper.readValue(
                     json,
@@ -52,10 +51,10 @@ public class QuarkusExchange implements MicroServiceExchange {
     @Override
     public List<Tuple2<Object, ImmutableSpi>> findByAssociatedIds(String microServiceName, ImmutableProp prop,
             Collection<?> targetIds, Fetcher<?> fetcher) throws Exception {
-        RestClientConfig restClientConfig = restClientsConfig.getClientConfig(microServiceName);
-        if (restClientConfig.url.isPresent()) {
+        RestClientsConfig.RestClientConfig restClientConfig = restClientsConfig.getClient(microServiceName);
+        if (restClientConfig.url().isPresent()) {
             ExchangeRestClient quarkusExchangeRestClient = QuarkusRestClientBuilder.newBuilder()
-                    .baseUrl(URI.create(restClientConfig.url.get()).toURL()).build(ExchangeRestClient.class);
+                    .baseUrl(URI.create(restClientConfig.url().get()).toURL()).build(ExchangeRestClient.class);
             String json = quarkusExchangeRestClient.findByAssociatedIds(prop.getName(), targetIds.toString(),
                     fetcher.toString());
             TypeFactory typeFactory = objectMapper.getTypeFactory();
