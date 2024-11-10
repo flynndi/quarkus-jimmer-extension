@@ -858,7 +858,7 @@ public class TestResourceTestCase {
                 .when()
                 .get("testResources/testBookRepositoryFindAllTypedPropScalarView");
         Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
-        Assertions.assertEquals(7, response.jsonPath().getLong("[0].id"));
+        Assertions.assertEquals(9, response.jsonPath().getLong("[0].id"));
         Assertions.assertNotNull(response.jsonPath().get("[0].store"));
         Assertions.assertNotNull(response.jsonPath().get("[0].authors"));
     }
@@ -871,7 +871,7 @@ public class TestResourceTestCase {
                 .when()
                 .get("testResources/testBookRepositoryFindAllSortView");
         Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
-        Assertions.assertEquals(7, response.jsonPath().getLong("[0].id"));
+        Assertions.assertEquals(9, response.jsonPath().getLong("[0].id"));
         Assertions.assertNotNull(response.jsonPath().get("[0].store"));
         Assertions.assertNotNull(response.jsonPath().get("[0].authors"));
     }
