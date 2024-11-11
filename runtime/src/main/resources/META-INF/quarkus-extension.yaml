@@ -1,5 +1,5 @@
 name: "Jimmer"
-artifact: "io.github.flynndi:quarkus-jimmer:999-SNAPSHOT"
+artifact: "io.github.flynndi:quarkus-jimmer:0.0.1.CR38"
 description: "A revolutionary ORM framework for both java and kotlin, and a complete integrated solution"
 metadata:
   keywords:
@@ -12,4 +12,4 @@ metadata:
   status: "preview"
   config:
     - "quarkus.jimmer."
-  minimum-java-version: "9"
+  minimum-java-version: "17"
