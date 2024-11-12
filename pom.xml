@@ -48,7 +48,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.version>3.15.0</quarkus.version>
-    <jimmer.version>0.9.12</jimmer.version>
+    <jimmer.version>0.9.13</jimmer.version>
     <central-publishing-maven-plugin.version>0.5.0</central-publishing-maven-plugin.version>
     <nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
     <maven-source-plugin.version>3.3.0</maven-source-plugin.version>

@@ -14,7 +14,6 @@ import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.babyfish.jimmer.sql.kt.ast.mutation.KBatchSaveResult
 import org.babyfish.jimmer.sql.kt.ast.mutation.KSaveCommandDsl
 import org.babyfish.jimmer.sql.kt.ast.mutation.KSaveCommandPartialDsl
-import org.babyfish.jimmer.sql.kt.ast.mutation.KSimpleSaveResult
 import org.babyfish.jimmer.sql.kt.ast.query.SortDsl
 import java.util.*
 import kotlin.reflect.KClass
@@ -82,56 +81,56 @@ interface KRepository<E: Any, ID: Any> {
         associatedMode: AssociatedSaveMode = AssociatedSaveMode.APPEND,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): E =
-        sql.insert(input, associatedMode, block).modifiedEntity
+        sql.insert(input, associatedMode, null, block).modifiedEntity
 
     fun insert(
         entity: E,
         associatedMode: AssociatedSaveMode = AssociatedSaveMode.APPEND,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): E =
-        sql.insert(entity, associatedMode, block).modifiedEntity
+        sql.insert(entity, associatedMode, null, block).modifiedEntity
 
     fun insertIfAbsent(
         input: Input<E>,
         associatedMode: AssociatedSaveMode = AssociatedSaveMode.APPEND_IF_ABSENT,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): E =
-        sql.insert(input, associatedMode, block).modifiedEntity
+        sql.insert(input, associatedMode, null, block).modifiedEntity
 
     fun insertIfAbsent(
         entity: E,
         associatedMode: AssociatedSaveMode = AssociatedSaveMode.APPEND_IF_ABSENT,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): E =
-        sql.insert(entity, associatedMode, block).modifiedEntity
+        sql.insert(entity, associatedMode, null, block).modifiedEntity
 
     fun update(
         input: Input<E>,
         associatedMode: AssociatedSaveMode = AssociatedSaveMode.UPDATE,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): E =
-        sql.update(input, associatedMode, block).modifiedEntity
+        sql.update(input, associatedMode, null, block).modifiedEntity
 
     fun update(
         entity: E,
         associatedMode: AssociatedSaveMode = AssociatedSaveMode.UPDATE,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): E =
-        sql.update(entity, associatedMode, block).modifiedEntity
+        sql.update(entity, associatedMode, null, block).modifiedEntity
 
     fun merge(
         input: Input<E>,
         associatedMode: AssociatedSaveMode = AssociatedSaveMode.MERGE,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): E =
-        sql.merge(input, associatedMode, block).modifiedEntity
+        sql.merge(input, null, block).modifiedEntity
 
     fun merge(
         entity: E,
         associatedMode: AssociatedSaveMode = AssociatedSaveMode.MERGE,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): E =
-        sql.merge(entity, associatedMode, block).modifiedEntity
+        sql.merge(entity, null, block).modifiedEntity
 
     fun <S: E> save(entity: S): S =
         sql.save(entity, null).modifiedEntity
@@ -140,7 +139,7 @@ interface KRepository<E: Any, ID: Any> {
         entity: S,
         block: (KSaveCommandDsl.() -> Unit)
     ): S =
-        sql.save(entity, block).modifiedEntity
+        sql.save(entity, null, block).modifiedEntity
 
     fun save(input: Input<E>): E =
         sql.save(input, null).modifiedEntity
@@ -149,7 +148,7 @@ interface KRepository<E: Any, ID: Any> {
         input: Input<E>,
         block: (KSaveCommandDsl.() -> Unit)? = null
     ): E =
-        sql.save(input, block).modifiedEntity
+        sql.save(input, null, block).modifiedEntity
 
     fun <S: E> save(
         entity: S,
@@ -157,7 +156,7 @@ interface KRepository<E: Any, ID: Any> {
         associatedMode: AssociatedSaveMode = AssociatedSaveMode.REPLACE,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): S =
-        sql.save(entity, mode, associatedMode, block).modifiedEntity
+        sql.save(entity, mode, associatedMode, null, block).modifiedEntity
 
     fun save(
         input: Input<E>,
@@ -165,21 +164,21 @@ interface KRepository<E: Any, ID: Any> {
         associatedMode: AssociatedSaveMode = AssociatedSaveMode.REPLACE,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): E =
-        sql.save(input, mode, associatedMode, block).modifiedEntity
+        sql.save(input, mode, associatedMode, null, block).modifiedEntity
 
     fun <S: E> save(
         entity: S,
         associatedMode: AssociatedSaveMode,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): S =
-        sql.save(entity, associatedMode, block).modifiedEntity
+        sql.save(entity, associatedMode, null, block).modifiedEntity
 
     fun save(
         input: Input<E>,
         associatedMode: AssociatedSaveMode,
         block: (KSaveCommandPartialDsl.() -> Unit)? = null
     ): E =
-        sql.save(input, associatedMode, block).modifiedEntity
+        sql.save(input, associatedMode, null, block).modifiedEntity
 
     fun <S : E> saveAll(entities: MutableIterable<S>): List<S> =
         saveEntities(entities, SaveMode.UPSERT).simpleResults.map { it.modifiedEntity }

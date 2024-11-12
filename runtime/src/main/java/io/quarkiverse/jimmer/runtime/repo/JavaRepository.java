@@ -245,7 +245,7 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Object, AssociatedSaveMode)},
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Object)},
      * please view that method to know more
      */
     default SimpleSaveResult<E> merge(E entity, AssociatedSaveMode associatedSaveMode) {
@@ -261,7 +261,7 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Input, AssociatedSaveMode)},
+     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Input)},
      * please view that method to know more
      */
     default SimpleSaveResult<E> merge(Input<E> input, AssociatedSaveMode associatedSaveMode) {
