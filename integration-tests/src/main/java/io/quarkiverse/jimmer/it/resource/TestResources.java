@@ -29,6 +29,8 @@ import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
 import io.quarkiverse.jimmer.runtime.Jimmer;
+import io.quarkiverse.jimmer.runtime.model.SortUtils;
+import io.quarkiverse.jimmer.runtime.repository.QuarkusOrders;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import io.quarkus.agroal.DataSource;
@@ -450,6 +452,18 @@ public class TestResources {
     @Api
     public Response testBookRepositoryMergeSaveMode(Book book) {
         return Response.ok(bookRepository.save(book, AssociatedSaveMode.APPEND_IF_ABSENT)).build();
+    }
+
+    @GET
+    @Path("/testQuarkusOrdersSortUtilsStringCodes")
+    @Api
+    public Response testQuarkusOrdersSortUtilsStringCodes(@DefaultValue("id desc") @RestQuery String sort) {
+        List<Book> books = Jimmer.getDefaultJSqlClient()
+                .createQuery(Tables.BOOK_TABLE)
+                .orderBy(QuarkusOrders.toOrders(Tables.BOOK_TABLE, SortUtils.toSort(sort)))
+                .select(Tables.BOOK_TABLE)
+                .execute();
+        return Response.ok(books).build();
     }
 
     @POST
