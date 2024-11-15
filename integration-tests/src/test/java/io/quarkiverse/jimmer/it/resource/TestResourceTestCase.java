@@ -1081,4 +1081,16 @@ public class TestResourceTestCase {
         Assertions.assertNotNull(response.jsonPath());
         Assertions.assertEquals(11, response.jsonPath().getInt("[0].id"));
     }
+
+    @Test
+    void testQuarkusOrdersSortUtilsTypedPropScalarProps() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testQuarkusOrdersSortUtilsTypedPropScalarProps");
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals(1, response.jsonPath().getInt("[0].id"));
+    }
 }
