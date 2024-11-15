@@ -82,6 +82,11 @@ final class JimmerProcessor {
     }
 
     @BuildStep
+    IgnoreSplitPackageBuildItem splitPackages() {
+        return new IgnoreSplitPackageBuildItem(List.of("org.babyfish.jimmer", "org.babyfish.jimmer.sql"));
+    }
+
+    @BuildStep
     AnnotationsTransformerBuildItem transform(CustomScopeAnnotationsBuildItem customScopes) {
         return new AnnotationsTransformerBuildItem(new TransientResolverTransformer(customScopes));
     }
