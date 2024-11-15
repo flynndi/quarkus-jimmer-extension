@@ -1069,4 +1069,16 @@ public class TestResourceTestCase {
                 .post("testResources/testBookRepositoryMergeSaveMode");
         Assertions.assertEquals(4, response.jsonPath().getInt("totalAffectedRowCount"));
     }
+
+    @Test
+    void testQuarkusOrdersSortUtilsStringCodes() {
+        Response response = given()
+                .log()
+                .all()
+                .when()
+                .get("testResources/testQuarkusOrdersSortUtilsStringCodes");
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertNotNull(response.jsonPath());
+        Assertions.assertEquals(11, response.jsonPath().getInt("[0].id"));
+    }
 }
