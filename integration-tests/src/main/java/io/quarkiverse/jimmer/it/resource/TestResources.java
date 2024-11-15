@@ -466,6 +466,18 @@ public class TestResources {
         return Response.ok(books).build();
     }
 
+    @GET
+    @Path("/testQuarkusOrdersSortUtilsTypedPropScalarProps")
+    @Api
+    public Response testQuarkusOrdersSortUtilsTypedPropScalarProps() {
+        List<Book> books = Jimmer.getDefaultJSqlClient()
+                .createQuery(Tables.BOOK_TABLE)
+                .orderBy(QuarkusOrders.toOrders(Tables.BOOK_TABLE, SortUtils.toSort(BookProps.ID.asc())))
+                .select(Tables.BOOK_TABLE)
+                .execute();
+        return Response.ok(books).build();
+    }
+
     @POST
     @Path("/testEvent")
     @Transactional
