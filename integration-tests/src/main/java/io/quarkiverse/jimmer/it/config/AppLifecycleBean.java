@@ -3,6 +3,7 @@ package io.quarkiverse.jimmer.it.config;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.sql.Connection;
+import java.sql.Statement;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -72,7 +73,9 @@ public class AppLifecycleBean {
                     }
                     builder.append(buf, 0, len);
                 }
-                connection.createStatement().execute(builder.toString());
+                try (Statement statement = connection.createStatement()) {
+                    statement.execute(builder.toString());
+                }
             }
         }
     }
