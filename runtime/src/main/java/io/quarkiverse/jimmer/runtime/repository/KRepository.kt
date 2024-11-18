@@ -181,7 +181,7 @@ interface KRepository<E: Any, ID: Any> {
         sql.save(input, associatedMode, null, block).modifiedEntity
 
     fun <S : E> saveAll(entities: MutableIterable<S>): List<S> =
-        saveEntities(entities, SaveMode.UPSERT).simpleResults.map { it.modifiedEntity }
+        saveEntities(entities, SaveMode.UPSERT).items.map { it.modifiedEntity }
 
     fun <S : E> saveEntities(entities: Iterable<S>): KBatchSaveResult<S> =
         saveEntities(entities, SaveMode.UPSERT)
