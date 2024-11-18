@@ -223,9 +223,9 @@ public interface JRepository<E, ID> {
     default <S extends E> Iterable<S> saveEntities(@NotNull Iterable<S> entities) {
         return saveEntitiesCommand(entities)
                 .execute()
-                .getSimpleResults()
+                .getItems()
                 .stream()
-                .map(SimpleSaveResult::getModifiedEntity)
+                .map(BatchSaveResult.Item::getModifiedEntity)
                 .collect(Collectors.toList());
     }
 
@@ -234,9 +234,9 @@ public interface JRepository<E, ID> {
         return saveEntitiesCommand(entities)
                 .setMode(mode)
                 .execute()
-                .getSimpleResults()
+                .getItems()
                 .stream()
-                .map(SimpleSaveResult::getModifiedEntity)
+                .map(BatchSaveResult.Item::getModifiedEntity)
                 .collect(Collectors.toList());
     }
 
@@ -245,9 +245,9 @@ public interface JRepository<E, ID> {
         return saveEntitiesCommand(entities)
                 .setAssociatedModeAll(associatedMode)
                 .execute()
-                .getSimpleResults()
+                .getItems()
                 .stream()
-                .map(SimpleSaveResult::getModifiedEntity)
+                .map(BatchSaveResult.Item::getModifiedEntity)
                 .collect(Collectors.toList());
     }
 
@@ -260,9 +260,9 @@ public interface JRepository<E, ID> {
                 .setMode(mode)
                 .setAssociatedModeAll(associatedMode)
                 .execute()
-                .getSimpleResults()
+                .getItems()
                 .stream()
-                .map(SimpleSaveResult::getModifiedEntity)
+                .map(BatchSaveResult.Item::getModifiedEntity)
                 .collect(Collectors.toList());
     }
 
@@ -270,9 +270,9 @@ public interface JRepository<E, ID> {
     default <S extends E> Iterable<S> saveInputs(@NotNull Iterable<Input<S>> entities) {
         return saveInputsCommand(entities)
                 .execute()
-                .getSimpleResults()
+                .getItems()
                 .stream()
-                .map(SimpleSaveResult::getModifiedEntity)
+                .map(BatchSaveResult.Item::getModifiedEntity)
                 .collect(Collectors.toList());
     }
 
@@ -281,9 +281,9 @@ public interface JRepository<E, ID> {
         return saveInputsCommand(entities)
                 .setMode(mode)
                 .execute()
-                .getSimpleResults()
+                .getItems()
                 .stream()
-                .map(SimpleSaveResult::getModifiedEntity)
+                .map(BatchSaveResult.Item::getModifiedEntity)
                 .collect(Collectors.toList());
     }
 
@@ -292,9 +292,9 @@ public interface JRepository<E, ID> {
         return saveInputsCommand(entities)
                 .setAssociatedModeAll(associatedMode)
                 .execute()
-                .getSimpleResults()
+                .getItems()
                 .stream()
-                .map(SimpleSaveResult::getModifiedEntity)
+                .map(BatchSaveResult.Item::getModifiedEntity)
                 .collect(Collectors.toList());
     }
 
@@ -307,9 +307,9 @@ public interface JRepository<E, ID> {
                 .setMode(mode)
                 .setAssociatedModeAll(associatedMode)
                 .execute()
-                .getSimpleResults()
+                .getItems()
                 .stream()
-                .map(SimpleSaveResult::getModifiedEntity)
+                .map(BatchSaveResult.Item::getModifiedEntity)
                 .collect(Collectors.toList());
     }
 
