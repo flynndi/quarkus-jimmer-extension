@@ -3,6 +3,7 @@ package io.quarkiverse.jimmer.runtime;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -56,16 +57,21 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
     private final String dataSourceName;
 
-    private final ArcContainer container = Arc.container();
+    private final ArcContainer container;
 
     private final Dialect dialect;
 
+    private final Consumer<JSqlClient.Builder> block;
+
     private final boolean isKotlin;
 
-    public JQuarkusSqlClient(DataSource dataSource, String dataSourceName, Dialect dialect, boolean isKotlin) {
+    public JQuarkusSqlClient(ArcContainer container, DataSource dataSource, String dataSourceName, Dialect dialect,
+            Consumer<JSqlClient.Builder> block, boolean isKotlin) {
+        this.container = Objects.requireNonNullElseGet(container, Arc::container);
         this.dataSource = dataSource;
         this.dataSourceName = dataSourceName;
         this.dialect = dialect;
+        this.block = block;
         this.isKotlin = isKotlin;
     }
 
@@ -93,29 +99,13 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         Collection<ExceptionTranslator<?>> exceptionTranslators = getObjects(ExceptionTranslator.class);
 
         JSqlClient.Builder builder = JSqlClient.newBuilder();
-        if (block != null) {
-            block.accept(builder);
-        }
-        if (null != userIdGeneratorProvider) {
-            builder.setUserIdGeneratorProvider(userIdGeneratorProvider);
-        } else {
-            builder.setUserIdGeneratorProvider(new QuarkusUserIdGeneratorProvider(container));
-        }
-        if (null != logicalDeletedValueGeneratorProvider) {
-            builder.setLogicalDeletedValueGeneratorProvider(logicalDeletedValueGeneratorProvider);
-        } else {
-            builder.setLogicalDeletedValueGeneratorProvider(new QuarkusLogicalDeletedValueGeneratorProvider(container));
-        }
-        if (null != transientResolverProvider) {
-            builder.setTransientResolverProvider(transientResolverProvider);
-        } else {
-            builder.setTransientResolverProvider(new QuarkusTransientResolverProvider(container));
-        }
-        if (null != aopProxyProvider) {
-            builder.setAopProxyProvider(aopProxyProvider);
-        } else {
-            builder.setAopProxyProvider(this::getTargetClass);
-        }
+        builder.setUserIdGeneratorProvider(
+                Objects.requireNonNullElseGet(userIdGeneratorProvider, () -> new QuarkusUserIdGeneratorProvider(container)));
+        builder.setLogicalDeletedValueGeneratorProvider(Objects.requireNonNullElseGet(logicalDeletedValueGeneratorProvider,
+                () -> new QuarkusLogicalDeletedValueGeneratorProvider(container)));
+        builder.setTransientResolverProvider(Objects.requireNonNullElseGet(transientResolverProvider,
+                () -> new QuarkusTransientResolverProvider(container)));
+        builder.setAopProxyProvider(Objects.requireNonNullElseGet(aopProxyProvider, () -> this::getTargetClass));
         if (null != entityManager) {
             builder.setEntityManager(entityManager);
         }
@@ -177,6 +167,13 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setMicroServiceName(config.microServiceName().orElse(null));
         if (config.microServiceName().isPresent()) {
             builder.setMicroServiceExchange(exchange);
+        }
+
+        if (null != this.block) {
+            this.block.accept(builder);
+        }
+        if (null != block) {
+            block.accept(builder);
         }
 
         ConnectionManager connectionManager = ObjectUtil.firstNonNullOf(
