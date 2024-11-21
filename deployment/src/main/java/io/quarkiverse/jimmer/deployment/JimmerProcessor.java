@@ -75,10 +75,16 @@ final class JimmerProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
-    @BuildStep
-    void indexJimmer(BuildProducer<IndexDependencyBuildItem> indexDependency) {
+    @BuildStep(onlyIf = IsJavaEnable.class)
+    void indexJimmerForJava(BuildProducer<IndexDependencyBuildItem> indexDependency) {
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-core"));
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-sql"));
+    }
+
+    @BuildStep(onlyIf = IsKotlinEnable.class)
+    void indexJimmerForKotlin(BuildProducer<IndexDependencyBuildItem> indexDependency) {
+        indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-core-kotlin"));
+        indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-sql-kotlin"));
     }
 
     @BuildStep
