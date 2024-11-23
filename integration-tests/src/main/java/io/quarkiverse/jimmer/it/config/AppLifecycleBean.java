@@ -1,7 +1,6 @@
 package io.quarkiverse.jimmer.it.config;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.Statement;
 
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.agroal.DataSource;
-import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 
@@ -31,18 +29,8 @@ public class AppLifecycleBean {
     AgroalDataSource agroalDataSourceDB2;
 
     void onStart(@Observes StartupEvent ev) throws Exception {
-        LOGGER.info("The application is starting...");
-        LOGGER.info("Default Charset = {}", Charset.defaultCharset());
-        LOGGER.info("file.encoding = {}", Charset.defaultCharset().displayName());
-        LOGGER.info("Default Charset in use = {}", this.getDefaultCharset());
-        LOGGER.info("The application model is {}", LaunchMode.current().getDefaultProfile());
         this.initH2DB1();
         this.initH2DB2();
-    }
-
-    private String getDefaultCharset() {
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new ByteArrayOutputStream());
-        return outputStreamWriter.getEncoding();
     }
 
     void onStop(@Observes ShutdownEvent ev) {
