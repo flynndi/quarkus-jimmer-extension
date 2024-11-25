@@ -29,6 +29,7 @@ public class AppLifecycleBean {
     AgroalDataSource agroalDataSourceDB2;
 
     void onStart(@Observes StartupEvent ev) throws Exception {
+        LOGGER.info("The application is starting...");
         this.initH2DB1();
         this.initH2DB2();
     }
