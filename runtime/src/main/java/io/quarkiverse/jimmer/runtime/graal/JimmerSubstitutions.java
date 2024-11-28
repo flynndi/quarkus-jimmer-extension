@@ -44,9 +44,9 @@ public class JimmerSubstitutions {
         public IsPGAbsent() {
             try {
                 Class.forName("org.postgresql.Driver", true, Thread.currentThread().getContextClassLoader());
-                pgAbsent = true;
-            } catch (ClassNotFoundException e) {
                 pgAbsent = false;
+            } catch (ClassNotFoundException e) {
+                pgAbsent = true;
             }
         }
 
