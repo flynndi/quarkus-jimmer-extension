@@ -2,7 +2,9 @@ quarkus:
   application:
     name: quarkus-jimmer-integration-tests
   package:
-    type: uber-jar
+    jar:
+      enabled: true
+      type: uber-jar
   http:
     port: 8080
   datasource:
