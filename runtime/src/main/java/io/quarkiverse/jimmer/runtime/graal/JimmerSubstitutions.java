@@ -5,7 +5,6 @@ import java.util.function.BooleanSupplier;
 import org.babyfish.jimmer.sql.runtime.Reader;
 
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
 
@@ -23,12 +22,12 @@ public class JimmerSubstitutions {
         }
 
         @Substitute
-        public Object jsonToBaseValue(Object json, ObjectMapper objectMapper) throws Exception {
+        public Object jsonToBaseValue(Object json) throws Exception {
             return null;
         }
 
         @Substitute
-        public Object baseValueToJson(Object baseValue, JavaType javaType, ObjectMapper objectMapper) throws Exception {
+        public Object baseValueToJson(Object baseValue, JavaType javaType) throws Exception {
             return null;
         }
 
@@ -45,9 +44,9 @@ public class JimmerSubstitutions {
         public IsPGAbsent() {
             try {
                 Class.forName("org.postgresql.Driver", true, Thread.currentThread().getContextClassLoader());
-                pgAbsent = false;
-            } catch (ClassNotFoundException e) {
                 pgAbsent = true;
+            } catch (ClassNotFoundException e) {
+                pgAbsent = false;
             }
         }
 
