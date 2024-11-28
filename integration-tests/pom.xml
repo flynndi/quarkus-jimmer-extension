@@ -11,7 +11,7 @@
   <name>Quarkus Quarkus Jimmer Extension - Integration Tests</name>
   <properties>
     <skipITs>true</skipITs>
-    <redisson.version>3.32.0</redisson.version>
+    <redisson.version>3.38.0</redisson.version>
   </properties>
   <dependencies>
     <dependency>
