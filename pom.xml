@@ -56,7 +56,6 @@
     <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
     <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
     <kotlin.version>1.9.0</kotlin.version>
-    <graal-sdk.version>22.3.5</graal-sdk.version>
   </properties>
 
   <dependencyManagement>
