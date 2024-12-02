@@ -12,6 +12,7 @@
   <properties>
     <skipITs>true</skipITs>
     <redisson.version>3.38.0</redisson.version>
+    <native.surefire.skip>${skipITs}</native.surefire.skip>
   </properties>
   <dependencies>
     <dependency>
