@@ -1,5 +1,7 @@
 package io.quarkiverse.jimmer.runtime;
 
+import static org.babyfish.jimmer.impl.util.ObjectUtil.optionalFirstNonNullOf;
+
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +23,7 @@ import org.babyfish.jimmer.sql.cache.CacheAbandonedCallback;
 import org.babyfish.jimmer.sql.cache.CacheFactory;
 import org.babyfish.jimmer.sql.cache.CacheOperator;
 import org.babyfish.jimmer.sql.di.*;
+import org.babyfish.jimmer.sql.dialect.DefaultDialect;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.event.AssociationEvent;
 import org.babyfish.jimmer.sql.event.EntityEvent;
@@ -34,6 +37,7 @@ import org.babyfish.jimmer.sql.kt.cfg.KInitializerKt;
 import org.babyfish.jimmer.sql.kt.filter.KFilter;
 import org.babyfish.jimmer.sql.kt.filter.impl.JavaFiltersKt;
 import org.babyfish.jimmer.sql.meta.DatabaseNamingStrategy;
+import org.babyfish.jimmer.sql.meta.MetaStringResolver;
 import org.babyfish.jimmer.sql.runtime.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +47,7 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusUserIdGeneratorProvider;
+import io.quarkiverse.jimmer.runtime.dialect.DialectDetector;
 import io.quarkiverse.jimmer.runtime.util.Assert;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.Arc;
@@ -87,6 +92,9 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         AopProxyProvider aopProxyProvider = getOptionalBean(AopProxyProvider.class);
         EntityManager entityManager = getOptionalBean(EntityManager.class);
         DatabaseNamingStrategy databaseNamingStrategy = getOptionalBean(DatabaseNamingStrategy.class);
+        MetaStringResolver metaStringResolver = getOptionalBean(MetaStringResolver.class);
+        Dialect dialect = getOptionalBean(Dialect.class);
+        DialectDetector dialectDetector = getOptionalBean(DialectDetector.class);
         Executor executor = getOptionalBean(Executor.class);
         SqlFormatter sqlFormatter = getOptionalBean(SqlFormatter.class);
         CacheFactory cacheFactory = getOptionalBean(CacheFactory.class);
@@ -111,6 +119,9 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         }
         if (null != databaseNamingStrategy) {
             builder.setDatabaseNamingStrategy(databaseNamingStrategy);
+        }
+        if (metaStringResolver != null) {
+            builder.setMetaStringResolver(metaStringResolver);
         }
 
         builder.setDialect(this.dialect);
@@ -183,6 +194,15 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
                 () -> new QuarkusConnectionManager(getOptionalBean(DataSource.class)));
 
         builder.setConnectionManager(connectionManager);
+
+        if (((JSqlClientImplementor.Builder) builder).getDialect().getClass() == DefaultDialect.class) {
+            if (null != dialectDetector) {
+                builder.setDialect(
+                        optionalFirstNonNullOf(
+                                () -> dialect,
+                                () -> connectionManager.execute(dialectDetector::detectDialect)));
+            }
+        }
 
         return builder;
     }
