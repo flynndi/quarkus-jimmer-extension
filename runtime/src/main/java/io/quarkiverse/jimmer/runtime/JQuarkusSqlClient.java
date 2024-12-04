@@ -48,6 +48,7 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGener
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusUserIdGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.dialect.DialectDetector;
+import io.quarkiverse.jimmer.runtime.meta.QuarkusMetaStringResolver;
 import io.quarkiverse.jimmer.runtime.util.Assert;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.Arc;
@@ -120,9 +121,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         if (null != databaseNamingStrategy) {
             builder.setDatabaseNamingStrategy(databaseNamingStrategy);
         }
-        if (metaStringResolver != null) {
-            builder.setMetaStringResolver(metaStringResolver);
-        }
+        builder.setMetaStringResolver(Objects.requireNonNullElseGet(metaStringResolver, QuarkusMetaStringResolver::new));
 
         builder.setDialect(this.dialect);
         builder.setTriggerType(config.triggerType());
