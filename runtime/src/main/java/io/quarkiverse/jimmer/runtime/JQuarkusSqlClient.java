@@ -1,7 +1,5 @@
 package io.quarkiverse.jimmer.runtime;
 
-import static org.babyfish.jimmer.impl.util.ObjectUtil.optionalFirstNonNullOf;
-
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -197,8 +195,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         if (((JSqlClientImplementor.Builder) builder).getDialect().getClass() == DefaultDialect.class) {
             if (null != dialectDetector) {
                 builder.setDialect(
-                        optionalFirstNonNullOf(
-                                () -> dialect,
+                        ObjectUtil.optionalFirstNonNullOf(() -> dialect,
                                 () -> connectionManager.execute(dialectDetector::detectDialect)));
             }
         }
