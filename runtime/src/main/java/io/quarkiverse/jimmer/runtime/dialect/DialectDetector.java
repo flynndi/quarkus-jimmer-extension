@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.babyfish.jimmer.sql.dialect.Dialect;
+import org.babyfish.jimmer.sql.dialect.*;
 import org.jboss.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +18,7 @@ public interface DialectDetector {
 
     class Impl implements DialectDetector {
 
-        private static final Logger log = Logger.getLogger(DialectDetector.class);
+        private static final Logger LOGGER = Logger.getLogger(DialectDetector.class);
 
         private final DataSource dataSource;
 
@@ -31,10 +31,26 @@ public interface DialectDetector {
             try (Connection connection = dataSource.getConnection()) {
                 DatabaseMetaData metaData = connection.getMetaData();
                 String databaseProductName = metaData.getDatabaseProductName();
+                switch (databaseProductName) {
+                    case "PostgreSQL":
+                        return new PostgresDialect();
+                    case "Oracle":
+                        return new OracleDialect();
+                    case "MySQL":
+                        return new MySqlDialect();
+                    case "Microsoft SQL Server":
+                        return new SqlServerDialect();
+                    case "H2":
+                        return new H2Dialect();
+                    case "SQLite":
+                        return new SQLiteDialect();
+                    default:
+                        return null;
+                }
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                LOGGER.warn("Failed to autodetect jimmer dialect", e);
+                return null;
             }
-            return null;
         }
     }
 }
