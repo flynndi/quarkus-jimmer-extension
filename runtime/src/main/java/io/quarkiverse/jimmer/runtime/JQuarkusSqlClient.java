@@ -193,10 +193,10 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setConnectionManager(connectionManager);
 
         if (((JSqlClientImplementor.Builder) builder).getDialect().getClass() == DefaultDialect.class) {
+            DialectDetector finalDetector = dialectDetector != null ? dialectDetector : new DialectDetector.Impl(dataSource);
             if (null != dialectDetector) {
-                builder.setDialect(
-                        ObjectUtil.optionalFirstNonNullOf(() -> dialect,
-                                () -> connectionManager.execute(dialectDetector::detectDialect)));
+                builder.setDialect(ObjectUtil.optionalFirstNonNullOf(() -> dialect,
+                        () -> connectionManager.execute(finalDetector::detectDialect)));
             }
         }
 
