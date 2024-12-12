@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.flynndi</groupId>
         <artifactId>quarkus-jimmer-parent</artifactId>
-        <version>999-SNAPSHOT</version>
+        <version>0.0.1.CR40</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
