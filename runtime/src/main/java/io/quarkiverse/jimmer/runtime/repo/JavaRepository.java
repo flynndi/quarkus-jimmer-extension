@@ -338,7 +338,7 @@ public interface JavaRepository<E, ID> {
      * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#saveInputs(Iterable)},
      * please view that method to know more
      */
-    default BatchSaveResult<E> saveInputs(Iterable<Input<E>> inputs) {
+    default BatchSaveResult<E> saveInputs(Iterable<? extends Input<E>> inputs) {
         return saveInputs(inputs, SaveMode.UPSERT, AssociatedSaveMode.REPLACE);
     }
 
@@ -346,7 +346,7 @@ public interface JavaRepository<E, ID> {
      * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#save(Input, SaveMode)},
      * please view that method to know more
      */
-    default BatchSaveResult<E> saveInputs(Iterable<Input<E>> inputs, SaveMode mode) {
+    default BatchSaveResult<E> saveInputs(Iterable<? extends Input<E>> inputs, SaveMode mode) {
         return saveInputs(inputs, mode, AssociatedSaveMode.REPLACE);
     }
 
@@ -354,7 +354,7 @@ public interface JavaRepository<E, ID> {
      * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#saveInputs(Iterable, AssociatedSaveMode)},
      * please view that method to know more
      */
-    default BatchSaveResult<E> saveInputs(Iterable<Input<E>> inputs, AssociatedSaveMode associatedMode) {
+    default BatchSaveResult<E> saveInputs(Iterable<? extends Input<E>> inputs, AssociatedSaveMode associatedMode) {
         return saveInputs(inputs, SaveMode.UPSERT, associatedMode);
     }
 
@@ -363,7 +363,7 @@ public interface JavaRepository<E, ID> {
      * please view that method to know more
      */
     BatchSaveResult<E> saveInputs(
-            Iterable<Input<E>> inputs,
+            Iterable<? extends Input<E>> inputs,
             SaveMode rootSaveMode,
             AssociatedSaveMode associatedSaveMode);
 
