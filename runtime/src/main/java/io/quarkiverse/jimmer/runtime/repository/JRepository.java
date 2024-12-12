@@ -267,7 +267,7 @@ public interface JRepository<E, ID> {
     }
 
     @NotNull
-    default <S extends E> Iterable<S> saveInputs(@NotNull Iterable<Input<S>> entities) {
+    default <S extends E> Iterable<S> saveInputs(@NotNull Iterable<? extends Input<S>> entities) {
         return saveInputsCommand(entities)
                 .execute()
                 .getItems()
@@ -277,7 +277,7 @@ public interface JRepository<E, ID> {
     }
 
     @NotNull
-    default <S extends E> Iterable<S> saveInputs(@NotNull Iterable<Input<S>> entities, SaveMode mode) {
+    default <S extends E> Iterable<S> saveInputs(@NotNull Iterable<? extends Input<S>> entities, SaveMode mode) {
         return saveInputsCommand(entities)
                 .setMode(mode)
                 .execute()
@@ -288,7 +288,8 @@ public interface JRepository<E, ID> {
     }
 
     @NotNull
-    default <S extends E> Iterable<S> saveInputs(@NotNull Iterable<Input<S>> entities, AssociatedSaveMode associatedMode) {
+    default <S extends E> Iterable<S> saveInputs(@NotNull Iterable<? extends Input<S>> entities,
+            AssociatedSaveMode associatedMode) {
         return saveInputsCommand(entities)
                 .setAssociatedModeAll(associatedMode)
                 .execute()
@@ -300,7 +301,7 @@ public interface JRepository<E, ID> {
 
     @NotNull
     default <S extends E> Iterable<S> saveInputs(
-            @NotNull Iterable<Input<S>> entities,
+            @NotNull Iterable<? extends Input<S>> entities,
             SaveMode mode,
             AssociatedSaveMode associatedMode) {
         return saveInputsCommand(entities)
@@ -317,7 +318,7 @@ public interface JRepository<E, ID> {
     <S extends E> BatchEntitySaveCommand<S> saveEntitiesCommand(@NotNull Iterable<S> entities);
 
     @NotNull
-    default <S extends E> BatchEntitySaveCommand<S> saveInputsCommand(@NotNull Iterable<Input<S>> inputs) {
+    default <S extends E> BatchEntitySaveCommand<S> saveInputsCommand(@NotNull Iterable<? extends Input<S>> inputs) {
         return saveEntitiesCommand(CollectionUtils.map(inputs, Input::toEntity));
     }
 
