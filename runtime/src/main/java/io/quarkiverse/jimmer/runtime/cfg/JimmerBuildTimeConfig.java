@@ -8,7 +8,6 @@ import java.util.OptionalInt;
 import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
 import org.babyfish.jimmer.sql.EnumType;
-import org.babyfish.jimmer.sql.ast.mutation.LockMode;
 import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
 import org.babyfish.jimmer.sql.runtime.IdOnlyTargetCheckingLevel;
@@ -139,17 +138,16 @@ public interface JimmerBuildTimeConfig {
     boolean targetTransferable();
 
     /**
-     * jimmer.saveCommandPessimisticLock
+     * jimmer.explicitBatchEnabled
      */
-    @Deprecated
     @WithDefault("false")
-    boolean saveCommandPessimisticLock();
+    boolean explicitBatchEnabled();
 
     /**
-     * jimmer.lockMode
+     * jimmer.dumbBatchAcceptable
      */
-    @WithDefault("OPTIMISTIC")
-    LockMode lockMode();
+    @WithDefault("false")
+    boolean dumbBatchAcceptable();
 
     /**
      * jimmer.executorContextPrefixes
