@@ -134,6 +134,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
         builder.setMaxCommandJoinCount(config.maxCommandJoinDepth());
         builder.setTargetTransferable(config.targetTransferable());
+        builder.setExplicitBatchEnabled(config.explicitBatchEnabled());
+        builder.setDumbBatchAcceptable(config.dumbBatchAcceptable());
         config.executorContextPrefixes().ifPresent(builder::setExecutorContextPrefixes);
 
         if (config.showSql()) {
