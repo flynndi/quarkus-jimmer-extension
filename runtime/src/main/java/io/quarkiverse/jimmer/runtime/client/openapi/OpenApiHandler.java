@@ -119,7 +119,12 @@ public class OpenApiHandler implements Handler<RoutingContext> {
                 .setSecurities(config.client().openapi().properties().securities().orElse(null))
                 .build();
 
-        OpenApiGenerator generator = new OpenApiGenerator(metadata, openApiProperties);
+        OpenApiGenerator generator = new OpenApiGenerator(metadata, openApiProperties) {
+            @Override
+            protected int errorHttpStatus() {
+                return config.errorTranslator().isEmpty() ? 500 : config.errorTranslator().get().httpStatus();
+            }
+        };
 
         HttpServerResponse response = routingContext.response();
         ManagedContext requestContext = Arc.container().requestContext();
