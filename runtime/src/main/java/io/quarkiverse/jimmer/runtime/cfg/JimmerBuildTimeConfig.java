@@ -37,6 +37,11 @@ public interface JimmerBuildTimeConfig {
     String language();
 
     /**
+     * jimmer.dialect
+     */
+    Optional<String> dialect();
+
+    /**
      * jimmer.showSql
      */
     @WithDefault("false")

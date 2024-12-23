@@ -3,7 +3,6 @@ package io.quarkiverse.jimmer.runtime;
 import javax.sql.DataSource;
 
 import org.babyfish.jimmer.sql.JSqlClient;
-import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
@@ -25,15 +24,13 @@ import io.quarkus.arc.Arc;
  */
 public class QuarkusSqlClientProducer {
 
-    public QuarkusJSqlClientContainer createQuarkusJSqlClientContainer(DataSource dataSource, String dataSourceName,
-            Dialect dialect) {
-        final JSqlClient jSqlClient = SqlClients.java(Arc.container(), dataSource, dataSourceName, dialect);
+    public QuarkusJSqlClientContainer createQuarkusJSqlClientContainer(DataSource dataSource, String dataSourceName) {
+        final JSqlClient jSqlClient = SqlClients.java(Arc.container(), dataSource, dataSourceName);
         return new QuarkusJSqlClientContainer(jSqlClient, dataSourceName);
     }
 
-    public QuarkusKSqlClientContainer createQuarkusKSqlClientContainer(DataSource dataSource, String dataSourceName,
-            Dialect dialect) {
-        final KSqlClient kSqlClient = SqlClients.kotlin(Arc.container(), dataSource, dataSourceName, dialect);
+    public QuarkusKSqlClientContainer createQuarkusKSqlClientContainer(DataSource dataSource, String dataSourceName) {
+        final KSqlClient kSqlClient = SqlClients.kotlin(Arc.container(), dataSource, dataSourceName);
         return new QuarkusKSqlClientContainer(kSqlClient, dataSourceName);
     }
 }
