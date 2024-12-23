@@ -6,7 +6,6 @@ import java.util.function.Function;
 import javax.sql.DataSource;
 
 import org.babyfish.jimmer.sql.JSqlClient;
-import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
@@ -24,7 +23,7 @@ import io.quarkus.runtime.configuration.ConfigurationException;
 public class JimmerDataSourcesRecorder {
 
     public Function<SyntheticCreationalContext<QuarkusJSqlClientContainer>, QuarkusJSqlClientContainer> jSqlClientContainerFunction(
-            String dataSourceName, Dialect dialect) {
+            String dataSourceName) {
         return context -> {
             DataSource dataSource;
             try {
@@ -42,7 +41,7 @@ public class JimmerDataSourcesRecorder {
                         dataSourceName, e.getMessage()), e);
             }
             QuarkusSqlClientProducer producer = context.getInjectedReference(QuarkusSqlClientProducer.class);
-            return producer.createQuarkusJSqlClientContainer(dataSource, dataSourceName, dialect);
+            return producer.createQuarkusJSqlClientContainer(dataSource, dataSourceName);
         };
     }
 
@@ -56,7 +55,7 @@ public class JimmerDataSourcesRecorder {
     }
 
     public Function<SyntheticCreationalContext<QuarkusKSqlClientContainer>, QuarkusKSqlClientContainer> kSqlClientContainerFunction(
-            String dataSourceName, Dialect dialect) {
+            String dataSourceName) {
         return context -> {
             DataSource dataSource;
             try {
@@ -74,7 +73,7 @@ public class JimmerDataSourcesRecorder {
                         dataSourceName, e.getMessage()), e);
             }
             QuarkusSqlClientProducer producer = context.getInjectedReference(QuarkusSqlClientProducer.class);
-            return producer.createQuarkusKSqlClientContainer(dataSource, dataSourceName, dialect);
+            return producer.createQuarkusKSqlClientContainer(dataSource, dataSourceName);
         };
     }
 
