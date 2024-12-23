@@ -1,6 +1,7 @@
 package io.quarkiverse.jimmer.runtime;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
@@ -37,6 +38,7 @@ import org.babyfish.jimmer.sql.kt.filter.impl.JavaFiltersKt;
 import org.babyfish.jimmer.sql.meta.DatabaseNamingStrategy;
 import org.babyfish.jimmer.sql.meta.MetaStringResolver;
 import org.babyfish.jimmer.sql.runtime.*;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,18 +65,15 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
     private final ArcContainer container;
 
-    private final Dialect dialect;
-
     private final Consumer<JSqlClient.Builder> block;
 
     private final boolean isKotlin;
 
-    public JQuarkusSqlClient(ArcContainer container, DataSource dataSource, String dataSourceName, Dialect dialect,
+    public JQuarkusSqlClient(ArcContainer container, DataSource dataSource, String dataSourceName,
             Consumer<JSqlClient.Builder> block, boolean isKotlin) {
         this.container = Objects.requireNonNullElseGet(container, Arc::container);
         this.dataSource = dataSource;
         this.dataSourceName = dataSourceName;
-        this.dialect = dialect;
         this.block = block;
         this.isKotlin = isKotlin;
     }
@@ -121,7 +120,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         }
         builder.setMetaStringResolver(Objects.requireNonNullElseGet(metaStringResolver, QuarkusMetaStringResolver::new));
 
-        builder.setDialect(this.dialect);
+        builder.setDialect(this.initializeDialect(config));
         builder.setTriggerType(config.triggerType());
         builder.setDefaultDissociateActionCheckable(config.defaultDissociationActionCheckable());
         builder.setIdOnlyTargetCheckingLevel(config.idOnlyTargetCheckingLevel());
@@ -195,10 +194,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
         if (((JSqlClientImplementor.Builder) builder).getDialect().getClass() == DefaultDialect.class) {
             DialectDetector finalDetector = dialectDetector != null ? dialectDetector : new DialectDetector.Impl(dataSource);
-            if (null != dialectDetector) {
-                builder.setDialect(ObjectUtil.optionalFirstNonNullOf(() -> dialect,
-                        () -> connectionManager.execute(finalDetector::detectDialect)));
-            }
+            builder.setDialect(ObjectUtil.optionalFirstNonNullOf(() -> dialect, () -> this.initializeDialect(config),
+                    () -> connectionManager.execute(finalDetector::detectDialect)));
         }
 
         return builder;
@@ -344,6 +341,41 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
             }
         }
         return null;
+    }
+
+    @Nullable
+    private Dialect initializeDialect(JimmerBuildTimeConfig config) {
+        Dialect dialect;
+        if (config.dialect().isEmpty()) {
+            return null;
+        } else {
+            Class<?> clazz;
+            try {
+                clazz = Class.forName(config.dialect().get(), true, Thread.currentThread().getContextClassLoader());
+            } catch (ClassNotFoundException ex) {
+                throw new IllegalArgumentException(
+                        "The class \"" + config.dialect().get() + "\" specified by `jimmer.language` cannot be found");
+            }
+            if (!Dialect.class.isAssignableFrom(clazz) || clazz.isInterface()) {
+                throw new IllegalArgumentException(
+                        "The class \"" + config.dialect().get()
+                                + "\" specified by `jimmer.language` must be a valid dialect implementation");
+            }
+            try {
+                dialect = (Dialect) clazz.getConstructor().newInstance();
+            } catch (InvocationTargetException ex) {
+                throw new IllegalArgumentException(
+                        "Create create instance for the class \"" + config.dialect().get()
+                                + "\" specified by `jimmer.language`",
+                        ex.getTargetException());
+            } catch (Exception ex) {
+                throw new IllegalArgumentException(
+                        "Create create instance for the class \"" + config.dialect().get()
+                                + "\" specified by `jimmer.language`",
+                        ex);
+            }
+        }
+        return dialect;
     }
 
     private static class QuarkusEventInitializer implements Initializer {
