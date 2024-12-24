@@ -1,9 +1,6 @@
 package io.quarkiverse.jimmer.runtime.cfg;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
 
 import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
@@ -12,13 +9,12 @@ import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
 import org.babyfish.jimmer.sql.runtime.IdOnlyTargetCheckingLevel;
 
+import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.runtime.annotations.ConfigDocMapKey;
 import io.quarkus.runtime.annotations.ConfigGroup;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import io.smallrye.config.*;
 
 @ConfigMapping(prefix = "quarkus.jimmer")
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
@@ -37,9 +33,13 @@ public interface JimmerBuildTimeConfig {
     String language();
 
     /**
-     * jimmer.dialect
+     * Datasource.
      */
-    Optional<String> dialect();
+    @ConfigDocMapKey("datasource-name")
+    @WithParentName
+    @WithDefaults
+    @WithUnnamedKey(DataSourceUtil.DEFAULT_DATASOURCE_NAME)
+    Map<String, JimmerDataSourceBuildTimeConfig> dataSources();
 
     /**
      * jimmer.showSql

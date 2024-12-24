@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
+import io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
@@ -346,31 +347,34 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
     @Nullable
     private Dialect initializeDialect(JimmerBuildTimeConfig config) {
         Dialect dialect;
-        if (config.dialect().isEmpty()) {
+        JimmerDataSourceBuildTimeConfig jimmerDataSourceBuildTimeConfig = config.dataSources().get(dataSourceName);
+        if (jimmerDataSourceBuildTimeConfig.dialect().isEmpty()) {
             return null;
         } else {
             Class<?> clazz;
             try {
-                clazz = Class.forName(config.dialect().get(), true, Thread.currentThread().getContextClassLoader());
+                clazz = Class.forName(jimmerDataSourceBuildTimeConfig.dialect().get(), true,
+                        Thread.currentThread().getContextClassLoader());
             } catch (ClassNotFoundException ex) {
                 throw new IllegalArgumentException(
-                        "The class \"" + config.dialect().get() + "\" specified by `jimmer.language` cannot be found");
+                        "The class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
+                                + "\" specified by `jimmer.language` cannot be found");
             }
             if (!Dialect.class.isAssignableFrom(clazz) || clazz.isInterface()) {
                 throw new IllegalArgumentException(
-                        "The class \"" + config.dialect().get()
+                        "The class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
                                 + "\" specified by `jimmer.language` must be a valid dialect implementation");
             }
             try {
                 dialect = (Dialect) clazz.getConstructor().newInstance();
             } catch (InvocationTargetException ex) {
                 throw new IllegalArgumentException(
-                        "Create create instance for the class \"" + config.dialect().get()
+                        "Create create instance for the class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
                                 + "\" specified by `jimmer.language`",
                         ex.getTargetException());
             } catch (Exception ex) {
                 throw new IllegalArgumentException(
-                        "Create create instance for the class \"" + config.dialect().get()
+                        "Create create instance for the class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
                                 + "\" specified by `jimmer.language`",
                         ex);
             }
