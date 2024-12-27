@@ -358,24 +358,24 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
             } catch (ClassNotFoundException ex) {
                 throw new IllegalArgumentException(
                         "The class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
-                                + "\" specified by `jimmer.language` cannot be found");
+                                + "\" specified by `quarkus.jimmer.dialect` cannot be found");
             }
             if (!Dialect.class.isAssignableFrom(clazz) || clazz.isInterface()) {
                 throw new IllegalArgumentException(
                         "The class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
-                                + "\" specified by `jimmer.language` must be a valid dialect implementation");
+                                + "\" specified by `quarkus.jimmer.dialect` must be a valid dialect implementation");
             }
             try {
                 dialect = (Dialect) clazz.getConstructor().newInstance();
             } catch (InvocationTargetException ex) {
                 throw new IllegalArgumentException(
                         "Create create instance for the class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
-                                + "\" specified by `jimmer.language`",
+                                + "\" specified by `quarkus.jimmer.dialect`",
                         ex.getTargetException());
             } catch (Exception ex) {
                 throw new IllegalArgumentException(
                         "Create create instance for the class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
-                                + "\" specified by `jimmer.language`",
+                                + "\" specified by `quarkus.jimmer.dialect`",
                         ex);
             }
         }
