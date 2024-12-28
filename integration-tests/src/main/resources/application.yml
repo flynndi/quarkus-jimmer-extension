@@ -6,12 +6,13 @@ quarkus:
   http:
     port: 8080
   datasource:
-    db-kind: h2
-    username: default
-    jdbc:
-      min-size: 2
-      max-size: 8
-      url: jdbc:h2:mem:default
+    <default>:
+      db-kind: h2
+      username: default
+      jdbc:
+        min-size: 2
+        max-size: 8
+        url: jdbc:h2:mem:default
     DB2:
       db-kind: h2
       username: db2
