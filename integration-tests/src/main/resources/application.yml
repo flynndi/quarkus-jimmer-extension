@@ -45,6 +45,10 @@ quarkus:
     timeout: 10s
   jimmer:
     language: java
+    <default>:
+      dialect: org.babyfish.jimmer.sql.dialect.H2Dialect
+    DB2:
+      dialect: org.babyfish.jimmer.sql.dialect.H2Dialect
     show-sql: true
     pretty-sql: true
     inline-sql-variables: true
