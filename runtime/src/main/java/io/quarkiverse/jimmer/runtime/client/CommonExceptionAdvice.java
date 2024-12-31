@@ -67,7 +67,9 @@ abstract class CommonExceptionAdvice {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("message", ex.getMessage());
         StackTraceElement[] elements = ex.getStackTrace();
-        int size = Math.min(elements.length, config.errorTranslator().get().debugInfoMaxStackTraceCount);
+        int size = Math.min(elements.length,
+                config.errorTranslator().isPresent() ? config.errorTranslator().get().debugInfoMaxStackTraceCount()
+                        : Integer.MAX_VALUE);
         List<String> stackFrames = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             stackFrames.add(elements[i].toString());

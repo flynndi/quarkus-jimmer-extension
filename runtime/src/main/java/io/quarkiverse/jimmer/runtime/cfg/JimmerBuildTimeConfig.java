@@ -218,7 +218,8 @@ public interface JimmerBuildTimeConfig {
         /**
          * debugInfoMaxStackTraceCount
          */
-        int debugInfoMaxStackTraceCount = Integer.MAX_VALUE;
+        @WithDefault("2147483647")
+        int debugInfoMaxStackTraceCount();
     }
 
     @ConfigGroup
