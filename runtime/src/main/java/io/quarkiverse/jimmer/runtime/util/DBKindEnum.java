@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import org.babyfish.jimmer.sql.dialect.*;
 
+@Deprecated
 public enum DBKindEnum {
 
     PG("postgresql", PostgresDialect::new),
