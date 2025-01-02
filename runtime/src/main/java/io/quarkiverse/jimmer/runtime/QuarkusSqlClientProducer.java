@@ -5,6 +5,7 @@ import javax.sql.DataSource;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
+import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkus.arc.Arc;
@@ -23,6 +24,12 @@ import io.quarkus.arc.Arc;
  * @author <a href="mailto:lixuan0520@gmail.com">flynndi</a>
  */
 public class QuarkusSqlClientProducer {
+
+    private final JimmerBuildTimeConfig jimmerBuildTimeConfig;
+
+    public QuarkusSqlClientProducer(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
+        this.jimmerBuildTimeConfig = jimmerBuildTimeConfig;
+    }
 
     public QuarkusJSqlClientContainer createQuarkusJSqlClientContainer(DataSource dataSource, String dataSourceName) {
         final JSqlClient jSqlClient = SqlClients.java(Arc.container(), dataSource, dataSourceName);
