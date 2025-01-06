@@ -42,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
@@ -96,6 +98,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         DialectDetector dialectDetector = getOptionalBean(DialectDetector.class);
         Executor executor = getOptionalBean(Executor.class);
         SqlFormatter sqlFormatter = getOptionalBean(SqlFormatter.class);
+        ObjectMapper objectMapper = getOptionalBean(ObjectMapper.class);
         CacheFactory cacheFactory = getOptionalBean(CacheFactory.class);
         CacheOperator cacheOperator = getOptionalBean(CacheOperator.class, dataSourceName);
         MicroServiceExchange exchange = getOptionalBean(MicroServiceExchange.class);
@@ -160,6 +163,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
                 .setDatabaseValidationMode(config.databaseValidation().mode())
                 .setDatabaseValidationCatalog(config.databaseValidation().catalog().orElse(null))
                 .setDatabaseValidationSchema(config.databaseValidation().schema().orElse(null))
+                .setDefaultSerializedTypeObjectMapper(objectMapper)
                 .setCacheFactory(cacheFactory)
                 .setCacheOperator(cacheOperator)
                 .addCacheAbandonedCallbacks(callbacks);
