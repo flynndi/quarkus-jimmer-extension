@@ -1,8 +1,12 @@
 quarkus:
+  devservices:
+    enabled: false
   application:
     name: quarkus-jimmer-integration-tests
   package:
-    type: uber-jar
+    jar:
+      enabled: true
+      type: uber-jar
   http:
     port: 8080
   datasource:
@@ -10,39 +14,14 @@ quarkus:
       db-kind: h2
       username: default
       jdbc:
-        min-size: 2
-        max-size: 8
-        url: jdbc:h2:mem:default
+        url: jdbc:h2:mem:default;DB_CLOSE_DELAY=-1
     DB2:
       db-kind: h2
       username: db2
       jdbc:
-        min-size: 2
-        max-size: 8
-        url: jdbc:h2:mem:bd2
+        url: jdbc:h2:mem:bd2;DB_CLOSE_DELAY=-1
   log:
     level: DEBUG
-  redisson:
-    single-server-config:
-      address: redis://localhost:6379
-#      password: password
-      database: 0
-      idleConnectionTimeout: 10000
-      connectTimeout: 10000
-      timeout: 3000
-      retryAttempts: 3
-      retryInterval: 1500
-      subscriptionsPerConnection: 1
-      clientName: null
-      subscriptionConnectionMinimumIdleSize: 1
-      subscriptionConnectionPoolSize: 1
-      connectionMinimumIdleSize: 1
-      connectionPoolSize: 1
-    threads: 2
-    netty-threads: 2
-  redis:
-    hosts: redis://localhost:6379
-    timeout: 10s
   jimmer:
     language: java
     <default>:
@@ -70,8 +49,8 @@ quarkus:
             description: This is the OpenAPI UI of Quarkus-Jimmer-Extension REST Example (Java)
             version: 0.0.1.CR1
           securities:
-            - tenantHeader: [1]
-            - OAuth2: [2]
+            - tenantHeader: [ 1 ]
+            - OAuth2: [ 2 ]
           components:
             securitySchemes:
               tenantHeader:
