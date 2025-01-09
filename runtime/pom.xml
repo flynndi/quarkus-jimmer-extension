@@ -8,7 +8,7 @@
     <version>999-SNAPSHOT</version>
   </parent>
   <artifactId>quarkus-jimmer</artifactId>
-  <name>Quarkus Quarkus Jimmer Extension - Runtime</name>
+  <name>Quarkus Jimmer Extension - Runtime</name>
   <description>A revolutionary ORM framework for both java and kotlin, and a complete integrated solution</description>
   <dependencies>
     <dependency>
