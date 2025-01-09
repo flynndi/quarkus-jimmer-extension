@@ -164,7 +164,7 @@ public abstract class ClassCodeWriter implements Constants {
         mv.visitInsn(Opcodes.ACONST_NULL);
         mv.visitMethodInsn(
                 Opcodes.INVOKESPECIAL,
-                implInternalName,
+                superInternalName,
                 "<init>",
                 '(' + sqlClientDescriptor + ")V",
                 false);
