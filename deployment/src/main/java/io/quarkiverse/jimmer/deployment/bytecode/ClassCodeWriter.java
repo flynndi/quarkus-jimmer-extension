@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import jakarta.inject.Singleton;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import org.babyfish.jimmer.impl.util.Classes;
 import org.objectweb.asm.*;
@@ -102,7 +102,7 @@ public abstract class ClassCodeWriter implements Constants {
                 null,
                 superInternalName,
                 new String[] { interfaceInternalName });
-        AnnotationVisitor av = cw.visitAnnotation(Type.getDescriptor(Singleton.class), true);
+        AnnotationVisitor av = cw.visitAnnotation(Type.getDescriptor(ApplicationScoped.class), true);
         av.visitEnd();
         av = cw.visitAnnotation(Type.getDescriptor(Unremovable.class), true);
         av.visitEnd();
@@ -130,8 +130,11 @@ public abstract class ClassCodeWriter implements Constants {
                 '(' + sqlClientDescriptor + ")V",
                 null,
                 null);
+        // Add @Inject annotation
+        AnnotationVisitor av = mv.visitAnnotation(Type.getDescriptor(jakarta.inject.Inject.class), true);
+        av.visitEnd();
         if (!metadata.getDataSourceName().equals(DataSourceUtil.DEFAULT_DATASOURCE_NAME)) {
-            AnnotationVisitor av = mv.visitParameterAnnotation(0, Type.getDescriptor(DataSource.class), true);
+            av = mv.visitParameterAnnotation(0, Type.getDescriptor(DataSource.class), true);
             av.visit("value", metadata.getDataSourceName());
             av.visitEnd();
         }
@@ -144,6 +147,26 @@ public abstract class ClassCodeWriter implements Constants {
                 superInternalName,
                 "<init>",
                 "(" + sqlClientDescriptor + "Ljava/lang/Class;)V",
+                false);
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
+
+        // No-args constructor
+        mv = cw.visitMethod(
+                Opcodes.ACC_PUBLIC,
+                "<init>",
+                "()V",
+                null,
+                null);
+        mv.visitCode();
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitInsn(Opcodes.ACONST_NULL);
+        mv.visitMethodInsn(
+                Opcodes.INVOKESPECIAL,
+                implInternalName,
+                "<init>",
+                '(' + sqlClientDescriptor + ")V",
                 false);
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(0, 0);
