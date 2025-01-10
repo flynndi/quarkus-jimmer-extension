@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 
 import org.babyfish.jimmer.impl.util.Classes;
 import org.objectweb.asm.*;
@@ -102,7 +102,7 @@ public abstract class ClassCodeWriter implements Constants {
                 null,
                 superInternalName,
                 new String[] { interfaceInternalName });
-        AnnotationVisitor av = cw.visitAnnotation(Type.getDescriptor(ApplicationScoped.class), true);
+        AnnotationVisitor av = cw.visitAnnotation(Type.getDescriptor(Singleton.class), true);
         av.visitEnd();
         av = cw.visitAnnotation(Type.getDescriptor(Unremovable.class), true);
         av.visitEnd();
