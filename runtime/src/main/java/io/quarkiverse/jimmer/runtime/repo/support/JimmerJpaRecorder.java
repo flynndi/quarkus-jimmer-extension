@@ -1,8 +1,7 @@
-package io.quarkiverse.jimmer.runtime.repository;
+package io.quarkiverse.jimmer.runtime.repo.support;
 
 import java.util.Map;
 
-import io.quarkiverse.jimmer.runtime.repository.support.JpaOperationsData;
 import io.quarkus.runtime.annotations.Recorder;
 import kotlin.reflect.KClass;
 

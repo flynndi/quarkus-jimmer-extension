@@ -37,6 +37,7 @@ import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository;
+import io.quarkiverse.jimmer.runtime.repo.support.JimmerJpaRecorder;
 import io.quarkiverse.jimmer.runtime.repository.*;
 import io.quarkiverse.jimmer.runtime.repository.support.JRepositoryImpl;
 import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
@@ -282,108 +283,53 @@ final class JimmerProcessor {
                 .produce(new AdditionalIndexedClassesBuildItem(KRepository.class.getName(), KRepositoryImpl.class.getName()));
     }
 
-    @BuildStep(onlyIf = IsJavaEnable.class)
+    @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    void collectJRepositoryInfo(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+    void collectRepositoryMetadata(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
             CombinedIndexBuildItem combinedIndex,
-            BuildProducer<RepositoryBuildItem> repositoryBuildProducer) {
-        Collection<ClassInfo> repositoryInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(JRepository.class);
-        for (ClassInfo repositoryInterface : repositoryInterfaces) {
-            DotName dotName = repositoryInterface.asClass().name();
+            BuildProducer<RepositoryMetadata> repositoryMetadataBuildProducer) {
+        Collection<ClassInfo> jRepositoryInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(JRepository.class);
+        for (ClassInfo repositoryInterface : jRepositoryInterfaces) {
             Optional<AnnotationInstance> mapperDatasource = repositoryInterface.asClass().annotationsMap().entrySet().stream()
                     .filter(entry -> entry.getKey().equals(DotName.createSimple(DataSource.class)))
                     .map(Map.Entry::getValue)
                     .map(annotationList -> annotationList.get(0))
                     .findFirst();
-
-            DotName entityDotName = null;
-            DotName idDotName = null;
-            for (DotName extendedRepo : repositoryInterface.interfaceNames()) {
-                List<Type> types = JandexUtil.resolveTypeParameters(repositoryInterface.name(), extendedRepo,
-                        combinedIndex.getIndex());
-                if (!(types.get(0) instanceof ClassType)) {
-                    throw new IllegalArgumentException(
-                            "Entity generic argument of " + repositoryInterface + " is not a regular class type");
-                }
-                DotName newEntityDotName = types.get(0).name();
-                if ((entityDotName != null) && !newEntityDotName.equals(entityDotName)) {
-                    throw new IllegalArgumentException(
-                            "Repository " + repositoryInterface + " specifies multiple Entity types");
-                }
-                entityDotName = newEntityDotName;
-
-                DotName newIdDotName = types.get(1).name();
-                if ((idDotName != null) && !newIdDotName.equals(idDotName)) {
-                    throw new IllegalArgumentException("Repository " + repositoryInterface + " specifies multiple ID types");
-                }
-                idDotName = newIdDotName;
-            }
-
-            if (idDotName == null || entityDotName == null) {
-                throw new IllegalArgumentException(
-                        "Repository " + repositoryInterface + " does not specify ID and/or Entity type");
-            }
             if (mapperDatasource.isPresent()) {
                 String dataSourceName = mapperDatasource.get().value().asString();
-                repositoryBuildProducer.produce(new RepositoryBuildItem(dotName, dataSourceName,
-                        new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
+                List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterface.name(),
+                        DotName.createSimple(JRepository.class), combinedIndex.getIndex());
+                repositoryMetadataBuildProducer
+                        .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
+                                JandexReflection.loadClass(repositoryInterface), dataSourceName));
             } else {
-                repositoryBuildProducer.produce(
-                        new RepositoryBuildItem(dotName, DataSourceUtil.DEFAULT_DATASOURCE_NAME,
-                                new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
+                List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterface.name(),
+                        DotName.createSimple(JRepository.class), combinedIndex.getIndex());
+                repositoryMetadataBuildProducer
+                        .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
+                                JandexReflection.loadClass(repositoryInterface), DataSourceUtil.DEFAULT_DATASOURCE_NAME));
             }
         }
-    }
-
-    @BuildStep(onlyIf = IsKotlinEnable.class)
-    @Record(ExecutionTime.STATIC_INIT)
-    void collectKRepositoryInfo(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
-            CombinedIndexBuildItem combinedIndex,
-            BuildProducer<RepositoryBuildItem> repositoryBuildProducer) {
-        Collection<ClassInfo> repositoryInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(KRepository.class);
-        for (ClassInfo repositoryInterface : repositoryInterfaces) {
-            DotName dotName = repositoryInterface.asClass().name();
+        Collection<ClassInfo> kRepositoryInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(KRepository.class);
+        for (ClassInfo repositoryInterface : kRepositoryInterfaces) {
             Optional<AnnotationInstance> mapperDatasource = repositoryInterface.asClass().annotationsMap().entrySet().stream()
                     .filter(entry -> entry.getKey().equals(DotName.createSimple(DataSource.class)))
                     .map(Map.Entry::getValue)
                     .map(annotationList -> annotationList.get(0))
                     .findFirst();
-
-            DotName entityDotName = null;
-            DotName idDotName = null;
-            for (DotName extendedRepo : repositoryInterface.interfaceNames()) {
-                List<Type> types = JandexUtil.resolveTypeParameters(repositoryInterface.name(), extendedRepo,
-                        combinedIndex.getIndex());
-                if (!(types.get(0) instanceof ClassType)) {
-                    throw new IllegalArgumentException(
-                            "Entity generic argument of " + repositoryInterface + " is not a regular class type");
-                }
-                DotName newEntityDotName = types.get(0).name();
-                if ((entityDotName != null) && !newEntityDotName.equals(entityDotName)) {
-                    throw new IllegalArgumentException(
-                            "Repository " + repositoryInterface + " specifies multiple Entity types");
-                }
-                entityDotName = newEntityDotName;
-
-                DotName newIdDotName = types.get(1).name();
-                if ((idDotName != null) && !newIdDotName.equals(idDotName)) {
-                    throw new IllegalArgumentException("Repository " + repositoryInterface + " specifies multiple ID types");
-                }
-                idDotName = newIdDotName;
-            }
-
-            if (idDotName == null || entityDotName == null) {
-                throw new IllegalArgumentException(
-                        "Repository " + repositoryInterface + " does not specify ID and/or Entity type");
-            }
             if (mapperDatasource.isPresent()) {
                 String dataSourceName = mapperDatasource.get().value().asString();
-                repositoryBuildProducer.produce(new RepositoryBuildItem(dotName, dataSourceName,
-                        new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
+                List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterface.name(),
+                        DotName.createSimple(KRepository.class), combinedIndex.getIndex());
+                repositoryMetadataBuildProducer
+                        .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
+                                JandexReflection.loadClass(repositoryInterface), dataSourceName));
             } else {
-                repositoryBuildProducer.produce(
-                        new RepositoryBuildItem(dotName, DataSourceUtil.DEFAULT_DATASOURCE_NAME,
-                                new AbstractMap.SimpleEntry<>(idDotName, entityDotName)));
+                List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterface.name(),
+                        DotName.createSimple(KRepository.class), combinedIndex.getIndex());
+                repositoryMetadataBuildProducer
+                        .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
+                                JandexReflection.loadClass(repositoryInterface), DataSourceUtil.DEFAULT_DATASOURCE_NAME));
             }
         }
     }
@@ -688,41 +634,16 @@ final class JimmerProcessor {
         }
     }
 
-    @BuildStep(onlyIf = IsJavaEnable.class)
-    void collectJRepositoryMetadata(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<RepositoryMetadata> repositoryMetadataBuildProducer, List<RepositoryBuildItem> repositoryBuildItems) {
-        for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
-            ClassInfo repositoryInterfaceClassInfo = combinedIndex.getIndex()
-                    .getClassByName(repositoryBuildItem.getRepositoryName());
-            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterfaceClassInfo.name(),
-                    DotName.createSimple(JRepository.class), combinedIndex.getIndex());
-            repositoryMetadataBuildProducer
-                    .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
-                            JandexReflection.loadClass(repositoryInterfaceClassInfo), repositoryBuildItem.getDataSourceName()));
-        }
-    }
-
-    @BuildStep(onlyIf = IsKotlinEnable.class)
-    void collectKRepositoryMetadata(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<RepositoryMetadata> repositoryMetadataBuildProducer, List<RepositoryBuildItem> repositoryBuildItems) {
-        for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
-            ClassInfo repositoryInterfaceClassInfo = combinedIndex.getIndex()
-                    .getClassByName(repositoryBuildItem.getRepositoryName());
-            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterfaceClassInfo.name(),
-                    DotName.createSimple(KRepository.class), combinedIndex.getIndex());
-            repositoryMetadataBuildProducer
-                    .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
-                            JandexReflection.loadClass(repositoryInterfaceClassInfo), repositoryBuildItem.getDataSourceName()));
-        }
-    }
-
     @BuildStep
     @Consume(RepositoryMetadata.class)
     void generateRepositoryImpl(List<RepositoryMetadata> repositoryBuildItems,
             BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem) {
+        if (repositoryBuildItems.isEmpty()) {
+            return;
+        }
         ClassOutput classOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItem);
         for (RepositoryMetadata metadata : repositoryBuildItems) {
-            JimmerRepositoryFactory jimmerRepositoryFactory = new JimmerRepositoryFactory(metadata, classOutput);
+            JimmerRepositoryFactory jimmerRepositoryFactory = new JimmerRepositoryFactory(metadata);
             byte[] targetRepositoryBytes = jimmerRepositoryFactory.getTargetRepositoryBytes();
             Class<?> targetRepositoryClass = jimmerRepositoryFactory.getTargetRepositoryClass();
             classOutput.write(targetRepositoryClass.getName(), targetRepositoryBytes);

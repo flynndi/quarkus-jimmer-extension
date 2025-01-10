@@ -9,7 +9,6 @@ import org.babyfish.jimmer.View
 import org.babyfish.jimmer.meta.ImmutableType
 import org.babyfish.jimmer.runtime.ImmutableSpi
 import io.quarkiverse.jimmer.runtime.repository.orderBy
-import io.quarkiverse.jimmer.runtime.repository.support.JpaOperationsData
 import org.babyfish.jimmer.sql.ast.mutation.AssociatedSaveMode
 import org.babyfish.jimmer.sql.ast.mutation.DeleteMode
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode

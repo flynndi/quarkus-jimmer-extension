@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.runtime.repo.JavaRepository;
 import io.quarkiverse.jimmer.runtime.repo.PageParam;
-import io.quarkiverse.jimmer.runtime.repository.support.JpaOperationsData;
 
 /**
  * Base implementation of {@link JavaRepository}
