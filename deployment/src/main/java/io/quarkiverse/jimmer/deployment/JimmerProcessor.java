@@ -688,44 +688,8 @@ final class JimmerProcessor {
         }
     }
 
-    //    @BuildStep(onlyIf = IsJavaEnable.class)
-    //    @Consume(SqlClientBuildItem.class)
-    //    void generateJRepository(CombinedIndexBuildItem combinedIndex, BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem,
-    //            List<RepositoryBuildItem> repositoryBuildItems) {
-    //        ClassOutput classOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItem);
-    //        ClassInfo jRepositoryClassInfo = combinedIndex.getIndex().getClassByName(JRepository.class);
-    //        List<MethodInfo> methodInfos = jRepositoryClassInfo.methods();
-    //        for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
-    //            log.trace("Ready to generate the implementation class");
-    //            RepositoryCreator repositoryCreator = new RepositoryCreator(classOutput, methodInfos,
-    //                    repositoryBuildItem.getRepositoryName(), repositoryBuildItem.getDataSourceName(),
-    //                    repositoryBuildItem.getDotIdDotNameEntry());
-    //            RepositoryCreator.Result result = repositoryCreator.implementCrudJRepository();
-    //            log.tracev("Generation implementation class: {0}, entity: {1}, idType: {2}", result.getGeneratedClassName(),
-    //                    result.getEntityDotName(), result.getIdTypeDotName());
-    //        }
-    //    }
-
-    @BuildStep(onlyIf = IsKotlinEnable.class)
-    @Consume(SqlClientBuildItem.class)
-    void generateKRepository(CombinedIndexBuildItem combinedIndex, BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem,
-            List<RepositoryBuildItem> repositoryBuildItems) {
-        ClassOutput classOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItem);
-        ClassInfo kRepositoryClassInfo = combinedIndex.getIndex().getClassByName(KRepository.class);
-        List<MethodInfo> methodInfos = kRepositoryClassInfo.methods();
-        for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
-            log.trace("Ready to generate the implementation class");
-            RepositoryCreator repositoryCreator = new RepositoryCreator(classOutput, methodInfos,
-                    repositoryBuildItem.getRepositoryName(), repositoryBuildItem.getDataSourceName(),
-                    repositoryBuildItem.getDotIdDotNameEntry());
-            RepositoryCreator.Result result = repositoryCreator.implementCrudKRepository();
-            log.tracev("Generation implementation class: {0}, entity: {1}, idType: {2}", result.getGeneratedClassName(),
-                    result.getEntityDotName(), result.getIdTypeDotName());
-        }
-    }
-
-    @BuildStep
-    void collectRepositoryMetadata(CombinedIndexBuildItem combinedIndex,
+    @BuildStep(onlyIf = IsJavaEnable.class)
+    void collectJRepositoryMetadata(CombinedIndexBuildItem combinedIndex,
             BuildProducer<RepositoryMetadata> repositoryMetadataBuildProducer, List<RepositoryBuildItem> repositoryBuildItems) {
         for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
             ClassInfo repositoryInterfaceClassInfo = combinedIndex.getIndex()
@@ -738,9 +702,23 @@ final class JimmerProcessor {
         }
     }
 
+    @BuildStep(onlyIf = IsKotlinEnable.class)
+    void collectKRepositoryMetadata(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<RepositoryMetadata> repositoryMetadataBuildProducer, List<RepositoryBuildItem> repositoryBuildItems) {
+        for (RepositoryBuildItem repositoryBuildItem : repositoryBuildItems) {
+            ClassInfo repositoryInterfaceClassInfo = combinedIndex.getIndex()
+                    .getClassByName(repositoryBuildItem.getRepositoryName());
+            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterfaceClassInfo.name(),
+                    DotName.createSimple(KRepository.class), combinedIndex.getIndex());
+            repositoryMetadataBuildProducer
+                    .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
+                            JandexReflection.loadClass(repositoryInterfaceClassInfo), repositoryBuildItem.getDataSourceName()));
+        }
+    }
+
     @BuildStep
     @Consume(RepositoryMetadata.class)
-    void showRepositoryMetadata(List<RepositoryMetadata> repositoryBuildItems,
+    void generateRepositoryImpl(List<RepositoryMetadata> repositoryBuildItems,
             BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem) {
         ClassOutput classOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItem);
         for (RepositoryMetadata metadata : repositoryBuildItems) {
