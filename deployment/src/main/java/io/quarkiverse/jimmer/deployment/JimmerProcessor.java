@@ -644,7 +644,8 @@ final class JimmerProcessor {
         ClassOutput classOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItem);
         for (RepositoryMetadata metadata : repositoryBuildItems) {
             JimmerRepositoryFactory jimmerRepositoryFactory = new JimmerRepositoryFactory(metadata);
-            classOutput.write(jimmerRepositoryFactory.getTargetRepositoryClass().getName(), jimmerRepositoryFactory.getTargetRepositoryBytes());
+            classOutput.write(jimmerRepositoryFactory.getTargetRepositoryClass().getName(),
+                    jimmerRepositoryFactory.getTargetRepositoryBytes());
         }
     }
 
