@@ -2,9 +2,9 @@ package io.quarkiverse.jimmer.deployment.bytecode;
 
 import java.lang.reflect.Method;
 
-import io.quarkiverse.jimmer.deployment.RepositoryMetadata;
 import org.babyfish.jimmer.sql.JSqlClient;
 
+import io.quarkiverse.jimmer.deployment.RepositoryMetadata;
 import io.quarkiverse.jimmer.runtime.repository.support.JRepositoryImpl;
 
 class JavaClassCodeWriter extends ClassCodeWriter {
