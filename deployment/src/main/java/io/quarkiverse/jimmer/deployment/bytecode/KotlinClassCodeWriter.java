@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.deployment.bytecode;
 
 import java.lang.reflect.Method;
 
+import io.quarkiverse.jimmer.deployment.RepositoryMetadata;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
 import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
