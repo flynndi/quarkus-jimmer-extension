@@ -1,8 +1,8 @@
 package io.quarkiverse.jimmer.deployment.bytecode;
 
-import io.quarkiverse.jimmer.deployment.RepositoryMetadata;
 import org.jetbrains.annotations.NotNull;
 
+import io.quarkiverse.jimmer.deployment.RepositoryMetadata;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.repository.KRepository;
 

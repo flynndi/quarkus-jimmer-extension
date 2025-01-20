@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import io.quarkiverse.jimmer.deployment.RepositoryMetadata;
 import jakarta.inject.Singleton;
 
 import org.babyfish.jimmer.impl.util.Classes;
 import org.objectweb.asm.*;
 
+import io.quarkiverse.jimmer.deployment.RepositoryMetadata;
 import io.quarkiverse.jimmer.runtime.repository.parser.Context;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Unremovable;
