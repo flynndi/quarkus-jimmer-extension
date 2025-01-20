@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
+import io.quarkiverse.jimmer.deployment.RepositoryMetadata;
 import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
 
 class KotlinClassCodeWriter extends ClassCodeWriter {
