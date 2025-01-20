@@ -16,7 +16,6 @@ import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.jimmer.deployment.bytecode.JimmerRepositoryFactory;
-import io.quarkiverse.jimmer.deployment.bytecode.RepositoryMetadata;
 import io.quarkiverse.jimmer.runtime.*;
 import io.quarkiverse.jimmer.runtime.QuarkusSqlClientProducer;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
