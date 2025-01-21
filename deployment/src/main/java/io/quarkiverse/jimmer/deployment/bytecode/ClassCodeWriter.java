@@ -18,10 +18,9 @@ import io.quarkiverse.jimmer.runtime.repository.parser.Context;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
+import io.quarkus.runtime.util.HashUtil;
 
 abstract class ClassCodeWriter implements Constants {
-
-    public static final String ASM_IMPL_SUFFIX = "AsmImpl";
 
     final RepositoryMetadata metadata;
 
@@ -46,7 +45,7 @@ abstract class ClassCodeWriter implements Constants {
     protected ClassCodeWriter(RepositoryMetadata metadata, Class<?> sqlClientType, Class<?> superType) {
         this.metadata = metadata;
         this.interfaceInternalName = Type.getInternalName(metadata.getRepositoryInterface());
-        this.implInternalName = interfaceInternalName + ASM_IMPL_SUFFIX;
+        this.implInternalName = interfaceInternalName + "_" + HashUtil.sha1(interfaceInternalName) + "Impl";
         this.superInternalName = Type.getInternalName(superType);
         this.entityInternalName = Type.getInternalName(metadata.getDomainType());
         this.sqlClientDescriptor = Type.getDescriptor(sqlClientType);
@@ -263,6 +262,6 @@ abstract class ClassCodeWriter implements Constants {
     protected abstract MethodCodeWriter createMethodCodeWriter(Method method, String id);
 
     public static String implementationClassName(Class<?> itf) {
-        return itf.getName() + ASM_IMPL_SUFFIX;
+        return itf.getName() + "_" + HashUtil.sha1(itf.getName()) + "Impl";
     }
 }
