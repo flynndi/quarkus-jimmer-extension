@@ -21,4 +21,6 @@ public interface UserRoleRepository extends JRepository<UserRole, UUID> {
                 .select(Tables.USER_ROLE_TABLE.fetch(Fetchers.USER_ROLE_FETCHER.allScalarFields()))
                 .execute();
     }
+
+    UserRole findByUserId(String userId);
 }
