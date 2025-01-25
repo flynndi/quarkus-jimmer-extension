@@ -9,7 +9,6 @@ import org.babyfish.jimmer.View
 import org.babyfish.jimmer.meta.ImmutableType
 import org.babyfish.jimmer.runtime.ImmutableSpi
 import io.quarkiverse.jimmer.runtime.repository.orderBy
-import io.quarkiverse.jimmer.runtime.repository.support.JpaOperationsData
 import org.babyfish.jimmer.sql.ast.mutation.AssociatedSaveMode
 import org.babyfish.jimmer.sql.ast.mutation.DeleteMode
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode
@@ -33,7 +32,7 @@ import kotlin.reflect.KClass
 abstract class AbstractKotlinRepository<E: Any, ID: Any>(protected val sql: KSqlClient) : KotlinRepository<E, ID> {
 
     @Suppress("UNCHECKED_CAST")
-    protected val entityType: KClass<E> = JpaOperationsData.getEntityClass(this.javaClass).let { it.kotlin as KClass<E> }
+    protected val entityType: KClass<E> = RepoOperationsData.getEntityClass(this.javaClass).let { it.kotlin as KClass<E> }
 
     protected val immutableType: ImmutableType = ImmutableType.get(this.entityType.java)
 
