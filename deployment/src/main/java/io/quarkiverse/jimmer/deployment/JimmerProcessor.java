@@ -1,5 +1,6 @@
 package io.quarkiverse.jimmer.deployment;
 
+import java.nio.file.*;
 import java.util.*;
 
 import jakarta.enterprise.inject.Default;
@@ -34,6 +35,7 @@ import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
+import io.quarkiverse.jimmer.runtime.repo.RepoRecord;
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository;
 import io.quarkiverse.jimmer.runtime.repository.*;
@@ -332,7 +334,7 @@ final class JimmerProcessor {
 
     @BuildStep(onlyIf = IsJavaEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
-    void analyzeJavaRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+    void analyzeJavaRepository(@SuppressWarnings("unused") RepoRecord repoRecord,
             CombinedIndexBuildItem combinedIndex,
             BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
             BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
@@ -350,7 +352,7 @@ final class JimmerProcessor {
 
     @BuildStep(onlyIf = IsKotlinEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
-    void analyzeKotlinRepository(@SuppressWarnings("unused") JimmerJpaRecorder jimmerJpaRecorder,
+    void analyzeKotlinRepository(@SuppressWarnings("unused") RepoRecord repoRecord,
             CombinedIndexBuildItem combinedIndex,
             BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
             BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
@@ -368,13 +370,13 @@ final class JimmerProcessor {
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    void recordJpaOperationsData(JimmerJpaRecorder jimmerJpaRecorder,
+    void recordJpaOperationsData(RepoRecord repoRecord,
             List<EntityToClassBuildItem> entityToClassBuildItems) {
         Map<String, Class<?>> map = new HashMap<>();
         for (EntityToClassBuildItem entityToClassBuildItem : entityToClassBuildItems) {
             map.put(entityToClassBuildItem.getEntityClass(), entityToClassBuildItem.getClazz());
         }
-        jimmerJpaRecorder.setEntityToClassUnit(map);
+        repoRecord.setEntityToClassUnit(map);
     }
 
     @BuildStep(onlyIf = { IsJavaEnable.class, IsTransactionOnlyEnable.class })

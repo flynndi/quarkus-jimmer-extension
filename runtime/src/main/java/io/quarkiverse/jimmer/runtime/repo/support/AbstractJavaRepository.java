@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.runtime.repo.JavaRepository;
 import io.quarkiverse.jimmer.runtime.repo.PageParam;
-import io.quarkiverse.jimmer.runtime.repository.support.JpaOperationsData;
 
 /**
  * Base implementation of {@link JavaRepository}
@@ -51,7 +50,7 @@ public class AbstractJavaRepository<E, ID> implements JavaRepository<E, ID> {
     @SuppressWarnings("unchecked")
     public AbstractJavaRepository(JSqlClient sql) {
         this.sql = Objects.requireNonNull(sql, "sqlClient is required");
-        this.entityType = (Class<E>) JpaOperationsData.getEntityClass(this.getClass());
+        this.entityType = (Class<E>) RepoOperationsData.getEntityClass(this.getClass());
         this.type = ImmutableType.get(entityType);
         if (!type.isEntity()) {
             throw new IllegalArgumentException(
