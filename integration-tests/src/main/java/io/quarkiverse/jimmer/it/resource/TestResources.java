@@ -267,6 +267,7 @@ public class TestResources {
     @POST
     @Path("/testUserRoleRepositoryInsert")
     @Api
+    @Transactional
     public Response testUserRoleRepositoryInsert(UserRole userRole) {
         return Response.ok(userRoleRepository.insert(userRole)).build();
     }
@@ -436,6 +437,7 @@ public class TestResources {
     @POST
     @Path("/testBookRepositoryMerge")
     @Api
+    @Transactional
     public Response testBookRepositoryMerge(Book book) {
         return Response.ok(bookRepository.save(book, AssociatedSaveMode.MERGE)).build();
     }
@@ -443,6 +445,7 @@ public class TestResources {
     @POST
     @Path("/testBookRepositoryMergeInput")
     @Api
+    @Transactional
     public Response testBookRepositoryMergeInput(BookInput bookInput) {
         return Response.ok(bookRepository.save(bookInput, AssociatedSaveMode.MERGE)).build();
     }
@@ -450,6 +453,7 @@ public class TestResources {
     @POST
     @Path("/testBookRepositoryMergeSaveMode")
     @Api
+    @Transactional
     public Response testBookRepositoryMergeSaveMode(Book book) {
         return Response.ok(bookRepository.save(book, AssociatedSaveMode.APPEND_IF_ABSENT)).build();
     }
