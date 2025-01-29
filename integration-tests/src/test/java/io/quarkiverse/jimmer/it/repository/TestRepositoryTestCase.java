@@ -1,6 +1,7 @@
 package io.quarkiverse.jimmer.it.repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import jakarta.inject.Inject;
 
@@ -40,5 +41,13 @@ public class TestRepositoryTestCase {
         Assertions.assertEquals("Learning GraphQL", book.name());
         Assertions.assertEquals(1, book.edition());
         Assertions.assertEquals(new BigDecimal("50.00"), book.price());
+    }
+
+    @Test
+    void testBookRepositoryFindByNameLike() {
+        List<Book> books = bookRepository.findByNameLike("Learning GraphQL", Fetchers.BOOK_FETCHER.allTableFields());
+        Assertions.assertEquals(2, books.size());
+        Assertions.assertEquals("Learning GraphQL", books.get(0).name());
+        Assertions.assertEquals("Learning GraphQL", books.get(1).name());
     }
 }
