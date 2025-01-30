@@ -50,4 +50,15 @@ public class TestRepositoryTestCase {
         Assertions.assertEquals("Learning GraphQL", books.get(0).name());
         Assertions.assertEquals("Learning GraphQL", books.get(1).name());
     }
+
+    @Test
+    void testBookRepositoryFindByStoreId() {
+        List<Book> books = bookRepository.findByStoreId(1L, Fetchers.BOOK_FETCHER.allTableFields());
+        Assertions.assertEquals(5, books.size());
+        Assertions.assertEquals(1L, books.get(0).storeId());
+        Assertions.assertEquals(1L, books.get(1).storeId());
+        Assertions.assertEquals(1L, books.get(2).storeId());
+        Assertions.assertEquals(1L, books.get(3).storeId());
+        Assertions.assertEquals(1L, books.get(4).storeId());
+    }
 }
