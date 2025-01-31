@@ -5,12 +5,14 @@ import java.util.List;
 
 import jakarta.inject.Inject;
 
+import org.babyfish.jimmer.Page;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.jimmer.it.Constant;
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.Fetchers;
+import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.junit.QuarkusTest;
@@ -60,5 +62,16 @@ public class TestRepositoryTestCase {
         Assertions.assertEquals(1L, books.get(2).storeId());
         Assertions.assertEquals(1L, books.get(3).storeId());
         Assertions.assertEquals(1L, books.get(4).storeId());
+    }
+
+    @Test
+    void testBookRepositoryFindByNameLikeOrderByName() {
+        Page<Book> bookPage = bookRepository.findByNameLikeOrderByName("Learning GraphQL", new Pagination(0, 10),
+                Fetchers.BOOK_FETCHER.allTableFields());
+        Assertions.assertEquals(2, bookPage.getRows().size());
+        Assertions.assertEquals("Learning GraphQL", bookPage.getRows().get(0).name());
+        Assertions.assertEquals("Learning GraphQL", bookPage.getRows().get(1).name());
+        Assertions.assertEquals(1, bookPage.getTotalPageCount());
+        Assertions.assertEquals(2, bookPage.getTotalRowCount());
     }
 }
