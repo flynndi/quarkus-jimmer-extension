@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import io.quarkiverse.jimmer.it.Constant;
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.Fetchers;
+import io.quarkiverse.jimmer.it.entity.UserRole;
 import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
@@ -73,5 +74,11 @@ public class TestRepositoryTestCase {
         Assertions.assertEquals("Learning GraphQL", bookPage.getRows().get(1).name());
         Assertions.assertEquals(1, bookPage.getTotalPageCount());
         Assertions.assertEquals(2, bookPage.getTotalRowCount());
+    }
+
+    @Test
+    void testUserRoleRepositoryFindByUserId() {
+        UserRole userRole = userRoleRepository.findByUserId("9ffec3c4-2342-427c-a0ec-e22e5f2ec732");
+        Assertions.assertEquals("9ffec3c4-2342-427c-a0ec-e22e5f2ec732", userRole.userId());
     }
 }
