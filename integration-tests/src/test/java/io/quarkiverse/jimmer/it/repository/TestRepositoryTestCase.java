@@ -81,4 +81,10 @@ public class TestRepositoryTestCase {
         UserRole userRole = userRoleRepository.findByUserId("9ffec3c4-2342-427c-a0ec-e22e5f2ec732");
         Assertions.assertEquals("9ffec3c4-2342-427c-a0ec-e22e5f2ec732", userRole.userId());
     }
+
+    @Test
+    void testUserRoleRepositoryFindByRoleId() {
+        UserRole userRole = userRoleRepository.findByRoleId("2c6a06d8-8e10-49c4-88fe-7d2f05dd073b");
+        Assertions.assertEquals("2c6a06d8-8e10-49c4-88fe-7d2f05dd073b", userRole.roleId());
+    }
 }
