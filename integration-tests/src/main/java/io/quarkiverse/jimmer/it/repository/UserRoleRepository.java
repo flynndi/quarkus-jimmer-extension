@@ -23,4 +23,6 @@ public interface UserRoleRepository extends JRepository<UserRole, UUID> {
     }
 
     UserRole findByUserId(String userId);
+
+    UserRole findByRoleId(String roleId);
 }
