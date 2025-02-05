@@ -78,8 +78,8 @@ public class TestRepositoryTestCase {
 
     @Test
     void testUserRoleRepositoryFindByUserId() {
-        UserRole userRole = userRoleRepository.findByUserId("9ffec3c4-2342-427c-a0ec-e22e5f2ec732");
-        Assertions.assertEquals("9ffec3c4-2342-427c-a0ec-e22e5f2ec732", userRole.userId());
+        UserRole userRole = userRoleRepository.findByUserId(Constant.USER_ID);
+        Assertions.assertEquals(Constant.USER_ID, userRole.userId());
     }
 
     @Test
