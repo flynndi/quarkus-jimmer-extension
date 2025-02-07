@@ -125,6 +125,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setMetaStringResolver(Objects.requireNonNullElseGet(metaStringResolver, QuarkusMetaStringResolver::new));
 
         builder.setDialect(this.initializeDialect(config));
+        builder.setDefaultReferenceFetchType(config.defaultReferenceFetchType());
+        config.maxJoinFetchDepth().ifPresent(builder::setMaxJoinFetchDepth);
         builder.setTriggerType(config.triggerType());
         builder.setDefaultDissociateActionCheckable(config.defaultDissociationActionCheckable());
         builder.setIdOnlyTargetCheckingLevel(config.idOnlyTargetCheckingLevel());
@@ -136,6 +138,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         config.offsetOptimizingThreshold().ifPresent(builder::setOffsetOptimizingThreshold);
         builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
         builder.setMaxCommandJoinCount(config.maxCommandJoinCount());
+        builder.setMutationTransactionRequired(config.mutationTransactionRequired());
         builder.setTargetTransferable(config.targetTransferable());
         builder.setExplicitBatchEnabled(config.explicitBatchEnabled());
         builder.setDumbBatchAcceptable(config.dumbBatchAcceptable());

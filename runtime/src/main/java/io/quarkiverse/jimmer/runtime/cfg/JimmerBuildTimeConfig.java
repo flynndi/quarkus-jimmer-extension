@@ -6,6 +6,7 @@ import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
 import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.event.TriggerType;
+import org.babyfish.jimmer.sql.fetcher.ReferenceFetchType;
 import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
 import org.babyfish.jimmer.sql.runtime.IdOnlyTargetCheckingLevel;
 
@@ -58,6 +59,18 @@ public interface JimmerBuildTimeConfig {
      */
     @WithDefault("false")
     boolean inlineSqlVariables();
+
+    /**
+     * jimmer.defaultReferenceFetchType
+     */
+    @WithDefault("SELECT")
+    ReferenceFetchType defaultReferenceFetchType();
+
+    /**
+     * jimmer.maxJoinFetchDepth
+     */
+    @WithDefault("3")
+    OptionalInt maxJoinFetchDepth();
 
     /**
      * jimmer.databaseValidation
@@ -135,6 +148,12 @@ public interface JimmerBuildTimeConfig {
      */
     @WithDefault("2")
     int maxCommandJoinCount();
+
+    /**
+     * jimmer.mutationTransactionRequired
+     */
+    @WithDefault("false")
+    boolean mutationTransactionRequired();
 
     /**
      * jimmer.targetTransferable
