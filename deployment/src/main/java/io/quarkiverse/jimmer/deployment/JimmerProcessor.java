@@ -1,6 +1,5 @@
 package io.quarkiverse.jimmer.deployment;
 
-import java.nio.file.*;
 import java.util.*;
 
 import jakarta.enterprise.inject.Default;
