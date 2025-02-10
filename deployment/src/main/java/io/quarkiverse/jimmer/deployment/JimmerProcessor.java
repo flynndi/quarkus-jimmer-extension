@@ -369,7 +369,7 @@ final class JimmerProcessor {
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    void recordJpaOperationsData(RepoRecord repoRecord,
+    void recordRepoOperationsData(RepoRecord repoRecord,
             List<EntityToClassBuildItem> entityToClassBuildItems) {
         Map<String, Class<?>> map = new HashMap<>();
         for (EntityToClassBuildItem entityToClassBuildItem : entityToClassBuildItems) {
