@@ -174,6 +174,12 @@ public interface JimmerBuildTimeConfig {
     boolean dumbBatchAcceptable();
 
     /**
+     * jimmer.constraintViolationTranslatable
+     */
+    @WithDefault("true")
+    boolean constraintViolationTranslatable();
+
+    /**
      * jimmer.executorContextPrefixes
      */
     Optional<List<String>> executorContextPrefixes();
