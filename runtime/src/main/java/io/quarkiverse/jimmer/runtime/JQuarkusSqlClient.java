@@ -165,8 +165,6 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         }
         builder
                 .setDatabaseValidationMode(config.databaseValidation().mode())
-                .setDatabaseValidationCatalog(config.databaseValidation().catalog().orElse(null))
-                .setDatabaseValidationSchema(config.databaseValidation().schema().orElse(null))
                 .setDefaultSerializedTypeObjectMapper(objectMapper)
                 .setCacheFactory(cacheFactory)
                 .setCacheOperator(cacheOperator)
