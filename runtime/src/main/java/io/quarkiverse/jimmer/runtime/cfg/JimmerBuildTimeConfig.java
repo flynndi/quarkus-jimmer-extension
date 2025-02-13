@@ -199,6 +199,7 @@ public interface JimmerBuildTimeConfig {
      */
     Client client();
 
+    @Deprecated
     @ConfigGroup
     interface DatabaseValidation {
 
@@ -211,11 +212,13 @@ public interface JimmerBuildTimeConfig {
         /**
          * catalog
          */
+        @Deprecated
         Optional<String> catalog();
 
         /**
          * schema
          */
+        @Deprecated
         Optional<String> schema();
     }
 
