@@ -8,7 +8,7 @@
     <version>999-SNAPSHOT</version>
   </parent>
   <artifactId>quarkus-jimmer-deployment</artifactId>
-  <name>Quarkus Quarkus Jimmer Extension - Deployment</name>
+  <name>Quarkus Jimmer Extension - Deployment</name>
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
