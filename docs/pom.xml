@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>quarkus-jimmer-docs</artifactId>
-    <name>Quarkus Quarkus Jimmer Extension - Documentation</name>
+    <name>Quarkus Jimmer Extension - Documentation</name>
 
     <dependencies>
         <!-- Make sure the doc is built after the other artifacts -->
