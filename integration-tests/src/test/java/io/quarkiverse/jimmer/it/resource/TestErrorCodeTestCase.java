@@ -16,7 +16,7 @@ public class TestErrorCodeTestCase {
     void testHelloEndpoint() {
         Response response = given()
                 .when().get("/bookResource/testError");
-        Assertions.assertEquals(response.statusCode(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        Assertions.assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.statusCode());
         Assertions.assertEquals(response.body().jsonPath().getString("family"), "USER_INFO");
         Assertions.assertEquals(response.body().jsonPath().getString("code"), "ILLEGAL_USER_NAME");
         Assertions.assertEquals(response.body().jsonPath().getString("illegalChars"), "[a]");
