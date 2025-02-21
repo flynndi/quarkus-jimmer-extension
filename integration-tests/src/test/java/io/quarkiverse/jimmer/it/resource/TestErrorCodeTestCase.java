@@ -17,7 +17,7 @@ public class TestErrorCodeTestCase {
         Response response = given()
                 .when().get("/bookResource/testError");
         Assertions.assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.statusCode());
-        Assertions.assertEquals(response.body().jsonPath().getString("family"), "USER_INFO");
+        Assertions.assertEquals("USER_INFO", response.body().jsonPath().getString("family"));
         Assertions.assertEquals(response.body().jsonPath().getString("code"), "ILLEGAL_USER_NAME");
         Assertions.assertEquals(response.body().jsonPath().getString("illegalChars"), "[a]");
     }
