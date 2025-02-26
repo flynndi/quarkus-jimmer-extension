@@ -19,6 +19,6 @@ public class TestErrorCodeTestCase {
         Assertions.assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.statusCode());
         Assertions.assertEquals("USER_INFO", response.body().jsonPath().getString("family"));
         Assertions.assertEquals("ILLEGAL_USER_NAME", response.body().jsonPath().getString("code"));
-        Assertions.assertEquals(response.body().jsonPath().getString("illegalChars"), "[a]");
+        Assertions.assertEquals("[a]", response.body().jsonPath().getString("illegalChars"));
     }
 }
