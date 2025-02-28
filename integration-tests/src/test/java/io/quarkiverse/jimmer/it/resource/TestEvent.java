@@ -73,7 +73,7 @@ public class TestEvent {
                 .all()
                 .when()
                 .post("testResources/testEvent");
-        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         Assertions.assertEquals(1, testChangeEventObserves.getEntityEventStorage().size());
         Assertions.assertEquals(1, testChangeEventObserves.getAssociationEventStorageOne().size());
         Assertions.assertEquals(2, testChangeEventObserves.getAssociationEventStorageTwo().size());
