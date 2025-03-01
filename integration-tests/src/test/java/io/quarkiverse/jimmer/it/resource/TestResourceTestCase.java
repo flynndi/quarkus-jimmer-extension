@@ -205,7 +205,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .get("testResources/testBookRepositoryByIdFetcherOptional");
-        Assertions.assertEquals(response.body().print(), "");
+        Assertions.assertEquals("", response.body().print());
     }
 
     @Test
