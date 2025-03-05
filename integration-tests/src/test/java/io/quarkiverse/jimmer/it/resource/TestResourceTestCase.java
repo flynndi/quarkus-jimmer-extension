@@ -1089,7 +1089,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .get("testResources/testQuarkusOrdersSortUtilsTypedPropScalarProps");
-        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         Assertions.assertNotNull(response.jsonPath());
         Assertions.assertEquals(1, response.jsonPath().getInt("[0].id"));
     }
