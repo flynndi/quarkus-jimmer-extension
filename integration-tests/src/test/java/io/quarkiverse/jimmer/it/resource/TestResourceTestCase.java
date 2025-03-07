@@ -183,7 +183,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .get("testResources/testBookRepositoryByIdFetcher");
-        Assertions.assertEquals(response.statusCode(), HttpStatus.SC_NO_CONTENT);
+        Assertions.assertEquals(HttpStatus.SC_NO_CONTENT, response.statusCode());
     }
 
     @Test
