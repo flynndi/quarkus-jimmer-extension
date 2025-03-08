@@ -654,7 +654,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testUserRoleRepositorySaveCommand");
-        Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.statusCode());
     }
 
     @Test
