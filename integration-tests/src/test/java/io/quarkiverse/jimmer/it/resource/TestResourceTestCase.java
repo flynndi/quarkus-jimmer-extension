@@ -688,7 +688,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testUserRoleRepositorySaveEntities");
-        Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.statusCode());
         Assertions.assertEquals(id1.toString(), response.jsonPath().getString("[0].id"));
         Assertions.assertEquals(id2.toString(), response.jsonPath().getString("[1].id"));
     }
