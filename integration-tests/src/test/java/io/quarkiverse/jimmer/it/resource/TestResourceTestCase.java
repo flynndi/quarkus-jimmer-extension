@@ -724,7 +724,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testUserRoleRepositorySaveEntitiesSaveMode");
-        Assertions.assertEquals(response.statusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.statusCode());
         Assertions.assertEquals(id1.toString(), response.jsonPath().getString("[0].id"));
         Assertions.assertEquals(userId1, response.jsonPath().getString("[0].userId"));
         Assertions.assertEquals(roleId1, response.jsonPath().getString("[0].roleId"));
