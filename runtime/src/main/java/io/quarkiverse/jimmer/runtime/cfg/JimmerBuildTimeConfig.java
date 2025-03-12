@@ -73,8 +73,15 @@ public interface JimmerBuildTimeConfig {
     OptionalInt maxJoinFetchDepth();
 
     /**
+     * jimmer.databaseValidationMode
+     */
+    @WithDefault("NONE")
+    DatabaseValidationMode databaseValidationMode();
+
+    /**
      * jimmer.databaseValidation
      */
+    @Deprecated
     DatabaseValidation databaseValidation();
 
     /**
