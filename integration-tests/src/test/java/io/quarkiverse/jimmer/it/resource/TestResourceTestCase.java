@@ -818,7 +818,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .put("testResources/testUserRoleRepositoryUpdateInput");
-        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
     }
 
     @Test
