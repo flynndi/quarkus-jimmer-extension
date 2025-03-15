@@ -833,7 +833,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testBookRepositoryFindByIdsView");
-        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         Assertions.assertNotNull(response.jsonPath().get("[0].store"));
         Assertions.assertNotNull(response.jsonPath().get("[0].authors"));
     }
