@@ -857,7 +857,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .get("testResources/testBookRepositoryFindAllTypedPropScalarView");
-        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         Assertions.assertEquals(9, response.jsonPath().getLong("[0].id"));
         Assertions.assertNotNull(response.jsonPath().get("[0].store"));
         Assertions.assertNotNull(response.jsonPath().get("[0].authors"));
