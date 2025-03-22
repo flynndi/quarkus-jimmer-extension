@@ -891,7 +891,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testBookRepositoryFindAllPageView");
-        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         Assertions.assertNotNull(response.jsonPath());
         Assertions.assertEquals("Learning GraphQL", response.jsonPath().getString("rows[0].name"));
         Assertions.assertNotNull(response.jsonPath().getString("rows[0].authors"));
