@@ -914,7 +914,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testBookRepositoryFindAllPageTypedPropScalarView");
-        Assertions.assertEquals(response.getStatusCode(), HttpStatus.SC_OK);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
         Assertions.assertNotNull(response.jsonPath());
         Assertions.assertEquals("Programming TypeScript", response.jsonPath().getString("rows[0].name"));
         Assertions.assertNotNull(response.jsonPath().getString("rows[0].authors"));
