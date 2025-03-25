@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.it.resource;
 
 import static io.restassured.RestAssured.given;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -823,9 +824,17 @@ public class TestResourceTestCase {
 
     @Test
     void testBookRepositoryFindByIdsView() {
-        String body = """
-                [1,3,5,7]
-                """;
+        String body;
+        List<Long> ids = new ArrayList<>();
+        ids.add(1L);
+        ids.add(3L);
+        ids.add(5L);
+        ids.add(7L);
+        try {
+            body = objectMapper.writeValueAsString(ids);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .body(body)
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
