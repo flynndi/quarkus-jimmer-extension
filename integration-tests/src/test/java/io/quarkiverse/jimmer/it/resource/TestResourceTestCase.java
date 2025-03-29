@@ -935,12 +935,13 @@ public class TestResourceTestCase {
 
     @Test
     void testBookRepositoryFindAllPageSortView() {
-        String body = """
-                {
-                    "index": 0,
-                    "size": 1
-                }
-                """;
+        String body;
+        Pagination pagination = new Pagination(0, 1);
+        try {
+            body = objectMapper.writeValueAsString(pagination);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
