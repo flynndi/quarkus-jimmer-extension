@@ -770,14 +770,21 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositoryUpdate() {
-        String body = """
-                {
-                     "id": "defc2d01-fb38-4d31-b006-fd182b25aa33",
-                     "userId": "12",
-                     "roleId": "213",
-                     "deleteFlag": false
-                 }
-                """;
+        String body;
+        UUID id = UUID.randomUUID();
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+            draft.setDeleteFlag(false);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
                 .body(body)
@@ -785,9 +792,9 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testUserRoleRepositoryUpdate");
-        Assertions.assertEquals("defc2d01-fb38-4d31-b006-fd182b25aa33", response.jsonPath().getString("id"));
-        Assertions.assertEquals("12", response.jsonPath().getString("userId"));
-        Assertions.assertEquals("213", response.jsonPath().getString("roleId"));
+        Assertions.assertEquals(id.toString(), response.jsonPath().getString("id"));
+        Assertions.assertEquals(userId, response.jsonPath().getString("userId"));
+        Assertions.assertEquals(roleId, response.jsonPath().getString("roleId"));
         Assertions.assertFalse(response.jsonPath().getBoolean("deleteFlag"));
     }
 
