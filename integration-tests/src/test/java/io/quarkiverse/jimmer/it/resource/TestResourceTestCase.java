@@ -812,13 +812,20 @@ public class TestResourceTestCase {
 
     @Test
     void testUserRoleRepositoryUpdateInput() {
-        String body = """
-                {
-                    "id": "defc2d01-fb38-4d31-b006-fd182b25aa33",
-                    "userId": "3",
-                    "roleId": "4"
-                }
-                """;
+        String body;
+        UUID id = UUID.randomUUID();
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserRole userRole = UserRoleDraft.$.produce(draft -> {
+            draft.setId(id);
+            draft.setUserId(userId);
+            draft.setRoleId(roleId);
+        });
+        try {
+            body = objectMapper.writeValueAsString(userRole);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         Response response = given()
                 .body(body)
                 .header(new Header(HttpHeaders.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString()))
