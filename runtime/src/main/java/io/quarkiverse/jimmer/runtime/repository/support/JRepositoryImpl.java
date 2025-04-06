@@ -21,7 +21,6 @@ import org.babyfish.jimmer.sql.ast.impl.query.MutableRootQueryImpl;
 import org.babyfish.jimmer.sql.ast.impl.table.FetcherSelectionImpl;
 import org.babyfish.jimmer.sql.ast.impl.table.TableImplementor;
 import org.babyfish.jimmer.sql.ast.mutation.AffectedTable;
-import org.babyfish.jimmer.sql.ast.mutation.BatchEntitySaveCommand;
 import org.babyfish.jimmer.sql.ast.mutation.DeleteMode;
 import org.babyfish.jimmer.sql.ast.mutation.SimpleEntitySaveCommand;
 import org.babyfish.jimmer.sql.ast.query.ConfigurableRootQuery;
@@ -202,20 +201,6 @@ public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
     @Override
     public SimpleEntitySaveCommand<E> saveCommand(@NotNull Input<E> input) {
         return sqlClient.getEntities().saveCommand(input);
-    }
-
-    @NotNull
-    @Override
-    public <S extends E> SimpleEntitySaveCommand<S> saveCommand(@NotNull S entity) {
-        return sqlClient.getEntities().saveCommand(entity);
-    }
-
-    @NotNull
-    @Override
-    public <S extends E> BatchEntitySaveCommand<S> saveEntitiesCommand(@NotNull Iterable<S> entities) {
-        return sqlClient
-                .getEntities()
-                .saveEntitiesCommand(Utils.toCollection(entities));
     }
 
     @Override
