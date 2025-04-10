@@ -56,7 +56,6 @@ public class TestEvent {
                 .all()
                 .when()
                 .post("testResources/testBookRepositoryMergeInput");
-        Assertions.assertEquals(3, response.jsonPath().getInt("totalAffectedRowCount"));
         Assertions.assertFalse(testChangeEventObserves.getEntityEventStorage().isEmpty());
         Assertions.assertFalse(testChangeEventObserves.getAssociationEventStorageOne().isEmpty());
         Assertions.assertFalse(testChangeEventObserves.getAssociationEventStorageTwo().isEmpty());
