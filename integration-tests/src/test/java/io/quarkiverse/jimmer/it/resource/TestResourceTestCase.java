@@ -626,10 +626,9 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testUserRoleRepositorySaveInputSaveMode");
-        Assertions.assertEquals(1, response.jsonPath().getInt("totalAffectedRowCount"));
-        Assertions.assertEquals(id.toString(), response.jsonPath().getString("originalEntity.id"));
-        Assertions.assertEquals(id.toString(), response.jsonPath().getString("modifiedEntity.id"));
-        Assertions.assertTrue(response.jsonPath().getBoolean("modified"));
+        Assertions.assertEquals(id.toString(), response.jsonPath().getString("id"));
+        Assertions.assertEquals(userId, response.jsonPath().getString("userId"));
+        Assertions.assertEquals(roleId, response.jsonPath().getString("roleId"));
     }
 
     @Test
@@ -1032,7 +1031,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testBookRepositoryMerge");
-        Assertions.assertEquals(4, response.jsonPath().getInt("totalAffectedRowCount"));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
     }
 
     @Test
@@ -1062,7 +1061,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testBookRepositoryMergeInput");
-        Assertions.assertEquals(3, response.jsonPath().getInt("totalAffectedRowCount"));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
     }
 
     @Test
@@ -1096,7 +1095,7 @@ public class TestResourceTestCase {
                 .all()
                 .when()
                 .post("testResources/testBookRepositoryMergeSaveMode");
-        Assertions.assertEquals(4, response.jsonPath().getInt("totalAffectedRowCount"));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getStatusCode());
     }
 
     @Test
