@@ -15,15 +15,15 @@ Please let me know if you have any suggestions on these parts
 ## Dependency
 Gradle
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR7'
-annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.8.109'
+implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR48'
+annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.9.73'
 ```
 Maven
 ```xml
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR7</version>
+   <version>0.0.1.CR48</version>
 </dependency>
 
 <build>
@@ -37,7 +37,7 @@ Maven
                     <path>
                         <groupId>org.babyfish.jimmer</groupId>
                         <artifactId>jimmer-apt</artifactId>
-                        <version>0.8.109</version>
+                        <version>0.9.73</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
@@ -51,8 +51,7 @@ Maven
 // default db
 
 // repository
-@ApplicationScoped
-public class BookRepository implements JRepository<Book, Long> {
+public interface BookRepository extends JRepository<Book, Long> {
 
 }
 
@@ -71,9 +70,8 @@ public class BookService {
 // if other databases exist
 
 // repository
-@ApplicationScoped
 @DataSource("DB2")
-public class UserRoleRepository implements JRepository<UserRole, UUID> {
+public interface UserRoleRepository extends JRepository<UserRole, UUID> {
 
 }
 
