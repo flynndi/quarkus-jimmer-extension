@@ -361,19 +361,3 @@ class UserRoleService {
 //  or  return Jimmer.getKSqlClient("DB2").findById(Book2::class, id)
     }
 ```
-
-# Version
-preview build by
-
-| Depend  | Version |    | Future |
-|---------|---------|----|--------|
-| JDK     | 11      | -> | 17     |
-| Quarkus | 3.6.4   | -> | 3.8.0  |
-| Jimmer  | 0.8.100 | -> | latest |
-
-# Feature
-| Feature               |     |
-|-----------------------|-----|
-| Multiple data sources | yes |
-| JDBC                  | yes |
-| Reactive              | no  |
