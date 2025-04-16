@@ -132,6 +132,14 @@ public interface JavaRepository<E, ID> {
 
     default SimpleSaveResult<E> save(
             E entity,
+            SaveMode mode) {
+        return saveCommand(entity)
+                .setMode(mode)
+                .execute();
+    }
+
+    default SimpleSaveResult<E> save(
+            E entity,
             SaveMode mode,
             AssociatedSaveMode associatedMode) {
         return saveCommand(entity)
@@ -143,6 +151,14 @@ public interface JavaRepository<E, ID> {
     default BatchSaveResult<E> saveEntities(
             Iterable<E> entities) {
         return saveEntitiesCommand(entities)
+                .execute();
+    }
+
+    default BatchSaveResult<E> saveEntities(
+            Iterable<E> entities,
+            SaveMode mode) {
+        return saveEntitiesCommand(entities)
+                .setMode(mode)
                 .execute();
     }
 
@@ -164,6 +180,14 @@ public interface JavaRepository<E, ID> {
 
     default SimpleSaveResult<E> save(
             Input<E> input,
+            SaveMode mode) {
+        return saveCommand(input)
+                .setMode(mode)
+                .execute();
+    }
+
+    default SimpleSaveResult<E> save(
+            Input<E> input,
             SaveMode mode,
             AssociatedSaveMode associatedMode) {
         return saveCommand(input)
@@ -180,6 +204,14 @@ public interface JavaRepository<E, ID> {
 
     default BatchSaveResult<E> saveInputs(
             Iterable<? extends Input<E>> inputs,
+            SaveMode mode) {
+        return saveInputsCommand(inputs)
+                .setMode(mode)
+                .execute();
+    }
+
+    default BatchSaveResult<E> saveInputs(
+            Iterable<? extends Input<E>> inputs,
             SaveMode mode,
             AssociatedSaveMode associatedMode) {
         return saveInputsCommand(inputs)
@@ -188,6 +220,11 @@ public interface JavaRepository<E, ID> {
                 .execute();
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default SimpleSaveResult<E> save(
             E entity,
             Fetcher<E> fetcher) {
@@ -195,6 +232,11 @@ public interface JavaRepository<E, ID> {
                 .execute(fetcher);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default SimpleSaveResult<E> save(
             E entity,
             SaveMode mode,
@@ -206,6 +248,11 @@ public interface JavaRepository<E, ID> {
                 .execute(fetcher);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default BatchSaveResult<E> saveEntities(
             Iterable<E> entities,
             Fetcher<E> fetcher) {
@@ -213,6 +260,11 @@ public interface JavaRepository<E, ID> {
                 .execute(fetcher);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default BatchSaveResult<E> saveEntities(
             Iterable<E> entities,
             SaveMode mode,
@@ -224,6 +276,11 @@ public interface JavaRepository<E, ID> {
                 .execute(fetcher);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default SimpleSaveResult<E> save(
             Input<E> input,
             Fetcher<E> fetcher) {
@@ -231,6 +288,11 @@ public interface JavaRepository<E, ID> {
                 .execute(fetcher);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default SimpleSaveResult<E> save(
             Input<E> input,
             SaveMode mode,
@@ -242,6 +304,11 @@ public interface JavaRepository<E, ID> {
                 .execute(fetcher);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default BatchSaveResult<E> saveInputs(
             Iterable<? extends Input<E>> inputs,
             Fetcher<E> fetcher) {
@@ -249,6 +316,11 @@ public interface JavaRepository<E, ID> {
                 .execute(fetcher);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default BatchSaveResult<E> saveInputs(
             Iterable<? extends Input<E>> inputs,
             SaveMode mode,
@@ -260,6 +332,11 @@ public interface JavaRepository<E, ID> {
                 .execute(fetcher);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default <V extends View<E>> SimpleSaveResult.View<E, V> save(
             E entity,
             Class<V> viewType) {
@@ -267,6 +344,11 @@ public interface JavaRepository<E, ID> {
                 .execute(viewType);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default <V extends View<E>> SimpleSaveResult.View<E, V> save(
             E entity,
             SaveMode mode,
@@ -278,6 +360,11 @@ public interface JavaRepository<E, ID> {
                 .execute(viewType);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default <V extends View<E>> BatchSaveResult.View<E, V> saveEntities(
             Iterable<E> entities,
             Class<V> viewType) {
@@ -285,6 +372,11 @@ public interface JavaRepository<E, ID> {
                 .execute(viewType);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default <V extends View<E>> BatchSaveResult.View<E, V> saveEntities(
             Iterable<E> entities,
             SaveMode mode,
@@ -296,6 +388,11 @@ public interface JavaRepository<E, ID> {
                 .execute(viewType);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default <V extends View<E>> SimpleSaveResult.View<E, V> save(
             Input<E> input,
             Class<V> viewType) {
@@ -303,6 +400,11 @@ public interface JavaRepository<E, ID> {
                 .execute(viewType);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default <V extends View<E>> SimpleSaveResult.View<E, V> save(
             Input<E> input,
             SaveMode mode,
@@ -314,6 +416,11 @@ public interface JavaRepository<E, ID> {
                 .execute(viewType);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default <V extends View<E>> BatchSaveResult.View<E, V> saveInputs(
             Iterable<? extends Input<E>> inputs,
             Class<V> viewType) {
@@ -321,6 +428,11 @@ public interface JavaRepository<E, ID> {
                 .execute(viewType);
     }
 
+    /**
+     * @deprecated Saving and re-fetching by fetcher/viewer is advanced feature,
+     *             please use `saveCommand`
+     */
+    @Deprecated
     default <V extends View<E>> BatchSaveResult.View<E, V> saveInputs(
             Iterable<? extends Input<E>> inputs,
             SaveMode mode,
@@ -330,158 +442,6 @@ public interface JavaRepository<E, ID> {
                 .setMode(mode)
                 .setAssociatedModeAll(associatedMode)
                 .execute(viewType);
-    }
-
-    @Deprecated
-    default SimpleSaveResult<E> save(
-            E entity,
-            AssociatedSaveMode associatedMode) {
-        return saveCommand(entity)
-                .setAssociatedModeAll(associatedMode)
-                .execute();
-    }
-
-    @Deprecated
-    default SimpleSaveResult<E> save(
-            E entity,
-            SaveMode mode) {
-        return saveCommand(entity)
-                .setMode(mode)
-                .execute();
-    }
-
-    @Deprecated
-    default BatchSaveResult<E> saveEntities(
-            Iterable<E> entities,
-            AssociatedSaveMode associatedMode) {
-        return saveEntitiesCommand(entities)
-                .setAssociatedModeAll(associatedMode)
-                .execute();
-    }
-
-    @Deprecated
-    default BatchSaveResult<E> saveEntities(
-            Iterable<E> entities,
-            SaveMode mode) {
-        return saveEntitiesCommand(entities)
-                .setMode(mode)
-                .execute();
-    }
-
-    @Deprecated
-    default SimpleSaveResult<E> save(
-            Input<E> input,
-            AssociatedSaveMode associatedMode) {
-        return saveCommand(input)
-                .setAssociatedModeAll(associatedMode)
-                .execute();
-    }
-
-    @Deprecated
-    default SimpleSaveResult<E> save(
-            Input<E> input,
-            SaveMode mode) {
-        return saveCommand(input)
-                .setMode(mode)
-                .execute();
-    }
-
-    @Deprecated
-    default BatchSaveResult<E> saveInputs(
-            Iterable<? extends Input<E>> inputs,
-            AssociatedSaveMode associatedMode) {
-        return saveInputsCommand(inputs)
-                .setAssociatedModeAll(associatedMode)
-                .execute();
-    }
-
-    @Deprecated
-    default BatchSaveResult<E> saveInputs(
-            Iterable<? extends Input<E>> inputs,
-            SaveMode mode) {
-        return saveInputsCommand(inputs)
-                .setMode(mode)
-                .execute();
-    }
-
-    @Deprecated
-    default SimpleSaveResult<E> save(
-            E entity,
-            AssociatedSaveMode associatedMode,
-            Fetcher<E> fetcher) {
-        return saveCommand(entity)
-                .setAssociatedModeAll(associatedMode)
-                .execute(fetcher);
-    }
-
-    @Deprecated
-    default SimpleSaveResult<E> save(
-            E entity,
-            SaveMode mode,
-            Fetcher<E> fetcher) {
-        return saveCommand(entity)
-                .setMode(mode)
-                .execute(fetcher);
-    }
-
-    @Deprecated
-    default BatchSaveResult<E> saveEntities(
-            Iterable<E> entities,
-            AssociatedSaveMode associatedMode,
-            Fetcher<E> fetcher) {
-        return saveEntitiesCommand(entities)
-                .setAssociatedModeAll(associatedMode)
-                .execute(fetcher);
-    }
-
-    @Deprecated
-    default BatchSaveResult<E> saveEntities(
-            Iterable<E> entities,
-            SaveMode mode,
-            Fetcher<E> fetcher) {
-        return saveEntitiesCommand(entities)
-                .setMode(mode)
-                .execute(fetcher);
-    }
-
-    @Deprecated
-    default SimpleSaveResult<E> save(
-            Input<E> input,
-            AssociatedSaveMode associatedMode,
-            Fetcher<E> fetcher) {
-        return saveCommand(input)
-                .setAssociatedModeAll(associatedMode)
-                .execute(fetcher);
-    }
-
-    @Deprecated
-    default SimpleSaveResult<E> save(
-            Input<E> input,
-            SaveMode mode,
-            Fetcher<E> fetcher) {
-        return saveCommand(input)
-                .setMode(mode)
-                .execute(fetcher);
-    }
-
-    @Deprecated
-    default BatchSaveResult<E> saveInputs(
-            Iterable<? extends Input<E>> inputs,
-            AssociatedSaveMode associatedMode,
-            Fetcher<E> fetcher) {
-        return saveInputsCommand(inputs)
-                .setAssociatedModeAll(associatedMode)
-                .execute(fetcher);
-    }
-
-    @Deprecated
-    default BatchSaveResult<E> saveInputs(
-            Iterable<? extends Input<E>> inputs,
-            SaveMode mode,
-            Fetcher<E> fetcher) {
-        return saveInputsCommand(inputs)
-                .setMode(mode)
-                .execute(fetcher);
     }
 
     @Deprecated
