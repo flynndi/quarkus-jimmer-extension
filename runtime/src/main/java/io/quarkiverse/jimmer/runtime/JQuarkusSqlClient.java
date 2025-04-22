@@ -14,7 +14,6 @@ import javax.sql.DataSource;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.util.TypeLiteral;
 import jakarta.interceptor.InvocationContext;
-import jakarta.transaction.TransactionManager;
 
 import org.babyfish.jimmer.impl.util.ObjectUtil;
 import org.babyfish.jimmer.sql.DraftInterceptor;
@@ -196,9 +195,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
                 () -> ((JSqlClientImplementor.Builder) builder).getConnectionManager(),
                 () -> getOptionalBean(ConnectionManager.class),
                 () -> dataSource == null ? null
-                        : new QuarkusConnectionManager(dataSource, () -> getOptionalBean(TransactionManager.class)),
-                () -> new QuarkusConnectionManager(getOptionalBean(DataSource.class),
-                        () -> getOptionalBean(TransactionManager.class)));
+                        : new QuarkusConnectionManager(dataSource),
+                () -> new QuarkusConnectionManager(getOptionalBean(DataSource.class)));
 
         builder.setConnectionManager(connectionManager);
 
