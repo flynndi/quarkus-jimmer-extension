@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import io.quarkus.narayana.jta.QuarkusTransaction;
-import io.quarkus.narayana.jta.TransactionExceptionResult;
 import io.quarkus.narayana.jta.TransactionRunnerOptions;
 
 public class QuarkusConnectionManager implements DataSourceAwareConnectionManager, TxConnectionManager {
@@ -49,8 +48,7 @@ public class QuarkusConnectionManager implements DataSourceAwareConnectionManage
     @Override
     public <R> R executeTransaction(Propagation propagation, Function<Connection, R> block) {
         TransactionRunnerOptions transactionRunnerOptions = behavior(propagation);
-        return transactionRunnerOptions.exceptionHandler((throwable) -> TransactionExceptionResult.ROLLBACK)
-                .call(() -> execute(block));
+        return transactionRunnerOptions.call(() -> execute(block));
     }
 
     private TransactionRunnerOptions behavior(Propagation propagation) {
