@@ -20,7 +20,6 @@ import io.quarkiverse.jimmer.runtime.*;
 import io.quarkiverse.jimmer.runtime.QuarkusSqlClientProducer;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
-import io.quarkiverse.jimmer.runtime.cfg.SqlClientInitializer;
 import io.quarkiverse.jimmer.runtime.client.CodeBasedExceptionAdvice;
 import io.quarkiverse.jimmer.runtime.client.CodeBasedRuntimeExceptionAdvice;
 import io.quarkiverse.jimmer.runtime.client.openapi.CssRecorder;
@@ -458,13 +457,6 @@ final class JimmerProcessor {
 
             syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
         }
-    }
-
-    @BuildStep
-    @Produce(SyntheticBeansRuntimeInitBuildItem.class)
-    @Consume(LoggingSetupBuildItem.class)
-    void sqlClientInitializer(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-        additionalBeans.produce(new AdditionalBeanBuildItem(SqlClientInitializer.class));
     }
 
     @BuildStep(onlyIf = IsJavaEnable.class)
