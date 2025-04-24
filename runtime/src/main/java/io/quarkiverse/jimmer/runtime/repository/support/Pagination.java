@@ -2,6 +2,10 @@ package io.quarkiverse.jimmer.runtime.repository.support;
 
 public class Pagination {
 
+    public Pagination() {
+        this(0, 10);
+    }
+
     /**
      * The current page index (0-based).
      */
