@@ -1,5 +1,5 @@
 name: "Jimmer"
-artifact: "io.github.flynndi:quarkus-jimmer:999-SNAPSHOT"
+artifact: "io.github.flynndi:quarkus-jimmer:0.0.1.CR49"
 description: "A revolutionary ORM framework for both java and kotlin, and a complete integrated solution"
 metadata:
   keywords:
