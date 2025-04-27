@@ -53,7 +53,6 @@ quarkus:
     pretty-sql: true
     inline-sql-variables: true
     trigger-type: TRANSACTION_ONLY
-    transaction-cache-operator-fixed-delay: 10S
     database-validation:
       mode: NONE
     error-translator:
