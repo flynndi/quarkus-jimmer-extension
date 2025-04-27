@@ -57,6 +57,7 @@ public class TransactionCacheOperatorFlusher {
             for (TransactionCacheOperator operator : operators) {
                 try {
                     operator.flush();
+                    return;
                 } catch (RuntimeException | Error ex) {
                     exceptions.add(ex);
                 }
@@ -69,7 +70,7 @@ public class TransactionCacheOperatorFlusher {
         } catch (Exception e) {
             LOGGER.error("Error during flush operation", e);
         } finally {
-            dirtyLocal.remove(); // 确保清理
+            dirtyLocal.remove();
         }
     }
 }
