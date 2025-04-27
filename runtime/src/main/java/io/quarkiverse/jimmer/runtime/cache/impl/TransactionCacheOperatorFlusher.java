@@ -8,12 +8,16 @@ import jakarta.enterprise.event.TransactionPhase;
 
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.event.DatabaseEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.quarkus.arc.All;
 import io.quarkus.scheduler.Scheduled;
 
 @ApplicationScoped
 public class TransactionCacheOperatorFlusher {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransactionCacheOperatorFlusher.class);
 
     private final List<TransactionCacheOperator> operators;
 
