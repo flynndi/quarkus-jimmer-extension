@@ -1,6 +1,5 @@
 package io.quarkiverse.jimmer.runtime.cache.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -48,29 +47,26 @@ public class TransactionCacheOperatorFlusher {
     }
 
     private void flush() {
-        try {
-            if (operators.size() == 1) {
-                operators.get(0).flush();
-                return;
-            }
-            List<Throwable> exceptions = new ArrayList<>();
+        if (operators.size() == 1) {
+            TransactionCacheOperator operator = operators.get(0);
+            operator.flush();
+        } else {
+            Throwable throwable = null;
             for (TransactionCacheOperator operator : operators) {
                 try {
                     operator.flush();
-                    return;
                 } catch (RuntimeException | Error ex) {
-                    exceptions.add(ex);
+                    if (throwable == null) {
+                        throwable = ex;
+                    }
                 }
             }
-            if (!exceptions.isEmpty()) {
-                RuntimeException combinedException = new RuntimeException("Multiple exceptions occurred during flush");
-                exceptions.forEach(combinedException::addSuppressed);
-                throw combinedException;
+            if (throwable instanceof RuntimeException) {
+                throw (RuntimeException) throwable;
             }
-        } catch (Exception e) {
-            LOGGER.error("Error during flush operation", e);
-        } finally {
-            dirtyLocal.remove();
+            if (throwable != null) {
+                throw (Error) throwable;
+            }
         }
     }
 }
