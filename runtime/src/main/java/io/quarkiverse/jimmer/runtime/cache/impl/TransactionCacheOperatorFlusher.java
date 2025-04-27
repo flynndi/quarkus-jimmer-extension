@@ -1,5 +1,6 @@
 package io.quarkiverse.jimmer.runtime.cache.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -8,12 +9,16 @@ import jakarta.enterprise.event.TransactionPhase;
 
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.event.DatabaseEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.quarkus.arc.All;
 import io.quarkus.scheduler.Scheduled;
 
 @ApplicationScoped
 public class TransactionCacheOperatorFlusher {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransactionCacheOperatorFlusher.class);
 
     private final List<TransactionCacheOperator> operators;
 
@@ -43,26 +48,28 @@ public class TransactionCacheOperatorFlusher {
     }
 
     private void flush() {
-        if (operators.size() == 1) {
-            TransactionCacheOperator operator = operators.get(0);
-            operator.flush();
-        } else {
-            Throwable throwable = null;
+        try {
+            if (operators.size() == 1) {
+                operators.get(0).flush();
+                return;
+            }
+            List<Throwable> exceptions = new ArrayList<>();
             for (TransactionCacheOperator operator : operators) {
                 try {
                     operator.flush();
                 } catch (RuntimeException | Error ex) {
-                    if (throwable == null) {
-                        throwable = ex;
-                    }
+                    exceptions.add(ex);
                 }
             }
-            if (throwable instanceof RuntimeException) {
-                throw (RuntimeException) throwable;
+            if (!exceptions.isEmpty()) {
+                RuntimeException combinedException = new RuntimeException("Multiple exceptions occurred during flush");
+                exceptions.forEach(combinedException::addSuppressed);
+                throw combinedException;
             }
-            if (throwable != null) {
-                throw (Error) throwable;
-            }
+        } catch (Exception e) {
+            LOGGER.error("Error during flush operation", e);
+        } finally {
+            dirtyLocal.remove(); // 确保清理
         }
     }
 }
