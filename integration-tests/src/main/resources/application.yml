@@ -12,14 +12,14 @@ quarkus:
       jdbc:
         min-size: 2
         max-size: 8
-        url: jdbc:h2:mem:default
+        url: jdbc:h2:mem:default;TRACE_LEVEL_SYSTEM_OUT=3
     DB2:
       db-kind: h2
       username: db2
       jdbc:
         min-size: 2
         max-size: 8
-        url: jdbc:h2:mem:bd2
+        url: jdbc:h2:mem:bd2;TRACE_LEVEL_SYSTEM_OUT=3
   log:
     level: DEBUG
   redisson:
