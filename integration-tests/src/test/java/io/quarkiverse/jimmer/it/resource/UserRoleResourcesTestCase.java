@@ -7,13 +7,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.jimmer.it.Constant;
-import io.quarkiverse.jimmer.it.IntegrationTestsProfile;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
 import io.restassured.response.Response;
 
 @QuarkusTest
-@TestProfile(IntegrationTestsProfile.class)
 public class UserRoleResourcesTestCase {
 
     @Test

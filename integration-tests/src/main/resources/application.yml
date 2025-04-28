@@ -52,7 +52,7 @@ quarkus:
     show-sql: true
     pretty-sql: true
     inline-sql-variables: true
-    trigger-type: BINLOG_ONLY
+    trigger-type: TRANSACTION_ONLY
     database-validation:
       mode: NONE
     error-translator:
