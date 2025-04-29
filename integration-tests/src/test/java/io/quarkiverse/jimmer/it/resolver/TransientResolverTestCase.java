@@ -13,15 +13,12 @@ import org.jboss.jandex.DotName;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.jimmer.it.IntegrationTestsProfile;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.InstanceHandle;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
 
 @QuarkusTest
-@TestProfile(IntegrationTestsProfile.class)
 public class TransientResolverTestCase {
 
     @Test
