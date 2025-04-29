@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.quarkiverse.jimmer.it.Constant;
-import io.quarkiverse.jimmer.it.IntegrationTestsProfile;
 import io.quarkiverse.jimmer.it.entity.UserRole;
 import io.quarkiverse.jimmer.it.entity.UserRoleDraft;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
@@ -28,14 +27,12 @@ import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
 import io.restassured.http.Header;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.vertx.core.http.HttpHeaders;
 
 @QuarkusTest
-@TestProfile(IntegrationTestsProfile.class)
 public class TestResourceTestCase {
 
     @Inject

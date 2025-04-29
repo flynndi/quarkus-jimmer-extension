@@ -7,15 +7,12 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.jimmer.it.IntegrationTestsProfile;
 import io.quarkiverse.jimmer.it.repository.TreeNodeRepository;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
 import io.restassured.response.Response;
 
 @QuarkusTest
-@TestProfile(IntegrationTestsProfile.class)
 public class TreeNodeResourcesTestCase {
 
     @Inject
