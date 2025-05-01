@@ -15,15 +15,16 @@ public class CodeBasedExceptionAdvice extends CommonExceptionAdvice implements E
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CodeBasedExceptionAdvice.class);
 
-    public CodeBasedExceptionAdvice(JimmerBuildTimeConfig config) {
-        super(config);
+    public CodeBasedExceptionAdvice(JimmerBuildTimeConfig buildTimeConfig) {
+        super(buildTimeConfig);
     }
 
     @Override
     public Response toResponse(CodeBasedException ex) {
         LOGGER.error("Auto handled HTTP Error(" + CodeBasedException.class.getName() + ")", ex);
         return Response
-                .status(config.errorTranslator().isPresent() ? config.errorTranslator().get().httpStatus() : 500)
+                .status(buildTimeConfig.errorTranslator().isPresent() ? buildTimeConfig.errorTranslator().get().httpStatus()
+                        : 500)
                 .entity(resultMap(ex))
                 .build();
     }

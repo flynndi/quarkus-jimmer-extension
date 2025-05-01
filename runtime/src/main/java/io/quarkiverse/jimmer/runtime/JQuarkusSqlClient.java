@@ -45,7 +45,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
-import io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceBuildTimeConfig;
+import io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceRuntimeConfig;
+import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
@@ -84,8 +85,10 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
     @Override
     protected JSqlClient.Builder createBuilder() {
 
-        JimmerBuildTimeConfig config = getOptionalBean(JimmerBuildTimeConfig.class);
-        Assert.notNull(config, "JimmerBuildTimeConfig must not be null!");
+        JimmerRuntimeConfig runtimeConfig = getOptionalBean(JimmerRuntimeConfig.class);
+        JimmerBuildTimeConfig buildTimeConfig = getOptionalBean(JimmerBuildTimeConfig.class);
+        Assert.notNull(runtimeConfig, "JimmerRuntimeConfig must not be null!");
+        Assert.notNull(buildTimeConfig, "JimmerBuildTimeConfig must not be null!");
         UserIdGeneratorProvider userIdGeneratorProvider = getOptionalBean(UserIdGeneratorProvider.class);
         LogicalDeletedValueGeneratorProvider logicalDeletedValueGeneratorProvider = getOptionalBean(
                 LogicalDeletedValueGeneratorProvider.class);
@@ -124,36 +127,36 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         }
         builder.setMetaStringResolver(Objects.requireNonNullElseGet(metaStringResolver, QuarkusMetaStringResolver::new));
 
-        builder.setDialect(this.initializeDialect(config));
-        builder.setDefaultReferenceFetchType(config.defaultReferenceFetchType());
-        config.maxJoinFetchDepth().ifPresent(builder::setMaxJoinFetchDepth);
-        builder.setTriggerType(config.triggerType());
-        builder.setDefaultDissociateActionCheckable(config.defaultDissociationActionCheckable());
-        builder.setIdOnlyTargetCheckingLevel(config.idOnlyTargetCheckingLevel());
-        builder.setDefaultEnumStrategy(config.defaultEnumStrategy());
-        config.defaultBatchSize().ifPresent(builder::setDefaultBatchSize);
-        builder.setInListPaddingEnabled(config.inListPaddingEnabled());
-        builder.setExpandedInListPaddingEnabled(config.expandedInListPaddingEnabled());
-        config.defaultListBatchSize().ifPresent(builder::setDefaultListBatchSize);
-        config.offsetOptimizingThreshold().ifPresent(builder::setOffsetOptimizingThreshold);
-        builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
-        builder.setMaxCommandJoinCount(config.maxCommandJoinCount());
-        builder.setMutationTransactionRequired(config.mutationTransactionRequired());
-        builder.setTargetTransferable(config.targetTransferable());
-        builder.setExplicitBatchEnabled(config.explicitBatchEnabled());
-        builder.setDumbBatchAcceptable(config.dumbBatchAcceptable());
-        builder.setConstraintViolationTranslatable(config.constraintViolationTranslatable());
-        config.executorContextPrefixes().ifPresent(builder::setExecutorContextPrefixes);
+        builder.setDialect(this.initializeDialect(runtimeConfig));
+        builder.setDefaultReferenceFetchType(runtimeConfig.defaultReferenceFetchType());
+        runtimeConfig.maxJoinFetchDepth().ifPresent(builder::setMaxJoinFetchDepth);
+        builder.setTriggerType(buildTimeConfig.triggerType());
+        builder.setDefaultDissociateActionCheckable(runtimeConfig.defaultDissociationActionCheckable());
+        builder.setIdOnlyTargetCheckingLevel(runtimeConfig.idOnlyTargetCheckingLevel());
+        builder.setDefaultEnumStrategy(runtimeConfig.defaultEnumStrategy());
+        runtimeConfig.defaultBatchSize().ifPresent(builder::setDefaultBatchSize);
+        builder.setInListPaddingEnabled(runtimeConfig.inListPaddingEnabled());
+        builder.setExpandedInListPaddingEnabled(runtimeConfig.expandedInListPaddingEnabled());
+        runtimeConfig.defaultListBatchSize().ifPresent(builder::setDefaultListBatchSize);
+        runtimeConfig.offsetOptimizingThreshold().ifPresent(builder::setOffsetOptimizingThreshold);
+        builder.setForeignKeyEnabledByDefault(runtimeConfig.isForeignKeyEnabledByDefault());
+        builder.setMaxCommandJoinCount(runtimeConfig.maxCommandJoinCount());
+        builder.setMutationTransactionRequired(runtimeConfig.mutationTransactionRequired());
+        builder.setTargetTransferable(runtimeConfig.targetTransferable());
+        builder.setExplicitBatchEnabled(runtimeConfig.explicitBatchEnabled());
+        builder.setDumbBatchAcceptable(runtimeConfig.dumbBatchAcceptable());
+        builder.setConstraintViolationTranslatable(runtimeConfig.constraintViolationTranslatable());
+        runtimeConfig.executorContextPrefixes().ifPresent(builder::setExecutorContextPrefixes);
 
-        if (config.showSql()) {
+        if (buildTimeConfig.showSql()) {
             builder.setExecutor(Executor.log(executor));
         } else {
             builder.setExecutor(executor);
         }
         if (sqlFormatter != null) {
             builder.setSqlFormatter(sqlFormatter);
-        } else if (config.prettySql()) {
-            if (config.inlineSqlVariables()) {
+        } else if (buildTimeConfig.prettySql()) {
+            if (buildTimeConfig.inlineSqlVariables()) {
                 builder.setSqlFormatter(SqlFormatter.INLINE_PRETTY);
             } else {
                 builder.setSqlFormatter(SqlFormatter.PRETTY);
@@ -164,7 +167,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
             callbacks.add(CacheAbandonedCallback.log());
         }
         builder
-                .setDatabaseValidationMode(config.databaseValidation().mode())
+                .setDatabaseValidationMode(runtimeConfig.databaseValidation().mode())
                 .setDefaultSerializedTypeObjectMapper(objectMapper)
                 .setCacheFactory(cacheFactory)
                 .setCacheOperator(cacheOperator)
@@ -179,8 +182,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         initializeByLanguage(builder);
         builder.addInitializers(new QuarkusEventInitializer());
 
-        builder.setMicroServiceName(config.microServiceName().orElse(null));
-        if (config.microServiceName().isPresent()) {
+        builder.setMicroServiceName(buildTimeConfig.microServiceName().orElse(null));
+        if (buildTimeConfig.microServiceName().isPresent()) {
             builder.setMicroServiceExchange(exchange);
         }
 
@@ -202,7 +205,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
         if (((JSqlClientImplementor.Builder) builder).getDialect().getClass() == DefaultDialect.class) {
             DialectDetector finalDetector = dialectDetector != null ? dialectDetector : new DialectDetector.Impl(dataSource);
-            builder.setDialect(ObjectUtil.optionalFirstNonNullOf(() -> dialect, () -> this.initializeDialect(config),
+            builder.setDialect(ObjectUtil.optionalFirstNonNullOf(() -> dialect, () -> this.initializeDialect(runtimeConfig),
                     () -> connectionManager.execute(finalDetector::detectDialect)));
         }
 
@@ -352,36 +355,36 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
     }
 
     @Nullable
-    private Dialect initializeDialect(JimmerBuildTimeConfig config) {
+    private Dialect initializeDialect(JimmerRuntimeConfig config) {
         Dialect dialect;
-        JimmerDataSourceBuildTimeConfig jimmerDataSourceBuildTimeConfig = config.dataSources().get(dataSourceName);
-        if (jimmerDataSourceBuildTimeConfig.dialect().isEmpty()) {
+        JimmerDataSourceRuntimeConfig jimmerDataSourceRuntimeConfig = config.dataSources().get(dataSourceName);
+        if (jimmerDataSourceRuntimeConfig.dialect().isEmpty()) {
             return null;
         } else {
             Class<?> clazz;
             try {
-                clazz = Class.forName(jimmerDataSourceBuildTimeConfig.dialect().get(), true,
+                clazz = Class.forName(jimmerDataSourceRuntimeConfig.dialect().get(), true,
                         Thread.currentThread().getContextClassLoader());
             } catch (ClassNotFoundException ex) {
                 throw new IllegalArgumentException(
-                        "The class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
+                        "The class \"" + jimmerDataSourceRuntimeConfig.dialect().get()
                                 + "\" specified by `quarkus.jimmer.dialect` cannot be found");
             }
             if (!Dialect.class.isAssignableFrom(clazz) || clazz.isInterface()) {
                 throw new IllegalArgumentException(
-                        "The class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
+                        "The class \"" + jimmerDataSourceRuntimeConfig.dialect().get()
                                 + "\" specified by `quarkus.jimmer.dialect` must be a valid dialect implementation");
             }
             try {
                 dialect = (Dialect) clazz.getConstructor().newInstance();
             } catch (InvocationTargetException ex) {
                 throw new IllegalArgumentException(
-                        "Create create instance for the class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
+                        "Create create instance for the class \"" + jimmerDataSourceRuntimeConfig.dialect().get()
                                 + "\" specified by `quarkus.jimmer.dialect`",
                         ex.getTargetException());
             } catch (Exception ex) {
                 throw new IllegalArgumentException(
-                        "Create create instance for the class \"" + jimmerDataSourceBuildTimeConfig.dialect().get()
+                        "Create create instance for the class \"" + jimmerDataSourceRuntimeConfig.dialect().get()
                                 + "\" specified by `quarkus.jimmer.dialect`",
                         ex);
             }
