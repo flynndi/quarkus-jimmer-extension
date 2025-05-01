@@ -6,15 +6,13 @@ import java.util.Optional;
 
 import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
-import org.babyfish.jimmer.sql.event.TriggerType;
 
+import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.runtime.annotations.ConfigDocMapKey;
 import io.quarkus.runtime.annotations.ConfigGroup;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import io.smallrye.config.*;
 
 @ConfigMapping(prefix = "quarkus.jimmer")
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
@@ -33,38 +31,48 @@ public interface JimmerBuildTimeConfig {
     String language();
 
     /**
-     * jimmer.showSql
-     */
-    @WithDefault("false")
-    boolean showSql();
-
-    /**
-     * jimmer.prettySql
-     */
-    @WithDefault("false")
-    boolean prettySql();
-
-    /**
-     * jimmer.inlineSqlVariables
-     */
-    @WithDefault("false")
-    boolean inlineSqlVariables();
-
-    /**
-     * jimmer.triggerType
-     */
-    @WithDefault("BINLOG_ONLY")
-    TriggerType triggerType();
-
-    /**
      * jimmer.microServiceName
      */
     Optional<String> microServiceName();
 
+    @ConfigDocMapKey("datasource-name")
+    @WithParentName
+    @WithDefaults
+    @WithUnnamedKey(DataSourceUtil.DEFAULT_DATASOURCE_NAME)
+    Map<String, JimmerDataSourceBuildTimeConfig> dataSources();
+
     /**
      * jimmer.errorTranslator
      */
-    Optional<JimmerRuntimeConfig.ErrorTranslator> errorTranslator();
+    Optional<ErrorTranslator> errorTranslator();
+
+    @ConfigGroup
+    interface ErrorTranslator {
+
+        /**
+         * ErrorTranslatorBuildTimeConfig
+         */
+        @WithDefault("false")
+        boolean disabled();
+
+        /**
+         * httpStatus
+         */
+        @WithDefault("500")
+        int httpStatus();
+
+        /**
+         * debugInfoSupported
+         */
+        @WithDefault("false")
+        boolean debugInfoSupported();
+
+        /**
+         * debugInfoMaxStackTraceCount
+         */
+        @WithDefault("2147483647")
+        int debugInfoMaxStackTraceCount();
+    }
 
     /**
      * jimmer.Client

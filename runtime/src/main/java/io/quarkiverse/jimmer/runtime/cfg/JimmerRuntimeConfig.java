@@ -174,32 +174,4 @@ public interface JimmerRuntimeConfig {
         @Deprecated
         Optional<String> schema();
     }
-
-    @ConfigGroup
-    interface ErrorTranslator {
-
-        /**
-         * ErrorTranslatorBuildTimeConfig
-         */
-        @WithDefault("false")
-        boolean disabled();
-
-        /**
-         * httpStatus
-         */
-        @WithDefault("500")
-        int httpStatus();
-
-        /**
-         * debugInfoSupported
-         */
-        @WithDefault("false")
-        boolean debugInfoSupported();
-
-        /**
-         * debugInfoMaxStackTraceCount
-         */
-        @WithDefault("2147483647")
-        int debugInfoMaxStackTraceCount();
-    }
 }
