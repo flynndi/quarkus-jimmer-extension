@@ -47,12 +47,16 @@ quarkus:
     language: java
     <default>:
       dialect: org.babyfish.jimmer.sql.dialect.H2Dialect
+      show-sql: true
+      pretty-sql: true
+      inline-sql-variables: true
+      trigger-type: TRANSACTION_ONLY
     DB2:
       dialect: org.babyfish.jimmer.sql.dialect.H2Dialect
-    show-sql: true
-    pretty-sql: true
-    inline-sql-variables: true
-    trigger-type: TRANSACTION_ONLY
+      show-sql: true
+      pretty-sql: true
+      inline-sql-variables: true
+      trigger-type: TRANSACTION_ONLY
     database-validation:
       mode: NONE
     error-translator:
