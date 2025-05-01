@@ -122,21 +122,26 @@ final class JimmerProcessor {
 
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    void verifyConfig(@SuppressWarnings("unused") JimmerDataSourcesRecorder recorder, JimmerBuildTimeConfig buildTimeConfig) {
-        if (!buildTimeConfig.language().equals("java") && !buildTimeConfig.language().equals("kotlin")) {
-            throw new IllegalArgumentException("`jimmer.language` must be \"java\" or \"kotlin\"");
-        }
-        if (buildTimeConfig.prettySql() && !buildTimeConfig.showSql()) {
-            throw new IllegalArgumentException(
-                    "When `pretty-sql` is true, `show-sql` must be true");
-        }
-        if (buildTimeConfig.inlineSqlVariables() && !buildTimeConfig.prettySql()) {
-            throw new IllegalArgumentException(
-                    "When `inline-sql-variables` is true, `pretty-sql` must be true");
-        }
-        if (buildTimeConfig.client().ts().path().isPresent()) {
-            if (!buildTimeConfig.client().ts().path().get().startsWith("/")) {
-                throw new IllegalArgumentException("`jimmer.client.ts.path` must start with \"/\"");
+    void verifyConfig(@SuppressWarnings("unused") JimmerDataSourcesRecorder recorder, JimmerBuildTimeConfig buildTimeConfig,
+            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems) {
+        if (!jdbcDataSourceBuildItems.isEmpty()) {
+            for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
+                String dataSourceName = jdbcDataSourceBuildItem.getName();
+                if (buildTimeConfig.dataSources().get(dataSourceName).prettySql()
+                        && !buildTimeConfig.dataSources().get(dataSourceName).showSql()) {
+                    throw new IllegalArgumentException(
+                            "When `pretty-sql` is true, `show-sql` must be true");
+                }
+                if (buildTimeConfig.dataSources().get(dataSourceName).inlineSqlVariables()
+                        && !buildTimeConfig.dataSources().get(dataSourceName).prettySql()) {
+                    throw new IllegalArgumentException(
+                            "When `inline-sql-variables` is true, `pretty-sql` must be true");
+                }
+                if (buildTimeConfig.client().ts().path().isPresent()) {
+                    if (!buildTimeConfig.client().ts().path().get().startsWith("/")) {
+                        throw new IllegalArgumentException("`jimmer.client.ts.path` must start with \"/\"");
+                    }
+                }
             }
         }
     }
@@ -378,9 +383,10 @@ final class JimmerProcessor {
         repoRecord.setEntityToClassUnit(map);
     }
 
-    @BuildStep(onlyIf = { IsJavaEnable.class, IsTransactionOnlyEnable.class })
+    @BuildStep(onlyIf = IsJavaEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
     void setTransactionJCacheOperatorBean(JimmerTransactionCacheOperatorRecorder recorder,
+            JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
@@ -394,34 +400,36 @@ final class JimmerProcessor {
 
         for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
+            if (!buildTimeConfig.dataSources().get(dataSourceName).triggerType().equals(TriggerType.BINLOG_ONLY)) {
+                SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
+                        .configure(TransactionCacheOperator.class)
+                        .scope(Singleton.class)
+                        .unremovable()
+                        .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
+                        .createWith(recorder.transactionJCacheOperatorFunction(dataSourceName));
 
-            SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
-                    .configure(TransactionCacheOperator.class)
-                    .scope(Singleton.class)
-                    .unremovable()
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
-                    .createWith(recorder.transactionJCacheOperatorFunction(dataSourceName));
+                if (DataSourceUtil.isDefault(dataSourceName)) {
+                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
+                            .addValue("value", dataSourceName).done();
 
-            if (DataSourceUtil.isDefault(dataSourceName)) {
-                transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                        .addValue("value", dataSourceName).done();
+                    transactionCacheOperatorConfigurator.priority(10);
 
-                transactionCacheOperatorConfigurator.priority(10);
+                } else {
+                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
+                            .addValue("value", dataSourceName).done();
 
-            } else {
-                transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                        .addValue("value", dataSourceName).done();
+                    transactionCacheOperatorConfigurator.priority(5);
+                }
 
-                transactionCacheOperatorConfigurator.priority(5);
+                syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
             }
-
-            syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
         }
     }
 
-    @BuildStep(onlyIf = { IsKotlinEnable.class, IsTransactionOnlyEnable.class })
+    @BuildStep(onlyIf = IsKotlinEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
     void setTransactionKCacheOperatorBean(JimmerTransactionCacheOperatorRecorder recorder,
+            JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
@@ -435,28 +443,29 @@ final class JimmerProcessor {
 
         for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
+            if (!buildTimeConfig.dataSources().get(dataSourceName).triggerType().equals(TriggerType.BINLOG_ONLY)) {
+                SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
+                        .configure(TransactionCacheOperator.class)
+                        .scope(Singleton.class)
+                        .unremovable()
+                        .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
+                        .createWith(recorder.transactionKCacheOperatorFunction(dataSourceName));
 
-            SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
-                    .configure(TransactionCacheOperator.class)
-                    .scope(Singleton.class)
-                    .unremovable()
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
-                    .createWith(recorder.transactionKCacheOperatorFunction(dataSourceName));
+                if (DataSourceUtil.isDefault(dataSourceName)) {
+                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
+                            .addValue("value", dataSourceName).done();
 
-            if (DataSourceUtil.isDefault(dataSourceName)) {
-                transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                        .addValue("value", dataSourceName).done();
+                    transactionCacheOperatorConfigurator.priority(10);
 
-                transactionCacheOperatorConfigurator.priority(10);
+                } else {
+                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
+                            .addValue("value", dataSourceName).done();
 
-            } else {
-                transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                        .addValue("value", dataSourceName).done();
+                    transactionCacheOperatorConfigurator.priority(5);
+                }
 
-                transactionCacheOperatorConfigurator.priority(5);
+                syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
             }
-
-            syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
         }
     }
 
@@ -671,19 +680,6 @@ final class JimmerProcessor {
         public boolean getAsBoolean() {
             return jimmerBuildTimeConfig.microServiceName().isPresent()
                     && !jimmerBuildTimeConfig.microServiceName().get().isEmpty();
-        }
-    }
-
-    static final class IsTransactionOnlyEnable extends AbstractJimmerBooleanSupplier {
-
-        private IsTransactionOnlyEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
-            super(jimmerBuildTimeConfig);
-        }
-
-        @Override
-        public boolean getAsBoolean() {
-            return jimmerBuildTimeConfig.triggerType().equals(TriggerType.TRANSACTION_ONLY)
-                    || jimmerBuildTimeConfig.triggerType().equals(TriggerType.BOTH);
         }
     }
 

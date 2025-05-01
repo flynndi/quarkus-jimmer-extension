@@ -130,7 +130,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setDialect(this.initializeDialect(runtimeConfig));
         builder.setDefaultReferenceFetchType(runtimeConfig.defaultReferenceFetchType());
         runtimeConfig.maxJoinFetchDepth().ifPresent(builder::setMaxJoinFetchDepth);
-        builder.setTriggerType(buildTimeConfig.triggerType());
+        builder.setTriggerType(buildTimeConfig.dataSources().get(dataSourceName).triggerType());
         builder.setDefaultDissociateActionCheckable(runtimeConfig.defaultDissociationActionCheckable());
         builder.setIdOnlyTargetCheckingLevel(runtimeConfig.idOnlyTargetCheckingLevel());
         builder.setDefaultEnumStrategy(runtimeConfig.defaultEnumStrategy());
@@ -148,15 +148,15 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setConstraintViolationTranslatable(runtimeConfig.constraintViolationTranslatable());
         runtimeConfig.executorContextPrefixes().ifPresent(builder::setExecutorContextPrefixes);
 
-        if (buildTimeConfig.showSql()) {
+        if (buildTimeConfig.dataSources().get(dataSourceName).showSql()) {
             builder.setExecutor(Executor.log(executor));
         } else {
             builder.setExecutor(executor);
         }
         if (sqlFormatter != null) {
             builder.setSqlFormatter(sqlFormatter);
-        } else if (buildTimeConfig.prettySql()) {
-            if (buildTimeConfig.inlineSqlVariables()) {
+        } else if (buildTimeConfig.dataSources().get(dataSourceName).prettySql()) {
+            if (buildTimeConfig.dataSources().get(dataSourceName).inlineSqlVariables()) {
                 builder.setSqlFormatter(SqlFormatter.INLINE_PRETTY);
             } else {
                 builder.setSqlFormatter(SqlFormatter.PRETTY);
