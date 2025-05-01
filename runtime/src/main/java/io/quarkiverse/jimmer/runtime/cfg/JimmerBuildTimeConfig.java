@@ -1,21 +1,20 @@
 package io.quarkiverse.jimmer.runtime.cfg;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
-import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.event.TriggerType;
-import org.babyfish.jimmer.sql.fetcher.ReferenceFetchType;
-import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
-import org.babyfish.jimmer.sql.runtime.IdOnlyTargetCheckingLevel;
 
-import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.runtime.annotations.ConfigDocMapKey;
 import io.quarkus.runtime.annotations.ConfigGroup;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
-import io.smallrye.config.*;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
 @ConfigMapping(prefix = "quarkus.jimmer")
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
@@ -32,15 +31,6 @@ public interface JimmerBuildTimeConfig {
      */
     @WithDefault("java")
     String language();
-
-    /**
-     * Datasource.
-     */
-    @ConfigDocMapKey("datasource-name")
-    @WithParentName
-    @WithDefaults
-    @WithUnnamedKey(DataSourceUtil.DEFAULT_DATASOURCE_NAME)
-    Map<String, JimmerDataSourceBuildTimeConfig> dataSources();
 
     /**
      * jimmer.showSql
@@ -61,135 +51,10 @@ public interface JimmerBuildTimeConfig {
     boolean inlineSqlVariables();
 
     /**
-     * jimmer.defaultReferenceFetchType
-     */
-    @WithDefault("SELECT")
-    ReferenceFetchType defaultReferenceFetchType();
-
-    /**
-     * jimmer.maxJoinFetchDepth
-     */
-    @WithDefault("3")
-    OptionalInt maxJoinFetchDepth();
-
-    /**
-     * jimmer.databaseValidationMode
-     */
-    @WithDefault("NONE")
-    DatabaseValidationMode databaseValidationMode();
-
-    /**
-     * jimmer.databaseValidation
-     */
-    @Deprecated
-    DatabaseValidation databaseValidation();
-
-    /**
      * jimmer.triggerType
      */
     @WithDefault("BINLOG_ONLY")
     TriggerType triggerType();
-
-    /**
-     * jimmer.defaultDissociationActionCheckable
-     */
-    @WithDefault("true")
-    boolean defaultDissociationActionCheckable();
-
-    /**
-     * jimmer.idOnlyTargetCheckingLevel
-     */
-    @WithDefault("NONE")
-    IdOnlyTargetCheckingLevel idOnlyTargetCheckingLevel();
-
-    /**
-     * jimmer.transactionCacheOperatorFixedDelay
-     */
-    @WithDefault("5s")
-    String transactionCacheOperatorFixedDelay();
-
-    /**
-     * jimmer.defaultEnumStrategy
-     */
-    @WithDefault("NAME")
-    EnumType.Strategy defaultEnumStrategy();
-
-    /**
-     * jimmer.defaultBatchSize
-     */
-    @WithDefault("128")
-    OptionalInt defaultBatchSize();
-
-    /**
-     * jimmer.inListPaddingEnabled
-     */
-    @WithDefault("false")
-    boolean inListPaddingEnabled();
-
-    /**
-     * jimmer.expandedInListPaddingEnabled
-     */
-    @WithDefault("false")
-    boolean expandedInListPaddingEnabled();
-
-    /**
-     * jimmer.defaultListBatchSize
-     */
-    @WithDefault("16")
-    OptionalInt defaultListBatchSize();
-
-    /**
-     * jimmer.offsetOptimizingThreshold
-     */
-    @WithDefault("2147483647")
-    OptionalInt offsetOptimizingThreshold();
-
-    /**
-     * jimmer.isForeignKeyEnabledByDefault
-     */
-    @WithDefault("true")
-    boolean isForeignKeyEnabledByDefault();
-
-    /**
-     * jimmer.maxCommandJoinCount
-     */
-    @WithDefault("2")
-    int maxCommandJoinCount();
-
-    /**
-     * jimmer.mutationTransactionRequired
-     */
-    @WithDefault("false")
-    boolean mutationTransactionRequired();
-
-    /**
-     * jimmer.targetTransferable
-     */
-    @WithDefault("false")
-    boolean targetTransferable();
-
-    /**
-     * jimmer.explicitBatchEnabled
-     */
-    @WithDefault("false")
-    boolean explicitBatchEnabled();
-
-    /**
-     * jimmer.dumbBatchAcceptable
-     */
-    @WithDefault("false")
-    boolean dumbBatchAcceptable();
-
-    /**
-     * jimmer.constraintViolationTranslatable
-     */
-    @WithDefault("true")
-    boolean constraintViolationTranslatable();
-
-    /**
-     * jimmer.executorContextPrefixes
-     */
-    Optional<List<String>> executorContextPrefixes();
 
     /**
      * jimmer.microServiceName
@@ -199,63 +64,12 @@ public interface JimmerBuildTimeConfig {
     /**
      * jimmer.errorTranslator
      */
-    Optional<ErrorTranslator> errorTranslator();
+    Optional<JimmerRuntimeConfig.ErrorTranslator> errorTranslator();
 
     /**
      * jimmer.Client
      */
     Client client();
-
-    @Deprecated
-    @ConfigGroup
-    interface DatabaseValidation {
-
-        /**
-         * mode
-         */
-        @WithDefault("NONE")
-        DatabaseValidationMode mode();
-
-        /**
-         * catalog
-         */
-        @Deprecated
-        Optional<String> catalog();
-
-        /**
-         * schema
-         */
-        @Deprecated
-        Optional<String> schema();
-    }
-
-    @ConfigGroup
-    interface ErrorTranslator {
-
-        /**
-         * ErrorTranslatorBuildTimeConfig
-         */
-        @WithDefault("false")
-        boolean disabled();
-
-        /**
-         * httpStatus
-         */
-        @WithDefault("500")
-        int httpStatus();
-
-        /**
-         * debugInfoSupported
-         */
-        @WithDefault("false")
-        boolean debugInfoSupported();
-
-        /**
-         * debugInfoMaxStackTraceCount
-         */
-        @WithDefault("2147483647")
-        int debugInfoMaxStackTraceCount();
-    }
 
     @ConfigGroup
     interface Client {

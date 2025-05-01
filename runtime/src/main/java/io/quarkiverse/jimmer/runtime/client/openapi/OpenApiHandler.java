@@ -34,7 +34,7 @@ public class OpenApiHandler implements Handler<RoutingContext> {
 
     private static final Logger log = Logger.getLogger(TypeScriptHandler.class);
 
-    private JimmerBuildTimeConfig config;
+    private JimmerBuildTimeConfig buildTimeConfig;
 
     private boolean setup = false;
 
@@ -45,13 +45,13 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         }
 
         Metadata metadata = Metadatas.create(false, routingContext.request().getParam("groups"),
-                config.client().uriPrefix().orElse(null),
-                config.client().controllerNullityChecked());
+                buildTimeConfig.client().uriPrefix().orElse(null),
+                buildTimeConfig.client().controllerNullityChecked());
 
         List<OpenApiProperties.Server> servers = null;
-        if (config.client().openapi().properties().servers().isPresent()) {
-            servers = new ArrayList<>(config.client().openapi().properties().servers().get().size());
-            for (JimmerBuildTimeConfig.Server server : config.client().openapi().properties().servers().get()) {
+        if (buildTimeConfig.client().openapi().properties().servers().isPresent()) {
+            servers = new ArrayList<>(buildTimeConfig.client().openapi().properties().servers().get().size());
+            for (JimmerBuildTimeConfig.Server server : buildTimeConfig.client().openapi().properties().servers().get()) {
                 Map<String, OpenApiProperties.Variable> map = new HashMap<>();
                 server.variables().forEach((k, v) -> map.put(k, new OpenApiProperties.Variable(v.enums().orElse(null),
                         v.defaultValue().orElse(null), v.description().orElse(null))));
@@ -60,9 +60,9 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         }
 
         Map<String, OpenApiProperties.SecurityScheme> map;
-        if (!config.client().openapi().properties().components().securitySchemes().isEmpty()) {
+        if (!buildTimeConfig.client().openapi().properties().components().securitySchemes().isEmpty()) {
             map = new HashMap<>();
-            config.client().openapi().properties().components().securitySchemes().forEach((k, v) -> map.put(k,
+            buildTimeConfig.client().openapi().properties().components().securitySchemes().forEach((k, v) -> map.put(k,
                     new OpenApiProperties.SecurityScheme(
                             v.type().orElse(null),
                             v.description().orElse(null),
@@ -103,26 +103,26 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         OpenApiProperties openApiProperties = OpenApiProperties
                 .newBuilder()
                 .setInfo(new OpenApiProperties.Info(
-                        config.client().openapi().properties().info().title().orElse(null),
-                        config.client().openapi().properties().info().description().orElse(null),
-                        config.client().openapi().properties().info().termsOfService().orElse(null),
+                        buildTimeConfig.client().openapi().properties().info().title().orElse(null),
+                        buildTimeConfig.client().openapi().properties().info().description().orElse(null),
+                        buildTimeConfig.client().openapi().properties().info().termsOfService().orElse(null),
                         new OpenApiProperties.Contact(
-                                config.client().openapi().properties().info().contact().name().orElse(null),
-                                config.client().openapi().properties().info().contact().url().orElse(null),
-                                config.client().openapi().properties().info().contact().email().orElse(null)),
+                                buildTimeConfig.client().openapi().properties().info().contact().name().orElse(null),
+                                buildTimeConfig.client().openapi().properties().info().contact().url().orElse(null),
+                                buildTimeConfig.client().openapi().properties().info().contact().email().orElse(null)),
                         new OpenApiProperties.License(
-                                config.client().openapi().properties().info().license().name().orElse(null),
-                                config.client().openapi().properties().info().license().identifier().orElse(null)),
-                        config.client().openapi().properties().info().version().orElse(null)))
+                                buildTimeConfig.client().openapi().properties().info().license().name().orElse(null),
+                                buildTimeConfig.client().openapi().properties().info().license().identifier().orElse(null)),
+                        buildTimeConfig.client().openapi().properties().info().version().orElse(null)))
                 .setServers(servers)
                 .setComponents(new OpenApiProperties.Components(map))
-                .setSecurities(config.client().openapi().properties().securities().orElse(null))
+                .setSecurities(buildTimeConfig.client().openapi().properties().securities().orElse(null))
                 .build();
 
         OpenApiGenerator generator = new OpenApiGenerator(metadata, openApiProperties) {
             @Override
             protected int errorHttpStatus() {
-                return config.errorTranslator().isEmpty() ? 500 : config.errorTranslator().get().httpStatus();
+                return buildTimeConfig.errorTranslator().isEmpty() ? 500 : buildTimeConfig.errorTranslator().get().httpStatus();
             }
         };
 
@@ -151,16 +151,17 @@ public class OpenApiHandler implements Handler<RoutingContext> {
     }
 
     private void setup() {
-        Instance<JimmerBuildTimeConfig> configs = CDI.current().select(JimmerBuildTimeConfig.class,
+        Instance<JimmerBuildTimeConfig> buildTimeConfigs = CDI.current().select(JimmerBuildTimeConfig.class,
                 Default.Literal.INSTANCE);
 
-        if (configs.isUnsatisfied()) {
-            config = null;
-        } else if (configs.isAmbiguous()) {
-            config = configs.iterator().next();
-            log.warnf("Multiple JimmerBuildTimeConfig registries present. Using %s with the built in scrape endpoint", configs);
+        if (buildTimeConfigs.isUnsatisfied()) {
+            buildTimeConfig = null;
+        } else if (buildTimeConfigs.isAmbiguous()) {
+            buildTimeConfig = buildTimeConfigs.iterator().next();
+            log.warnf("Multiple JimmerBuildTimeConfig registries present. Using %s with the built in scrape endpoint",
+                    buildTimeConfigs);
         } else {
-            config = configs.get();
+            buildTimeConfig = buildTimeConfigs.get();
         }
 
         setup = true;

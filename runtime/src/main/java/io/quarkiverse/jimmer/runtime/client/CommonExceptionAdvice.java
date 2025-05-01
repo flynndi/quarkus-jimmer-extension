@@ -16,11 +16,11 @@ abstract class CommonExceptionAdvice {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonExceptionAdvice.class);
 
-    JimmerBuildTimeConfig config;
+    JimmerBuildTimeConfig buildTimeConfig;
 
-    public CommonExceptionAdvice(JimmerBuildTimeConfig config) {
-        this.config = config;
-        if (config.errorTranslator().isPresent() && config.errorTranslator().get().debugInfoSupported()) {
+    public CommonExceptionAdvice(JimmerBuildTimeConfig buildTimeConfig) {
+        this.buildTimeConfig = buildTimeConfig;
+        if (buildTimeConfig.errorTranslator().isPresent() && buildTimeConfig.errorTranslator().get().debugInfoSupported()) {
             notice();
         }
     }
@@ -42,8 +42,8 @@ abstract class CommonExceptionAdvice {
         resultMap.put("family", ex.getFamily());
         resultMap.put("code", ex.getCode());
         resultMap.putAll(ex.getFields());
-        if (config.errorTranslator().isPresent()) {
-            if (config.errorTranslator().get().debugInfoSupported()) {
+        if (buildTimeConfig.errorTranslator().isPresent()) {
+            if (buildTimeConfig.errorTranslator().get().debugInfoSupported()) {
                 resultMap.put("debugInfo", debugInfoMap(ex));
             }
         }
@@ -55,8 +55,8 @@ abstract class CommonExceptionAdvice {
         resultMap.put("family", ex.getFamily());
         resultMap.put("code", ex.getCode());
         resultMap.putAll(ex.getFields());
-        if (config.errorTranslator().isPresent()) {
-            if (config.errorTranslator().get().debugInfoSupported()) {
+        if (buildTimeConfig.errorTranslator().isPresent()) {
+            if (buildTimeConfig.errorTranslator().get().debugInfoSupported()) {
                 resultMap.put("debugInfo", debugInfoMap(ex));
             }
         }
@@ -68,7 +68,8 @@ abstract class CommonExceptionAdvice {
         map.put("message", ex.getMessage());
         StackTraceElement[] elements = ex.getStackTrace();
         int size = Math.min(elements.length,
-                config.errorTranslator().isPresent() ? config.errorTranslator().get().debugInfoMaxStackTraceCount()
+                buildTimeConfig.errorTranslator().isPresent()
+                        ? buildTimeConfig.errorTranslator().get().debugInfoMaxStackTraceCount()
                         : Integer.MAX_VALUE);
         List<String> stackFrames = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
