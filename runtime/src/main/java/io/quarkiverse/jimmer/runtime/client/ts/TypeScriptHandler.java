@@ -25,7 +25,7 @@ public class TypeScriptHandler implements Handler<RoutingContext> {
 
     private static final Logger log = Logger.getLogger(TypeScriptHandler.class);
 
-    private JimmerBuildTimeConfig config;
+    private JimmerBuildTimeConfig buildTimeConfig;
 
     private boolean setup = false;
 
@@ -35,10 +35,10 @@ public class TypeScriptHandler implements Handler<RoutingContext> {
             setup();
         }
 
-        JimmerBuildTimeConfig.TypeScript ts = config.client().ts();
+        JimmerBuildTimeConfig.TypeScript ts = buildTimeConfig.client().ts();
         Metadata metadata = Metadatas.create(true, routingContext.request().getParam("groups"),
-                config.client().uriPrefix().orElse(null),
-                config.client().controllerNullityChecked());
+                buildTimeConfig.client().uriPrefix().orElse(null),
+                buildTimeConfig.client().controllerNullityChecked());
         TypeScriptContext ctx = new TypeScriptContext(metadata, ts.indent(), ts.mutable(), ts.apiName(),
                 ts.nullRenderMode(), ts.isEnumTsStyle());
         HttpServerResponse response = routingContext.response();
@@ -64,16 +64,17 @@ public class TypeScriptHandler implements Handler<RoutingContext> {
     }
 
     private void setup() {
-        Instance<JimmerBuildTimeConfig> configs = CDI.current().select(JimmerBuildTimeConfig.class,
+        Instance<JimmerBuildTimeConfig> buildTimeConfigs = CDI.current().select(JimmerBuildTimeConfig.class,
                 Default.Literal.INSTANCE);
 
-        if (configs.isUnsatisfied()) {
-            config = null;
-        } else if (configs.isAmbiguous()) {
-            config = configs.iterator().next();
-            log.warnf("Multiple JimmerBuildTimeConfig registries present. Using %s with the built in scrape endpoint", configs);
+        if (buildTimeConfigs.isUnsatisfied()) {
+            buildTimeConfig = null;
+        } else if (buildTimeConfigs.isAmbiguous()) {
+            buildTimeConfig = buildTimeConfigs.iterator().next();
+            log.warnf("Multiple JimmerBuildTimeConfig registries present. Using %s with the built in scrape endpoint",
+                    buildTimeConfigs);
         } else {
-            config = configs.get();
+            buildTimeConfig = buildTimeConfigs.get();
         }
 
         setup = true;
