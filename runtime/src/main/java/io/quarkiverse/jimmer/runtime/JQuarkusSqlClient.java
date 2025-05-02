@@ -128,25 +128,29 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setMetaStringResolver(Objects.requireNonNullElseGet(metaStringResolver, QuarkusMetaStringResolver::new));
 
         builder.setDialect(this.initializeDialect(runtimeConfig));
-        builder.setDefaultReferenceFetchType(runtimeConfig.defaultReferenceFetchType());
-        runtimeConfig.maxJoinFetchDepth().ifPresent(builder::setMaxJoinFetchDepth);
+        builder.setDefaultReferenceFetchType(runtimeConfig.dataSources().get(dataSourceName).defaultReferenceFetchType());
+        runtimeConfig.dataSources().get(dataSourceName).maxJoinFetchDepth().ifPresent(builder::setMaxJoinFetchDepth);
         builder.setTriggerType(buildTimeConfig.dataSources().get(dataSourceName).triggerType());
-        builder.setDefaultDissociateActionCheckable(runtimeConfig.defaultDissociationActionCheckable());
-        builder.setIdOnlyTargetCheckingLevel(runtimeConfig.idOnlyTargetCheckingLevel());
-        builder.setDefaultEnumStrategy(runtimeConfig.defaultEnumStrategy());
-        runtimeConfig.defaultBatchSize().ifPresent(builder::setDefaultBatchSize);
-        builder.setInListPaddingEnabled(runtimeConfig.inListPaddingEnabled());
-        builder.setExpandedInListPaddingEnabled(runtimeConfig.expandedInListPaddingEnabled());
-        runtimeConfig.defaultListBatchSize().ifPresent(builder::setDefaultListBatchSize);
-        runtimeConfig.offsetOptimizingThreshold().ifPresent(builder::setOffsetOptimizingThreshold);
-        builder.setForeignKeyEnabledByDefault(runtimeConfig.isForeignKeyEnabledByDefault());
-        builder.setMaxCommandJoinCount(runtimeConfig.maxCommandJoinCount());
-        builder.setMutationTransactionRequired(runtimeConfig.mutationTransactionRequired());
-        builder.setTargetTransferable(runtimeConfig.targetTransferable());
-        builder.setExplicitBatchEnabled(runtimeConfig.explicitBatchEnabled());
-        builder.setDumbBatchAcceptable(runtimeConfig.dumbBatchAcceptable());
-        builder.setConstraintViolationTranslatable(runtimeConfig.constraintViolationTranslatable());
-        runtimeConfig.executorContextPrefixes().ifPresent(builder::setExecutorContextPrefixes);
+        builder.setDefaultDissociateActionCheckable(
+                runtimeConfig.dataSources().get(dataSourceName).defaultDissociationActionCheckable());
+        builder.setIdOnlyTargetCheckingLevel(runtimeConfig.dataSources().get(dataSourceName).idOnlyTargetCheckingLevel());
+        builder.setDefaultEnumStrategy(runtimeConfig.dataSources().get(dataSourceName).defaultEnumStrategy());
+        runtimeConfig.dataSources().get(dataSourceName).defaultBatchSize().ifPresent(builder::setDefaultBatchSize);
+        builder.setInListPaddingEnabled(runtimeConfig.dataSources().get(dataSourceName).inListPaddingEnabled());
+        builder.setExpandedInListPaddingEnabled(runtimeConfig.dataSources().get(dataSourceName).expandedInListPaddingEnabled());
+        runtimeConfig.dataSources().get(dataSourceName).defaultListBatchSize().ifPresent(builder::setDefaultListBatchSize);
+        runtimeConfig.dataSources().get(dataSourceName).offsetOptimizingThreshold()
+                .ifPresent(builder::setOffsetOptimizingThreshold);
+        builder.setForeignKeyEnabledByDefault(runtimeConfig.dataSources().get(dataSourceName).isForeignKeyEnabledByDefault());
+        builder.setMaxCommandJoinCount(runtimeConfig.dataSources().get(dataSourceName).maxCommandJoinCount());
+        builder.setMutationTransactionRequired(runtimeConfig.dataSources().get(dataSourceName).mutationTransactionRequired());
+        builder.setTargetTransferable(runtimeConfig.dataSources().get(dataSourceName).targetTransferable());
+        builder.setExplicitBatchEnabled(runtimeConfig.dataSources().get(dataSourceName).explicitBatchEnabled());
+        builder.setDumbBatchAcceptable(runtimeConfig.dataSources().get(dataSourceName).dumbBatchAcceptable());
+        builder.setConstraintViolationTranslatable(
+                runtimeConfig.dataSources().get(dataSourceName).constraintViolationTranslatable());
+        runtimeConfig.dataSources().get(dataSourceName).executorContextPrefixes()
+                .ifPresent(builder::setExecutorContextPrefixes);
 
         if (buildTimeConfig.dataSources().get(dataSourceName).showSql()) {
             builder.setExecutor(Executor.log(executor));
