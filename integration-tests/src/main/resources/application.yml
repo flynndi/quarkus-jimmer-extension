@@ -51,12 +51,44 @@ quarkus:
       pretty-sql: true
       inline-sql-variables: true
       trigger-type: TRANSACTION_ONLY
+      default-reference-fetch-type: SELECT
+      max-join-fetch-depth: 3
+      default-dissociation-action-checkable: true
+      id-only-target-checking-level: NONE
+      default-enum-strategy: NAME
+      default-batch-size: 128
+      in-list-padding-enabled: false
+      expanded-in-list-padding-enabled: false
+      default-list-batch-size: 16
+      offset-optimizing-threshold: 2147483647
+      is-foreign-key-enabled-by-default: true
+      max-command-join-count: 2
+      mutation-transaction-required: false
+      explicit-batch-enabled: false
+      dumb-batch-acceptable: false
+      constraint-violation-translatable: true
     DB2:
       dialect: org.babyfish.jimmer.sql.dialect.H2Dialect
       show-sql: true
       pretty-sql: true
       inline-sql-variables: true
       trigger-type: TRANSACTION_ONLY
+      default-reference-fetch-type: SELECT
+      max-join-fetch-depth: 3
+      default-dissociation-action-checkable: true
+      id-only-target-checking-level: NONE
+      default-enum-strategy: NAME
+      default-batch-size: 128
+      in-list-padding-enabled: false
+      expanded-in-list-padding-enabled: false
+      default-list-batch-size: 16
+      offset-optimizing-threshold: 2147483647
+      is-foreign-key-enabled-by-default: true
+      max-command-join-count: 2
+      mutation-transaction-required: false
+      explicit-batch-enabled: false
+      dumb-batch-acceptable: false
+      constraint-violation-translatable: true
     database-validation:
       mode: NONE
     error-translator:
