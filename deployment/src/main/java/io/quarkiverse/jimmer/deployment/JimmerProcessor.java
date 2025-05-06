@@ -394,9 +394,13 @@ final class JimmerProcessor {
             return;
         }
 
-        AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
-        builder.addBeanClass(TransactionCacheOperatorFlusher.class);
-        additionalBeans.produce(builder.build());
+        boolean transactionCacheOperatorFlusherFlag = jdbcDataSourceBuildItems.stream()
+                .anyMatch(x -> !buildTimeConfig.dataSources().get(x.getName()).triggerType().equals(TriggerType.BINLOG_ONLY));
+        if (transactionCacheOperatorFlusherFlag) {
+            AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
+            builder.addBeanClass(TransactionCacheOperatorFlusher.class);
+            additionalBeans.produce(builder.build());
+        }
 
         for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
@@ -437,9 +441,13 @@ final class JimmerProcessor {
             return;
         }
 
-        AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
-        builder.addBeanClass(TransactionCacheOperatorFlusher.class);
-        additionalBeans.produce(builder.build());
+        boolean transactionCacheOperatorFlusherFlag = jdbcDataSourceBuildItems.stream()
+                .anyMatch(x -> !buildTimeConfig.dataSources().get(x.getName()).triggerType().equals(TriggerType.BINLOG_ONLY));
+        if (transactionCacheOperatorFlusherFlag) {
+            AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
+            builder.addBeanClass(TransactionCacheOperatorFlusher.class);
+            additionalBeans.produce(builder.build());
+        }
 
         for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
