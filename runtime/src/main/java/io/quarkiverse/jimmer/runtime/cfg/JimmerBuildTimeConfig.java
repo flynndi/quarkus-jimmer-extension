@@ -6,7 +6,11 @@ import java.util.Optional;
 
 import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
+import org.eclipse.microprofile.config.spi.Converter;
 
+import io.quarkiverse.jimmer.runtime.util.StringUtils;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.runtime.annotations.ConfigDocMapKey;
 import io.quarkus.runtime.annotations.ConfigGroup;
@@ -161,8 +165,8 @@ public interface JimmerBuildTimeConfig {
         /**
          * Openapi.refPath
          */
-        @WithDefault("/openapi.yml")
-        String refPath();
+        @WithConverter(OpenapiRefPathConverter.class)
+        Optional<String> refPath();
 
         /**
          * Openapi.properties
@@ -417,5 +421,26 @@ public interface JimmerBuildTimeConfig {
         @ConfigDocMapKey("flowScopes")
         @WithName("scopes")
         Map<String, String> scopes();
+    }
+
+    class OpenapiRefPathConverter implements Converter<String> {
+
+        public OpenapiRefPathConverter() {
+        }
+
+        @Override
+        public String convert(String s) {
+            final ClassLoader cl = OpenapiRefPathConverter.class.getClassLoader();
+            final Config config = ConfigProviderResolver.instance().getConfig(cl);
+            if (!StringUtils.hasText(s)) {
+                if (config.getOptionalValue("quarkus.jimmer.client.openapi.path", String.class).isEmpty()) {
+                    return null;
+                } else {
+                    return config.getOptionalValue("quarkus.jimmer.client.openapi.path", String.class).get();
+                }
+            } else {
+                return s;
+            }
+        }
     }
 }
