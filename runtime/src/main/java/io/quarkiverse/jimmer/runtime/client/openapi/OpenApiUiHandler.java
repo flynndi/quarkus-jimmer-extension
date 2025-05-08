@@ -80,7 +80,7 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
     }
 
     private String html(String groups) {
-        String refPath = buildTimeConfig.client().openapi().refPath();
+        String refPath = buildTimeConfig.client().openapi().refPath().orElseThrow();
         String resource;
         if (hasMetadata()) {
             resource = refPath != null && !refPath.isEmpty() ? "META-INF/jimmer/openapi/index.html.template"
