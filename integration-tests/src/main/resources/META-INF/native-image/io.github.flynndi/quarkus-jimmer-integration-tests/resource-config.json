@@ -1,0 +1,135 @@
+{
+  "resources":{
+  "includes":[{
+    "pattern":"\\QConfigurationInfo.properties\\E"
+  }, {
+    "pattern":"\\QMETA-INF/MANIFEST.MF\\E"
+  }, {
+    "pattern":"\\QMETA-INF/jimmer/code_generation\\E"
+  }, {
+    "pattern":"\\QMETA-INF/jimmer/entities\\E"
+  }, {
+    "pattern":"\\QMETA-INF/microprofile-config.properties\\E"
+  }, {
+    "pattern":"\\QMETA-INF/microprofile-config.yaml\\E"
+  }, {
+    "pattern":"\\QMETA-INF/microprofile-config.yml\\E"
+  }, {
+    "pattern":"\\QMETA-INF/resources/q/dev-ui\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.quarkus.arc.ComponentsProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.quarkus.arc.ResourceReferenceProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.config.ConfigSourceFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.config.ConfigSourceInterceptorFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.config.ConfigSourceInterceptor\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.config.SecretKeysHandlerFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.config.SecretKeysHandler\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.config.SmallRyeConfigBuilderCustomizer\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.config.SmallRyeConfigFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.mutiny.infrastructure.CallbackDecorator\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.mutiny.infrastructure.ExecutorConfiguration\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.mutiny.infrastructure.MultiInterceptor\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.mutiny.infrastructure.UniInterceptor\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.stork.spi.config.ConfigProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.stork.spi.internal.LoadBalancerLoader\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.stork.spi.internal.ServiceDiscoveryLoader\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.smallrye.stork.spi.internal.ServiceRegistrarLoader\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.undertow.servlet.ServletExtension\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.vertx.core.spi.VerticleFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/io.vertx.core.spi.VertxServiceProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/jakarta.ws.rs.ext.RuntimeDelegate\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.net.spi.InetAddressResolverProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.net.spi.URLStreamHandlerProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.nio.channels.spi.SelectorProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.nio.file.spi.FileSystemProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.sql.Driver\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.time.zone.ZoneRulesProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.util.spi.ResourceBundleControlProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.eclipse.microprofile.config.spi.ConfigProviderResolver\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.eclipse.microprofile.config.spi.ConfigSourceProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.eclipse.microprofile.config.spi.ConfigSource\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.eclipse.microprofile.config.spi.Converter\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.jboss.logging.LoggerProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.jboss.logmanager.ConfiguratorFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.jboss.logmanager.LogContextConfigurator\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.jboss.logmanager.LogContextInitializer\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.jboss.logmanager.MDCProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.jboss.logmanager.NDCProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.jboss.resteasy.reactive.common.core.ResponseBuilderFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.slf4j.spi.SLF4JServiceProvider\\E"
+  }, {
+    "pattern":"\\Qapplication.properties\\E"
+  }, {
+    "pattern":"\\Qapplication.yaml\\E"
+  }, {
+    "pattern":"\\Qapplication.yml\\E"
+  }, {
+    "pattern":"\\Qh2-database.sql\\E"
+  }, {
+    "pattern":"\\Qh2-database2.sql\\E"
+  }, {
+    "pattern":"\\Qio/quarkus/redisson/client/runtime/redisson.yaml\\E"
+  }, {
+    "pattern":"\\Qjbossts-properties.xml\\E"
+  }, {
+    "pattern":"\\Qlogging.properties\\E"
+  }, {
+    "pattern":"\\Qorg/h2/util/data.zip\\E"
+  }, {
+    "pattern":"\\Qorg/jboss/threads/Version.properties\\E"
+  }, {
+    "pattern":"\\Qorg/quartz/core/quartz-build.properties\\E"
+  }, {
+    "pattern":"\\Qredisson.yaml\\E"
+  }, {
+    "pattern":"\\Qvertx-default-jul-logging.properties\\E"
+  }]},
+  "bundles":[{
+    "name":"jakarta.servlet.LocalStrings",
+    "locales":[""]
+  }, {
+    "name":"jakarta.servlet.http.LocalStrings",
+    "locales":[""]
+  }]
+}

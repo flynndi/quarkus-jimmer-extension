@@ -1,0 +1,2935 @@
+[
+{
+  "name":"[B"
+},
+{
+  "name":"[C"
+},
+{
+  "name":"[Lcom.fasterxml.jackson.databind.deser.BeanDeserializerModifier;"
+},
+{
+  "name":"[Lcom.fasterxml.jackson.databind.deser.Deserializers;"
+},
+{
+  "name":"[Lcom.fasterxml.jackson.databind.deser.KeyDeserializers;"
+},
+{
+  "name":"[Lcom.fasterxml.jackson.databind.deser.ValueInstantiators;"
+},
+{
+  "name":"[Lcom.fasterxml.jackson.databind.ser.BeanSerializerModifier;"
+},
+{
+  "name":"[Lcom.fasterxml.jackson.databind.ser.Serializers;"
+},
+{
+  "name":"[Lio.agroal.pool.ConnectionHandler;"
+},
+{
+  "name":"[Ljava.lang.String;"
+},
+{
+  "name":"com.arjuna.ats.arjuna.common.CoordinatorEnvironmentBean",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"getCheckedActionFactory","parameterTypes":[] }, {"name":"getCheckedActionFactoryClassName","parameterTypes":[] }, {"name":"getCommunicationStore","parameterTypes":[] }, {"name":"getDefaultTimeout","parameterTypes":[] }, {"name":"getDynamic1PC","parameterTypes":[] }, {"name":"getMaxTwoPhaseCommitThreads","parameterTypes":[] }, {"name":"getTxReaperCancelFailWaitPeriod","parameterTypes":[] }, {"name":"getTxReaperCancelWaitPeriod","parameterTypes":[] }, {"name":"getTxReaperMode","parameterTypes":[] }, {"name":"getTxReaperTimeout","parameterTypes":[] }, {"name":"getTxReaperTraceGracePeriod","parameterTypes":[] }, {"name":"getTxReaperTraceInterval","parameterTypes":[] }, {"name":"getTxReaperZombieMax","parameterTypes":[] }, {"name":"isAllowCheckedActionFactoryOverride","parameterTypes":[] }, {"name":"isAlternativeRecordOrdering","parameterTypes":[] }, {"name":"isAsyncAfterSynchronization","parameterTypes":[] }, {"name":"isAsyncBeforeSynchronization","parameterTypes":[] }, {"name":"isAsyncCommit","parameterTypes":[] }, {"name":"isAsyncPrepare","parameterTypes":[] }, {"name":"isAsyncRollback","parameterTypes":[] }, {"name":"isBeforeCompletionWhenRollbackOnly","parameterTypes":[] }, {"name":"isClassicPrepare","parameterTypes":[] }, {"name":"isCommitOnePhase","parameterTypes":[] }, {"name":"isDynamic1PC","parameterTypes":[] }, {"name":"isEnableStatistics","parameterTypes":[] }, {"name":"isFinalizeBasicActions","parameterTypes":[] }, {"name":"isMaintainHeuristics","parameterTypes":[] }, {"name":"isReadonlyOptimisation","parameterTypes":[] }, {"name":"isSharedTransactionLog","parameterTypes":[] }, {"name":"isStartDisabled","parameterTypes":[] }, {"name":"isTransactionStatusManagerEnable","parameterTypes":[] }, {"name":"isWriteOptimisation","parameterTypes":[] }, {"name":"setAllowCheckedActionFactoryOverride","parameterTypes":["boolean"] }, {"name":"setAlternativeRecordOrdering","parameterTypes":["boolean"] }, {"name":"setAsyncAfterSynchronization","parameterTypes":["boolean"] }, {"name":"setAsyncBeforeSynchronization","parameterTypes":["boolean"] }, {"name":"setAsyncCommit","parameterTypes":["boolean"] }, {"name":"setAsyncPrepare","parameterTypes":["boolean"] }, {"name":"setAsyncRollback","parameterTypes":["boolean"] }, {"name":"setBeforeCompletionWhenRollbackOnly","parameterTypes":["boolean"] }, {"name":"setCheckedActionFactory","parameterTypes":["com.arjuna.ats.arjuna.coordinator.CheckedActionFactory"] }, {"name":"setCheckedActionFactoryClassName","parameterTypes":["java.lang.String"] }, {"name":"setClassicPrepare","parameterTypes":["boolean"] }, {"name":"setCommitOnePhase","parameterTypes":["boolean"] }, {"name":"setCommunicationStore","parameterTypes":["java.lang.String"] }, {"name":"setDefaultTimeout","parameterTypes":["int"] }, {"name":"setDynamic1PC","parameterTypes":["boolean"] }, {"name":"setEnableStatistics","parameterTypes":["boolean"] }, {"name":"setFinalizeBasicActions","parameterTypes":["boolean"] }, {"name":"setMaintainHeuristics","parameterTypes":["boolean"] }, {"name":"setMaxTwoPhaseCommitThreads","parameterTypes":["int"] }, {"name":"setReadonlyOptimisation","parameterTypes":["boolean"] }, {"name":"setSharedTransactionLog","parameterTypes":["boolean"] }, {"name":"setStartDisabled","parameterTypes":["boolean"] }, {"name":"setTransactionLog","parameterTypes":["boolean"] }, {"name":"setTransactionStatusManagerEnable","parameterTypes":["boolean"] }, {"name":"setTxReaperCancelFailWaitPeriod","parameterTypes":["long"] }, {"name":"setTxReaperCancelWaitPeriod","parameterTypes":["long"] }, {"name":"setTxReaperMode","parameterTypes":["java.lang.String"] }, {"name":"setTxReaperTimeout","parameterTypes":["long"] }, {"name":"setTxReaperTraceGracePeriod","parameterTypes":["long"] }, {"name":"setTxReaperTraceInterval","parameterTypes":["long"] }, {"name":"setTxReaperZombieMax","parameterTypes":["int"] }, {"name":"setWriteOptimisation","parameterTypes":["boolean"] }]
+},
+{
+  "name":"com.arjuna.ats.arjuna.common.CoreEnvironmentBean",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"getNodeIdentifier","parameterTypes":[] }, {"name":"getPid","parameterTypes":[] }, {"name":"getProcessImplementation","parameterTypes":[] }, {"name":"getProcessImplementationClassName","parameterTypes":[] }, {"name":"getSocketProcessIdMaxPorts","parameterTypes":[] }, {"name":"getSocketProcessIdPort","parameterTypes":[] }, {"name":"getTimeoutFactor","parameterTypes":[] }, {"name":"getVarDir","parameterTypes":[] }, {"name":"isAllowMultipleLastResources","parameterTypes":[] }, {"name":"isDisableMultipleLastResourcesWarning","parameterTypes":[] }, {"name":"setAllowMultipleLastResources","parameterTypes":["boolean"] }, {"name":"setDisableMultipleLastResourcesWarning","parameterTypes":["boolean"] }, {"name":"setNODE_NAME_SIZE","parameterTypes":["int"] }, {"name":"setNodeIdentifier","parameterTypes":["java.lang.String"] }, {"name":"setNodeIdentifierBytes","parameterTypes":["byte[]"] }, {"name":"setPid","parameterTypes":["int"] }, {"name":"setProcessImplementation","parameterTypes":["com.arjuna.ats.arjuna.utils.Process"] }, {"name":"setProcessImplementationClassName","parameterTypes":["java.lang.String"] }, {"name":"setSocketProcessIdMaxPorts","parameterTypes":["int"] }, {"name":"setSocketProcessIdPort","parameterTypes":["int"] }, {"name":"setTimeoutFactor","parameterTypes":["int"] }, {"name":"setVarDir","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"com.arjuna.ats.arjuna.common.ObjectStoreEnvironmentBean",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"getCacheStoreHash","parameterTypes":[] }, {"name":"getCacheStoreRemovedItems","parameterTypes":[] }, {"name":"getCacheStoreScanPeriod","parameterTypes":[] }, {"name":"getCacheStoreSize","parameterTypes":[] }, {"name":"getCacheStoreWorkItems","parameterTypes":[] }, {"name":"getCreateTable","parameterTypes":[] }, {"name":"getDropTable","parameterTypes":[] }, {"name":"getExposeAllLogRecordsAsMBeans","parameterTypes":[] }, {"name":"getHashedDirectories","parameterTypes":[] }, {"name":"getHierarchyRetry","parameterTypes":[] }, {"name":"getHierarchyTimeout","parameterTypes":[] }, {"name":"getJdbcAccess","parameterTypes":[] }, {"name":"getJmxToolingMBeanName","parameterTypes":[] }, {"name":"getLocalOSRoot","parameterTypes":[] }, {"name":"getObjectStoreDir","parameterTypes":[] }, {"name":"getObjectStoreType","parameterTypes":[] }, {"name":"getPurgeTime","parameterTypes":[] }, {"name":"getShare","parameterTypes":[] }, {"name":"getTablePrefix","parameterTypes":[] }, {"name":"getTxLogSize","parameterTypes":[] }, {"name":"isCacheStoreSync","parameterTypes":[] }, {"name":"isCreateTable","parameterTypes":[] }, {"name":"isDropTable","parameterTypes":[] }, {"name":"isExposeAllLogRecordsAsMBeans","parameterTypes":[] }, {"name":"isIgnoreMBeanHeuristics","parameterTypes":[] }, {"name":"isObjectStoreSync","parameterTypes":[] }, {"name":"isScanZeroLengthFiles","parameterTypes":[] }, {"name":"isSynchronousRemoval","parameterTypes":[] }, {"name":"isTransactionSync","parameterTypes":[] }, {"name":"isVolatileStoreSupportAllObjUids","parameterTypes":[] }, {"name":"setAndroidDirCheck","parameterTypes":["boolean"] }, {"name":"setCacheStoreHash","parameterTypes":["int"] }, {"name":"setCacheStoreRemovedItems","parameterTypes":["int"] }, {"name":"setCacheStoreScanPeriod","parameterTypes":["int"] }, {"name":"setCacheStoreSize","parameterTypes":["int"] }, {"name":"setCacheStoreSync","parameterTypes":["boolean"] }, {"name":"setCacheStoreWorkItems","parameterTypes":["int"] }, {"name":"setCreateTable","parameterTypes":["boolean"] }, {"name":"setDropTable","parameterTypes":["boolean"] }, {"name":"setExposeAllLogRecordsAsMBeans","parameterTypes":["boolean"] }, {"name":"setHashedDirectories","parameterTypes":["int"] }, {"name":"setHierarchyRetry","parameterTypes":["int"] }, {"name":"setHierarchyTimeout","parameterTypes":["int"] }, {"name":"setIgnoreMBeanHeuristics","parameterTypes":["boolean"] }, {"name":"setJdbcAccess","parameterTypes":["java.lang.String"] }, {"name":"setJdbcStoreDataSource","parameterTypes":["javax.sql.DataSource"] }, {"name":"setJmxToolingMBeanName","parameterTypes":["java.lang.String"] }, {"name":"setLocalOSRoot","parameterTypes":["java.lang.String"] }, {"name":"setObjectStoreDir","parameterTypes":["java.lang.String"] }, {"name":"setObjectStoreSync","parameterTypes":["boolean"] }, {"name":"setObjectStoreType","parameterTypes":["java.lang.String"] }, {"name":"setPurgeTime","parameterTypes":["long"] }, {"name":"setScanZeroLengthFiles","parameterTypes":["boolean"] }, {"name":"setShare","parameterTypes":["int"] }, {"name":"setSynchronousRemoval","parameterTypes":["boolean"] }, {"name":"setTablePrefix","parameterTypes":["java.lang.String"] }, {"name":"setTransactionSync","parameterTypes":["boolean"] }, {"name":"setTxLogSize","parameterTypes":["long"] }, {"name":"setVolatileStoreSupportAllObjUids","parameterTypes":["boolean"] }]
+},
+{
+  "name":"com.arjuna.ats.arjuna.common.RecoveryEnvironmentBean",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"getExpiryScanInterval","parameterTypes":[] }, {"name":"getExpiryScannerClassNames","parameterTypes":[] }, {"name":"getExpiryScanners","parameterTypes":[] }, {"name":"getPeriodicRecoveryInitilizationOffset","parameterTypes":[] }, {"name":"getPeriodicRecoveryPeriod","parameterTypes":[] }, {"name":"getRecoveryActivatorClassNames","parameterTypes":[] }, {"name":"getRecoveryActivators","parameterTypes":[] }, {"name":"getRecoveryAddress","parameterTypes":[] }, {"name":"getRecoveryBackoffPeriod","parameterTypes":[] }, {"name":"getRecoveryModuleClassNames","parameterTypes":[] }, {"name":"getRecoveryModules","parameterTypes":[] }, {"name":"getRecoveryPort","parameterTypes":[] }, {"name":"getTransactionStatusManagerAddress","parameterTypes":[] }, {"name":"getTransactionStatusManagerExpiryTime","parameterTypes":[] }, {"name":"getTransactionStatusManagerPort","parameterTypes":[] }, {"name":"isRecoveryListener","parameterTypes":[] }, {"name":"isTimeoutSocket","parameterTypes":[] }, {"name":"setExpiryScanInterval","parameterTypes":["int"] }, {"name":"setExpiryScannerClassNames","parameterTypes":["java.util.List"] }, {"name":"setExpiryScanners","parameterTypes":["java.util.List"] }, {"name":"setPeriodicRecoveryInitilizationOffset","parameterTypes":["int"] }, {"name":"setPeriodicRecoveryPeriod","parameterTypes":["int"] }, {"name":"setRecoveryActivatorClassNames","parameterTypes":["java.util.List"] }, {"name":"setRecoveryActivators","parameterTypes":["java.util.List"] }, {"name":"setRecoveryAddress","parameterTypes":["java.lang.String"] }, {"name":"setRecoveryBackoffPeriod","parameterTypes":["int"] }, {"name":"setRecoveryListener","parameterTypes":["boolean"] }, {"name":"setRecoveryModuleClassNames","parameterTypes":["java.util.List"] }, {"name":"setRecoveryModules","parameterTypes":["java.util.List"] }, {"name":"setRecoveryPort","parameterTypes":["int"] }, {"name":"setTimeoutSocket","parameterTypes":["boolean"] }, {"name":"setTransactionStatusManagerAddress","parameterTypes":["java.lang.String"] }, {"name":"setTransactionStatusManagerExpiryTime","parameterTypes":["int"] }, {"name":"setTransactionStatusManagerPort","parameterTypes":["int"] }]
+},
+{
+  "name":"com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionManagerImple",
+  "queryAllPublicConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.arjuna.ats.jta.common.JTAEnvironmentBean",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"getAsyncCommitPoolSize","parameterTypes":[] }, {"name":"getCommitMarkableResourceJNDINames","parameterTypes":[] }, {"name":"getCommitMarkableResourceRecordDeleteBatchSize","parameterTypes":[] }, {"name":"getCommitMarkableResourceRecordDeleteBatchSizeMap","parameterTypes":[] }, {"name":"getCommitMarkableResourceTableNameMap","parameterTypes":[] }, {"name":"getLastResourceOptimisationInterface","parameterTypes":[] }, {"name":"getLastResourceOptimisationInterfaceClassName","parameterTypes":[] }, {"name":"getOrphanSafetyInterval","parameterTypes":[] }, {"name":"getPerformImmediateCleanupOfCommitMarkableResourceBranchesMap","parameterTypes":[] }, {"name":"getTransactionManager","parameterTypes":[] }, {"name":"getTransactionManagerClassName","parameterTypes":[] }, {"name":"getTransactionManagerJNDIContext","parameterTypes":[] }, {"name":"getTransactionSynchronizationRegistry","parameterTypes":[] }, {"name":"getTransactionSynchronizationRegistryClassName","parameterTypes":[] }, {"name":"getTransactionSynchronizationRegistryJNDIContext","parameterTypes":[] }, {"name":"getUserTransaction","parameterTypes":[] }, {"name":"getUserTransactionClassName","parameterTypes":[] }, {"name":"getUserTransactionJNDIContext","parameterTypes":[] }, {"name":"getUserTransactionOperationsProviderClassName","parameterTypes":[] }, {"name":"getXaRecoveryNodes","parameterTypes":[] }, {"name":"getXaResourceIsSameRMClassNames","parameterTypes":[] }, {"name":"getXaResourceMapClassNames","parameterTypes":[] }, {"name":"getXaResourceMaps","parameterTypes":[] }, {"name":"getXaResourceOrphanFilterClassNames","parameterTypes":[] }, {"name":"getXaResourceOrphanFilters","parameterTypes":[] }, {"name":"getXaResourceRecordWrappingPluginClassName","parameterTypes":[] }, {"name":"getXaResourceRecoveries","parameterTypes":[] }, {"name":"getXaResourceRecoveryClassNames","parameterTypes":[] }, {"name":"isNotifyCommitMarkableResourceRecoveryModuleOfCompleteBranches","parameterTypes":[] }, {"name":"isPerformImmediateCleanupOfCommitMarkableResourceBranches","parameterTypes":[] }, {"name":"isStrictJTA12DuplicateXAENDPROTOErr","parameterTypes":[] }, {"name":"isSupportSubtransactions","parameterTypes":[] }, {"name":"isTransactionToThreadListenersEnabled","parameterTypes":[] }, {"name":"isXaAssumeRecoveryComplete","parameterTypes":[] }, {"name":"isXaRollbackOptimization","parameterTypes":[] }, {"name":"isXaTransactionTimeoutEnabled","parameterTypes":[] }, {"name":"setAsyncCommitPoolSize","parameterTypes":["int"] }, {"name":"setCommitMarkableResourceJNDINames","parameterTypes":["java.util.List"] }, {"name":"setCommitMarkableResourceRecordDeleteBatchSize","parameterTypes":["int"] }, {"name":"setCommitMarkableResourceRecordDeleteBatchSizeMap","parameterTypes":["java.util.Map"] }, {"name":"setCommitMarkableResourceTableName","parameterTypes":["java.lang.String"] }, {"name":"setCommitMarkableResourceTableNameMap","parameterTypes":["java.util.Map"] }, {"name":"setDefaultTransactionOperationsProviderClassName","parameterTypes":["java.lang.String"] }, {"name":"setLastResourceOptimisationInterface","parameterTypes":["java.lang.Class"] }, {"name":"setLastResourceOptimisationInterfaceClassName","parameterTypes":["java.lang.String"] }, {"name":"setNotifyCommitMarkableResourceRecoveryModuleOfCompleteBranches","parameterTypes":["boolean"] }, {"name":"setOrphanSafetyInterval","parameterTypes":["int"] }, {"name":"setPerformImmediateCleanupOfCommitMarkableResourceBranches","parameterTypes":["boolean"] }, {"name":"setPerformImmediateCleanupOfCommitMarkableResourceBranchesMap","parameterTypes":["java.util.Map"] }, {"name":"setStrictJTA12DuplicateXAENDPROTOErr","parameterTypes":["boolean"] }, {"name":"setSupportSubtransactions","parameterTypes":["boolean"] }, {"name":"setTransactionManager","parameterTypes":["jakarta.transaction.TransactionManager"] }, {"name":"setTransactionManagerClassName","parameterTypes":["java.lang.String"] }, {"name":"setTransactionManagerJNDIContext","parameterTypes":["java.lang.String"] }, {"name":"setTransactionSynchronizationRegistry","parameterTypes":["jakarta.transaction.TransactionSynchronizationRegistry"] }, {"name":"setTransactionSynchronizationRegistryClassName","parameterTypes":["java.lang.String"] }, {"name":"setTransactionSynchronizationRegistryJNDIContext","parameterTypes":["java.lang.String"] }, {"name":"setTransactionToThreadListenersEnabled","parameterTypes":["boolean"] }, {"name":"setUserTransaction","parameterTypes":["jakarta.transaction.UserTransaction"] }, {"name":"setUserTransactionClassName","parameterTypes":["java.lang.String"] }, {"name":"setUserTransactionJNDIContext","parameterTypes":["java.lang.String"] }, {"name":"setUserTransactionOperationsProvider","parameterTypes":["org.jboss.tm.usertx.UserTransactionOperationsProvider"] }, {"name":"setUserTransactionOperationsProviderClassName","parameterTypes":["java.lang.String"] }, {"name":"setXaAssumeRecoveryComplete","parameterTypes":["boolean"] }, {"name":"setXaRecoveryNodes","parameterTypes":["java.util.List"] }, {"name":"setXaResourceIsSameRMClassNames","parameterTypes":["java.util.List"] }, {"name":"setXaResourceMapClassNames","parameterTypes":["java.util.List"] }, {"name":"setXaResourceMaps","parameterTypes":["java.util.List"] }, {"name":"setXaResourceOrphanFilterClassNames","parameterTypes":["java.util.List"] }, {"name":"setXaResourceOrphanFilters","parameterTypes":["java.util.List"] }, {"name":"setXaResourceRecordWrappingPlugin","parameterTypes":["com.arjuna.ats.internal.jta.resources.arjunacore.XAResourceRecordWrappingPlugin"] }, {"name":"setXaResourceRecordWrappingPluginClassName","parameterTypes":["java.lang.String"] }, {"name":"setXaResourceRecoveries","parameterTypes":["java.util.List"] }, {"name":"setXaResourceRecoveryClassNames","parameterTypes":["java.util.List"] }, {"name":"setXaRollbackOptimization","parameterTypes":["boolean"] }, {"name":"setXaTransactionTimeoutEnabled","parameterTypes":["boolean"] }]
+},
+{
+  "name":"com.arjuna.ats.jta.logging.jtaI18NLogger_$logger",
+  "methods":[{"name":"<init>","parameterTypes":["org.jboss.logging.Logger"] }]
+},
+{
+  "name":"com.arjuna.ats.jta.logging.jtaI18NLogger_$logger_zh"
+},
+{
+  "name":"com.arjuna.ats.jta.logging.jtaI18NLogger_$logger_zh_CN"
+},
+{
+  "name":"com.arjuna.ats.jta.resources.LastResourceCommitOptimisation"
+},
+{
+  "name":"com.arjuna.common.logging.commonI18NLogger_$logger",
+  "methods":[{"name":"<init>","parameterTypes":["org.jboss.logging.Logger"] }]
+},
+{
+  "name":"com.arjuna.common.logging.commonI18NLogger_$logger_zh"
+},
+{
+  "name":"com.arjuna.common.logging.commonI18NLogger_$logger_zh_CN"
+},
+{
+  "name":"com.arjuna.common.util.propertyservice.PropertiesFactory",
+  "fields":[{"name":"delegatePropertiesFactory"}]
+},
+{
+  "name":"com.cronutils.model.CronType"
+},
+{
+  "name":"com.fasterxml.jackson.annotation.JsonInclude$Include"
+},
+{
+  "name":"com.fasterxml.jackson.core.ObjectCodec"
+},
+{
+  "name":"com.fasterxml.jackson.core.TreeCodec"
+},
+{
+  "name":"com.fasterxml.jackson.core.Versioned"
+},
+{
+  "name":"com.fasterxml.jackson.databind.ObjectMapper"
+},
+{
+  "name":"com.fasterxml.jackson.databind.exc.InvalidDefinitionException"
+},
+{
+  "name":"com.fasterxml.jackson.databind.exc.MismatchedInputException"
+},
+{
+  "name":"com.fasterxml.jackson.databind.ext.Java7SupportImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.fasterxml.jackson.module.kotlin.KotlinModule"
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.BLCHeader$DrainStatusRef",
+  "fields":[{"name":"drainStatus"}]
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.BaseMpscLinkedArrayQueueColdProducerFields",
+  "fields":[{"name":"producerLimit"}]
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.BaseMpscLinkedArrayQueueConsumerFields",
+  "fields":[{"name":"consumerIndex"}]
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.BaseMpscLinkedArrayQueueProducerFields",
+  "fields":[{"name":"producerIndex"}]
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.BoundedLocalCache",
+  "fields":[{"name":"refreshes"}]
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.CacheLoader",
+  "methods":[{"name":"loadAll","parameterTypes":["java.util.Set"] }]
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.PS",
+  "fields":[{"name":"key"}, {"name":"value"}]
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.PSW",
+  "fields":[{"name":"writeTime"}]
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.PSWMS",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.SSMSW",
+  "methods":[{"name":"<init>","parameterTypes":["com.github.benmanes.caffeine.cache.Caffeine","com.github.benmanes.caffeine.cache.AsyncCacheLoader","boolean"] }]
+},
+{
+  "name":"com.github.benmanes.caffeine.cache.StripedBuffer",
+  "fields":[{"name":"tableBusy"}]
+},
+{
+  "name":"com.ibm.icu.text.Collator"
+},
+{
+  "name":"io.agroal.api.AgroalDataSource"
+},
+{
+  "name":"io.agroal.api.AgroalPoolInterceptor"
+},
+{
+  "name":"io.agroal.pool.ConnectionHandler",
+  "fields":[{"name":"state"}]
+},
+{
+  "name":"io.agroal.pool.util.AutoCloseableElement",
+  "fields":[{"name":"nextElement"}]
+},
+{
+  "name":"io.netty.bootstrap.ServerBootstrap$1"
+},
+{
+  "name":"io.netty.bootstrap.ServerBootstrap$ServerBootstrapAcceptor",
+  "methods":[{"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }, {"name":"exceptionCaught","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Throwable"] }]
+},
+{
+  "name":"io.netty.buffer.AbstractByteBufAllocator",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"io.netty.buffer.AbstractReferenceCountedByteBuf",
+  "fields":[{"name":"refCnt"}]
+},
+{
+  "name":"io.netty.channel.AbstractChannelHandlerContext",
+  "fields":[{"name":"handlerState"}]
+},
+{
+  "name":"io.netty.channel.ChannelDuplexHandler",
+  "methods":[{"name":"bind","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.net.SocketAddress","io.netty.channel.ChannelPromise"] }, {"name":"close","parameterTypes":["io.netty.channel.ChannelHandlerContext","io.netty.channel.ChannelPromise"] }, {"name":"connect","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.net.SocketAddress","java.net.SocketAddress","io.netty.channel.ChannelPromise"] }, {"name":"deregister","parameterTypes":["io.netty.channel.ChannelHandlerContext","io.netty.channel.ChannelPromise"] }, {"name":"disconnect","parameterTypes":["io.netty.channel.ChannelHandlerContext","io.netty.channel.ChannelPromise"] }, {"name":"flush","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"read","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"write","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object","io.netty.channel.ChannelPromise"] }]
+},
+{
+  "name":"io.netty.channel.ChannelHandlerAdapter",
+  "methods":[{"name":"exceptionCaught","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Throwable"] }]
+},
+{
+  "name":"io.netty.channel.ChannelInboundHandlerAdapter",
+  "methods":[{"name":"channelActive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelInactive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }, {"name":"channelReadComplete","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRegistered","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelUnregistered","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelWritabilityChanged","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"exceptionCaught","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Throwable"] }, {"name":"userEventTriggered","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }]
+},
+{
+  "name":"io.netty.channel.ChannelInitializer",
+  "methods":[{"name":"channelRegistered","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"exceptionCaught","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Throwable"] }]
+},
+{
+  "name":"io.netty.channel.ChannelOutboundBuffer",
+  "fields":[{"name":"totalPendingSize"}, {"name":"unwritable"}]
+},
+{
+  "name":"io.netty.channel.ChannelOutboundHandlerAdapter",
+  "methods":[{"name":"bind","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.net.SocketAddress","io.netty.channel.ChannelPromise"] }, {"name":"close","parameterTypes":["io.netty.channel.ChannelHandlerContext","io.netty.channel.ChannelPromise"] }, {"name":"connect","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.net.SocketAddress","java.net.SocketAddress","io.netty.channel.ChannelPromise"] }, {"name":"deregister","parameterTypes":["io.netty.channel.ChannelHandlerContext","io.netty.channel.ChannelPromise"] }, {"name":"disconnect","parameterTypes":["io.netty.channel.ChannelHandlerContext","io.netty.channel.ChannelPromise"] }, {"name":"flush","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"read","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }]
+},
+{
+  "name":"io.netty.channel.DefaultChannelConfig",
+  "fields":[{"name":"autoRead"}, {"name":"writeBufferWaterMark"}]
+},
+{
+  "name":"io.netty.channel.DefaultChannelPipeline",
+  "fields":[{"name":"estimatorHandle"}]
+},
+{
+  "name":"io.netty.channel.DefaultChannelPipeline$HeadContext",
+  "methods":[{"name":"bind","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.net.SocketAddress","io.netty.channel.ChannelPromise"] }, {"name":"channelActive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelInactive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }, {"name":"channelReadComplete","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRegistered","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelUnregistered","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelWritabilityChanged","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"close","parameterTypes":["io.netty.channel.ChannelHandlerContext","io.netty.channel.ChannelPromise"] }, {"name":"connect","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.net.SocketAddress","java.net.SocketAddress","io.netty.channel.ChannelPromise"] }, {"name":"deregister","parameterTypes":["io.netty.channel.ChannelHandlerContext","io.netty.channel.ChannelPromise"] }, {"name":"disconnect","parameterTypes":["io.netty.channel.ChannelHandlerContext","io.netty.channel.ChannelPromise"] }, {"name":"exceptionCaught","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Throwable"] }, {"name":"flush","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"read","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"userEventTriggered","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }, {"name":"write","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object","io.netty.channel.ChannelPromise"] }]
+},
+{
+  "name":"io.netty.channel.DefaultChannelPipeline$TailContext",
+  "methods":[{"name":"channelActive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelInactive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }, {"name":"channelReadComplete","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRegistered","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelUnregistered","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelWritabilityChanged","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"exceptionCaught","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Throwable"] }, {"name":"userEventTriggered","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }]
+},
+{
+  "name":"io.netty.channel.EventLoopGroup",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"io.netty.channel.socket.nio.NioDatagramChannel",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.netty.channel.socket.nio.NioSocketChannel",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.netty.handler.codec.ByteToMessageDecoder",
+  "methods":[{"name":"channelInactive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }, {"name":"channelReadComplete","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"userEventTriggered","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }]
+},
+{
+  "name":"io.netty.handler.codec.MessageToMessageDecoder",
+  "methods":[{"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }]
+},
+{
+  "name":"io.netty.handler.codec.MessageToMessageEncoder",
+  "methods":[{"name":"write","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object","io.netty.channel.ChannelPromise"] }]
+},
+{
+  "name":"io.netty.handler.codec.dns.DatagramDnsQueryEncoder"
+},
+{
+  "name":"io.netty.handler.codec.haproxy.HAProxyMessageDecoder"
+},
+{
+  "name":"io.netty.handler.codec.http.HttpObjectDecoder",
+  "methods":[{"name":"userEventTriggered","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }]
+},
+{
+  "name":"io.netty.handler.codec.http.HttpObjectEncoder",
+  "methods":[{"name":"write","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object","io.netty.channel.ChannelPromise"] }]
+},
+{
+  "name":"io.netty.handler.timeout.IdleStateHandler",
+  "methods":[{"name":"channelActive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelInactive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }, {"name":"channelReadComplete","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRegistered","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"write","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object","io.netty.channel.ChannelPromise"] }]
+},
+{
+  "name":"io.netty.resolver.dns.Cache$Entries",
+  "fields":[{"name":"expirationFuture"}]
+},
+{
+  "name":"io.netty.resolver.dns.DnsNameResolver$2"
+},
+{
+  "name":"io.netty.resolver.dns.DnsNameResolver$3"
+},
+{
+  "name":"io.netty.resolver.dns.DnsNameResolver$DnsResponseHandler",
+  "methods":[{"name":"channelActive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }, {"name":"exceptionCaught","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Throwable"] }]
+},
+{
+  "name":"io.netty.resolver.dns.DnsNameResolverBuilder",
+  "methods":[{"name":"socketChannelType","parameterTypes":["java.lang.Class","boolean"] }]
+},
+{
+  "name":"io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider"
+},
+{
+  "name":"io.netty.util.DefaultAttributeMap",
+  "fields":[{"name":"attributes"}]
+},
+{
+  "name":"io.netty.util.DefaultAttributeMap$DefaultAttribute",
+  "fields":[{"name":"attributeMap"}]
+},
+{
+  "name":"io.netty.util.HashedWheelTimer",
+  "fields":[{"name":"workerState"}]
+},
+{
+  "name":"io.netty.util.HashedWheelTimer$HashedWheelTimeout",
+  "fields":[{"name":"state"}]
+},
+{
+  "name":"io.netty.util.Recycler$DefaultHandle",
+  "fields":[{"name":"state"}]
+},
+{
+  "name":"io.netty.util.ReferenceCountUtil",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"io.netty.util.concurrent.DefaultPromise",
+  "fields":[{"name":"result"}]
+},
+{
+  "name":"io.netty.util.concurrent.EventExecutorGroup",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"io.netty.util.concurrent.FastThreadLocal"
+},
+{
+  "name":"io.netty.util.concurrent.SingleThreadEventExecutor",
+  "fields":[{"name":"state"}, {"name":"threadProperties"}]
+},
+{
+  "name":"io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueColdProducerFields",
+  "fields":[{"name":"producerLimit"}]
+},
+{
+  "name":"io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueConsumerFields",
+  "fields":[{"name":"consumerIndex"}]
+},
+{
+  "name":"io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueProducerFields",
+  "fields":[{"name":"producerIndex"}]
+},
+{
+  "name":"io.netty.util.internal.shaded.org.jctools.queues.MpscArrayQueueConsumerIndexField",
+  "fields":[{"name":"consumerIndex"}]
+},
+{
+  "name":"io.netty.util.internal.shaded.org.jctools.queues.MpscArrayQueueProducerIndexField",
+  "fields":[{"name":"producerIndex"}]
+},
+{
+  "name":"io.netty.util.internal.shaded.org.jctools.queues.MpscArrayQueueProducerLimitField",
+  "fields":[{"name":"producerLimit"}]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.IntegrationTestsApplication"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.IntegrationTestsApplication$quarkusrestinvoker$shutdownTaigaQuarkus_c3d8b7ee57d6994ac7d183578297507bf4b0b0ef",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.config.AppLifecycleBean"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.config.BaseEntityDraftInterceptor"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.config.CacheConfig"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.config.RegisterCustomModuleCustomizer"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.config.RequestIdFilter"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.config.RequestIdFilter$GeneratedServerRequestFilter$getRequestFilter"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.config.RequestIdFilter$GeneratedServerResponseFilter$getResponseFilter"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.config.TenantFilter"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.config.jsonmapping.SerializationCustomizer"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.Author",
+  "methods":[{"name":"books","parameterTypes":[] }, {"name":"firstName","parameterTypes":[] }, {"name":"gender","parameterTypes":[] }, {"name":"getBooks","parameterTypes":[] }, {"name":"getFirstName","parameterTypes":[] }, {"name":"getGender","parameterTypes":[] }, {"name":"getId","parameterTypes":[] }, {"name":"getLastName","parameterTypes":[] }, {"name":"id","parameterTypes":[] }, {"name":"isBooks","parameterTypes":[] }, {"name":"isFirstName","parameterTypes":[] }, {"name":"isGender","parameterTypes":[] }, {"name":"isId","parameterTypes":[] }, {"name":"isLastName","parameterTypes":[] }, {"name":"lastName","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.AuthorDraft",
+  "allDeclaredClasses":true
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.AuthorDraft$Producer",
+  "fields":[{"name":"TYPE"}]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.BaseEntity",
+  "methods":[{"name":"createdTime","parameterTypes":[] }, {"name":"getCreatedTime","parameterTypes":[] }, {"name":"getModifiedTime","parameterTypes":[] }, {"name":"isCreatedTime","parameterTypes":[] }, {"name":"isModifiedTime","parameterTypes":[] }, {"name":"modifiedTime","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.BaseEntityDraft",
+  "allDeclaredClasses":true
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.BaseEntityDraft$Producer",
+  "fields":[{"name":"TYPE"}]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.Book",
+  "methods":[{"name":"authorIds","parameterTypes":[] }, {"name":"authors","parameterTypes":[] }, {"name":"edition","parameterTypes":[] }, {"name":"getAuthorIds","parameterTypes":[] }, {"name":"getAuthors","parameterTypes":[] }, {"name":"getEdition","parameterTypes":[] }, {"name":"getId","parameterTypes":[] }, {"name":"getName","parameterTypes":[] }, {"name":"getPrice","parameterTypes":[] }, {"name":"getStore","parameterTypes":[] }, {"name":"getStoreId","parameterTypes":[] }, {"name":"id","parameterTypes":[] }, {"name":"isAuthorIds","parameterTypes":[] }, {"name":"isAuthors","parameterTypes":[] }, {"name":"isEdition","parameterTypes":[] }, {"name":"isId","parameterTypes":[] }, {"name":"isName","parameterTypes":[] }, {"name":"isPrice","parameterTypes":[] }, {"name":"isStore","parameterTypes":[] }, {"name":"isStoreId","parameterTypes":[] }, {"name":"name","parameterTypes":[] }, {"name":"price","parameterTypes":[] }, {"name":"store","parameterTypes":[] }, {"name":"storeId","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.BookDraft",
+  "allDeclaredClasses":true
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.BookDraft$Producer",
+  "fields":[{"name":"TYPE"}]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.BookStore",
+  "methods":[{"name":"avgPrice","parameterTypes":[] }, {"name":"books","parameterTypes":[] }, {"name":"getAvgPrice","parameterTypes":[] }, {"name":"getBooks","parameterTypes":[] }, {"name":"getId","parameterTypes":[] }, {"name":"getName","parameterTypes":[] }, {"name":"getNewestBooks","parameterTypes":[] }, {"name":"getWebsite","parameterTypes":[] }, {"name":"id","parameterTypes":[] }, {"name":"isAvgPrice","parameterTypes":[] }, {"name":"isBooks","parameterTypes":[] }, {"name":"isId","parameterTypes":[] }, {"name":"isName","parameterTypes":[] }, {"name":"isNewestBooks","parameterTypes":[] }, {"name":"isWebsite","parameterTypes":[] }, {"name":"name","parameterTypes":[] }, {"name":"newestBooks","parameterTypes":[] }, {"name":"website","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.BookStoreDraft",
+  "allDeclaredClasses":true
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.BookStoreDraft$Producer",
+  "fields":[{"name":"TYPE"}]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.Fetchers"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.Gender",
+  "fields":[{"name":"FEMALE"}, {"name":"MALE"}]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.TenantAware",
+  "methods":[{"name":"getTenant","parameterTypes":[] }, {"name":"isTenant","parameterTypes":[] }, {"name":"tenant","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.TenantAwareDraft",
+  "allDeclaredClasses":true
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.TenantAwareDraft$Producer",
+  "fields":[{"name":"TYPE"}]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.TenantAwareProps"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.TreeNode",
+  "methods":[{"name":"childNodes","parameterTypes":[] }, {"name":"getChildNodes","parameterTypes":[] }, {"name":"getId","parameterTypes":[] }, {"name":"getName","parameterTypes":[] }, {"name":"getParent","parameterTypes":[] }, {"name":"id","parameterTypes":[] }, {"name":"isChildNodes","parameterTypes":[] }, {"name":"isId","parameterTypes":[] }, {"name":"isName","parameterTypes":[] }, {"name":"isParent","parameterTypes":[] }, {"name":"name","parameterTypes":[] }, {"name":"parent","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.TreeNodeDraft",
+  "allDeclaredClasses":true
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.TreeNodeDraft$Producer",
+  "fields":[{"name":"TYPE"}]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.UserRole",
+  "methods":[{"name":"authUser","parameterTypes":[] }, {"name":"deleteFlag","parameterTypes":[] }, {"name":"getAuthUser","parameterTypes":[] }, {"name":"getDeleteFlag","parameterTypes":[] }, {"name":"getId","parameterTypes":[] }, {"name":"getRoleId","parameterTypes":[] }, {"name":"getUserId","parameterTypes":[] }, {"name":"id","parameterTypes":[] }, {"name":"isAuthUser","parameterTypes":[] }, {"name":"isDeleteFlag","parameterTypes":[] }, {"name":"isId","parameterTypes":[] }, {"name":"isRoleId","parameterTypes":[] }, {"name":"isUserId","parameterTypes":[] }, {"name":"roleId","parameterTypes":[] }, {"name":"userId","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.UserRoleDraft",
+  "allDeclaredClasses":true
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.UserRoleDraft$Producer",
+  "fields":[{"name":"TYPE"}]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.dto.BookInput"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.dto.BookSpecification"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.dto.UserRoleInput"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.entity.dto.UserRoleSpecification"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.event.ChangeEventObserves"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.repository.BookJavaRepository"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.repository.BookRepository"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.repository.BookRepository_e79ab36473af93382761d34a17b869e361ed6060Impl"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.repository.BookStoreRepository"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.repository.BookStoreRepository_edbe368a351230a38c7e9b3f3df1ecee6eb9d5cfImpl"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.repository.TreeNodeRepository"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.repository.TreeNodeRepository_8d0f71037b404955cb3da8290cf1b0001f682407Impl"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.repository.UserRoleJavaRepository"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.repository.UserRoleRepository"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.repository.UserRoleRepository_80688abe112a38c862ac77d1d836d9991c77a94fImpl"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resolver.BookStoreAvgPriceResolver"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resolver.BookStoreAvgPriceResolver_ClientProxy",
+  "methods":[{"name":"getAffectedSourceIds","parameterTypes":["org.babyfish.jimmer.sql.event.AssociationEvent"] }, {"name":"getAffectedSourceIds","parameterTypes":["org.babyfish.jimmer.sql.event.EntityEvent"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resolver.BookStoreNewestBooksResolver"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resolver.BookStoreNewestBooksResolver_ClientProxy",
+  "methods":[{"name":"getAffectedSourceIds","parameterTypes":["org.babyfish.jimmer.sql.event.AssociationEvent"] }, {"name":"getAffectedSourceIds","parameterTypes":["org.babyfish.jimmer.sql.event.EntityEvent"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$getBookByIdFetcher_0f1f3b9bf6b3fc049ccf0954a2e8e16cfbdec452",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$getBookById_a42ebc70cf8e77253f43597550f6644fa43e5f3e",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$getBookByIds_21eec8aea6758f71eb94e8fffaea4ade8f3ac698",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$getBookByNameFetcher_f94d1f6923e11380c77c47d2f82a0151e50e9ef3",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$getBookByName_2218bd87982d541ca3416c3ba82d13f76cd443c3",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$postBook_04d53ba4478034325009e636e14548e9300f2ea9",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$testBoolSpecification_5b6f6db3d61f0f08d408d7526b98dfe3c6005d6d",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$testError_8dad2d8a6bd83effffaa5a5ef8e666d968574263",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$testFile_6cb635e6634a38c1ab5684b0bfbe74aa42da6e9a",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$testManyToMany_df0ae2fe0996d933880fdf49d99f7f0d0d5559dd",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$testSaveManyToMany_b210b261cfe0c86c794431ac1c35ea1882d12042",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$testUpdateOneToMany_2207b13f7c327137fb535a0393dcf03e7a7f80cd",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookResources$quarkusrestinvoker$update_4f2636b0328c013094e32d0fde946d73adadad51",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookStoreResources"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookStoreResources$quarkusrestinvoker$test1_c6dea70f7be9b905c82825154291f4d67ee0800c",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.BookStoreResources$quarkusrestinvoker$testNewestBooks_784eec7f3d08d93a02c53e280c2ea2c00006f027",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$UserRoleRepositoryById_970d2838cc20d8b4a473b7c75edbd237fbec05f1",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryByIdFetcherOptional_5d3fe1bca45150b8eaa187f4d623f0903b53e191",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryByIdFetcher_fb9ef26a37cbfb338a2e95191ab07b8d5525d987",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryByIdOptional_6bef99b5e3e2951975718c3cb100d1fb614daea9",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryById_3e9bc7bdcd6794673858221570199ff3ff833e12",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryCount_e5174672aac2206448a25f142ca183c1a10a6062",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryCustomQuery_670a55408f509a348b8a1057d6c4f6cc927ef91f",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryExistsById_4c2289074d114bc06273a18268fa43e4b170a6b0",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllById_6e7301a2276efafc55f7d5448c23bfde07197cf5",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllFetcherSort_5bb94e3a0a99f0787123415696f781bf0ea38344",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllFetcherTypedPropScalar_106ffbfca9615683fc57ea2a59e953bcc191c886",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllPageFetcherSort_f5acc7b6a570224a1f70d098961806f61e0a1a84",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllPageFetcherTypedPropScalar_5bbe710d0b982ca9e8d066c05409cf4268b7e8f5",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllPageFetcher_f364595a57efd93a78404e6225a9f2fd32975025",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllPageSortView_128015ef1dd70daf7d585d3ca50620b3e611b5c1",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllPageSort_c045b41e02c4d3c68aed0178d1b88374436fc4b0",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllPageTypedPropScalarView_13db9ecc5aa77b91d7ce347efe03dba98aee1fcc",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllPageTypedPropScalar_8b9025f1c94b8981f3bcb3f6e7924b51ef7346f6",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllPageView_9414a172884d57d57d30e949b4ad546f5cb239eb",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllSortView_da9c9b5141ef0b6841433e3dfabd12adf5d5a031",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllSort_c7463826e9ed2ed68f10b5551dd729c0ec841c85",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllTypedPropScalarView_045843fa126bf21cc0de61389938774657a54665",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllTypedPropScalar_cf3648feaf1643be91e209c42308a4005dd61ca9",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAllView_52c48cc3691c1a0336956d7ca88a841364228692",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindAll_88f4ffa690385d2f826916eed3622404484e57e0",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindByIdsFetcher_1222f8485ec9bb6b305b0ff04c0357e46ca438bd",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindByIdsView_4559218535440b910c499ea6b9080214fc429419",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindMapByIdsFetcher_32d4be971fe61d0196d6af31cf8eba1f2d2aabca",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindMapByIdsView_2b87fc9158cf12438ae0bc2781e457f38075b43e",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryFindMapByIds_98830b4c9ec0ed8d62723f9917f97c73597556b4",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryMergeInput_af5a7c0e2648226f3ea14b14ee96f0cd511817cd",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryMergeSaveMode_bf770e8f0e8a02ef8049520d37762e9f6eb4674a",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryMerge_1a438f69469bc7e8ac9acc181f1d63f5ed1f3248",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryPageFetcher_64c815a70b8b725fce20eb74ba22bae192cb56c3",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryPageOther_44157538780b6359d81bddf1de02d38f82a97bb9",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryPageSort_7bbb3512049b265a671caad4123285b56bbdd4a6",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryPage_9408c813f47589480bd339d09e8edb37fa1c8182",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepositoryViewById_8011fcd047448004595735c5255a3da259f292d2",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testBookRepository_31076945ccec386047b6be68a81d681897d0d0b7",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testEvent_f16d57b474af4048a5910330dd2b7c05a884dabb",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testQuarkusOrdersSortUtilsStringCodes_b1ebdcd515155ae91bc2b2731e3a202f62637261",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testQuarkusOrdersSortUtilsTypedPropScalarProps_c5affd180a85b8f213b2b957e4e64ccda6a7d2ce",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testRepository_6941236735fb7f95993efd9ab2425463e60c4dd2",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositoryDeleteAll_fb78f6d60e3f41eb2ff05cf6088cf95fe2df5549",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositoryInsertInput_519c73f89937e1092739bb3756ac763709e32463",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositoryInsert_02feaf395a4dbfa801bce40d1736d3adf986abd3",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositorySaveCommand_14ff18074b5df1975a36197cb5b78c70ea9afa4f",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositorySaveEntitiesCommand_2f5c54a15d5ad566d80bf14c0c3b03c8ef5973e7",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositorySaveEntitiesSaveMode_d1b61c747a270a1f55bf4c701555d379af70b198",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositorySaveEntities_00e651d69abc4fa5e8019ce232d1b439adcc5d6a",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositorySaveInputSaveMode_b88602d121032292aa2cdd734074382c9c6fc724",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositorySaveInput_bebf1092f23c3b828a4b67785af4468ca824171e",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositorySave_d41e7a6a4f35119f7c63467689bccc71ddcbd900",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositoryUpdateInput_03749ec924a6e5899935785a1fd1a58bb9aed3ae",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$testUserRoleRepositoryUpdate_c0538681690caa01c8ac5d70d971ac210ca8bb04",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TestResources$quarkusrestinvoker$test_951763721a70c7f242415537e87b4bf6428f042e",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TreeNodeResources"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TreeNodeResources$quarkusrestinvoker$all_21f006e4bcd0ccd6ebf44c4b7661c425d2ba5ba3",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.TreeNodeResources$quarkusrestinvoker$infiniteRecursion_f207ba64b0814580ee2b463c11c7ee523a3e3f4b",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.UserRoleResources"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.UserRoleResources$quarkusrestinvoker$deleteReverseById_91a29d86ab19223e9874160db4672e199f7a2e10",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.UserRoleResources$quarkusrestinvoker$delete_d357431be5d551c59d99afc06ac0b308a7294f5d",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.UserRoleResources$quarkusrestinvoker$testUserRoleSpecification_009b0aff13896f070a43950d6e88da09eaa69ef7",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.UserRoleResources$quarkusrestinvoker$updateUserRoleById_232886fcf7f915c58be33338ae30507a1c49232e",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.resource.UserRoleResources$quarkusrestinvoker$userRoleFindById_d5fd9125321d62a8f3847ee04fa3cebde06940af",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.it.service.IBook"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.service.IBookStore"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.service.IUserRoleService"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.service.impl.BookImpl"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.service.impl.BookStoreImpl"
+},
+{
+  "name":"io.quarkiverse.jimmer.it.service.impl.UserRoleServiceImpl"
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.QuarkusSqlClientProducer",
+  "methods":[{"name":"<init>","parameterTypes":["io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher",
+  "methods":[{"name":"<init>","parameterTypes":["java.util.List"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher_ScheduledInvoker_retry_0fcd3e3dd0409b90e59c67bcead28af5aaf24dc8",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig"
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$Client-1183113876Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$Components-966986697Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$Contact2069114527Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$ErrorTranslator-2103371327Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$Flow673718031Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$Flows-589577404Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$Info673809039Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$License1284345536Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$Openapi-145604081Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$OpenapiRefPathConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$Properties-1445593516Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$SecurityScheme749412774Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$Server-731227932Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$TypeScript-1957959226Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig$Variable-964093987Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig-884533693Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceBuildTimeConfig1965079454Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceRuntimeConfig-1927469157Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig"
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig$DatabaseValidation-341558248Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig-1108088960Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.client.CodeBasedExceptionAdvice",
+  "methods":[{"name":"<init>","parameterTypes":["io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.client.CodeBasedRuntimeExceptionAdvice",
+  "methods":[{"name":"<init>","parameterTypes":["io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig"] }]
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer"
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.repo.JavaRepository"
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository"
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.repository.JRepository"
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.repository.support.JRepositoryImpl"
+},
+{
+  "name":"io.quarkiverse.jimmer.runtime.repository.support.Pagination"
+},
+{
+  "name":"io.quarkus.agroal.DataSource",
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"value","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.agroal.runtime.AgroalConnectionConfigurer"
+},
+{
+  "name":"io.quarkus.agroal.runtime.AgroalDataSourceSupport"
+},
+{
+  "name":"io.quarkus.agroal.runtime.AgroalDataSourcesInitializer",
+  "methods":[{"name":"init","parameterTypes":["io.quarkus.runtime.StartupEvent","java.util.List"] }]
+},
+{
+  "name":"io.quarkus.agroal.runtime.AgroalOpenTelemetryWrapper"
+},
+{
+  "name":"io.quarkus.agroal.runtime.DataSourceJdbcBuildTimeConfig305168297Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.agroal.runtime.DataSourceJdbcRuntimeConfig-1160482202Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.agroal.runtime.DataSourceJdbcTracingRuntimeConfig1344719084Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.agroal.runtime.DataSources",
+  "methods":[{"name":"<init>","parameterTypes":["io.quarkus.datasource.runtime.DataSourcesBuildTimeConfig","io.quarkus.datasource.runtime.DataSourcesRuntimeConfig","io.quarkus.agroal.runtime.DataSourcesJdbcBuildTimeConfig","io.quarkus.agroal.runtime.DataSourcesJdbcRuntimeConfig","io.quarkus.narayana.jta.runtime.TransactionManagerConfiguration","jakarta.transaction.TransactionManager","org.jboss.tm.XAResourceRecoveryRegistry","jakarta.transaction.TransactionSynchronizationRegistry","io.quarkus.datasource.runtime.DataSourceSupport","io.quarkus.agroal.runtime.AgroalDataSourceSupport","jakarta.enterprise.inject.Instance","jakarta.enterprise.inject.Instance"] }]
+},
+{
+  "name":"io.quarkus.agroal.runtime.DataSourcesJdbcBuildTimeConfig"
+},
+{
+  "name":"io.quarkus.agroal.runtime.DataSourcesJdbcBuildTimeConfig$DataSourceJdbcOuterNamedBuildTimeConfig140434403Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.agroal.runtime.DataSourcesJdbcBuildTimeConfig-985358424Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.agroal.runtime.DataSourcesJdbcRuntimeConfig"
+},
+{
+  "name":"io.quarkus.agroal.runtime.DataSourcesJdbcRuntimeConfig$DataSourceJdbcOuterNamedRuntimeConfig389461469Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.agroal.runtime.DataSourcesJdbcRuntimeConfig-1742830043Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.agroal.runtime.JdbcDriver",
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"value","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.arc.All",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"io.quarkus.arc.ArcUndeclaredThrowableException"
+},
+{
+  "name":"io.quarkus.arc.AsyncObserverExceptionHandler"
+},
+{
+  "name":"io.quarkus.arc.generator.Default_jakarta_enterprise_context_ApplicationScoped_ContextInstances",
+  "fields":[{"name":"0l"}, {"name":"10l"}, {"name":"11l"}, {"name":"12l"}, {"name":"13l"}, {"name":"14l"}, {"name":"15l"}, {"name":"16l"}, {"name":"17l"}, {"name":"18l"}, {"name":"19l"}, {"name":"1l"}, {"name":"20l"}, {"name":"21l"}, {"name":"22l"}, {"name":"23l"}, {"name":"24l"}, {"name":"25l"}, {"name":"26l"}, {"name":"27l"}, {"name":"28l"}, {"name":"29l"}, {"name":"2l"}, {"name":"30l"}, {"name":"31l"}, {"name":"32l"}, {"name":"33l"}, {"name":"34l"}, {"name":"3l"}, {"name":"4l"}, {"name":"5l"}, {"name":"6l"}, {"name":"7l"}, {"name":"8l"}, {"name":"9l"}]
+},
+{
+  "name":"io.quarkus.arc.generator.Default_jakarta_enterprise_context_RequestScoped_ContextInstances",
+  "fields":[{"name":"0l"}, {"name":"1l"}, {"name":"2l"}, {"name":"3l"}, {"name":"4l"}]
+},
+{
+  "name":"io.quarkus.arc.impl.AbstractInstanceHandle",
+  "fields":[{"name":"destroyed"}]
+},
+{
+  "name":"io.quarkus.arc.impl.DefaultAsyncObserverExceptionHandler"
+},
+{
+  "name":"io.quarkus.arc.impl.InjectableRequestContextController"
+},
+{
+  "name":"io.quarkus.arc.impl.RequestContext$RequestContextState",
+  "fields":[{"name":"isValid"}]
+},
+{
+  "name":"io.quarkus.arc.runtime.ConfigStaticInitValues"
+},
+{
+  "name":"io.quarkus.arc.runtime.LaunchModeProducer"
+},
+{
+  "name":"io.quarkus.arc.runtime.LoggerProducer"
+},
+{
+  "name":"io.quarkus.datasource.runtime.DataSourceBuildTimeConfig1437770971Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.datasource.runtime.DataSourceRuntimeConfig-1163772904Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.datasource.runtime.DataSourceSupport"
+},
+{
+  "name":"io.quarkus.datasource.runtime.DataSourcesBuildTimeConfig"
+},
+{
+  "name":"io.quarkus.datasource.runtime.DataSourcesBuildTimeConfig-1660047156Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.datasource.runtime.DataSourcesRuntimeConfig"
+},
+{
+  "name":"io.quarkus.datasource.runtime.DataSourcesRuntimeConfig-58617783Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.datasource.runtime.DatabaseKindConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.datasource.runtime.DevServicesBuildTimeConfig-554563769Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.generated.int$quarkusrestparamConverter$",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.generated.java.lang.Long$quarkusrestparamConverter$",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.generated.long$quarkusrestparamConverter$",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.jackson.ObjectMapperCustomizer"
+},
+{
+  "name":"io.quarkus.jackson.customizer.RegisterSerializersAndDeserializersCustomizer"
+},
+{
+  "name":"io.quarkus.jackson.runtime.ConfigurationCustomizer",
+  "fields":[{"name":"jacksonBuildTimeConfig"}]
+},
+{
+  "name":"io.quarkus.jackson.runtime.JacksonBuildTimeConfig"
+},
+{
+  "name":"io.quarkus.jackson.runtime.JacksonSupport"
+},
+{
+  "name":"io.quarkus.jackson.runtime.ObjectMapperProducer",
+  "methods":[{"name":"objectMapper","parameterTypes":["java.util.List","io.quarkus.jackson.runtime.JacksonBuildTimeConfig","io.quarkus.jackson.runtime.JacksonSupport"] }]
+},
+{
+  "name":"io.quarkus.jackson.runtime.VertxHybridPoolObjectMapperCustomizer"
+},
+{
+  "name":"io.quarkus.jdbc.h2.runtime.H2AgroalConnectionConfigurer"
+},
+{
+  "name":"io.quarkus.jdbc.postgresql.runtime.PostgreSQLAgroalConnectionConfigurer"
+},
+{
+  "name":"io.quarkus.narayana.jta.RequestScopedTransaction",
+  "methods":[{"name":"<init>","parameterTypes":["jakarta.transaction.UserTransaction","jakarta.transaction.TransactionManager","io.quarkus.narayana.jta.runtime.TransactionManagerConfiguration"] }]
+},
+{
+  "name":"io.quarkus.narayana.jta.runtime.NarayanaJtaProducers"
+},
+{
+  "name":"io.quarkus.narayana.jta.runtime.ObjectStoreType"
+},
+{
+  "name":"io.quarkus.narayana.jta.runtime.TransactionManagerConfiguration"
+},
+{
+  "name":"io.quarkus.narayana.jta.runtime.interceptor.TransactionalInterceptorRequired"
+},
+{
+  "name":"io.quarkus.quartz.QuartzScheduler"
+},
+{
+  "name":"io.quarkus.quartz.runtime.QuartzBuildTimeConfig"
+},
+{
+  "name":"io.quarkus.quartz.runtime.QuartzMisfirePolicy"
+},
+{
+  "name":"io.quarkus.quartz.runtime.QuartzRuntimeConfig"
+},
+{
+  "name":"io.quarkus.quartz.runtime.QuartzSchedulerImpl",
+  "methods":[{"name":"<init>","parameterTypes":["io.quarkus.scheduler.common.runtime.SchedulerContext","io.quarkus.quartz.runtime.QuartzSupport","io.quarkus.scheduler.runtime.SchedulerRuntimeConfig","jakarta.enterprise.event.Event","jakarta.enterprise.event.Event","jakarta.enterprise.event.Event","jakarta.enterprise.event.Event","jakarta.enterprise.event.Event","jakarta.enterprise.event.Event","jakarta.enterprise.event.Event","jakarta.enterprise.inject.Instance","jakarta.enterprise.inject.Instance","io.vertx.core.Vertx","io.quarkus.scheduler.runtime.SchedulerConfig","jakarta.enterprise.inject.Instance"] }]
+},
+{
+  "name":"io.quarkus.quartz.runtime.QuartzStartMode"
+},
+{
+  "name":"io.quarkus.quartz.runtime.QuartzSupport"
+},
+{
+  "name":"io.quarkus.quartz.runtime.StoreType"
+},
+{
+  "name":"io.quarkus.redis.client.RedisClient"
+},
+{
+  "name":"io.quarkus.redis.client.reactive.ReactiveRedisClient"
+},
+{
+  "name":"io.quarkus.redis.datasource.ReactiveRedisDataSource"
+},
+{
+  "name":"io.quarkus.redis.datasource.RedisDataSource"
+},
+{
+  "name":"io.quarkus.redis.runtime.client.config.NetConfig-1311434677Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.redis.runtime.client.config.ProxyConfig-2032433828Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.redis.runtime.client.config.RedisClientConfig-353921772Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.redis.runtime.client.config.RedisConfig"
+},
+{
+  "name":"io.quarkus.redis.runtime.client.config.RedisConfig-1771937111Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.redis.runtime.client.config.TlsConfig-843992791Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.redisson.client.runtime.RedissonClientProducer",
+  "fields":[{"name":"shutdownConfig"}]
+},
+{
+  "name":"io.quarkus.redisson.client.runtime.RedissonConfig"
+},
+{
+  "name":"io.quarkus.redisson.client.runtime.RedissonConfig-1547988099Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.rest.client.reactive.jackson.runtime.serialisers.ClientJacksonMessageBodyReader"
+},
+{
+  "name":"io.quarkus.rest.client.reactive.jackson.runtime.serialisers.ClientJacksonMessageBodyWriter"
+},
+{
+  "name":"io.quarkus.rest.client.reactive.runtime.AnnotationRegisteredProviders"
+},
+{
+  "name":"io.quarkus.rest.client.reactive.runtime.AnnotationRegisteredProvidersImplementation"
+},
+{
+  "name":"io.quarkus.rest.client.reactive.runtime.HeaderCapturingServerFilter"
+},
+{
+  "name":"io.quarkus.rest.client.reactive.runtime.HeaderContainer"
+},
+{
+  "name":"io.quarkus.rest.runtime.__QuarkusInit",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.restclient.config.RestClientsConfig"
+},
+{
+  "name":"io.quarkus.restclient.config.RestClientsConfig$RestClientConfig1856463438Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.restclient.config.RestClientsConfig$RestClientLoggingConfig-833334539Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.restclient.config.RestClientsConfig$RestClientMultipartConfig2099085698Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.restclient.config.RestClientsConfig-429371465Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.resteasy.reactive.common.runtime.JaxRsSecurityConfig"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.common.runtime.JaxRsSecurityConfig273591402Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.resteasy.reactive.common.runtime.ResteasyReactiveConfig"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.common.runtime.ResteasyReactiveConfig2050140267Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.mappers.BuiltinMismatchedInputExceptionMapper"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.mappers.NativeInvalidDefinitionExceptionMapper"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.mappers.NativeInvalidDefinitionExceptionMapper$GeneratedExceptionHandlerFor$InvalidDefinitionException$OfMethod$toResponse"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.BasicServerJacksonMessageBodyWriter"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.FullyFeaturedServerJacksonMessageBodyReader"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.FullyFeaturedServerJacksonMessageBodyWriter"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.ServerJacksonMessageBodyReader"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.vertx.VertxJsonArrayBasicMessageBodyReader"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.vertx.VertxJsonArrayBasicMessageBodyWriter"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.vertx.VertxJsonArrayMessageBodyReader"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.vertx.VertxJsonArrayMessageBodyWriter"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.vertx.VertxJsonObjectBasicMessageBodyReader"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.vertx.VertxJsonObjectBasicMessageBodyWriter"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.vertx.VertxJsonObjectMessageBodyReader"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.jackson.runtime.serialisers.vertx.VertxJsonObjectMessageBodyWriter"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.Closer"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.CloserImpl"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.QuarkusContextProducers"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.QuarkusServerFileBodyHandler"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.QuarkusServerPathBodyHandler"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.ResteasyReactiveServerRuntimeConfig"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.ResteasyReactiveServerRuntimeConfig$InputPartConfigGroup1777429950Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.ResteasyReactiveServerRuntimeConfig$MultipartConfigGroup-816264049Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.ResteasyReactiveServerRuntimeConfig1985399174Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.exceptionmappers.AuthenticationCompletionExceptionMapper"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.exceptionmappers.AuthenticationFailedExceptionMapper"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.exceptionmappers.AuthenticationFailedExceptionMapper$GeneratedExceptionHandlerFor$AuthenticationFailedException$OfMethod$handle"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.exceptionmappers.AuthenticationRedirectExceptionMapper"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.exceptionmappers.ForbiddenExceptionMapper"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.exceptionmappers.UnauthorizedExceptionMapper"
+},
+{
+  "name":"io.quarkus.resteasy.reactive.server.runtime.exceptionmappers.UnauthorizedExceptionMapper$GeneratedExceptionHandlerFor$UnauthorizedException$OfMethod$handle"
+},
+{
+  "name":"io.quarkus.runner.ApplicationImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.runtime.ApplicationConfig"
+},
+{
+  "name":"io.quarkus.runtime.BannerRuntimeConfig"
+},
+{
+  "name":"io.quarkus.runtime.BlockingOperationNotAllowedException"
+},
+{
+  "name":"io.quarkus.runtime.BuildAnalyticsConfig"
+},
+{
+  "name":"io.quarkus.runtime.BuilderConfig"
+},
+{
+  "name":"io.quarkus.runtime.BuilderConfig-195694427Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.runtime.CommandLineRuntimeConfig"
+},
+{
+  "name":"io.quarkus.runtime.ConfigConfig"
+},
+{
+  "name":"io.quarkus.runtime.ConfigConfig717236796Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.runtime.DebugRuntimeConfig"
+},
+{
+  "name":"io.quarkus.runtime.LaunchConfig"
+},
+{
+  "name":"io.quarkus.runtime.LaunchConfig1631711725Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.runtime.LaunchMode"
+},
+{
+  "name":"io.quarkus.runtime.LiveReloadConfig"
+},
+{
+  "name":"io.quarkus.runtime.LocalesBuildTimeConfig"
+},
+{
+  "name":"io.quarkus.runtime.QuarkusApplication"
+},
+{
+  "name":"io.quarkus.runtime.ShutdownEvent"
+},
+{
+  "name":"io.quarkus.runtime.StartupEvent"
+},
+{
+  "name":"io.quarkus.runtime.ThreadPoolConfig"
+},
+{
+  "name":"io.quarkus.runtime.configuration.ConfigurationRuntimeConfig"
+},
+{
+  "name":"io.quarkus.runtime.configuration.ConfigurationRuntimeConfig$BuildTimeMismatchAtRuntime"
+},
+{
+  "name":"io.quarkus.runtime.configuration.MemorySize"
+},
+{
+  "name":"io.quarkus.runtime.configuration.TrimmedStringConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.runtime.console.ConsoleRuntimeConfig"
+},
+{
+  "name":"io.quarkus.runtime.generated.RunTimeConfig",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.runtime.generated.StaticInitConfig",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.runtime.init.InitRuntimeConfig"
+},
+{
+  "name":"io.quarkus.runtime.init.InitRuntimeConfig$BooleanConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.runtime.init.InitRuntimeConfig-64443516Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.runtime.logging.InheritableLevel",
+  "methods":[{"name":"of","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"io.quarkus.runtime.logging.LogBuildTimeConfig"
+},
+{
+  "name":"io.quarkus.runtime.logging.LogConfig"
+},
+{
+  "name":"io.quarkus.runtime.shutdown.ShutdownConfig"
+},
+{
+  "name":"io.quarkus.scheduler.FailedExecution"
+},
+{
+  "name":"io.quarkus.scheduler.Scheduled",
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"concurrentExecution","parameterTypes":[] }, {"name":"cron","parameterTypes":[] }, {"name":"delay","parameterTypes":[] }, {"name":"delayUnit","parameterTypes":[] }, {"name":"delayed","parameterTypes":[] }, {"name":"every","parameterTypes":[] }, {"name":"executeWith","parameterTypes":[] }, {"name":"identity","parameterTypes":[] }, {"name":"overdueGracePeriod","parameterTypes":[] }, {"name":"skipExecutionIf","parameterTypes":[] }, {"name":"timeZone","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.scheduler.Scheduled$ApplicationNotRunning"
+},
+{
+  "name":"io.quarkus.scheduler.Scheduled$Never"
+},
+{
+  "name":"io.quarkus.scheduler.Scheduled$SkipPredicate"
+},
+{
+  "name":"io.quarkus.scheduler.ScheduledJobPaused"
+},
+{
+  "name":"io.quarkus.scheduler.ScheduledJobResumed"
+},
+{
+  "name":"io.quarkus.scheduler.Scheduler"
+},
+{
+  "name":"io.quarkus.scheduler.SchedulerPaused"
+},
+{
+  "name":"io.quarkus.scheduler.SchedulerResumed"
+},
+{
+  "name":"io.quarkus.scheduler.SkippedExecution"
+},
+{
+  "name":"io.quarkus.scheduler.SuccessfulExecution"
+},
+{
+  "name":"io.quarkus.scheduler.common.runtime.SchedulerContext"
+},
+{
+  "name":"io.quarkus.scheduler.runtime.SchedulerConfig"
+},
+{
+  "name":"io.quarkus.scheduler.runtime.SchedulerRuntimeConfig"
+},
+{
+  "name":"io.quarkus.scheduler.runtime.SchedulerRuntimeConfig$StartMode"
+},
+{
+  "name":"io.quarkus.scheduler.spi.JobInstrumenter"
+},
+{
+  "name":"io.quarkus.security.AuthenticationCompletionException"
+},
+{
+  "name":"io.quarkus.security.AuthenticationFailedException"
+},
+{
+  "name":"io.quarkus.security.AuthenticationRedirectException"
+},
+{
+  "name":"io.quarkus.security.ForbiddenException"
+},
+{
+  "name":"io.quarkus.security.UnauthorizedException"
+},
+{
+  "name":"io.quarkus.smallrye.context.runtime.SmallRyeContextPropagationProvider"
+},
+{
+  "name":"io.quarkus.stork.StorkConfiguration"
+},
+{
+  "name":"io.quarkus.stork.StorkConfiguration-1155448456Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.tls.CertificateUpdatedEvent"
+},
+{
+  "name":"io.quarkus.tls.TlsConfigurationRegistry"
+},
+{
+  "name":"io.quarkus.tls.runtime.config.KeyStoreConfig961380677Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.tls.runtime.config.KeyStoreCredentialProviderConfig563998733Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.tls.runtime.config.TlsBucketConfig351136998Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.tls.runtime.config.TlsConfig"
+},
+{
+  "name":"io.quarkus.tls.runtime.config.TlsConfig-68408868Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.tls.runtime.config.TrustStoreConfig97941356Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.tls.runtime.config.TrustStoreCredentialProviderConfig-351647116Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.undertow.runtime.HttpSessionContext",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.undertow.runtime.QuarkusErrorServlet",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.undertow.runtime.ServletProducer"
+},
+{
+  "name":"io.quarkus.undertow.runtime.ServletRuntimeConfig"
+},
+{
+  "name":"io.quarkus.vertx.core.runtime.config.AddressResolverConfiguration-1946211540Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.vertx.core.runtime.config.ClusterConfiguration-957162164Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.vertx.core.runtime.config.EventBusConfiguration604027616Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.vertx.core.runtime.config.JksConfiguration465165044Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.vertx.core.runtime.config.PemKeyCertConfiguration-14420069Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.vertx.core.runtime.config.PemTrustCertConfiguration1510115010Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.vertx.core.runtime.config.PfxConfiguration221309700Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }]
+},
+{
+  "name":"io.quarkus.vertx.core.runtime.config.VertxConfiguration"
+},
+{
+  "name":"io.quarkus.vertx.core.runtime.config.VertxConfiguration-2022638849Impl",
+  "methods":[{"name":"<init>","parameterTypes":["io.smallrye.config.ConfigMappingContext"] }, {"name":"getDefaults","parameterTypes":[] }, {"name":"getNames","parameterTypes":[] }]
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.CurrentRequestProducer"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.CurrentVertxRequest"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.FormAuthRuntimeConfig$CookieSameSite"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.HttpBuildTimeConfig"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.HttpCertificateUpdateEventListener"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.HttpConfiguration"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.HttpConfiguration$InsecureRequests"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.HttpConfiguration$PayloadHint"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.PolicyMappingConfig$AppliesTo"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.management.ManagementInterfaceConfiguration"
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.security.BasicAuthenticationMechanism",
+  "methods":[{"name":"<init>","parameterTypes":["io.quarkus.vertx.http.runtime.HttpConfiguration","io.quarkus.vertx.http.runtime.HttpBuildTimeConfig"] }]
+},
+{
+  "name":"io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism"
+},
+{
+  "name":"io.quarkus.vertx.runtime.VertxProducer"
+},
+{
+  "name":"io.quarkus.virtual.threads.VirtualThreadsConfig"
+},
+{
+  "name":"io.smallrye.config.ConfigValue"
+},
+{
+  "name":"io.smallrye.config.SmallRyeConfig"
+},
+{
+  "name":"io.smallrye.config._private.ConfigLogging_$logger",
+  "methods":[{"name":"<init>","parameterTypes":["org.jboss.logging.Logger"] }]
+},
+{
+  "name":"io.smallrye.config._private.ConfigLogging_$logger_zh"
+},
+{
+  "name":"io.smallrye.config._private.ConfigLogging_$logger_zh_CN"
+},
+{
+  "name":"io.smallrye.config._private.ConfigMessages_$bundle",
+  "fields":[{"name":"INSTANCE"}]
+},
+{
+  "name":"io.smallrye.config._private.ConfigMessages_$bundle_zh"
+},
+{
+  "name":"io.smallrye.config._private.ConfigMessages_$bundle_zh_CN"
+},
+{
+  "name":"io.smallrye.config.inject.ConfigProducer"
+},
+{
+  "name":"io.smallrye.context.SmallRyeManagedExecutor"
+},
+{
+  "name":"io.smallrye.context.SmallRyeThreadContext"
+},
+{
+  "name":"io.smallrye.context.jta.context.propagation.JtaContextProvider$LifecycleManager"
+},
+{
+  "name":"io.smallrye.stork.impl.RoundRobinLoadBalancerProviderLoader"
+},
+{
+  "name":"io.smallrye.stork.spi.ElementWithType"
+},
+{
+  "name":"io.smallrye.stork.spi.internal.LoadBalancerLoader"
+},
+{
+  "name":"io.undertow.UndertowLogger_$logger",
+  "methods":[{"name":"<init>","parameterTypes":["org.jboss.logging.Logger"] }]
+},
+{
+  "name":"io.undertow.UndertowLogger_$logger_zh"
+},
+{
+  "name":"io.undertow.UndertowLogger_$logger_zh_CN"
+},
+{
+  "name":"io.undertow.server.handlers.cache.LRUCache$CacheEntry",
+  "fields":[{"name":"accessToken"}, {"name":"hits"}]
+},
+{
+  "name":"io.undertow.servlet.core.ManagedServlet",
+  "fields":[{"name":"unavailableUntil"}]
+},
+{
+  "name":"io.undertow.servlet.handlers.DefaultServlet",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.undertow.servlet.spec.ServletOutputStreamImpl",
+  "fields":[{"name":"state"}]
+},
+{
+  "name":"io.undertow.servlet.spec.ServletPrintWriterDelegate",
+  "unsafeAllocated":true
+},
+{
+  "name":"io.undertow.util.FastConcurrentDirectDeque",
+  "fields":[{"name":"head"}, {"name":"tail"}],
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.undertow.util.FastConcurrentDirectDeque$Node",
+  "fields":[{"name":"item"}, {"name":"next"}, {"name":"prev"}]
+},
+{
+  "name":"io.vertx.core.Vertx"
+},
+{
+  "name":"io.vertx.core.buffer.Buffer"
+},
+{
+  "name":"io.vertx.core.eventbus.EventBus"
+},
+{
+  "name":"io.vertx.core.eventbus.impl.EventBusImpl",
+  "fields":[{"name":"inboundInterceptors"}, {"name":"outboundInterceptors"}]
+},
+{
+  "name":"io.vertx.core.file.AsyncFile"
+},
+{
+  "name":"io.vertx.core.http.ClientAuth"
+},
+{
+  "name":"io.vertx.core.http.CookieSameSite"
+},
+{
+  "name":"io.vertx.core.http.HttpServerRequest"
+},
+{
+  "name":"io.vertx.core.http.HttpServerResponse"
+},
+{
+  "name":"io.vertx.core.http.impl.Http1xOrH2CHandler",
+  "methods":[{"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }]
+},
+{
+  "name":"io.vertx.core.http.impl.Http1xUpgradeToH2CHandler",
+  "methods":[{"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }, {"name":"userEventTriggered","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }]
+},
+{
+  "name":"io.vertx.core.http.impl.HttpServerWorker$1",
+  "methods":[{"name":"exceptionCaught","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Throwable"] }, {"name":"userEventTriggered","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }]
+},
+{
+  "name":"io.vertx.core.http.impl.VertxHttpRequestDecoder"
+},
+{
+  "name":"io.vertx.core.http.impl.VertxHttpResponseEncoder"
+},
+{
+  "name":"io.vertx.core.json.JsonArray"
+},
+{
+  "name":"io.vertx.core.json.JsonObject"
+},
+{
+  "name":"io.vertx.core.logging.SLF4JLogDelegateFactory",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.vertx.core.metrics.Measured"
+},
+{
+  "name":"io.vertx.core.net.impl.ServerChannelLoadBalancer"
+},
+{
+  "name":"io.vertx.core.net.impl.VertxHandler",
+  "methods":[{"name":"channelInactive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRead","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }, {"name":"channelReadComplete","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelWritabilityChanged","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"close","parameterTypes":["io.netty.channel.ChannelHandlerContext","io.netty.channel.ChannelPromise"] }, {"name":"exceptionCaught","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Throwable"] }, {"name":"userEventTriggered","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object"] }]
+},
+{
+  "name":"io.vertx.core.streams.ReadStream"
+},
+{
+  "name":"io.vertx.core.streams.StreamBase"
+},
+{
+  "name":"io.vertx.ext.web.Router"
+},
+{
+  "name":"io.vertx.ext.web.RoutingContext"
+},
+{
+  "name":"io.vertx.ext.web.impl.RoutingContextImplBase",
+  "fields":[{"name":"currentRouteNextFailureHandlerIndex"}, {"name":"currentRouteNextHandlerIndex"}]
+},
+{
+  "name":"io.vertx.mutiny.core.Vertx"
+},
+{
+  "name":"io.vertx.mutiny.core.buffer.Buffer"
+},
+{
+  "name":"io.vertx.mutiny.core.eventbus.EventBus"
+},
+{
+  "name":"io.vertx.mutiny.core.file.AsyncFile"
+},
+{
+  "name":"io.vertx.mutiny.core.metrics.Measured"
+},
+{
+  "name":"io.vertx.mutiny.ext.web.Router"
+},
+{
+  "name":"io.vertx.mutiny.redis.client.Redis"
+},
+{
+  "name":"io.vertx.mutiny.redis.client.RedisAPI"
+},
+{
+  "name":"io.vertx.redis.client.Redis"
+},
+{
+  "name":"io.vertx.redis.client.RedisAPI"
+},
+{
+  "name":"jakarta.enterprise.context.BeforeDestroyed",
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"value","parameterTypes":[] }]
+},
+{
+  "name":"jakarta.enterprise.context.Destroyed",
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"value","parameterTypes":[] }]
+},
+{
+  "name":"jakarta.enterprise.context.Initialized",
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"value","parameterTypes":[] }]
+},
+{
+  "name":"jakarta.enterprise.context.control.RequestContextController"
+},
+{
+  "name":"jakarta.enterprise.event.Event"
+},
+{
+  "name":"jakarta.enterprise.inject.Any",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"jakarta.enterprise.inject.Default",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"jakarta.enterprise.inject.Instance"
+},
+{
+  "name":"jakarta.enterprise.inject.spi.InjectionPoint"
+},
+{
+  "name":"jakarta.inject.Inject",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"jakarta.resource.spi.XATerminator"
+},
+{
+  "name":"jakarta.servlet.GenericServlet"
+},
+{
+  "name":"jakarta.servlet.Servlet"
+},
+{
+  "name":"jakarta.servlet.ServletConfig"
+},
+{
+  "name":"jakarta.servlet.ServletContext"
+},
+{
+  "name":"jakarta.servlet.ServletRequest"
+},
+{
+  "name":"jakarta.servlet.ServletResponse"
+},
+{
+  "name":"jakarta.servlet.http.HttpServlet"
+},
+{
+  "name":"jakarta.servlet.http.HttpServletRequest"
+},
+{
+  "name":"jakarta.servlet.http.HttpServletResponse"
+},
+{
+  "name":"jakarta.servlet.http.HttpSession"
+},
+{
+  "name":"jakarta.transaction.RollbackException"
+},
+{
+  "name":"jakarta.transaction.TransactionManager"
+},
+{
+  "name":"jakarta.transaction.TransactionSynchronizationRegistry"
+},
+{
+  "name":"jakarta.transaction.UserTransaction"
+},
+{
+  "name":"jakarta.ws.rs.client.ClientRequestFilter"
+},
+{
+  "name":"jakarta.ws.rs.container.ContainerRequestContext"
+},
+{
+  "name":"jakarta.ws.rs.container.ContainerRequestFilter"
+},
+{
+  "name":"jakarta.ws.rs.container.ContainerResponseFilter"
+},
+{
+  "name":"jakarta.ws.rs.container.ResourceContext"
+},
+{
+  "name":"jakarta.ws.rs.container.ResourceInfo"
+},
+{
+  "name":"jakarta.ws.rs.core.Application"
+},
+{
+  "name":"jakarta.ws.rs.core.Configuration"
+},
+{
+  "name":"jakarta.ws.rs.core.HttpHeaders"
+},
+{
+  "name":"jakarta.ws.rs.core.MultivaluedMap"
+},
+{
+  "name":"jakarta.ws.rs.core.Request"
+},
+{
+  "name":"jakarta.ws.rs.core.Response"
+},
+{
+  "name":"jakarta.ws.rs.core.SecurityContext"
+},
+{
+  "name":"jakarta.ws.rs.core.StreamingOutput"
+},
+{
+  "name":"jakarta.ws.rs.core.UriInfo"
+},
+{
+  "name":"jakarta.ws.rs.ext.ExceptionMapper"
+},
+{
+  "name":"jakarta.ws.rs.ext.MessageBodyReader"
+},
+{
+  "name":"jakarta.ws.rs.ext.MessageBodyWriter"
+},
+{
+  "name":"jakarta.ws.rs.ext.Providers"
+},
+{
+  "name":"jakarta.ws.rs.sse.Sse"
+},
+{
+  "name":"java.beans.PropertyVetoException"
+},
+{
+  "name":"java.io.File",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }, {"name":"of","parameterTypes":["java.lang.CharSequence"] }, {"name":"of","parameterTypes":["java.lang.String"] }, {"name":"parse","parameterTypes":["java.lang.CharSequence"] }, {"name":"parse","parameterTypes":["java.lang.String"] }, {"name":"valueOf","parameterTypes":["java.lang.CharSequence"] }, {"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.io.InputStream"
+},
+{
+  "name":"java.io.Reader"
+},
+{
+  "name":"java.lang.AutoCloseable",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"java.lang.Boolean"
+},
+{
+  "name":"java.lang.Character"
+},
+{
+  "name":"java.lang.Integer"
+},
+{
+  "name":"java.lang.Iterable",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"java.lang.Long"
+},
+{
+  "name":"java.lang.Number"
+},
+{
+  "name":"java.lang.Object",
+  "allDeclaredFields":true,
+  "queryAllPublicMethods":true
+},
+{
+  "name":"java.lang.ObjectBeanInfo"
+},
+{
+  "name":"java.lang.ObjectCustomizer"
+},
+{
+  "name":"java.lang.ProcessHandle",
+  "methods":[{"name":"current","parameterTypes":[] }, {"name":"pid","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.String"
+},
+{
+  "name":"java.lang.Thread",
+  "fields":[{"name":"contextClassLoader"}, {"name":"inheritableThreadLocals"}, {"name":"threadLocalRandomProbe"}, {"name":"threadLocals"}],
+  "methods":[{"name":"isVirtual","parameterTypes":[] }, {"name":"ofVirtual","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.Thread$Builder",
+  "methods":[{"name":"factory","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.Thread$Builder$OfVirtual",
+  "methods":[{"name":"name","parameterTypes":["java.lang.String","long"] }]
+},
+{
+  "name":"java.net.InetSocketAddress"
+},
+{
+  "name":"java.net.SocketOption"
+},
+{
+  "name":"java.net.StandardSocketOptions",
+  "fields":[{"name":"IP_MULTICAST_IF"}, {"name":"IP_MULTICAST_LOOP"}, {"name":"IP_MULTICAST_TTL"}]
+},
+{
+  "name":"java.net.URI",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }, {"name":"of","parameterTypes":["java.lang.CharSequence"] }, {"name":"of","parameterTypes":["java.lang.String"] }, {"name":"parse","parameterTypes":["java.lang.CharSequence"] }, {"name":"parse","parameterTypes":["java.lang.String"] }, {"name":"valueOf","parameterTypes":["java.lang.CharSequence"] }, {"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.nio.Bits",
+  "fields":[{"name":"MAX_MEMORY"}, {"name":"UNALIGNED"}]
+},
+{
+  "name":"java.nio.Buffer",
+  "fields":[{"name":"address"}]
+},
+{
+  "name":"java.nio.ByteBuffer",
+  "methods":[{"name":"alignedSlice","parameterTypes":["int"] }]
+},
+{
+  "name":"java.nio.DirectByteBuffer",
+  "methods":[{"name":"<init>","parameterTypes":["long","long"] }]
+},
+{
+  "name":"java.nio.channels.NetworkChannel",
+  "methods":[{"name":"getOption","parameterTypes":["java.net.SocketOption"] }, {"name":"setOption","parameterTypes":["java.net.SocketOption","java.lang.Object"] }]
+},
+{
+  "name":"java.nio.channels.spi.SelectorProvider",
+  "methods":[{"name":"openServerSocketChannel","parameterTypes":["java.net.ProtocolFamily"] }, {"name":"openSocketChannel","parameterTypes":["java.net.ProtocolFamily"] }]
+},
+{
+  "name":"java.nio.charset.Charset"
+},
+{
+  "name":"java.nio.file.Path"
+},
+{
+  "name":"java.security.SecureRandomParameters"
+},
+{
+  "name":"java.sql.Date"
+},
+{
+  "name":"java.sql.SQLException",
+  "fields":[{"name":"next"}]
+},
+{
+  "name":"java.sql.Timestamp"
+},
+{
+  "name":"java.time.Duration"
+},
+{
+  "name":"java.time.ZoneId"
+},
+{
+  "name":"java.util.List"
+},
+{
+  "name":"java.util.Locale"
+},
+{
+  "name":"java.util.OptionalInt"
+},
+{
+  "name":"java.util.OptionalLong"
+},
+{
+  "name":"java.util.UUID"
+},
+{
+  "name":"java.util.concurrent.Executor",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"java.util.concurrent.ExecutorService",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"java.util.concurrent.ForkJoinTask",
+  "fields":[{"name":"aux"}, {"name":"status"}]
+},
+{
+  "name":"java.util.concurrent.ScheduledExecutorService",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"java.util.concurrent.atomic.AtomicBoolean",
+  "fields":[{"name":"value"}]
+},
+{
+  "name":"java.util.concurrent.atomic.AtomicReference",
+  "fields":[{"name":"value"}]
+},
+{
+  "name":"java.util.concurrent.atomic.AtomicStampedReference",
+  "fields":[{"name":"pair"}]
+},
+{
+  "name":"java.util.concurrent.atomic.Striped64",
+  "fields":[{"name":"base"}, {"name":"cellsBusy"}]
+},
+{
+  "name":"java.util.logging.Level"
+},
+{
+  "name":"java.util.logging.LogRecord",
+  "methods":[{"name":"getLongThreadID","parameterTypes":[] }, {"name":"setLongThreadID","parameterTypes":["long"] }]
+},
+{
+  "name":"javaq.math.BigDecimal$quarkusrestparamConverter$",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"javaq.util.UUID$quarkusrestparamConverter$",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"javax.crac.Resource"
+},
+{
+  "name":"javax.net.ssl.SSLEngine",
+  "methods":[{"name":"getApplicationProtocol","parameterTypes":[] }]
+},
+{
+  "name":"javax.sql.DataSource"
+},
+{
+  "name":"jdk.crac.Resource"
+},
+{
+  "name":"jdk.internal.misc.Unsafe",
+  "methods":[{"name":"getUnsafe","parameterTypes":[] }]
+},
+{
+  "name":"jdk.net.ExtendedSocketOptions",
+  "fields":[{"name":"TCP_KEEPCOUNT"}, {"name":"TCP_KEEPIDLE"}, {"name":"TCP_KEEPINTERVAL"}]
+},
+{
+  "name":"org.babyfish.jimmer.Page"
+},
+{
+  "name":"org.babyfish.jimmer.error.CodeBasedException"
+},
+{
+  "name":"org.babyfish.jimmer.error.CodeBasedRuntimeException"
+},
+{
+  "name":"org.babyfish.jimmer.sql.DraftInterceptor"
+},
+{
+  "name":"org.babyfish.jimmer.sql.JSqlClient"
+},
+{
+  "name":"org.babyfish.jimmer.sql.TransientResolver"
+},
+{
+  "name":"org.babyfish.jimmer.sql.association.Association",
+  "methods":[{"name":"source","parameterTypes":[] }, {"name":"target","parameterTypes":[] }]
+},
+{
+  "name":"org.babyfish.jimmer.sql.cache.CacheFactory"
+},
+{
+  "name":"org.babyfish.jimmer.sql.cache.PropCacheInvalidator",
+  "methods":[{"name":"getAffectedSourceIds","parameterTypes":["org.babyfish.jimmer.sql.event.AssociationEvent"] }, {"name":"getAffectedSourceIds","parameterTypes":["org.babyfish.jimmer.sql.event.EntityEvent"] }]
+},
+{
+  "name":"org.babyfish.jimmer.sql.cache.TransactionCacheOperator"
+},
+{
+  "name":"org.babyfish.jimmer.sql.cache.caffeine.CaffeineValueBinder$1"
+},
+{
+  "name":"org.babyfish.jimmer.sql.dialect.H2Dialect",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.babyfish.jimmer.sql.event.AssociationEvent"
+},
+{
+  "name":"org.babyfish.jimmer.sql.event.DatabaseEvent"
+},
+{
+  "name":"org.babyfish.jimmer.sql.event.EntityEvent"
+},
+{
+  "name":"org.babyfish.jimmer.sql.filter.Filter"
+},
+{
+  "name":"org.babyfish.jimmer.sql.filter.impl.LogicalDeletedFilterProvider$DefaultFilter"
+},
+{
+  "name":"org.babyfish.jimmer.sql.runtime.Customizer"
+},
+{
+  "name":"org.eclipse.microprofile.config.Config"
+},
+{
+  "name":"org.eclipse.microprofile.config.ConfigValue"
+},
+{
+  "name":"org.eclipse.microprofile.context.ManagedExecutor"
+},
+{
+  "name":"org.eclipse.microprofile.context.ThreadContext"
+},
+{
+  "name":"org.eclipse.microprofile.rest.client.ext.QueryParamStyle"
+},
+{
+  "name":"org.h2.Driver",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.mvstore.MVStore$TxCounter",
+  "fields":[{"name":"counter"}]
+},
+{
+  "name":"org.h2.mvstore.Page",
+  "fields":[{"name":"pos"}]
+},
+{
+  "name":"org.h2.server.web.JakartaWebServlet"
+},
+{
+  "name":"org.jboss.logging.BasicLogger"
+},
+{
+  "name":"org.jboss.logging.Logger"
+},
+{
+  "name":"org.jboss.logmanager.CopyOnWriteMap",
+  "fields":[{"name":"map"}]
+},
+{
+  "name":"org.jboss.logmanager.ExtHandler",
+  "fields":[{"name":"handlers"}]
+},
+{
+  "name":"org.jboss.logmanager.ExtLogRecord",
+  "methods":[{"name":"setMarker","parameterTypes":["java.lang.Object"] }]
+},
+{
+  "name":"org.jboss.logmanager.LogManager"
+},
+{
+  "name":"org.jboss.logmanager.Logger$AttachmentKey"
+},
+{
+  "name":"org.jboss.logmanager.LoggerNode",
+  "fields":[{"name":"handlers"}]
+},
+{
+  "name":"org.jboss.logmanager.StandardOutputStreams"
+},
+{
+  "name":"org.jboss.logmanager.handlers.AsyncHandler$OverflowAction"
+},
+{
+  "name":"org.jboss.logmanager.handlers.SyslogHandler$Facility"
+},
+{
+  "name":"org.jboss.logmanager.handlers.SyslogHandler$Protocol"
+},
+{
+  "name":"org.jboss.logmanager.handlers.SyslogHandler$SyslogType"
+},
+{
+  "name":"org.jboss.resteasy.reactive.FilePart"
+},
+{
+  "name":"org.jboss.resteasy.reactive.PathPart"
+},
+{
+  "name":"org.jboss.resteasy.reactive.client.impl.RestClientRequestContext"
+},
+{
+  "name":"org.jboss.resteasy.reactive.client.impl.StorkClientRequestFilter"
+},
+{
+  "name":"org.jboss.resteasy.reactive.client.providers.serialisers.ClientDefaultTextPlainBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.client.spi.ClientRestHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.client.spi.ResteasyReactiveClientRequestFilter"
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.core.BlockingNotAllowedException"
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.core.ResteasyReactiveCallbackContext"
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.AbstractJsonMessageBodyReader"
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.BooleanMessageBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.ByteArrayMessageBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.CharArrayMessageBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.CharacterMessageBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.FileBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.FormUrlEncodedProvider",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.InputStreamMessageBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.MapAsFormUrlEncodedProvider",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.NumberMessageBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.ReaderBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.StringMessageBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.jsonp.JsonArrayHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.jsonp.JsonObjectHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.providers.serialisers.jsonp.JsonValueHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.common.types.AllWriteableMarker"
+},
+{
+  "name":"org.jboss.resteasy.reactive.multipart.FileUpload"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.SimpleResourceInfo"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.core.multipart.MultipartMessageBodyWriter"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.injection.ContextProducers"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.jackson.JacksonBasicMessageBodyReader"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.multipart.MultipartFormDataOutput"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerBooleanMessageBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerByteArrayMessageBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerCharArrayMessageBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerCharacterMessageBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerDefaultTextPlainBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerFileBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerFilePartBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerFormUrlEncodedProvider"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerInputStreamMessageBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerNumberMessageBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerPathBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerPathPartBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerReaderBodyHandler"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.ServerStringMessageBodyHandler",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.providers.serialisers.StreamingOutputMessageBodyWriter"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.spi.ResteasyReactiveAsyncExceptionMapper"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.spi.ResteasyReactiveExceptionMapper"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.spi.RuntimeConfiguration"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.spi.ServerMessageBodyReader"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.spi.ServerMessageBodyWriter"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.spi.ServerMessageBodyWriter$AllWriteableMessageBodyWriter"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.spi.ServerRequestContext"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.vertx.serializers.ServerMutinyAsyncFileMessageBodyWriter"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.vertx.serializers.ServerMutinyBufferMessageBodyWriter"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.vertx.serializers.ServerVertxAsyncFileMessageBodyWriter"
+},
+{
+  "name":"org.jboss.resteasy.reactive.server.vertx.serializers.ServerVertxBufferMessageBodyWriter"
+},
+{
+  "name":"org.jboss.resteasy.reactive.spi.RestHandler"
+},
+{
+  "name":"org.jboss.threads.EnhancedQueueExecutor",
+  "fields":[{"name":"activeCount"}, {"name":"peakQueueSize"}, {"name":"peakThreadCount"}, {"name":"queueSize"}, {"name":"terminationWaiters"}]
+},
+{
+  "name":"org.jboss.threads.EnhancedQueueExecutor$PoolThreadNode",
+  "fields":[{"name":"parked"}, {"name":"task"}]
+},
+{
+  "name":"org.jboss.threads.EnhancedQueueExecutor$QNode",
+  "fields":[{"name":"next"}]
+},
+{
+  "name":"org.jboss.threads.EnhancedQueueExecutorBase1",
+  "fields":[{"name":"tail"}]
+},
+{
+  "name":"org.jboss.threads.EnhancedQueueExecutorBase3",
+  "fields":[{"name":"head"}]
+},
+{
+  "name":"org.jboss.threads.EnhancedQueueExecutorBase5",
+  "fields":[{"name":"threadStatus"}]
+},
+{
+  "name":"org.jboss.tm.JBossXATerminator"
+},
+{
+  "name":"org.jboss.tm.XAResourceRecoveryRegistry"
+},
+{
+  "name":"org.jboss.tm.usertx.UserTransactionRegistry"
+},
+{
+  "name":"org.quartz.Job"
+},
+{
+  "name":"org.quartz.Scheduler"
+},
+{
+  "name":"org.quartz.simpl.InitThreadContextClassLoadHelper",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.quartz.simpl.RAMJobStore",
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setInstanceId","parameterTypes":["java.lang.String"] }, {"name":"setInstanceName","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"org.quartz.simpl.RAMJobStoreBeanInfo"
+},
+{
+  "name":"org.quartz.simpl.RAMJobStoreCustomizer"
+},
+{
+  "name":"org.quartz.simpl.SimpleInstanceIdGenerator",
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.quartz.simpl.SimpleInstanceIdGeneratorBeanInfo"
+},
+{
+  "name":"org.quartz.simpl.SimpleInstanceIdGeneratorCustomizer"
+},
+{
+  "name":"org.quartz.simpl.SimpleThreadPool",
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setInstanceId","parameterTypes":["java.lang.String"] }, {"name":"setInstanceName","parameterTypes":["java.lang.String"] }, {"name":"setThreadCount","parameterTypes":["int"] }, {"name":"setThreadPriority","parameterTypes":["int"] }]
+},
+{
+  "name":"org.quartz.simpl.SimpleThreadPoolBeanInfo"
+},
+{
+  "name":"org.quartz.simpl.SimpleThreadPoolCustomizer"
+},
+{
+  "name":"org.quartz.spi.InstanceIdGenerator",
+  "queryAllPublicMethods":true
+},
+{
+  "name":"org.quartz.spi.JobStore",
+  "queryAllPublicMethods":true
+},
+{
+  "name":"org.quartz.spi.ThreadPool",
+  "queryAllPublicMethods":true
+},
+{
+  "name":"org.redisson.api.NameMapper",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.api.NatMapper",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.api.RedissonClient",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.api.RedissonReactiveClient",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.api.RedissonRxClient",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.client.FailedNodeDetector",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.client.NettyHook",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.client.codec.Codec",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.client.handler.BaseConnectionHandler",
+  "methods":[{"name":"channelActive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRegistered","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }]
+},
+{
+  "name":"org.redisson.client.handler.CommandBatchEncoder",
+  "methods":[{"name":"write","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object","io.netty.channel.ChannelPromise"] }]
+},
+{
+  "name":"org.redisson.client.handler.CommandDecoder"
+},
+{
+  "name":"org.redisson.client.handler.CommandEncoder",
+  "methods":[{"name":"write","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object","io.netty.channel.ChannelPromise"] }]
+},
+{
+  "name":"org.redisson.client.handler.CommandPubSubDecoder"
+},
+{
+  "name":"org.redisson.client.handler.CommandsQueue",
+  "methods":[{"name":"channelInactive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelRegistered","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"write","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object","io.netty.channel.ChannelPromise"] }]
+},
+{
+  "name":"org.redisson.client.handler.CommandsQueuePubSub",
+  "methods":[{"name":"channelInactive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"write","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Object","io.netty.channel.ChannelPromise"] }]
+},
+{
+  "name":"org.redisson.client.handler.ConnectionWatchdog",
+  "methods":[{"name":"channelActive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }, {"name":"channelInactive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }]
+},
+{
+  "name":"org.redisson.client.handler.ErrorsLoggingHandler",
+  "methods":[{"name":"exceptionCaught","parameterTypes":["io.netty.channel.ChannelHandlerContext","java.lang.Throwable"] }]
+},
+{
+  "name":"org.redisson.client.handler.PingConnectionHandler",
+  "methods":[{"name":"channelActive","parameterTypes":["io.netty.channel.ChannelHandlerContext"] }]
+},
+{
+  "name":"org.redisson.client.handler.RedisChannelInitializer"
+},
+{
+  "name":"org.redisson.client.handler.RedisConnectionHandler"
+},
+{
+  "name":"org.redisson.client.handler.RedisPubSubConnectionHandler"
+},
+{
+  "name":"org.redisson.config.BaseConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"setConnectTimeout","parameterTypes":["int"] }, {"name":"setIdleConnectionTimeout","parameterTypes":["int"] }, {"name":"setPassword","parameterTypes":["java.lang.String"] }, {"name":"setRetryAttempts","parameterTypes":["int"] }, {"name":"setRetryInterval","parameterTypes":["int"] }, {"name":"setSubscriptionsPerConnection","parameterTypes":["int"] }, {"name":"setTimeout","parameterTypes":["int"] }]
+},
+{
+  "name":"org.redisson.config.BaseMasterSlaveServersConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.config.ClusterServersConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true
+},
+{
+  "name":"org.redisson.config.CommandMapper",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.config.Config",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setNettyThreads","parameterTypes":["int"] }, {"name":"setSingleServerConfig","parameterTypes":["org.redisson.config.SingleServerConfig"] }, {"name":"setThreads","parameterTypes":["int"] }]
+},
+{
+  "name":"org.redisson.config.ConfigSupport$ClassMixIn",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.config.ConfigSupport$ConfigMixIn",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true
+},
+{
+  "name":"org.redisson.config.ConfigSupport$ConfigPropsMixIn",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.config.CredentialsResolver",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.config.MasterSlaveServersConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true
+},
+{
+  "name":"org.redisson.config.Protocol",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.config.ReadMode",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.config.ReplicatedServersConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true
+},
+{
+  "name":"org.redisson.config.SentinelServersConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true
+},
+{
+  "name":"org.redisson.config.ShardedSubscriptionMode",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.config.SingleServerConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setAddress","parameterTypes":["java.lang.String"] }, {"name":"setConnectionMinimumIdleSize","parameterTypes":["int"] }, {"name":"setDatabase","parameterTypes":["int"] }, {"name":"setSubscriptionConnectionMinimumIdleSize","parameterTypes":["int"] }]
+},
+{
+  "name":"org.redisson.config.SslProvider",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.config.SubscriptionMode",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.config.TransportMode",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.connection.AddressResolverGroupFactory",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.connection.ConnectionListener",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.redisson.connection.balancer.LoadBalancer",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"sun.misc.Unsafe",
+  "fields":[{"name":"theUnsafe"}],
+  "methods":[{"name":"addressSize","parameterTypes":[] }, {"name":"allocateMemory","parameterTypes":["long"] }, {"name":"arrayBaseOffset","parameterTypes":["java.lang.Class"] }, {"name":"arrayIndexScale","parameterTypes":["java.lang.Class"] }, {"name":"copyMemory","parameterTypes":["java.lang.Object","long","java.lang.Object","long","long"] }, {"name":"freeMemory","parameterTypes":["long"] }, {"name":"getAndAddLong","parameterTypes":["java.lang.Object","long","long"] }, {"name":"getAndSetObject","parameterTypes":["java.lang.Object","long","java.lang.Object"] }, {"name":"getBoolean","parameterTypes":["java.lang.Object","long"] }, {"name":"getByte","parameterTypes":["long"] }, {"name":"getByte","parameterTypes":["java.lang.Object","long"] }, {"name":"getInt","parameterTypes":["long"] }, {"name":"getInt","parameterTypes":["java.lang.Object","long"] }, {"name":"getLong","parameterTypes":["long"] }, {"name":"getLong","parameterTypes":["java.lang.Object","long"] }, {"name":"invokeCleaner","parameterTypes":["java.nio.ByteBuffer"] }, {"name":"objectFieldOffset","parameterTypes":["java.lang.reflect.Field"] }, {"name":"putByte","parameterTypes":["long","byte"] }, {"name":"putByte","parameterTypes":["java.lang.Object","long","byte"] }, {"name":"putInt","parameterTypes":["long","int"] }, {"name":"putInt","parameterTypes":["java.lang.Object","long","int"] }, {"name":"putLong","parameterTypes":["long","long"] }, {"name":"putLong","parameterTypes":["java.lang.Object","long","long"] }, {"name":"reallocateMemory","parameterTypes":["long","long"] }, {"name":"setMemory","parameterTypes":["long","long","byte"] }, {"name":"setMemory","parameterTypes":["java.lang.Object","long","long","byte"] }, {"name":"staticFieldBase","parameterTypes":["java.lang.reflect.Field"] }, {"name":"staticFieldOffset","parameterTypes":["java.lang.reflect.Field"] }, {"name":"storeFence","parameterTypes":[] }]
+},
+{
+  "name":"sun.nio.ch.SelectorImpl",
+  "fields":[{"name":"publicSelectedKeys"}, {"name":"selectedKeys"}]
+},
+{
+  "name":"sun.security.provider.NativePRNG",
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"<init>","parameterTypes":["java.security.SecureRandomParameters"] }]
+},
+{
+  "name":"sun.security.provider.SHA",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.SHA2$SHA256",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.SecureRandom",
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"<init>","parameterTypes":["java.security.SecureRandomParameters"] }]
+}
+]
