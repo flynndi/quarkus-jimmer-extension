@@ -141,6 +141,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         runtimeConfig.dataSources().get(dataSourceName).defaultListBatchSize().ifPresent(builder::setDefaultListBatchSize);
         runtimeConfig.dataSources().get(dataSourceName).offsetOptimizingThreshold()
                 .ifPresent(builder::setOffsetOptimizingThreshold);
+        builder.setReverseSortOptimizationEnabled(
+                runtimeConfig.dataSources().get(dataSourceName).reverseSortOptimizationEnabled());
         builder.setForeignKeyEnabledByDefault(runtimeConfig.dataSources().get(dataSourceName).isForeignKeyEnabledByDefault());
         builder.setMaxCommandJoinCount(runtimeConfig.dataSources().get(dataSourceName).maxCommandJoinCount());
         builder.setMutationTransactionRequired(runtimeConfig.dataSources().get(dataSourceName).mutationTransactionRequired());

@@ -87,6 +87,12 @@ public interface JimmerDataSourceRuntimeConfig {
     OptionalInt offsetOptimizingThreshold();
 
     /**
+     * jimmer.defaultListBatchSize
+     */
+    @WithDefault("false")
+    boolean reverseSortOptimizationEnabled();
+
+    /**
      * jimmer.isForeignKeyEnabledByDefault
      */
     @WithDefault("true")
