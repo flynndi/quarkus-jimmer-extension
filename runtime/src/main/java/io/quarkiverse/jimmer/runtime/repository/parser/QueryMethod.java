@@ -1,8 +1,11 @@
 package io.quarkiverse.jimmer.runtime.repository.parser;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
 import org.babyfish.jimmer.meta.ImmutableType;
+
+import io.quarkiverse.jimmer.runtime.repository.DynamicParam;
 
 public class QueryMethod {
 
@@ -22,6 +25,8 @@ public class QueryMethod {
 
     private final int viewTypeParamIndex;
 
+    private final boolean[] dynamicFlags;
+
     public QueryMethod(
             Method javaMethod,
             Query query,
@@ -39,6 +44,12 @@ public class QueryMethod {
         this.specificationParamIndex = specificationParamIndex;
         this.fetcherParamIndex = fetcherParamIndex;
         this.viewTypeParamIndex = viewTypeParamIndex;
+        Parameter[] parameters = javaMethod.getParameters();
+        boolean[] arr = new boolean[parameters.length];
+        for (int i = arr.length - 1; i >= 0; --i) {
+            arr[i] = parameters[i].isAnnotationPresent(DynamicParam.class);
+        }
+        this.dynamicFlags = arr;
     }
 
     public static QueryMethod of(Context ctx, ImmutableType type, Method method) {
@@ -75,6 +86,25 @@ public class QueryMethod {
 
     public int getViewTypeParamIndex() {
         return viewTypeParamIndex;
+    }
+
+    public boolean isDynamicParam(int index) {
+        return dynamicFlags[index];
+    }
+
+    public void throwNullParameterException(int index) {
+        throw new NullPointerException(
+                "The parameters[" +
+                        index +
+                        "](" +
+                        javaMethod.getParameters()[index].getName() +
+                        ") of \"" +
+                        javaMethod +
+                        "\" cannot be null. If you want to use dynamic queries, " +
+                        "that is, ignore this parameter, please annotate this " +
+                        "parameter with \"@" +
+                        DynamicParam.class.getName() +
+                        "\"");
     }
 
     @Override

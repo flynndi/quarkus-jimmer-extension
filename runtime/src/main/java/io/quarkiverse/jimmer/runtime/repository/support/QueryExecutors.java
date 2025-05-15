@@ -48,13 +48,13 @@ public class QueryExecutors {
         Query queryData = queryMethod.getQuery();
         if (queryData.getAction() == Query.Action.DELETE) {
             int rowCount = Mutations.createDelete(sqlClient, type, (d, table) -> {
-                d.where(astPredicate(table, queryData.getPredicate(), args));
+                d.where(astPredicate(table, queryData.getPredicate(), args, queryMethod));
             }).execute();
             return queryMethod.getJavaMethod().getReturnType() == int.class ? rowCount : null;
         } else {
             ConfigurableRootQuery<?, Object> query = Queries
                     .createQuery(sqlClient, type, ExecutionPurpose.QUERY, FilterLevel.DEFAULT, (q, table) -> {
-                        q.where(astPredicate(table, queryData.getPredicate(), args));
+                        q.where(astPredicate(table, queryData.getPredicate(), args, queryMethod));
                         if (specification != null) {
                             if (specification instanceof KSpecification<?>) {
                                 JSpecification<?, Table<?>> spec = (JSpecification<?, Table<?>>) (JSpecification<?, ?>) KSpecificationKt
@@ -125,7 +125,8 @@ public class QueryExecutors {
     private static org.babyfish.jimmer.sql.ast.Predicate astPredicate(
             Table<?> table,
             io.quarkiverse.jimmer.runtime.repository.parser.Predicate predicate,
-            Object[] args) {
+            Object[] args,
+            QueryMethod queryMethod) {
         if (predicate == null) {
             return null;
         }
@@ -155,20 +156,38 @@ public class QueryExecutors {
                             : ((Table<?>) astSelection).isNotNull();
                 case IN: {
                     Collection<Object> c = (Collection<Object>) args[propPredicate.getLogicParamIndex()];
-                    return c == null ? null : ((Expression<Object>) astSelection).in(c);
+                    if (c == null) {
+                        if (!queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                            queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                        }
+                        return null;
+                    }
+                    return ((Expression<Object>) astSelection).in(c);
                 }
                 case NOT_IN: {
                     Collection<Object> c = (Collection<Object>) args[propPredicate.getLogicParamIndex()];
-                    return c == null ? null : ((Expression<Object>) astSelection).notIn(c);
+                    if (c == null) {
+                        if (!queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                            queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                        }
+                        return null;
+                    }
+                    return ((Expression<Object>) astSelection).notIn(c);
                 }
                 case BETWEEN: {
                     astSelection = insensitive(propPredicate.isInsensitive(), astSelection);
                     Comparable min = (Comparable) insensitive(
                             propPredicate.isInsensitive(),
                             args[propPredicate.getLogicParamIndex()]);
+                    if (min == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                    }
                     Comparable max = (Comparable) insensitive(
                             propPredicate.isInsensitive(),
                             args[propPredicate.getLogicParamIndex2()]);
+                    if (max == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex2())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex2());
+                    }
                     if (min != null && max != null) {
                         return ((ComparableExpression) astSelection).between(min, max);
                     }
@@ -185,9 +204,15 @@ public class QueryExecutors {
                     Comparable min = (Comparable) insensitive(
                             propPredicate.isInsensitive(),
                             args[propPredicate.getLogicParamIndex()]);
+                    if (min == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                    }
                     Comparable max = (Comparable) insensitive(
                             propPredicate.isInsensitive(),
                             args[propPredicate.getLogicParamIndex2()]);
+                    if (max == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex2())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex2());
+                    }
                     if (min != null && max != null) {
                         return ((ComparableExpression) astSelection).notBetween(min, max);
                     }
@@ -201,6 +226,9 @@ public class QueryExecutors {
                 }
                 case LIKE: {
                     String pattern = (String) args[propPredicate.getLogicParamIndex()];
+                    if (pattern == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                    }
                     return pattern == null || pattern.isEmpty() ? null
                             : propPredicate.isInsensitive()
                                     ? ((StringExpression) astSelection).ilike(pattern, propPredicate.getLikeMode())
@@ -208,6 +236,9 @@ public class QueryExecutors {
                 }
                 case NOT_LIKE: {
                     String pattern = (String) args[propPredicate.getLogicParamIndex()];
+                    if (pattern == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                    }
                     return pattern == null || pattern.isEmpty() ? null
                             : Predicate.not(propPredicate.isInsensitive()
                                     ? ((StringExpression) astSelection).ilike(pattern, propPredicate.getLikeMode())
@@ -216,11 +247,17 @@ public class QueryExecutors {
                 case EQ: {
                     astSelection = insensitive(propPredicate.isInsensitive(), astSelection);
                     Object value = insensitive(propPredicate.isInsensitive(), args[propPredicate.getLogicParamIndex()]);
+                    if (value == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                    }
                     return value == null ? null : ((Expression<Object>) astSelection).eq(value);
                 }
                 case NE: {
                     astSelection = insensitive(propPredicate.isInsensitive(), astSelection);
                     Object value = insensitive(propPredicate.isInsensitive(), args[propPredicate.getLogicParamIndex()]);
+                    if (value == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                    }
                     return value == null ? null : ((Expression<Object>) astSelection).ne(value);
                 }
                 case LT: {
@@ -228,6 +265,9 @@ public class QueryExecutors {
                     Comparable value = (Comparable) insensitive(
                             propPredicate.isInsensitive(),
                             args[propPredicate.getLogicParamIndex()]);
+                    if (value == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                    }
                     return value == null ? null : ((ComparableExpression) astSelection).lt(value);
                 }
                 case LE: {
@@ -235,6 +275,9 @@ public class QueryExecutors {
                     Comparable value = (Comparable) insensitive(
                             propPredicate.isInsensitive(),
                             args[propPredicate.getLogicParamIndex()]);
+                    if (value == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                    }
                     return value == null ? null : ((ComparableExpression) astSelection).le(value);
                 }
                 case GT: {
@@ -242,6 +285,9 @@ public class QueryExecutors {
                     Comparable value = (Comparable) insensitive(
                             propPredicate.isInsensitive(),
                             args[propPredicate.getLogicParamIndex()]);
+                    if (value == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                    }
                     return value == null ? null : ((ComparableExpression) astSelection).gt(value);
                 }
                 case GE: {
@@ -249,6 +295,9 @@ public class QueryExecutors {
                     Comparable value = (Comparable) insensitive(
                             propPredicate.isInsensitive(),
                             args[propPredicate.getLogicParamIndex()]);
+                    if (value == null && !queryMethod.isDynamicParam(propPredicate.getParamIndex())) {
+                        queryMethod.throwNullParameterException(((PropPredicate) predicate).getParamIndex());
+                    }
                     return value == null ? null : ((ComparableExpression) astSelection).ge(value);
                 }
             }
@@ -259,7 +308,7 @@ public class QueryExecutors {
             Predicate[] subAstPredicates = new Predicate[subPredicates.size()];
             int index = 0;
             for (io.quarkiverse.jimmer.runtime.repository.parser.Predicate subPredicate : subPredicates) {
-                subAstPredicates[index++] = astPredicate(table, subPredicate, args);
+                subAstPredicates[index++] = astPredicate(table, subPredicate, args, queryMethod);
             }
             return Predicate.and(subAstPredicates);
         }
@@ -269,7 +318,7 @@ public class QueryExecutors {
             Predicate[] subAstPredicates = new Predicate[subPredicates.size()];
             int index = 0;
             for (io.quarkiverse.jimmer.runtime.repository.parser.Predicate subPredicate : subPredicates) {
-                subAstPredicates[index++] = astPredicate(table, subPredicate, args);
+                subAstPredicates[index++] = astPredicate(table, subPredicate, args, queryMethod);
             }
             return Predicate.or(subAstPredicates);
         }
