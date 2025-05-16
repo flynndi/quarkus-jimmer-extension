@@ -77,6 +77,21 @@ public class TestRepositoryTestCase {
     }
 
     @Test
+    void testBookRepositoryFindByNameLikeIgnoreCaseAndStoreNameOrderByNameAscEditionDesc() {
+        Page<Book> bookPage = bookRepository.findByNameLikeIgnoreCaseAndStoreNameOrderByNameAscEditionDesc(
+                new Pagination(0, 10), Fetchers.BOOK_FETCHER.allTableFields(), null, "MANNING");
+        Assertions.assertEquals(1, bookPage.getTotalPageCount());
+        Assertions.assertEquals(1, bookPage.getTotalRowCount());
+    }
+
+    @Test
+    void testBookRepositoryFindByNameLikeIgnoreCaseAndStoreNameOrderByNameAscEditionDescWithNPE() {
+        Assertions.assertThrows(NullPointerException.class,
+                () -> bookRepository.findByNameLikeIgnoreCaseAndStoreNameOrderByNameAscEditionDesc(new Pagination(0, 10),
+                        Fetchers.BOOK_FETCHER.allTableFields(), null, null));
+    }
+
+    @Test
     void testUserRoleRepositoryFindByUserId() {
         UserRole userRole = userRoleRepository.findByUserId(Constant.USER_ID);
         Assertions.assertEquals(Constant.USER_ID, userRole.userId());
