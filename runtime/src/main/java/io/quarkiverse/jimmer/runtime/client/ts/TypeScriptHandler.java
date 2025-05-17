@@ -37,8 +37,7 @@ public class TypeScriptHandler implements Handler<RoutingContext> {
 
         JimmerBuildTimeConfig.TypeScript ts = buildTimeConfig.client().ts();
         Metadata metadata = Metadatas.create(true, routingContext.request().getParam("groups"),
-                buildTimeConfig.client().uriPrefix().orElse(null),
-                buildTimeConfig.client().controllerNullityChecked());
+                buildTimeConfig.client().uriPrefix().orElse(null));
         TypeScriptContext ctx = new TypeScriptContext(metadata, ts.indent(), ts.mutable(), ts.apiName(),
                 ts.nullRenderMode(), ts.isEnumTsStyle());
         HttpServerResponse response = routingContext.response();

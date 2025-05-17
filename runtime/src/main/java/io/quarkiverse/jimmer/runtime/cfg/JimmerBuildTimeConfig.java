@@ -97,12 +97,6 @@ public interface JimmerBuildTimeConfig {
         Optional<String> uriPrefix();
 
         /**
-         * jimmer.Client.controllerNullityChecked
-         */
-        @WithDefault("false")
-        boolean controllerNullityChecked();
-
-        /**
          * jimmer.Client.openapi
          */
         Openapi openapi();
