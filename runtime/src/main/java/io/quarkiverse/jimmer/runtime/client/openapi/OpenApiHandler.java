@@ -45,8 +45,7 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         }
 
         Metadata metadata = Metadatas.create(false, routingContext.request().getParam("groups"),
-                buildTimeConfig.client().uriPrefix().orElse(null),
-                buildTimeConfig.client().controllerNullityChecked());
+                buildTimeConfig.client().uriPrefix().orElse(null));
 
         List<OpenApiProperties.Server> servers = null;
         if (buildTimeConfig.client().openapi().properties().servers().isPresent()) {
