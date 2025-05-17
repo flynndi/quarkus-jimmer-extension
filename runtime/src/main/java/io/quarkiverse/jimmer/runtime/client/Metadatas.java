@@ -31,8 +31,7 @@ public class Metadatas {
 
     public static Metadata create(boolean isGenericSupported,
             @Nullable String groups,
-            @Nullable String uriPrefix,
-            boolean controllerNullityChecked) {
+            @Nullable String uriPrefix) {
         return Metadata
                 .newBuilder()
                 .setOperationParser(new OperationParserImpl())
@@ -44,7 +43,6 @@ public class Metadatas {
                 .setGenericSupported(isGenericSupported)
                 .setGroups(groups != null && !groups.isEmpty() ? Arrays.asList(COMMA_PATTERN.split(groups)) : null)
                 .setUriPrefix(uriPrefix)
-                .setControllerNullityChecked(controllerNullityChecked)
                 .build();
     }
 
@@ -147,7 +145,7 @@ public class Metadatas {
         }
 
         @Override
-        public boolean isOptional(Parameter javaParameter) {
+        public Boolean isOptional(Parameter javaParameter) {
             return true;
         }
 
