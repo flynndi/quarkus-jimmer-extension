@@ -35,4 +35,15 @@ public class UserRoleResourcesTestCase {
                 .put("userRoleResources/updateUserRoleById");
         Assertions.assertEquals(HttpStatus.SC_OK, response.statusCode());
     }
+
+    @Test
+    public void testUserRoleSpecification() {
+        Response response = given()
+                .queryParam("id", Constant.USER_ROLE_ID)
+                .log()
+                .all()
+                .when()
+                .get("userRoleResources/testUserRoleSpecification");
+        Assertions.assertEquals(HttpStatus.SC_OK, response.statusCode());
+    }
 }
