@@ -39,7 +39,7 @@ public class UserRoleResourcesTestCase {
     @Test
     public void testUserRoleSpecification() {
         Response response = given()
-                .queryParam("id", Constant.USER_ROLE_ID)
+                .queryParam("userId", Constant.USER_ROLE_ID)
                 .log()
                 .all()
                 .when()
