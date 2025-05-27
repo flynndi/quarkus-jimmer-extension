@@ -40,6 +40,7 @@ public class UserRoleResourcesTestCase {
     public void testUserRoleSpecification() {
         Response response = given()
                 .queryParam("userId", Constant.USER_ID)
+                .queryParam("roleId", Constant.ROLE_ID)
                 .log()
                 .all()
                 .when()
