@@ -57,6 +57,11 @@ public interface JimmerDataSourceRuntimeConfig {
     EnumType.Strategy defaultEnumStrategy();
 
     /**
+     * jimmer.defaultSchema
+     */
+    Optional<String> defaultSchema();
+
+    /**
      * jimmer.defaultBatchSize
      */
     @WithDefault("128")
