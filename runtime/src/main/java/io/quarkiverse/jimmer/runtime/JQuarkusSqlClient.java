@@ -36,6 +36,8 @@ import org.babyfish.jimmer.sql.kt.cfg.KInitializerKt;
 import org.babyfish.jimmer.sql.kt.filter.KFilter;
 import org.babyfish.jimmer.sql.kt.filter.impl.JavaFiltersKt;
 import org.babyfish.jimmer.sql.meta.DatabaseNamingStrategy;
+import org.babyfish.jimmer.sql.meta.DatabaseSchemaStrategy;
+import org.babyfish.jimmer.sql.meta.DefaultDatabaseSchemaStrategy;
 import org.babyfish.jimmer.sql.meta.MetaStringResolver;
 import org.babyfish.jimmer.sql.runtime.*;
 import org.jetbrains.annotations.Nullable;
@@ -95,6 +97,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         TransientResolverProvider transientResolverProvider = getOptionalBean(TransientResolverProvider.class);
         AopProxyProvider aopProxyProvider = getOptionalBean(AopProxyProvider.class);
         EntityManager entityManager = getOptionalBean(EntityManager.class);
+        DatabaseSchemaStrategy databaseSchemaStrategy = getOptionalBean(DatabaseSchemaStrategy.class);
         DatabaseNamingStrategy databaseNamingStrategy = getOptionalBean(DatabaseNamingStrategy.class);
         MetaStringResolver metaStringResolver = getOptionalBean(MetaStringResolver.class);
         Dialect dialect = getOptionalBean(Dialect.class);
@@ -124,7 +127,13 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         }
         if (null != databaseNamingStrategy) {
             builder.setDatabaseNamingStrategy(databaseNamingStrategy);
+        } else if (runtimeConfig.dataSources().get(dataSourceName).defaultSchema().isPresent()) {
+            builder.setDatabaseSchemaStrategy(
+                    new DefaultDatabaseSchemaStrategy(runtimeConfig.dataSources().get(dataSourceName).defaultSchema().get()));
         }
+        builder.setDatabaseSchemaStrategy(databaseSchemaStrategy != null ? databaseSchemaStrategy
+                : new DefaultDatabaseSchemaStrategy(
+                        runtimeConfig.dataSources().get(dataSourceName).defaultSchema().orElse("")));
         builder.setMetaStringResolver(Objects.requireNonNullElseGet(metaStringResolver, QuarkusMetaStringResolver::new));
 
         builder.setDialect(this.initializeDialect(runtimeConfig));
