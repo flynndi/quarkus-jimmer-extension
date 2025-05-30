@@ -46,5 +46,6 @@ public class UserRoleResourcesTestCase {
                 .when()
                 .get("userRoleResources/testUserRoleSpecification");
         Assertions.assertEquals(HttpStatus.SC_OK, response.statusCode());
+        Assertions.assertEquals(Constant.USER_ID, response.jsonPath().getString("[0].userId"));
     }
 }
