@@ -24,7 +24,7 @@ public class QueryMethodParserTest {
         Method method = Dao.class.getMethod("findByNameOrderByName", String.class,
                 Pagination.class, Fetcher.class);
         QueryMethod queryMethod1 = QueryMethod.of(new Context(), ImmutableType.get(Book.class), method);
-        System.out.println("queryMethod = " + queryMethod1);
+        Assertions.assertNotNull(queryMethod1);
         method = Dao.class.getMethod("findByNameAndEditionInOrderByNameAscEditionDesc", String.class, Collection.class);
         QueryMethod queryMethod = QueryMethod.of(new Context(), ImmutableType.get(Book.class), method);
         System.out.println("queryMethod1 = " + queryMethod);
