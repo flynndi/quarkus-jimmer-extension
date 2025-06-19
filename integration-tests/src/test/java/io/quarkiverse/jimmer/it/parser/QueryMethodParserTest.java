@@ -27,7 +27,7 @@ public class QueryMethodParserTest {
         Assertions.assertNotNull(queryMethod1);
         method = Dao.class.getMethod("findByNameAndEditionInOrderByNameAscEditionDesc", String.class, Collection.class);
         QueryMethod queryMethod = QueryMethod.of(new Context(), ImmutableType.get(Book.class), method);
-        System.out.println("queryMethod1 = " + queryMethod);
+        Assertions.assertNotNull(queryMethod);
     }
 
     interface Dao extends JRepository<Book, Long> {
