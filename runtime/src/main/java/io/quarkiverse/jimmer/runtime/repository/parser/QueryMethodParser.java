@@ -302,7 +302,7 @@ class QueryMethodParser {
             }
         } else if (type instanceof TypeVariable<?>) {
             TypeVariable<?> typeVariable = (TypeVariable<?>) type;
-            if (typeVariable.getGenericDeclaration() == method) {
+            if (typeVariable.getGenericDeclaration().equals(method)) {
                 Type boundType = typeVariable.getBounds()[0];
                 if (boundType instanceof ParameterizedType) {
                     ParameterizedType parameterizedBoundType = (ParameterizedType) boundType;
