@@ -2,28 +2,22 @@ package io.quarkiverse.jimmer.runtime.repo.support
 
 import io.quarkiverse.jimmer.runtime.repo.KotlinRepository
 import io.quarkiverse.jimmer.runtime.repo.PageParam
-import org.babyfish.jimmer.Input
+import io.quarkiverse.jimmer.runtime.repository.orderBy
 import org.babyfish.jimmer.Page
 import org.babyfish.jimmer.Slice
 import org.babyfish.jimmer.View
 import org.babyfish.jimmer.meta.ImmutableType
 import org.babyfish.jimmer.runtime.ImmutableSpi
-import io.quarkiverse.jimmer.runtime.repository.orderBy
-import org.babyfish.jimmer.sql.ast.mutation.AssociatedSaveMode
 import org.babyfish.jimmer.sql.ast.mutation.DeleteMode
-import org.babyfish.jimmer.sql.ast.mutation.SaveMode
 import org.babyfish.jimmer.sql.fetcher.DtoMetadata
 import org.babyfish.jimmer.sql.fetcher.Fetcher
 import org.babyfish.jimmer.sql.kt.KSqlClient
-import org.babyfish.jimmer.sql.kt.ast.mutation.KBatchEntitySaveCommand
-import org.babyfish.jimmer.sql.kt.ast.mutation.KBatchSaveResult
-import org.babyfish.jimmer.sql.kt.ast.mutation.KSaveCommandDsl
-import org.babyfish.jimmer.sql.kt.ast.mutation.KSaveCommandPartialDsl
-import org.babyfish.jimmer.sql.kt.ast.mutation.KSimpleEntitySaveCommand
-import org.babyfish.jimmer.sql.kt.ast.mutation.KSimpleSaveResult
+import org.babyfish.jimmer.sql.kt.ast.KExecutable
+import org.babyfish.jimmer.sql.kt.ast.mutation.*
 import org.babyfish.jimmer.sql.kt.ast.query.KConfigurableRootQuery
 import org.babyfish.jimmer.sql.kt.ast.query.KMutableRootQuery
 import org.babyfish.jimmer.sql.kt.ast.query.SortDsl
+import org.babyfish.jimmer.sql.kt.ast.table.KNonNullTable
 import kotlin.reflect.KClass
 
 /**
@@ -147,7 +141,22 @@ abstract class AbstractKotlinRepository<E: Any, ID: Any>(protected val sql: KSql
         sql.deleteByIds(entityType, ids, deleteMode).affectedRowCount(entityType)
 
     protected fun <R> executeQuery(
-        block: KMutableRootQuery<E>.() -> KConfigurableRootQuery<E, R>
+        block: KMutableRootQuery.ForEntity<E>.() -> KConfigurableRootQuery<KNonNullTable<E>, R>
     ): List<R> =
         sql.createQuery(entityType, block).execute()
+
+    protected fun <R> createQuery(
+        block: KMutableRootQuery.ForEntity<E>.() -> KConfigurableRootQuery<KNonNullTable<E>, R>
+    ): KConfigurableRootQuery<KNonNullTable<E>, R> =
+        sql.createQuery(entityType, block)
+
+    protected fun createUpdate(
+        block: KMutableUpdate<E>.() -> Unit
+    ): KExecutable<Int> =
+        sql.createUpdate(entityType, block)
+
+    protected fun createDelete(
+        block: KMutableDelete<E>.() -> Unit
+    ): KExecutable<Int> =
+        sql.createDelete(entityType, block)
 }
