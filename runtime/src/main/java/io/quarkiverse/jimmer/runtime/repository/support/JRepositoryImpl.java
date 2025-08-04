@@ -260,7 +260,7 @@ public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
             @Nullable Sort sort) {
         MutableRootQueryImpl<Table<?>> query = new MutableRootQueryImpl<>(sqlClient, immutableType, ExecutionPurpose.QUERY,
                 FilterLevel.DEFAULT);
-        TableImplementor<?> table = query.getTableImplementor();
+        TableImplementor<?> table = (TableImplementor<?>) query.getTableLikeImplementor();
         if (sortedProps != null) {
             for (TypedProp.Scalar<?, ?> sortedProp : sortedProps) {
                 if (!sortedProp.unwrap().getDeclaringType().isAssignableFrom(immutableType)) {
