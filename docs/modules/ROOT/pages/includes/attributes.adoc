@@ -1,3 +1,3 @@
-:project-version: 999-SNAPSHOT
+:project-version: 0.0.1.CR55
 
 :examples-dir: ./../examples/
