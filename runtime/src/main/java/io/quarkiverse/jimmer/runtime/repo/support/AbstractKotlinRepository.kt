@@ -14,10 +14,17 @@ import org.babyfish.jimmer.sql.fetcher.Fetcher
 import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.babyfish.jimmer.sql.kt.ast.KExecutable
 import org.babyfish.jimmer.sql.kt.ast.mutation.*
+import org.babyfish.jimmer.sql.kt.ast.query.KConfigurableBaseQuery
 import org.babyfish.jimmer.sql.kt.ast.query.KConfigurableRootQuery
+import org.babyfish.jimmer.sql.kt.ast.query.KMutableBaseQuery
+import org.babyfish.jimmer.sql.kt.ast.query.KMutableRecursiveBaseQuery
 import org.babyfish.jimmer.sql.kt.ast.query.KMutableRootQuery
 import org.babyfish.jimmer.sql.kt.ast.query.SortDsl
+import org.babyfish.jimmer.sql.kt.ast.table.KBaseTableSymbol
+import org.babyfish.jimmer.sql.kt.ast.table.KNonNullBaseTable
 import org.babyfish.jimmer.sql.kt.ast.table.KNonNullTable
+import org.babyfish.jimmer.sql.kt.ast.table.KPropsWeakJoinFun
+import org.babyfish.jimmer.sql.kt.ast.table.KRecursiveRef
 import kotlin.reflect.KClass
 
 /**
@@ -159,4 +166,29 @@ abstract class AbstractKotlinRepository<E: Any, ID: Any>(protected val sql: KSql
         block: KMutableDelete<E>.() -> Unit
     ): KExecutable<Int> =
         sql.createDelete(entityType, block)
+
+    protected fun <E : Any, B : KNonNullBaseTable<*>> createBaseQuery(
+        entityType: KClass<E>,
+        block: KMutableBaseQuery<E>.() -> KConfigurableBaseQuery<B>
+    ): KConfigurableBaseQuery<B> =
+        sql.createBaseQuery(entityType, block)
+
+    protected fun <E : Any, B : KNonNullBaseTable<*>> createBaseQuery(
+        entityType: KClass<E>,
+        recursiveRef: KRecursiveRef<B>,
+        joinBlock: KPropsWeakJoinFun<KNonNullTable<E>, B>,
+        block: KMutableRecursiveBaseQuery<E, B>.() -> KConfigurableBaseQuery<B>
+    ): KConfigurableBaseQuery<B> =
+        sql.createBaseQuery(
+            entityType,
+            recursiveRef,
+            joinBlock,
+            block
+        )
+
+    protected fun <B: KNonNullBaseTable<*>, R> createQuery(
+        symbol: KBaseTableSymbol<B>,
+        block: KMutableRootQuery<B>.() -> KConfigurableRootQuery<B, R>
+    ): KConfigurableRootQuery<B, R> =
+        sql.createQuery(symbol, block)
 }
