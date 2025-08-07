@@ -3,8 +3,8 @@ package io.quarkiverse.jimmer.deployment.bytecode;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import org.babyfish.jimmer.impl.asm.Type;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 class KotlinMethodCodeWriter extends MethodCodeWriter {
 
