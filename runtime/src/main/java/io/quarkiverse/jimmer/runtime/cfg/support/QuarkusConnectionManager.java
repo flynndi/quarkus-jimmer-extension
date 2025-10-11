@@ -34,7 +34,7 @@ public class QuarkusConnectionManager implements DataSourceAwareConnectionManage
     }
 
     @Override
-    public final  <R> R execute(@Nullable Connection con, Function<Connection, R> block) {
+    public final <R> R execute(@Nullable Connection con, Function<Connection, R> block) {
         if (null != con) {
             return block.apply(con);
         }
