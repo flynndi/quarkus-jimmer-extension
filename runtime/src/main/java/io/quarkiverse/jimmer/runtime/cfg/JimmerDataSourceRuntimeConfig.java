@@ -86,6 +86,12 @@ public interface JimmerDataSourceRuntimeConfig {
     OptionalInt defaultListBatchSize();
 
     /**
+     * jimmer.dissociationLogicalDeleteEnabled
+     */
+    @WithDefault("false")
+    boolean dissociationLogicalDeleteEnabled();
+
+    /**
      * jimmer.offsetOptimizingThreshold
      */
     @WithDefault("2147483647")

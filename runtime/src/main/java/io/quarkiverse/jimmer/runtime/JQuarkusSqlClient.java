@@ -148,6 +148,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         builder.setInListPaddingEnabled(runtimeConfig.dataSources().get(dataSourceName).inListPaddingEnabled());
         builder.setExpandedInListPaddingEnabled(runtimeConfig.dataSources().get(dataSourceName).expandedInListPaddingEnabled());
         runtimeConfig.dataSources().get(dataSourceName).defaultListBatchSize().ifPresent(builder::setDefaultListBatchSize);
+        builder.setDissociationLogicalDeleteEnabled(
+                runtimeConfig.dataSources().get(dataSourceName).dissociationLogicalDeleteEnabled());
         runtimeConfig.dataSources().get(dataSourceName).offsetOptimizingThreshold()
                 .ifPresent(builder::setOffsetOptimizingThreshold);
         builder.setReverseSortOptimizationEnabled(
