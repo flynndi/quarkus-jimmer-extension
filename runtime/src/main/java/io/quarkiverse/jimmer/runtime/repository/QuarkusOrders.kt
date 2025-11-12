@@ -1,7 +1,7 @@
 package io.quarkiverse.jimmer.runtime.repository
 
 import io.quarkiverse.jimmer.runtime.repository.common.Sort
-import org.babyfish.jimmer.sql.ast.query.NullOrderMode
+import org.babyfish.jimmer.meta.NullOrderMode
 import org.babyfish.jimmer.sql.ast.query.OrderMode
 import org.babyfish.jimmer.sql.kt.ast.expression.KPropExpression
 import org.babyfish.jimmer.sql.kt.ast.expression.asc
