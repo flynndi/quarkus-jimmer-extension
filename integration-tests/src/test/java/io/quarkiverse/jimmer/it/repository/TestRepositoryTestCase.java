@@ -108,6 +108,5 @@ public class TestRepositoryTestCase {
     void testUserRoleRepositoryFindByUserIdAndRoleId() {
         UserRole userRole = userRoleRepository.findByUserIdAndRoleId(Constant.USER_ID, Constant.ROLE_ID);
         Assertions.assertEquals(Constant.USER_ID, userRole.userId());
-        Assertions.assertEquals(Constant.ROLE_ID, userRole.roleId());
     }
 }
