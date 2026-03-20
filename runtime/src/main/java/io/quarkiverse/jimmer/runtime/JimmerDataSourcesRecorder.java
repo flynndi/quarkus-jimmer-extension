@@ -14,7 +14,6 @@ import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.UnConfiguredDataSourceQuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.util.QuarkusSqlClientContainerUtil;
 import io.quarkus.agroal.runtime.DataSources;
-import io.quarkus.agroal.runtime.UnconfiguredDataSource;
 import io.quarkus.arc.SyntheticCreationalContext;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.runtime.configuration.ConfigurationException;
@@ -28,13 +27,6 @@ public class JimmerDataSourcesRecorder {
             DataSource dataSource;
             try {
                 dataSource = context.getInjectedReference(DataSources.class).getDataSource(dataSourceName);
-                if (dataSource instanceof UnconfiguredDataSource) {
-                    throw new ConfigurationException(String.format(Locale.ROOT,
-                            "Datasource '%s' is not configured."
-                                    + " To solve this, configure datasource '%s'."
-                                    + " Refer to https://quarkus.io/guides/datasource for guidance.",
-                            dataSourceName, dataSourceName));
-                }
             } catch (ConfigurationException e) {
                 return new UnConfiguredDataSourceQuarkusJSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
                         "Unable to find datasource '%s' for Jimmer: %s",
@@ -60,13 +52,6 @@ public class JimmerDataSourcesRecorder {
             DataSource dataSource;
             try {
                 dataSource = context.getInjectedReference(DataSources.class).getDataSource(dataSourceName);
-                if (dataSource instanceof UnconfiguredDataSource) {
-                    throw new ConfigurationException(String.format(Locale.ROOT,
-                            "Datasource '%s' is not configured."
-                                    + " To solve this, configure datasource '%s'."
-                                    + " Refer to https://quarkus.io/guides/datasource for guidance.",
-                            dataSourceName, dataSourceName));
-                }
             } catch (ConfigurationException e) {
                 return new UnConfiguredDataSourceQuarkusKSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
                         "Unable to find datasource '%s' for Jimmer: %s",

@@ -33,7 +33,7 @@ public class QuarkusExchange implements MicroServiceExchange {
 
     @Override
     public List<ImmutableSpi> findByIds(String microServiceName, Collection<?> ids, Fetcher<?> fetcher) throws Exception {
-        RestClientsConfig.RestClientConfig restClientConfig = restClientsConfig.getClient(microServiceName);
+        RestClientsConfig.RestClientConfig restClientConfig = restClientsConfig.clients().get(microServiceName);
         if (restClientConfig.url().isPresent()) {
             ExchangeRestClient quarkusExchangeRestClient = QuarkusRestClientBuilder.newBuilder()
                     .baseUrl(URI.create(restClientConfig.url().get()).toURL()).build(ExchangeRestClient.class);
@@ -51,7 +51,7 @@ public class QuarkusExchange implements MicroServiceExchange {
     @Override
     public List<Tuple2<Object, ImmutableSpi>> findByAssociatedIds(String microServiceName, ImmutableProp prop,
             Collection<?> targetIds, Fetcher<?> fetcher) throws Exception {
-        RestClientsConfig.RestClientConfig restClientConfig = restClientsConfig.getClient(microServiceName);
+        RestClientsConfig.RestClientConfig restClientConfig = restClientsConfig.clients().get(microServiceName);
         if (restClientConfig.url().isPresent()) {
             ExchangeRestClient quarkusExchangeRestClient = QuarkusRestClientBuilder.newBuilder()
                     .baseUrl(URI.create(restClientConfig.url().get()).toURL()).build(ExchangeRestClient.class);
