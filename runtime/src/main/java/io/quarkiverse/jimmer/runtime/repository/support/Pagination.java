@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 
 public class Pagination {
 
+    public Pagination() {
+        this(0, 10);
+    }
+
     /**
      * The current page index (0-based).
      */
