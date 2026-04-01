@@ -1,6 +1,5 @@
 package io.quarkiverse.jimmer.runtime;
 
-import java.util.Locale;
 import java.util.function.Function;
 
 import javax.sql.DataSource;
@@ -9,11 +8,9 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.java.UnConfiguredDataSourceQuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.kotlin.UnConfiguredDataSourceQuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.util.QuarkusSqlClientContainerUtil;
-import io.quarkus.agroal.runtime.DataSources;
+import io.quarkus.agroal.runtime.AgroalDataSourceUtil;
 import io.quarkus.arc.SyntheticCreationalContext;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.runtime.configuration.ConfigurationException;
@@ -24,14 +21,9 @@ public class JimmerDataSourcesRecorder {
     public Function<SyntheticCreationalContext<QuarkusJSqlClientContainer>, QuarkusJSqlClientContainer> jSqlClientContainerFunction(
             String dataSourceName) {
         return context -> {
-            DataSource dataSource;
-            try {
-                dataSource = context.getInjectedReference(DataSources.class).getDataSource(dataSourceName);
-            } catch (ConfigurationException e) {
-                return new UnConfiguredDataSourceQuarkusJSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
-                        "Unable to find datasource '%s' for Jimmer: %s",
-                        dataSourceName, e.getMessage()), e);
-            }
+            DataSource dataSource = AgroalDataSourceUtil.dataSourceIfActive(dataSourceName)
+                    .orElseThrow(() -> new ConfigurationException(
+                            "DataSource with name '" + dataSourceName + "' is not active"));
             QuarkusSqlClientProducer producer = context.getInjectedReference(QuarkusSqlClientProducer.class);
             return producer.createQuarkusJSqlClientContainer(dataSource, dataSourceName);
         };
@@ -49,14 +41,9 @@ public class JimmerDataSourcesRecorder {
     public Function<SyntheticCreationalContext<QuarkusKSqlClientContainer>, QuarkusKSqlClientContainer> kSqlClientContainerFunction(
             String dataSourceName) {
         return context -> {
-            DataSource dataSource;
-            try {
-                dataSource = context.getInjectedReference(DataSources.class).getDataSource(dataSourceName);
-            } catch (ConfigurationException e) {
-                return new UnConfiguredDataSourceQuarkusKSqlClientContainer(dataSourceName, String.format(Locale.ROOT,
-                        "Unable to find datasource '%s' for Jimmer: %s",
-                        dataSourceName, e.getMessage()), e);
-            }
+            DataSource dataSource = AgroalDataSourceUtil.dataSourceIfActive(dataSourceName)
+                    .orElseThrow(() -> new ConfigurationException(
+                            "DataSource with name '" + dataSourceName + "' is not active"));
             QuarkusSqlClientProducer producer = context.getInjectedReference(QuarkusSqlClientProducer.class);
             return producer.createQuarkusKSqlClientContainer(dataSource, dataSourceName);
         };
