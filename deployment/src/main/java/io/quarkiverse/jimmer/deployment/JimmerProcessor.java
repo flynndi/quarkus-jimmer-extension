@@ -1,14 +1,17 @@
 package io.quarkiverse.jimmer.deployment;
 
+import java.beans.Introspector;
 import java.util.*;
 
 import jakarta.enterprise.inject.Default;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.Priorities;
 
 import org.babyfish.jimmer.error.CodeBasedException;
 import org.babyfish.jimmer.error.CodeBasedRuntimeException;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.TransientResolver;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
@@ -94,7 +97,15 @@ final class JimmerProcessor {
 
     @BuildStep
     AnnotationsTransformerBuildItem transform(CustomScopeAnnotationsBuildItem customScopes) {
-        return new AnnotationsTransformerBuildItem(new TransientResolverTransformer(customScopes));
+        return new AnnotationsTransformerBuildItem(AnnotationTransformation.forClasses()
+                .whenClass(classInfo -> classInfo.interfaceNames().contains(
+                        DotName.createSimple(TransientResolver.class.getName())) && customScopes.isScopeDeclaredOn(classInfo))
+                .transform(transformationContext -> {
+                    transformationContext.add(AnnotationInstance.builder(Named.class)
+                            .add(AnnotationValue.createStringValue("value",
+                                    Introspector.decapitalize(transformationContext.declaration().asClass().simpleName())))
+                            .build());
+                }));
     }
 
     @BuildStep
