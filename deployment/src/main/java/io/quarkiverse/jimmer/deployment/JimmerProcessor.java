@@ -55,6 +55,7 @@ import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.*;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.ClassOutput;
@@ -93,6 +94,13 @@ final class JimmerProcessor {
     @BuildStep
     IgnoreSplitPackageBuildItem splitPackages() {
         return new IgnoreSplitPackageBuildItem(List.of("org.babyfish.jimmer", "org.babyfish.jimmer.sql"));
+    }
+
+    @BuildStep
+    ReflectiveHierarchyIgnoreWarningBuildItem ignoreJackson3ReflectionWarnings() {
+        // Jimmer bundles Jackson 3 support classes in the same artifacts as the Jackson 2 runtime used by Quarkus.
+        // When Quarkus scans Jackson 2 annotations, it can reach those unused Jackson 3 signatures and warn.
+        return new ReflectiveHierarchyIgnoreWarningBuildItem(dotName -> dotName.toString().startsWith("tools.jackson."));
     }
 
     @BuildStep
