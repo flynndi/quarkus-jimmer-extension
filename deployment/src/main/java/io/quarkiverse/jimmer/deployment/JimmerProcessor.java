@@ -44,7 +44,6 @@ import io.quarkiverse.jimmer.runtime.repository.support.JRepositoryImpl;
 import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
-import io.quarkus.agroal.runtime.DataSources;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
 import io.quarkus.arc.deployment.*;
 import io.quarkus.arc.processor.DotNames;
@@ -428,7 +427,7 @@ final class JimmerProcessor {
                         .configure(TransactionCacheOperator.class)
                         .scope(Singleton.class)
                         .unremovable()
-                        .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
+                        .addInjectionPoint(ClassType.create(DotName.createSimple(javax.sql.DataSource.class)))
                         .createWith(recorder.transactionJCacheOperatorFunction(dataSourceName));
 
                 if (DataSourceUtil.isDefault(dataSourceName)) {
@@ -475,7 +474,7 @@ final class JimmerProcessor {
                         .configure(TransactionCacheOperator.class)
                         .scope(Singleton.class)
                         .unremovable()
-                        .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
+                        .addInjectionPoint(ClassType.create(DotName.createSimple(javax.sql.DataSource.class)))
                         .createWith(recorder.transactionKCacheOperatorFunction(dataSourceName));
 
                 if (DataSourceUtil.isDefault(dataSourceName)) {
@@ -524,7 +523,7 @@ final class JimmerProcessor {
                     .setRuntimeInit()
                     .unremovable()
                     .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusSqlClientProducer.class)))
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(javax.sql.DataSource.class)))
                     .createWith(recorder.jSqlClientContainerFunction(dataSourceName));
 
             AnnotationInstance quarkusJSqlClientContainerQualifier;
@@ -606,7 +605,7 @@ final class JimmerProcessor {
                     .setRuntimeInit()
                     .unremovable()
                     .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusSqlClientProducer.class)))
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(DataSources.class)))
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(javax.sql.DataSource.class)))
                     .createWith(recorder.kSqlClientContainerFunction(dataSourceName));
 
             AnnotationInstance quarkusKSqlClientContainerQualifier;
