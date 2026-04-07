@@ -30,18 +30,27 @@ import io.quarkus.bootstrap.prebuild.CodeGenException;
 
 final class JimmerGraphQLSourceScanner {
 
-    private static final Set<String> ASSOCIATION_ANNOTATIONS = Set.of(
+    static final Set<String> ASSOCIATION_ANNOTATIONS = Set.of(
             "ManyToOne",
             "OneToOne",
             "OneToMany",
             "ManyToMany");
 
-    private static final String ENTITY = "Entity";
-    private static final String MAPPED_SUPERCLASS = "MappedSuperclass";
+    static final String ENTITY = "Entity";
+    static final String MAPPED_SUPERCLASS = "MappedSuperclass";
+    static final String TRANSIENT = "Transient";
 
     private final JavaParser parser = new JavaParser();
+    private final JimmerGraphQLKotlinSourceScanner kotlinScanner = new JimmerGraphQLKotlinSourceScanner();
 
-    List<JimmerGraphQLSourceType> scan(Path sourceDir) throws CodeGenException {
+    List<JimmerGraphQLSourceType> scan(Path javaSourceDir) throws CodeGenException {
+        List<JimmerGraphQLSourceType> scannedTypes = new ArrayList<>();
+        scannedTypes.addAll(scanJava(javaSourceDir));
+        scannedTypes.addAll(kotlinScanner.scan(resolveSiblingSourceDir(javaSourceDir, "kotlin")));
+        return deduplicate(scannedTypes);
+    }
+
+    private List<JimmerGraphQLSourceType> scanJava(Path sourceDir) throws CodeGenException {
         List<CompilationUnit> units = parseUnits(sourceDir);
         if (units.isEmpty()) {
             return List.of();
@@ -107,16 +116,17 @@ final class JimmerGraphQLSourceScanner {
                     String elementType = collection ? resolveCollectionElementType(method.getType(), packageName, imports,
                             qualifiedNamesBySimpleName, kindsByQualifiedName)
                             : returnType;
-                    boolean complex = annotations.contains("Transient")
+                    boolean complex = annotations.contains(TRANSIENT)
                             || annotations.stream().anyMatch(ASSOCIATION_ANNOTATIONS::contains)
                             || kindsByQualifiedName.get(elementType) == JimmerGraphQLSourceKind.ENTITY;
                     methods.add(new JimmerGraphQLSourceMethod(
+                            method.getNameAsString(),
                             method.getNameAsString(),
                             returnType,
                             collection,
                             elementType,
                             complex,
-                            annotations.contains("Transient"),
+                            annotations.contains(TRANSIENT),
                             new ArrayList<>(annotations)));
                 }
                 scannedTypes.add(new JimmerGraphQLSourceType(
@@ -133,6 +143,9 @@ final class JimmerGraphQLSourceScanner {
     }
 
     private List<CompilationUnit> parseUnits(Path sourceDir) throws CodeGenException {
+        if (!Files.isDirectory(sourceDir)) {
+            return List.of();
+        }
         try (Stream<Path> stream = Files.walk(sourceDir)) {
             List<CompilationUnit> units = new ArrayList<>();
             for (Path sourceFile : stream.filter(path -> path.toString().endsWith(".java")).toList()) {
@@ -147,8 +160,23 @@ final class JimmerGraphQLSourceScanner {
         }
     }
 
-    private static JimmerGraphQLSourceKind sourceKind(ClassOrInterfaceDeclaration declaration) {
-        Set<String> annotations = annotationNames(declaration);
+    private static List<JimmerGraphQLSourceType> deduplicate(List<JimmerGraphQLSourceType> scannedTypes)
+            throws CodeGenException {
+        if (scannedTypes.isEmpty()) {
+            return List.of();
+        }
+        Map<String, JimmerGraphQLSourceType> typesByQualifiedName = new LinkedHashMap<>();
+        for (JimmerGraphQLSourceType type : scannedTypes) {
+            JimmerGraphQLSourceType previous = typesByQualifiedName.putIfAbsent(type.qualifiedName(), type);
+            if (previous != null && !previous.equals(type)) {
+                throw new CodeGenException(
+                        "Duplicate GraphQL source type: " + type.qualifiedName() + ", from multiple source languages");
+            }
+        }
+        return new ArrayList<>(typesByQualifiedName.values());
+    }
+
+    static JimmerGraphQLSourceKind sourceKind(Set<String> annotations) {
         if (annotations.contains(ENTITY)) {
             return JimmerGraphQLSourceKind.ENTITY;
         }
@@ -158,7 +186,11 @@ final class JimmerGraphQLSourceScanner {
         return JimmerGraphQLSourceKind.OTHER;
     }
 
-    private static Set<String> annotationNames(NodeWithAnnotations<?> node) {
+    private static JimmerGraphQLSourceKind sourceKind(ClassOrInterfaceDeclaration declaration) {
+        return sourceKind(annotationNames(declaration));
+    }
+
+    static Set<String> annotationNames(NodeWithAnnotations<?> node) {
         Set<String> annotations = new LinkedHashSet<>();
         node.getAnnotations().forEach(annotation -> annotations.add(annotation.getName().getIdentifier()));
         return annotations;
@@ -169,6 +201,12 @@ final class JimmerGraphQLSourceScanner {
                 && !method.isDefault()
                 && !method.isPrivate()
                 && !method.isStatic();
+    }
+
+    static boolean isCollectionType(String qualifiedTypeName) {
+        return qualifiedTypeName.equals("java.util.List")
+                || qualifiedTypeName.equals("java.util.Collection")
+                || qualifiedTypeName.equals("java.util.Set");
     }
 
     private static boolean isCollectionType(Type type) {
@@ -195,7 +233,7 @@ final class JimmerGraphQLSourceScanner {
         return resolveQualifiedType(elementType, packageName, imports, qualifiedNamesBySimpleName, kindsByQualifiedName);
     }
 
-    private static String resolveQualifiedType(
+    static String resolveQualifiedType(
             Type type,
             String packageName,
             List<String> imports,
@@ -229,7 +267,7 @@ final class JimmerGraphQLSourceScanner {
         return type.asString();
     }
 
-    private static String qualifySimpleName(
+    static String qualifySimpleName(
             String name,
             String packageName,
             List<String> imports,
@@ -265,7 +303,7 @@ final class JimmerGraphQLSourceScanner {
         };
     }
 
-    private static boolean isJavaLangType(String name) {
+    static boolean isJavaLangType(String name) {
         String normalized = name.toLowerCase(Locale.ROOT);
         return normalized.equals("string")
                 || normalized.equals("long")
@@ -279,7 +317,12 @@ final class JimmerGraphQLSourceScanner {
                 || normalized.equals("void");
     }
 
-    private static String qualify(String packageName, String simpleName) {
+    static String qualify(String packageName, String simpleName) {
         return packageName == null || packageName.isBlank() ? simpleName : packageName + '.' + simpleName;
+    }
+
+    private static Path resolveSiblingSourceDir(Path sourceDir, String siblingName) {
+        Path parent = sourceDir.getParent();
+        return parent == null ? sourceDir.resolveSibling(siblingName) : parent.resolve(siblingName);
     }
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 record JimmerGraphQLSourceMethod(
         String name,
+        String rawAccessorName,
         String returnType,
         boolean collection,
         String elementType,

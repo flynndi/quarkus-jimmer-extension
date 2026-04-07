@@ -84,7 +84,7 @@ final class JimmerGraphQLSourceWriter {
         for (JimmerGraphQLSourceMethod method : model.scalarMethods(entity)) {
             builder.append("    public ").append(method.returnType()).append(' ')
                     .append(getterName(method.name())).append("() {\n");
-            builder.append("        return raw.").append(method.name()).append("();\n");
+            builder.append("        return raw.").append(method.rawAccessorName()).append("();\n");
             builder.append("    }\n\n");
         }
         builder.append("    @Override\n");
