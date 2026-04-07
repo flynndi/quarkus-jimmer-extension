@@ -23,6 +23,10 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-jackson</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-graphql</artifactId>
+    </dependency>
     <!-- http://localhost:8080/h2 -->
     <dependency>
       <groupId>io.quarkus</groupId>

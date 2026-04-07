@@ -55,6 +55,7 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.*;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.ClassOutput;
@@ -63,11 +64,13 @@ import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig;
+import io.smallrye.graphql.spi.DataFetcherService;
 
 @BuildSteps(onlyIf = JimmerProcessor.JimmerEnable.class)
 final class JimmerProcessor {
 
     private static final Logger log = Logger.getLogger(JimmerProcessor.class);
+    private static final DotName TRANSIENT_RESOLVER = DotName.createSimple(TransientResolver.class.getName());
 
     private static final String FEATURE = "jimmer";
 
@@ -96,6 +99,13 @@ final class JimmerProcessor {
     }
 
     @BuildStep
+    void registerGraphQLServiceProviders(Capabilities capabilities, BuildProducer<ServiceProviderBuildItem> serviceProviders) {
+        if (capabilities.isPresent(Capability.SMALLRYE_GRAPHQL)) {
+            serviceProviders.produce(ServiceProviderBuildItem.allProvidersFromClassPath(DataFetcherService.class.getName()));
+        }
+    }
+
+    @BuildStep
     ReflectiveHierarchyIgnoreWarningBuildItem ignoreJackson3ReflectionWarnings() {
         // Jimmer bundles Jackson 3 support classes in the same artifacts as the Jackson 2 runtime used by Quarkus.
         // When Quarkus scans Jackson 2 annotations, it can reach those unused Jackson 3 signatures and warn.
@@ -105,8 +115,8 @@ final class JimmerProcessor {
     @BuildStep
     AnnotationsTransformerBuildItem transform(CustomScopeAnnotationsBuildItem customScopes) {
         return new AnnotationsTransformerBuildItem(AnnotationTransformation.forClasses()
-                .whenClass(classInfo -> classInfo.interfaceNames().contains(
-                        DotName.createSimple(TransientResolver.class.getName())) && customScopes.isScopeDeclaredOn(classInfo))
+                .whenClass(classInfo -> classInfo.interfaceNames().contains(TRANSIENT_RESOLVER)
+                        && customScopes.isScopeDeclaredOn(classInfo))
                 .transform(transformationContext -> {
                     transformationContext.add(AnnotationInstance.builder(Named.class)
                             .add(AnnotationValue.createStringValue("value",
