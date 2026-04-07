@@ -13,12 +13,12 @@ import io.quarkus.arc.Arc;
 import io.quarkus.arc.InstanceHandle;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 
-final class JimmerGraphQLSqlClientResolver {
+public final class JimmerGraphQLSqlClientResolver {
 
     private JimmerGraphQLSqlClientResolver() {
     }
 
-    static JSqlClientImplementor resolve(ImmutableType immutableType) {
+    public static JSqlClientImplementor resolve(ImmutableType immutableType) {
         JSqlClientImplementor sqlClient = resolveJavaClient(immutableType);
         if (sqlClient != null) {
             return sqlClient;

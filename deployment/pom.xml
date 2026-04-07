@@ -61,6 +61,11 @@
       <artifactId>quarkus-jackson-spi</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.github.javaparser</groupId>
+      <artifactId>javaparser-core</artifactId>
+      <version>3.28.0</version>
+    </dependency>
+    <dependency>
       <groupId>io.github.flynndi</groupId>
       <artifactId>quarkus-jimmer</artifactId>
       <version>${project.version}</version>

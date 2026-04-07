@@ -34,6 +34,7 @@ import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
+import io.quarkiverse.jimmer.runtime.graphql.facade.JimmerGraphQLFacadeSupport;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.repo.RepoRecord;
@@ -99,9 +100,15 @@ final class JimmerProcessor {
     }
 
     @BuildStep
-    void registerGraphQLServiceProviders(Capabilities capabilities, BuildProducer<ServiceProviderBuildItem> serviceProviders) {
+    void registerGraphQLServiceProviders(Capabilities capabilities,
+            BuildProducer<ServiceProviderBuildItem> serviceProviders,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         if (capabilities.isPresent(Capability.SMALLRYE_GRAPHQL)) {
             serviceProviders.produce(ServiceProviderBuildItem.allProvidersFromClassPath(DataFetcherService.class.getName()));
+            additionalBeans.produce(AdditionalBeanBuildItem.builder()
+                    .addBeanClasses(JimmerGraphQLFacadeSupport.class)
+                    .setUnremovable()
+                    .build());
         }
     }
 
