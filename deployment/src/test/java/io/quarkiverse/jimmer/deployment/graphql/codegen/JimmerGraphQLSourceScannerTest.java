@@ -20,18 +20,17 @@ class JimmerGraphQLSourceScannerTest {
 
     @Test
     void scanSiblingKotlinSources() throws Exception {
-        Path javaDir = tempDir.resolve("src/main/java");
         Path kotlinDir = tempDir.resolve("src/main/kotlin");
 
-        write(javaDir.resolve("com/example/BaseEntity.java"), """
+        write(kotlinDir.resolve("com/example/BaseEntity.kt"), """
                 package com.example;
 
                 import org.babyfish.jimmer.sql.MappedSuperclass;
 
                 @MappedSuperclass
-                public interface BaseEntity {
+                interface BaseEntity {
 
-                    Long id();
+                    val id: Long
                 }
                 """);
 
@@ -74,7 +73,7 @@ class JimmerGraphQLSourceScannerTest {
                 }
                 """);
 
-        List<JimmerGraphQLSourceType> types = new JimmerGraphQLSourceScanner().scan(javaDir);
+        List<JimmerGraphQLSourceType> types = new JimmerGraphQLKotlinSourceScanner().scan(kotlinDir);
         JimmerGraphQLSourceModel model = new JimmerGraphQLSourceModel(types);
 
         Assertions.assertNotNull(model.type("com.example.BaseEntity"));
@@ -87,7 +86,7 @@ class JimmerGraphQLSourceScannerTest {
         Map<String, JimmerGraphQLSourceMethod> storeComplexMethods = byName(
                 model.complexMethods(model.type("com.example.BookStore")));
 
-        Assertions.assertEquals("id", bookScalarMethods.get("id").rawAccessorName());
+        Assertions.assertEquals("getId", bookScalarMethods.get("id").rawAccessorName());
         Assertions.assertEquals("getName", bookScalarMethods.get("name").rawAccessorName());
         Assertions.assertEquals("java.lang.Integer", bookScalarMethods.get("edition").returnType());
         Assertions.assertEquals("isPublished", bookScalarMethods.get("isPublished").rawAccessorName());
