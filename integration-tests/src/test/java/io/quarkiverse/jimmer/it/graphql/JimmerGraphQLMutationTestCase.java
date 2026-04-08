@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,99 @@ public class JimmerGraphQLMutationTestCase {
                 .when()
                 .post("/graphql");
 
+        assertSaveBookResponse(response);
+    }
+
+    @Test
+    void testSaveBookMutationWithVariables() {
+        Response response = given()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "query",
+                        """
+                                mutation SaveBook($input: BookInputInput!) {
+                                  saveBook(input: $input) {
+                                    id
+                                    name
+                                    edition
+                                    price
+                                    tenant
+                                    store {
+                                      id
+                                      name
+                                    }
+                                    authors {
+                                      firstName
+                                      lastName
+                                      gender
+                                    }
+                                  }
+                                }
+                                """,
+                        "variables",
+                        Map.of("input", saveBookInput())))
+                .when()
+                .post("/graphql");
+
+        assertSaveBookResponse(response);
+    }
+
+    @Test
+    void testSaveBookMutationInputTypeName() {
+        Response response = given()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "query",
+                        """
+                                query {
+                                  __type(name: "Mutation") {
+                                    fields {
+                                      name
+                                      args {
+                                        name
+                                        type {
+                                          kind
+                                          name
+                                          ofType {
+                                            kind
+                                            name
+                                            ofType {
+                                              kind
+                                              name
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                                """))
+                .when()
+                .post("/graphql");
+
+        JsonPath jsonPath = response.jsonPath();
+        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertNull(jsonPath.get("errors"));
+
+        List<Map<String, Object>> fields = jsonPath.getList("data.__type.fields");
+        Assertions.assertNotNull(fields);
+        Map<String, Object> saveBookField = fields.stream()
+                .filter(field -> Objects.equals("saveBook", field.get("name")))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Mutation field saveBook is not present in schema"));
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> args = (List<Map<String, Object>>) saveBookField.get("args");
+        Assertions.assertNotNull(args);
+        Assertions.assertEquals(1, args.size());
+        Assertions.assertEquals("input", args.get(0).get("name"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> type = (Map<String, Object>) args.get(0).get("type");
+        Assertions.assertEquals("BookInputInput", terminalTypeName(type));
+    }
+
+    private static void assertSaveBookResponse(Response response) {
         JsonPath jsonPath = response.jsonPath();
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertNull(jsonPath.get("errors"));
@@ -73,5 +167,35 @@ public class JimmerGraphQLMutationTestCase {
         Assertions.assertEquals("GraphQL", authors.get(0).get("firstName"));
         Assertions.assertEquals("Mutation", authors.get(0).get("lastName"));
         Assertions.assertEquals("MALE", authors.get(0).get("gender"));
+    }
+
+    private static Map<String, Object> saveBookInput() {
+        return Map.of(
+                "id", 9051,
+                "name", "graphql-save-book",
+                "edition", 1,
+                "price", 10.00,
+                "tenant", "graphql-test",
+                "storeId", 1,
+                "authors", List.of(Map.of(
+                        "firstName", "GraphQL",
+                        "lastName", "Mutation",
+                        "gender", "MALE")));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static String terminalTypeName(Map<String, Object> type) {
+        if (type == null) {
+            return null;
+        }
+        Object name = type.get("name");
+        if (name instanceof String typeName && typeName != null) {
+            return typeName;
+        }
+        Object ofType = type.get("ofType");
+        if (ofType instanceof Map<?, ?> nestedType) {
+            return terminalTypeName((Map<String, Object>) nestedType);
+        }
+        return null;
     }
 }

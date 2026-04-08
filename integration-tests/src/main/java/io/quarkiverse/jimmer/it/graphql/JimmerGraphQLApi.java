@@ -1,5 +1,7 @@
 package io.quarkiverse.jimmer.it.graphql;
 
+import java.util.List;
+
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
@@ -44,6 +46,13 @@ public class JimmerGraphQLApi {
         Fetcher<BookStore> fetcher = DataFetchingEnvironments.createFetcher(BookStore.class, env);
         BookStore bookStore = bookStoreRepository.findNullable(id, fetcher);
         return JimmerGraphQLFacades.wrap(bookStore, BookStoreGql.class);
+    }
+
+    @Query
+    public List<BookStoreGql> bookStores(@Name("ids") List<Long> ids, Context context) {
+        DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
+        Fetcher<BookStore> fetcher = DataFetchingEnvironments.createFetcher(BookStore.class, env);
+        return JimmerGraphQLFacades.wrapList(bookStoreRepository.findByIds(ids, fetcher), BookStoreGql.class);
     }
 
     @Mutation

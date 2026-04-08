@@ -112,18 +112,18 @@ final class JimmerGraphQLSourceWriter {
         builder.append("    JimmerGraphQLFacadeSupport support;\n\n");
         for (JimmerGraphQLSourceMethod method : complexMethods) {
             builder.append("    @Name(\"").append(method.name()).append("\")\n");
-            builder.append("    public ").append(resolverReturnType(method)).append(' ')
-                    .append(method.name()).append("(@Source(name = \"").append(method.name()).append("\") ")
-                    .append(facadeType).append(" source, Context context) {\n");
+            builder.append("    public ").append(batchResolverReturnType(method)).append(' ')
+                    .append(method.name()).append("(@Source(name = \"").append(method.name()).append("\") java.util.List<")
+                    .append(facadeType).append("> sources, Context context) {\n");
             builder.append("        DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);\n");
             if (method.collection() && model.isEntityType(method.elementType())) {
-                builder.append("        return support.loadFacadeList(source, \"").append(method.name())
+                builder.append("        return support.loadFacadeListBatch(sources, \"").append(method.name())
                         .append("\", env, ").append(model.facadeQualifiedName(method.elementType())).append(".class);\n");
             } else if (model.isEntityType(method.elementType())) {
-                builder.append("        return support.loadFacade(source, \"").append(method.name())
+                builder.append("        return support.loadFacadeBatch(sources, \"").append(method.name())
                         .append("\", env, ").append(model.facadeQualifiedName(method.elementType())).append(".class);\n");
             } else {
-                builder.append("        return support.loadValue(source, \"").append(method.name())
+                builder.append("        return support.loadValueBatch(sources, \"").append(method.name())
                         .append("\", env);\n");
             }
             builder.append("    }\n\n");
@@ -176,7 +176,11 @@ final class JimmerGraphQLSourceWriter {
         return builder.toString();
     }
 
-    private String resolverReturnType(JimmerGraphQLSourceMethod method) {
+    private String batchResolverReturnType(JimmerGraphQLSourceMethod method) {
+        return "java.util.List<" + batchResolverElementType(method) + '>';
+    }
+
+    private String batchResolverElementType(JimmerGraphQLSourceMethod method) {
         if (method.collection() && model.isEntityType(method.elementType())) {
             return "java.util.List<" + model.facadeQualifiedName(method.elementType()) + '>';
         }
