@@ -11,6 +11,10 @@ import io.quarkus.deployment.CodeGenProvider;
 
 public final class JimmerGraphQLCodeGenProvider implements CodeGenProvider {
 
+    private static final String LANGUAGE_KEY = "quarkus.jimmer.language";
+    private static final String JAVA = "java";
+    private static final String KOTLIN = "kotlin";
+
     @Override
     public String providerId() {
         return "jimmer-graphql";
@@ -23,8 +27,7 @@ public final class JimmerGraphQLCodeGenProvider implements CodeGenProvider {
 
     @Override
     public boolean trigger(CodeGenContext context) throws CodeGenException {
-        JimmerGraphQLSourceScanner scanner = new JimmerGraphQLSourceScanner();
-        List<JimmerGraphQLSourceType> types = scanner.scan(context.inputDir());
+        List<JimmerGraphQLSourceType> types = scanTypes(context);
         if (types.isEmpty()) {
             return false;
         }
@@ -37,5 +40,25 @@ public final class JimmerGraphQLCodeGenProvider implements CodeGenProvider {
         JimmerGraphQLSourceModel model = new JimmerGraphQLSourceModel(types);
         JimmerGraphQLSourceWriter writer = new JimmerGraphQLSourceWriter(outDir, model);
         return writer.write();
+    }
+
+    private static List<JimmerGraphQLSourceType> scanTypes(CodeGenContext context) throws CodeGenException {
+        String language = context.config()
+                .getOptionalValue(LANGUAGE_KEY, String.class)
+                .map(value -> value.toLowerCase(java.util.Locale.ROOT))
+                .orElse(JAVA);
+        if (KOTLIN.equals(language)) {
+            return new JimmerGraphQLKotlinSourceScanner().scan(resolveSiblingSourceDir(context.inputDir(), KOTLIN));
+        }
+        if (!JAVA.equals(language)) {
+            throw new CodeGenException(
+                    "Unsupported Jimmer language for GraphQL codegen: " + language + ", expected 'java' or 'kotlin'");
+        }
+        return new JimmerGraphQLSourceScanner().scan(context.inputDir());
+    }
+
+    private static Path resolveSiblingSourceDir(Path sourceDir, String siblingName) {
+        Path parent = sourceDir.getParent();
+        return parent == null ? sourceDir.resolveSibling(siblingName) : parent.resolve(siblingName);
     }
 }

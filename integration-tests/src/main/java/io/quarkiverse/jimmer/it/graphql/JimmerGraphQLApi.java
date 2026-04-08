@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.it.graphql;
 
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
@@ -10,6 +11,7 @@ import io.quarkiverse.jimmer.generated.graphql.model.BookGql;
 import io.quarkiverse.jimmer.generated.graphql.model.BookStoreGql;
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.BookStore;
+import io.quarkiverse.jimmer.it.entity.dto.BookInput;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.runtime.graphql.DataFetchingEnvironments;
@@ -42,5 +44,14 @@ public class JimmerGraphQLApi {
         Fetcher<BookStore> fetcher = DataFetchingEnvironments.createFetcher(BookStore.class, env);
         BookStore bookStore = bookStoreRepository.findNullable(id, fetcher);
         return JimmerGraphQLFacades.wrap(bookStore, BookStoreGql.class);
+    }
+
+    @Mutation
+    public BookGql saveBook(@Name("input") BookInput input, Context context) {
+        DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
+        return JimmerGraphQLFacades.wrap(bookRepository
+                .saveCommand(input)
+                .execute(DataFetchingEnvironments.createFetcher(Book.class, env))
+                .getModifiedEntity(), BookGql.class);
     }
 }

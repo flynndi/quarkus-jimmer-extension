@@ -41,16 +41,8 @@ final class JimmerGraphQLSourceScanner {
     static final String TRANSIENT = "Transient";
 
     private final JavaParser parser = new JavaParser();
-    private final JimmerGraphQLKotlinSourceScanner kotlinScanner = new JimmerGraphQLKotlinSourceScanner();
 
-    List<JimmerGraphQLSourceType> scan(Path javaSourceDir) throws CodeGenException {
-        List<JimmerGraphQLSourceType> scannedTypes = new ArrayList<>();
-        scannedTypes.addAll(scanJava(javaSourceDir));
-        scannedTypes.addAll(kotlinScanner.scan(resolveSiblingSourceDir(javaSourceDir, "kotlin")));
-        return deduplicate(scannedTypes);
-    }
-
-    private List<JimmerGraphQLSourceType> scanJava(Path sourceDir) throws CodeGenException {
+    List<JimmerGraphQLSourceType> scan(Path sourceDir) throws CodeGenException {
         List<CompilationUnit> units = parseUnits(sourceDir);
         if (units.isEmpty()) {
             return List.of();
@@ -158,22 +150,6 @@ final class JimmerGraphQLSourceScanner {
         } catch (UncheckedIOException | IOException ex) {
             throw new CodeGenException("Cannot scan source directory: " + sourceDir, ex);
         }
-    }
-
-    private static List<JimmerGraphQLSourceType> deduplicate(List<JimmerGraphQLSourceType> scannedTypes)
-            throws CodeGenException {
-        if (scannedTypes.isEmpty()) {
-            return List.of();
-        }
-        Map<String, JimmerGraphQLSourceType> typesByQualifiedName = new LinkedHashMap<>();
-        for (JimmerGraphQLSourceType type : scannedTypes) {
-            JimmerGraphQLSourceType previous = typesByQualifiedName.putIfAbsent(type.qualifiedName(), type);
-            if (previous != null && !previous.equals(type)) {
-                throw new CodeGenException(
-                        "Duplicate GraphQL source type: " + type.qualifiedName() + ", from multiple source languages");
-            }
-        }
-        return new ArrayList<>(typesByQualifiedName.values());
     }
 
     static JimmerGraphQLSourceKind sourceKind(Set<String> annotations) {
@@ -319,10 +295,5 @@ final class JimmerGraphQLSourceScanner {
 
     static String qualify(String packageName, String simpleName) {
         return packageName == null || packageName.isBlank() ? simpleName : packageName + '.' + simpleName;
-    }
-
-    private static Path resolveSiblingSourceDir(Path sourceDir, String siblingName) {
-        Path parent = sourceDir.getParent();
-        return parent == null ? sourceDir.resolveSibling(siblingName) : parent.resolve(siblingName);
     }
 }
