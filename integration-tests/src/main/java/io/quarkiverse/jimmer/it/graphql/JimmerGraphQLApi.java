@@ -41,6 +41,13 @@ public class JimmerGraphQLApi {
     }
 
     @Query
+    public List<BookGql> books(@Name("ids") List<Long> ids, Context context) {
+        DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
+        Fetcher<Book> fetcher = DataFetchingEnvironments.createFetcher(Book.class, env);
+        return JimmerGraphQLFacades.wrapList(bookRepository.findByIds(ids, fetcher), BookGql.class);
+    }
+
+    @Query
     public BookStoreGql bookStore(@Name("id") long id, Context context) {
         DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
         Fetcher<BookStore> fetcher = DataFetchingEnvironments.createFetcher(BookStore.class, env);
