@@ -56,7 +56,6 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.*;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.ClassOutput;
@@ -65,7 +64,6 @@ import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.RouteBuildItem;
 import io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig;
-import io.smallrye.graphql.spi.DataFetcherService;
 
 @BuildSteps(onlyIf = JimmerProcessor.JimmerEnable.class)
 final class JimmerProcessor {
@@ -100,11 +98,9 @@ final class JimmerProcessor {
     }
 
     @BuildStep
-    void registerGraphQLServiceProviders(Capabilities capabilities,
-            BuildProducer<ServiceProviderBuildItem> serviceProviders,
+    void registerGraphQLSupport(Capabilities capabilities,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         if (capabilities.isPresent(Capability.SMALLRYE_GRAPHQL)) {
-            serviceProviders.produce(ServiceProviderBuildItem.allProvidersFromClassPath(DataFetcherService.class.getName()));
             additionalBeans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(JimmerGraphQLFacadeSupport.class)
                     .setUnremovable()
