@@ -1,8 +1,25 @@
 package io.quarkiverse.jimmer.graphql.apt;
 
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PUBLIC;
+
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ArrayTypeName;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 
 final class JimmerGraphQLSourceGenerator {
 
@@ -14,6 +31,29 @@ final class JimmerGraphQLSourceGenerator {
 
     static final String REGISTRY_PACKAGE = ROOT_PACKAGE + ".registry";
 
+    private static final ClassName TYPE_ANNOTATION = ClassName.get("org.eclipse.microprofile.graphql", "Type");
+    private static final ClassName GRAPHQL_API = ClassName.get("org.eclipse.microprofile.graphql", "GraphQLApi");
+    private static final ClassName GRAPHQL_NAME = ClassName.get("org.eclipse.microprofile.graphql", "Name");
+    private static final ClassName GRAPHQL_SOURCE = ClassName.get("org.eclipse.microprofile.graphql", "Source");
+    private static final ClassName INJECT = ClassName.get("jakarta.inject", "Inject");
+    private static final ClassName SINGLETON = ClassName.get("jakarta.inject", "Singleton");
+    private static final ClassName UNREMOVABLE = ClassName.get("io.quarkus.arc", "Unremovable");
+    private static final ClassName CONTEXT = ClassName.get("io.smallrye.graphql.api", "Context");
+    private static final ClassName DATA_FETCHING_ENVIRONMENT = ClassName.get("graphql.schema", "DataFetchingEnvironment");
+    private static final ClassName OBJECT = ClassName.get(Object.class);
+    private static final ClassName CLASS = ClassName.get(Class.class);
+    private static final ClassName LIST = ClassName.get(List.class);
+    private static final ClassName ILLEGAL_ARGUMENT_EXCEPTION = ClassName.get(IllegalArgumentException.class);
+    private static final ClassName JIMMER_GRAPHQL_FACADE = ClassName.get(
+            "io.quarkiverse.jimmer.runtime.graphql.facade",
+            "JimmerGraphQLFacade");
+    private static final ClassName JIMMER_GRAPHQL_FACADE_SUPPORT = ClassName.get(
+            "io.quarkiverse.jimmer.runtime.graphql.facade",
+            "JimmerGraphQLFacadeSupport");
+    private static final ClassName JIMMER_GRAPHQL_GENERATED_FACADE_REGISTRY = ClassName.get(
+            "io.quarkiverse.jimmer.runtime.graphql.facade",
+            "JimmerGraphQLGeneratedFacadeRegistry");
+
     private final JimmerGraphQLSourceModel model;
 
     JimmerGraphQLSourceGenerator(JimmerGraphQLSourceModel model) {
@@ -24,145 +64,321 @@ final class JimmerGraphQLSourceGenerator {
         Map<String, String> sources = new LinkedHashMap<>();
         boolean wroteAny = false;
         for (JimmerGraphQLSourceType entity : model.entities()) {
-            String facadeType = model.facadeClassName(entity.qualifiedName());
-            sources.put(MODEL_PACKAGE + '.' + facadeType, facadeSource(entity));
+            ClassName facadeType = facadeTypeName(entity.qualifiedName());
+            sources.put(facadeType.reflectionName(), javaFile(MODEL_PACKAGE, facadeSpec(entity, facadeType)).toString());
             wroteAny = true;
             List<JimmerGraphQLSourceMethod> complexMethods = model.complexMethods(entity);
             if (!complexMethods.isEmpty()) {
-                sources.put(RESOLVER_PACKAGE + '.' + entity.simpleName() + "GqlSourceResolver",
-                        resolverSource(entity, complexMethods));
+                ClassName resolverType = ClassName.get(RESOLVER_PACKAGE, entity.simpleName() + "GqlSourceResolver");
+                sources.put(resolverType.reflectionName(),
+                        javaFile(RESOLVER_PACKAGE, resolverSpec(entity, facadeType, complexMethods)).toString());
             }
         }
         if (wroteAny) {
-            sources.put(REGISTRY_PACKAGE + ".JimmerGraphQLFacadeRegistry", registrySource());
+            ClassName registryType = ClassName.get(REGISTRY_PACKAGE, "JimmerGraphQLFacadeRegistry");
+            sources.put(registryType.reflectionName(), javaFile(REGISTRY_PACKAGE, registrySpec()).toString());
         }
         return sources;
     }
 
-    private String facadeSource(JimmerGraphQLSourceType entity) {
-        String rawType = entity.qualifiedName();
-        String facadeType = model.facadeClassName(entity.qualifiedName());
-        StringBuilder builder = new StringBuilder();
-        builder.append("package ").append(MODEL_PACKAGE).append(";\n\n");
-        builder.append("import org.eclipse.microprofile.graphql.Type;\n");
-        builder.append("import io.quarkiverse.jimmer.runtime.graphql.facade.JimmerGraphQLFacade;\n\n");
-        builder.append("@Type(\"").append(entity.simpleName()).append("\")\n");
-        builder.append("public final class ").append(facadeType)
-                .append(" implements JimmerGraphQLFacade<").append(rawType).append("> {\n\n");
-        builder.append("    private final ").append(rawType).append(" raw;\n\n");
-        builder.append("    public ").append(facadeType).append('(').append(rawType).append(" raw) {\n");
-        builder.append("        this.raw = raw;\n");
-        builder.append("    }\n\n");
+    private TypeSpec facadeSpec(JimmerGraphQLSourceType entity, ClassName facadeType) {
+        TypeName rawType = typeName(entity.qualifiedName());
+        FieldSpec rawField = FieldSpec.builder(rawType, "raw", PRIVATE, FINAL).build();
+
+        TypeSpec.Builder builder = TypeSpec.classBuilder(facadeType)
+                .addModifiers(PUBLIC, FINAL)
+                .addAnnotation(AnnotationSpec.builder(TYPE_ANNOTATION)
+                        .addMember("value", "$S", entity.simpleName())
+                        .build())
+                .addSuperinterface(ParameterizedTypeName.get(JIMMER_GRAPHQL_FACADE, rawType))
+                .addField(rawField)
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addModifiers(PUBLIC)
+                        .addParameter(rawType, "raw")
+                        .addStatement("this.raw = raw")
+                        .build());
+
         for (JimmerGraphQLSourceMethod method : model.scalarMethods(entity)) {
-            builder.append("    public ").append(method.returnType()).append(' ')
-                    .append(getterName(method.name())).append("() {\n");
-            builder.append("        return raw.").append(method.rawAccessorName()).append("();\n");
-            builder.append("    }\n\n");
+            builder.addMethod(MethodSpec.methodBuilder(getterName(method.name()))
+                    .addModifiers(PUBLIC)
+                    .returns(typeName(method.returnType()))
+                    .addStatement("return raw.$L()", method.rawAccessorName())
+                    .build());
         }
-        builder.append("    @Override\n");
-        builder.append("    public ").append(rawType).append(" __raw() {\n");
-        builder.append("        return raw;\n");
-        builder.append("    }\n");
-        builder.append("}\n");
-        return builder.toString();
+
+        builder.addMethod(MethodSpec.methodBuilder("__raw")
+                .addAnnotation(Override.class)
+                .addModifiers(PUBLIC)
+                .returns(rawType)
+                .addStatement("return raw")
+                .build());
+
+        return builder.build();
     }
 
-    private String resolverSource(JimmerGraphQLSourceType entity, List<JimmerGraphQLSourceMethod> complexMethods) {
-        String facadeType = MODEL_PACKAGE + '.' + model.facadeClassName(entity.qualifiedName());
-        StringBuilder builder = new StringBuilder();
-        builder.append("package ").append(RESOLVER_PACKAGE).append(";\n\n");
-        builder.append("import jakarta.inject.Inject;\n");
-        builder.append("import org.eclipse.microprofile.graphql.GraphQLApi;\n");
-        builder.append("import org.eclipse.microprofile.graphql.Name;\n");
-        builder.append("import org.eclipse.microprofile.graphql.Source;\n");
-        builder.append("import graphql.schema.DataFetchingEnvironment;\n");
-        builder.append("import io.smallrye.graphql.api.Context;\n");
-        builder.append("import io.quarkiverse.jimmer.runtime.graphql.facade.JimmerGraphQLFacadeSupport;\n\n");
-        builder.append("@GraphQLApi\n");
-        builder.append("public final class ").append(entity.simpleName()).append("GqlSourceResolver {\n\n");
-        builder.append("    @Inject\n");
-        builder.append("    JimmerGraphQLFacadeSupport support;\n\n");
+    private TypeSpec resolverSpec(
+            JimmerGraphQLSourceType entity,
+            ClassName facadeType,
+            List<JimmerGraphQLSourceMethod> complexMethods) {
+        TypeSpec.Builder builder = TypeSpec.classBuilder(entity.simpleName() + "GqlSourceResolver")
+                .addModifiers(PUBLIC, FINAL)
+                .addAnnotation(GRAPHQL_API)
+                .addField(FieldSpec.builder(JIMMER_GRAPHQL_FACADE_SUPPORT, "support")
+                        .addAnnotation(INJECT)
+                        .build());
+
         for (JimmerGraphQLSourceMethod method : complexMethods) {
-            builder.append("    @Name(\"").append(method.name()).append("\")\n");
-            builder.append("    public ").append(batchResolverReturnType(method)).append(' ')
-                    .append(method.name()).append("(@Source(name = \"").append(method.name()).append("\") java.util.List<")
-                    .append(facadeType).append("> sources, Context context) {\n");
-            builder.append("        DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);\n");
-            if (method.collection() && model.isEntityType(method.elementType())) {
-                builder.append("        return support.loadFacadeListBatch(sources, \"").append(method.name())
-                        .append("\", env, ").append(model.facadeQualifiedName(method.elementType())).append(".class);\n");
-            } else if (model.isEntityType(method.elementType())) {
-                builder.append("        return support.loadFacadeBatch(sources, \"").append(method.name())
-                        .append("\", env, ").append(model.facadeQualifiedName(method.elementType())).append(".class);\n");
-            } else {
-                builder.append("        return support.loadValueBatch(sources, \"").append(method.name())
-                        .append("\", env);\n");
-            }
-            builder.append("    }\n\n");
+            builder.addMethod(batchResolverMethod(facadeType, method));
         }
-        builder.append("}\n");
-        return builder.toString();
+        return builder.build();
     }
 
-    private String registrySource() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("package ").append(REGISTRY_PACKAGE).append(";\n\n");
-        builder.append("import jakarta.inject.Singleton;\n");
-        builder.append("import io.quarkus.arc.Unremovable;\n");
-        builder.append("import io.quarkiverse.jimmer.runtime.graphql.facade.JimmerGraphQLFacade;\n");
-        builder.append("import io.quarkiverse.jimmer.runtime.graphql.facade.JimmerGraphQLGeneratedFacadeRegistry;\n");
-        builder.append("import ").append(MODEL_PACKAGE).append(".*;\n\n");
-        builder.append("@Singleton\n");
-        builder.append("@Unremovable\n");
-        builder.append("public final class JimmerGraphQLFacadeRegistry implements JimmerGraphQLGeneratedFacadeRegistry {\n\n");
-        builder.append("    @Override\n");
-        builder.append("    public <T> T wrap(Object raw, Class<T> facadeType) {\n");
-        builder.append("        if (raw == null) {\n");
-        builder.append("            return null;\n");
-        builder.append("        }\n");
-        builder.append("        if (facadeType.isInstance(raw)) {\n");
-        builder.append("            return facadeType.cast(raw);\n");
-        builder.append("        }\n");
-        for (String entityName : model.entityQualifiedNames()) {
-            builder.append("        if (facadeType == ").append(model.facadeQualifiedName(entityName)).append(".class) {\n");
-            builder.append("            return facadeType.cast(new ").append(model.facadeQualifiedName(entityName))
-                    .append("((").append(entityName).append(") raw));\n");
-            builder.append("        }\n");
-        }
-        builder.append(
-                "        throw new IllegalArgumentException(\"Unsupported GraphQL facade type: \" + facadeType.getName());\n");
-        builder.append("    }\n\n");
-        builder.append("    @Override\n");
-        builder.append("    public Object wrap(Object raw) {\n");
-        builder.append("        if (raw == null || raw instanceof JimmerGraphQLFacade<?>) {\n");
-        builder.append("            return raw;\n");
-        builder.append("        }\n");
-        for (String entityName : model.entityQualifiedNames()) {
-            builder.append("        if (raw instanceof ").append(entityName).append(" value) {\n");
-            builder.append("            return new ").append(model.facadeQualifiedName(entityName)).append("(value);\n");
-            builder.append("        }\n");
-        }
-        builder.append("        return raw;\n");
-        builder.append("    }\n");
-        builder.append("}\n");
-        return builder.toString();
-    }
+    private MethodSpec batchResolverMethod(ClassName facadeType, JimmerGraphQLSourceMethod method) {
+        TypeName sourcesType = ParameterizedTypeName.get(LIST, facadeType);
+        ParameterSpec sources = ParameterSpec.builder(sourcesType, "sources")
+                .addAnnotation(AnnotationSpec.builder(GRAPHQL_SOURCE)
+                        .addMember("name", "$S", method.name())
+                        .build())
+                .build();
 
-    private String batchResolverReturnType(JimmerGraphQLSourceMethod method) {
-        return "java.util.List<" + batchResolverElementType(method) + '>';
-    }
+        MethodSpec.Builder builder = MethodSpec.methodBuilder(method.name())
+                .addModifiers(PUBLIC)
+                .addAnnotation(AnnotationSpec.builder(GRAPHQL_NAME)
+                        .addMember("value", "$S", method.name())
+                        .build())
+                .returns(batchResolverReturnType(method))
+                .addParameter(sources)
+                .addParameter(CONTEXT, "context")
+                .addStatement("$T env = context.unwrap($T.class)", DATA_FETCHING_ENVIRONMENT, DATA_FETCHING_ENVIRONMENT);
 
-    private String batchResolverElementType(JimmerGraphQLSourceMethod method) {
         if (method.collection() && model.isEntityType(method.elementType())) {
-            return "java.util.List<" + model.facadeQualifiedName(method.elementType()) + '>';
+            builder.addStatement(
+                    "return support.loadFacadeListBatch(sources, $S, env, $T.class)",
+                    method.name(),
+                    facadeTypeName(method.elementType()));
+        } else if (model.isEntityType(method.elementType())) {
+            builder.addStatement(
+                    "return support.loadFacadeBatch(sources, $S, env, $T.class)",
+                    method.name(),
+                    facadeTypeName(method.elementType()));
+        } else {
+            builder.addStatement("return support.loadValueBatch(sources, $S, env)", method.name());
+        }
+        return builder.build();
+    }
+
+    private TypeSpec registrySpec() {
+        TypeVariableName typeVariable = TypeVariableName.get("T");
+        TypeSpec.Builder builder = TypeSpec.classBuilder("JimmerGraphQLFacadeRegistry")
+                .addModifiers(PUBLIC, FINAL)
+                .addAnnotation(SINGLETON)
+                .addAnnotation(UNREMOVABLE)
+                .addSuperinterface(JIMMER_GRAPHQL_GENERATED_FACADE_REGISTRY)
+                .addMethod(wrapTypedMethod(typeVariable))
+                .addMethod(wrapUntypedMethod());
+
+        return builder.build();
+    }
+
+    private MethodSpec wrapTypedMethod(TypeVariableName typeVariable) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("wrap")
+                .addAnnotation(Override.class)
+                .addModifiers(PUBLIC)
+                .addTypeVariable(typeVariable)
+                .returns(typeVariable)
+                .addParameter(OBJECT, "raw")
+                .addParameter(ParameterizedTypeName.get(CLASS, typeVariable), "facadeType")
+                .beginControlFlow("if (raw == null)")
+                .addStatement("return null")
+                .endControlFlow()
+                .beginControlFlow("if (facadeType.isInstance(raw))")
+                .addStatement("return facadeType.cast(raw)")
+                .endControlFlow();
+
+        for (String entityName : model.entityQualifiedNames()) {
+            ClassName facadeType = facadeTypeName(entityName);
+            builder.beginControlFlow("if (facadeType == $T.class)", facadeType)
+                    .addStatement("return facadeType.cast(new $T(($T) raw))", facadeType, typeName(entityName))
+                    .endControlFlow();
+        }
+
+        builder.addStatement("throw new $T($S + facadeType.getName())",
+                ILLEGAL_ARGUMENT_EXCEPTION,
+                "Unsupported GraphQL facade type: ");
+        return builder.build();
+    }
+
+    private MethodSpec wrapUntypedMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("wrap")
+                .addAnnotation(Override.class)
+                .addModifiers(PUBLIC)
+                .returns(OBJECT)
+                .addParameter(OBJECT, "raw")
+                .beginControlFlow("if (raw == null || raw instanceof $T<?>)", JIMMER_GRAPHQL_FACADE)
+                .addStatement("return raw")
+                .endControlFlow();
+
+        for (String entityName : model.entityQualifiedNames()) {
+            ClassName entityType = className(entityName);
+            ClassName facadeType = facadeTypeName(entityName);
+            builder.beginControlFlow("if (raw instanceof $T value)", entityType)
+                    .addStatement("return new $T(value)", facadeType)
+                    .endControlFlow();
+        }
+
+        builder.addStatement("return raw");
+        return builder.build();
+    }
+
+    private TypeName batchResolverReturnType(JimmerGraphQLSourceMethod method) {
+        return ParameterizedTypeName.get(LIST, batchResolverElementType(method));
+    }
+
+    private TypeName batchResolverElementType(JimmerGraphQLSourceMethod method) {
+        if (method.collection() && model.isEntityType(method.elementType())) {
+            return ParameterizedTypeName.get(LIST, facadeTypeName(method.elementType()));
         }
         if (model.isEntityType(method.elementType())) {
-            return model.facadeQualifiedName(method.elementType());
+            return facadeTypeName(method.elementType());
         }
-        return method.returnType();
+        return typeName(method.returnType());
+    }
+
+    private static JavaFile javaFile(String packageName, TypeSpec typeSpec) {
+        return JavaFile.builder(packageName, typeSpec)
+                .skipJavaLangImports(true)
+                .build();
+    }
+
+    private ClassName facadeTypeName(String qualifiedEntityName) {
+        return ClassName.get(MODEL_PACKAGE, model.facadeClassName(qualifiedEntityName));
+    }
+
+    private static TypeName typeName(String text) {
+        return new TypeNameParser(text).parse();
+    }
+
+    private static ClassName className(String text) {
+        TypeName typeName = typeName(text);
+        if (!(typeName instanceof ClassName className)) {
+            throw new IllegalArgumentException("Expected declared type but got: " + text);
+        }
+        return className;
     }
 
     private static String getterName(String propertyName) {
         return "get" + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
+    }
+
+    private static final class TypeNameParser {
+
+        private final String source;
+
+        private int index;
+
+        private TypeNameParser(String source) {
+            this.source = source;
+        }
+
+        private TypeName parse() {
+            TypeName typeName = parseType();
+            skipWhitespace();
+            if (index != source.length()) {
+                throw new IllegalArgumentException("Cannot parse type: " + source);
+            }
+            return typeName;
+        }
+
+        private TypeName parseType() {
+            skipWhitespace();
+            String token = parseToken();
+            TypeName typeName = primitiveType(token);
+            if (typeName == null) {
+                typeName = ClassName.bestGuess(token);
+            }
+            skipWhitespace();
+            if (peek('<')) {
+                if (!(typeName instanceof ClassName className)) {
+                    throw new IllegalArgumentException("Parameterized type must start with a class: " + source);
+                }
+                consume('<');
+                List<TypeName> arguments = new ArrayList<>();
+                do {
+                    arguments.add(parseType());
+                    skipWhitespace();
+                    if (peek(',')) {
+                        consume(',');
+                    } else {
+                        break;
+                    }
+                } while (true);
+                consume('>');
+                typeName = ParameterizedTypeName.get(className, arguments.toArray(TypeName[]::new));
+            }
+            while (matchArraySuffix()) {
+                typeName = ArrayTypeName.of(typeName);
+            }
+            return typeName;
+        }
+
+        private String parseToken() {
+            skipWhitespace();
+            int start = index;
+            while (index < source.length()) {
+                char ch = source.charAt(index);
+                if (Character.isJavaIdentifierPart(ch) || ch == '.' || ch == '$') {
+                    index++;
+                    continue;
+                }
+                break;
+            }
+            if (start == index) {
+                throw new IllegalArgumentException("Cannot parse type token from: " + source);
+            }
+            return source.substring(start, index);
+        }
+
+        private boolean matchArraySuffix() {
+            skipWhitespace();
+            if (index + 1 < source.length() && source.charAt(index) == '[' && source.charAt(index + 1) == ']') {
+                index += 2;
+                return true;
+            }
+            return false;
+        }
+
+        private boolean peek(char ch) {
+            skipWhitespace();
+            return index < source.length() && source.charAt(index) == ch;
+        }
+
+        private void consume(char ch) {
+            skipWhitespace();
+            if (index >= source.length() || source.charAt(index) != ch) {
+                throw new IllegalArgumentException("Expected '" + ch + "' in type: " + source);
+            }
+            index++;
+        }
+
+        private void skipWhitespace() {
+            while (index < source.length() && Character.isWhitespace(source.charAt(index))) {
+                index++;
+            }
+        }
+
+        private static TypeName primitiveType(String name) {
+            return switch (name) {
+                case "boolean" -> TypeName.BOOLEAN;
+                case "byte" -> TypeName.BYTE;
+                case "short" -> TypeName.SHORT;
+                case "int" -> TypeName.INT;
+                case "long" -> TypeName.LONG;
+                case "char" -> TypeName.CHAR;
+                case "float" -> TypeName.FLOAT;
+                case "double" -> TypeName.DOUBLE;
+                case "void" -> TypeName.VOID;
+                default -> null;
+            };
+        }
     }
 }

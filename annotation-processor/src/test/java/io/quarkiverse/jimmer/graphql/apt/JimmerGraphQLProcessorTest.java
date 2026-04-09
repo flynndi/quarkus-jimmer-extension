@@ -277,19 +277,19 @@ class JimmerGraphQLProcessorTest {
                 "io/quarkiverse/jimmer/generated/graphql/model/BookGql.java"));
         Assertions.assertTrue(bookFacade.contains("public long getId()"));
         Assertions.assertTrue(bookFacade.contains("return raw.id();"));
-        Assertions.assertTrue(bookFacade.contains("public java.lang.String getName()"));
+        Assertions.assertTrue(bookFacade.contains("public String getName()"));
         Assertions.assertTrue(bookFacade.contains("public int getEdition()"));
 
         String bookResolver = Files.readString(generatedDir.resolve(
                 "io/quarkiverse/jimmer/generated/graphql/resolver/BookGqlSourceResolver.java"));
-        Assertions.assertTrue(bookResolver.contains(
-                "return support.loadFacadeBatch(sources, \"store\", env, io.quarkiverse.jimmer.generated.graphql.model.BookStoreGql.class);"));
+        Assertions.assertTrue(
+                bookResolver.contains("return support.loadFacadeBatch(sources, \"store\", env, BookStoreGql.class);"));
         Assertions.assertTrue(bookResolver.contains("return support.loadValueBatch(sources, \"avgPrice\", env);"));
 
         String registry = Files.readString(generatedDir.resolve(
                 "io/quarkiverse/jimmer/generated/graphql/registry/JimmerGraphQLFacadeRegistry.java"));
-        Assertions.assertTrue(registry.contains("if (raw instanceof com.example.Book value)"));
-        Assertions.assertTrue(registry.contains("if (raw instanceof com.example.BookStore value)"));
+        Assertions.assertTrue(registry.contains("if (raw instanceof Book value)"));
+        Assertions.assertTrue(registry.contains("if (raw instanceof BookStore value)"));
     }
 
     private void compile(Path sourceDir, Path generatedDir) throws IOException {

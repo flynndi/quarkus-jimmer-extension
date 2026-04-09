@@ -100,21 +100,20 @@ class JimmerGraphQLSourceGeneratorTest {
         String bookResolver = generated.get(
                 "io.quarkiverse.jimmer.generated.graphql.resolver.BookGqlSourceResolver");
         Assertions.assertNotNull(bookResolver);
-        Assertions.assertTrue(bookResolver.contains(
-                "@Source(name = \"store\") java.util.List<io.quarkiverse.jimmer.generated.graphql.model.BookGql> sources"));
-        Assertions.assertTrue(bookResolver.contains(
-                "return support.loadFacadeBatch(sources, \"store\", env, io.quarkiverse.jimmer.generated.graphql.model.BookStoreGql.class);"));
-        Assertions.assertTrue(bookResolver.contains(
-                "return support.loadFacadeListBatch(sources, \"authors\", env, io.quarkiverse.jimmer.generated.graphql.model.AuthorGql.class);"));
+        Assertions.assertTrue(bookResolver.contains("@Source(name = \"store\")"));
+        Assertions.assertTrue(bookResolver.contains("List<BookGql> sources"));
+        Assertions.assertTrue(
+                bookResolver.contains("return support.loadFacadeBatch(sources, \"store\", env, BookStoreGql.class);"));
+        Assertions.assertTrue(
+                bookResolver.contains("return support.loadFacadeListBatch(sources, \"authors\", env, AuthorGql.class);"));
 
         String storeResolver = generated.get(
                 "io.quarkiverse.jimmer.generated.graphql.resolver.BookStoreGqlSourceResolver");
         Assertions.assertNotNull(storeResolver);
-        Assertions.assertTrue(storeResolver.contains("public java.util.List<java.math.BigDecimal> avgPrice("));
+        Assertions.assertTrue(storeResolver.contains("public List<BigDecimal> avgPrice("));
         Assertions.assertTrue(storeResolver.contains("return support.loadValueBatch(sources, \"avgPrice\", env);"));
-        Assertions.assertTrue(storeResolver.contains(
-                "public java.util.List<java.util.List<io.quarkiverse.jimmer.generated.graphql.model.BookGql>> newestBooks("));
-        Assertions.assertTrue(storeResolver.contains(
-                "return support.loadFacadeListBatch(sources, \"newestBooks\", env, io.quarkiverse.jimmer.generated.graphql.model.BookGql.class);"));
+        Assertions.assertTrue(storeResolver.contains("public List<List<BookGql>> newestBooks("));
+        Assertions.assertTrue(
+                storeResolver.contains("return support.loadFacadeListBatch(sources, \"newestBooks\", env, BookGql.class);"));
     }
 }
