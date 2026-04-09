@@ -15,6 +15,7 @@
   <name>Quarkus Jimmer Extension - Parent</name>
 
   <modules>
+    <module>annotation-processor</module>
     <module>deployment</module>
     <module>runtime</module>
   </modules>

@@ -59,6 +59,13 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.github.flynndi</groupId>
+      <artifactId>quarkus-jimmer-graphql-apt</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
       <groupId>org.redisson</groupId>
       <artifactId>redisson-quarkus-30</artifactId>
       <version>${redisson.version}</version>
@@ -83,8 +90,6 @@
         <executions>
           <execution>
             <goals>
-              <goal>generate-code</goal>
-              <goal>generate-code-tests</goal>
               <goal>build</goal>
             </goals>
           </execution>
@@ -113,11 +118,20 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.12.1</version>
         <configuration>
+          <annotationProcessors>
+            <annotationProcessor>org.babyfish.jimmer.apt.JimmerProcessor</annotationProcessor>
+            <annotationProcessor>io.quarkiverse.jimmer.graphql.apt.JimmerGraphQLProcessor</annotationProcessor>
+          </annotationProcessors>
           <annotationProcessorPaths>
             <path>
               <groupId>org.babyfish.jimmer</groupId>
               <artifactId>jimmer-apt</artifactId>
               <version>${jimmer.version}</version>
+            </path>
+            <path>
+              <groupId>io.github.flynndi</groupId>
+              <artifactId>quarkus-jimmer-graphql-apt</artifactId>
+              <version>${project.version}</version>
             </path>
           </annotationProcessorPaths>
         </configuration>

@@ -1,13 +1,10 @@
-package io.quarkiverse.jimmer.deployment.graphql.codegen;
+package io.quarkiverse.jimmer.graphql.apt;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-final class JimmerGraphQLSourceWriter {
+final class JimmerGraphQLSourceGenerator {
 
     static final String ROOT_PACKAGE = "io.quarkiverse.jimmer.generated.graphql";
 
@@ -17,54 +14,29 @@ final class JimmerGraphQLSourceWriter {
 
     static final String REGISTRY_PACKAGE = ROOT_PACKAGE + ".registry";
 
-    private final Path outDir;
-
     private final JimmerGraphQLSourceModel model;
 
-    JimmerGraphQLSourceWriter(Path outDir, JimmerGraphQLSourceModel model) {
-        this.outDir = outDir;
+    JimmerGraphQLSourceGenerator(JimmerGraphQLSourceModel model) {
         this.model = model;
     }
 
-    boolean write() {
-        try {
-            cleanOutputDirectory();
-            boolean wroteAny = false;
-            for (JimmerGraphQLSourceType entity : model.entities()) {
-                writeFile(MODEL_PACKAGE, model.facadeClassName(entity.qualifiedName()), facadeSource(entity));
-                wroteAny = true;
-                List<JimmerGraphQLSourceMethod> complexMethods = model.complexMethods(entity);
-                if (!complexMethods.isEmpty()) {
-                    writeFile(RESOLVER_PACKAGE, entity.simpleName() + "GqlSourceResolver",
-                            resolverSource(entity, complexMethods));
-                }
-            }
-            if (wroteAny) {
-                writeFile(REGISTRY_PACKAGE, "JimmerGraphQLFacadeRegistry", registrySource());
-            }
-            return wroteAny;
-        } catch (IOException ex) {
-            throw new IllegalStateException("Cannot write generated GraphQL sources", ex);
-        }
-    }
-
-    private void cleanOutputDirectory() throws IOException {
-        if (!Files.isDirectory(outDir)) {
-            return;
-        }
-        try (var stream = Files.walk(outDir)) {
-            for (Path path : stream.sorted(Comparator.reverseOrder()).toList()) {
-                if (!path.equals(outDir)) {
-                    Files.deleteIfExists(path);
-                }
+    Map<String, String> generate() {
+        Map<String, String> sources = new LinkedHashMap<>();
+        boolean wroteAny = false;
+        for (JimmerGraphQLSourceType entity : model.entities()) {
+            String facadeType = model.facadeClassName(entity.qualifiedName());
+            sources.put(MODEL_PACKAGE + '.' + facadeType, facadeSource(entity));
+            wroteAny = true;
+            List<JimmerGraphQLSourceMethod> complexMethods = model.complexMethods(entity);
+            if (!complexMethods.isEmpty()) {
+                sources.put(RESOLVER_PACKAGE + '.' + entity.simpleName() + "GqlSourceResolver",
+                        resolverSource(entity, complexMethods));
             }
         }
-    }
-
-    private void writeFile(String packageName, String simpleName, String source) throws IOException {
-        Path packageDir = outDir.resolve(packageName.replace('.', '/'));
-        Files.createDirectories(packageDir);
-        Files.writeString(packageDir.resolve(simpleName + ".java"), source, StandardCharsets.UTF_8);
+        if (wroteAny) {
+            sources.put(REGISTRY_PACKAGE + ".JimmerGraphQLFacadeRegistry", registrySource());
+        }
+        return sources;
     }
 
     private String facadeSource(JimmerGraphQLSourceType entity) {

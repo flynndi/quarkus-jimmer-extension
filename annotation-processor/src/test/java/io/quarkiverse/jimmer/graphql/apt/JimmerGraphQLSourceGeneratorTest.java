@@ -1,27 +1,21 @@
-package io.quarkiverse.jimmer.deployment.graphql.codegen;
+package io.quarkiverse.jimmer.graphql.apt;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-class JimmerGraphQLSourceWriterTest {
-
-    @TempDir
-    Path tempDir;
+class JimmerGraphQLSourceGeneratorTest {
 
     @Test
-    void writeBatchSourceResolvers() throws Exception {
+    void generateBatchSourceResolvers() {
         JimmerGraphQLSourceModel model = new JimmerGraphQLSourceModel(List.of(
                 new JimmerGraphQLSourceType(
                         "com.example",
                         "Author",
                         "com.example.Author",
                         JimmerGraphQLSourceKind.ENTITY,
-                        List.of(),
                         List.of(),
                         List.of(new JimmerGraphQLSourceMethod(
                                 "firstName",
@@ -37,7 +31,6 @@ class JimmerGraphQLSourceWriterTest {
                         "BookStore",
                         "com.example.BookStore",
                         JimmerGraphQLSourceKind.ENTITY,
-                        List.of(),
                         List.of(),
                         List.of(
                                 new JimmerGraphQLSourceMethod(
@@ -73,7 +66,6 @@ class JimmerGraphQLSourceWriterTest {
                         "com.example.Book",
                         JimmerGraphQLSourceKind.ENTITY,
                         List.of(),
-                        List.of(),
                         List.of(
                                 new JimmerGraphQLSourceMethod(
                                         "id",
@@ -103,10 +95,11 @@ class JimmerGraphQLSourceWriterTest {
                                         false,
                                         List.of())))));
 
-        new JimmerGraphQLSourceWriter(tempDir, model).write();
+        Map<String, String> generated = new JimmerGraphQLSourceGenerator(model).generate();
 
-        String bookResolver = Files.readString(tempDir.resolve(
-                "io/quarkiverse/jimmer/generated/graphql/resolver/BookGqlSourceResolver.java"));
+        String bookResolver = generated.get(
+                "io.quarkiverse.jimmer.generated.graphql.resolver.BookGqlSourceResolver");
+        Assertions.assertNotNull(bookResolver);
         Assertions.assertTrue(bookResolver.contains(
                 "@Source(name = \"store\") java.util.List<io.quarkiverse.jimmer.generated.graphql.model.BookGql> sources"));
         Assertions.assertTrue(bookResolver.contains(
@@ -114,8 +107,9 @@ class JimmerGraphQLSourceWriterTest {
         Assertions.assertTrue(bookResolver.contains(
                 "return support.loadFacadeListBatch(sources, \"authors\", env, io.quarkiverse.jimmer.generated.graphql.model.AuthorGql.class);"));
 
-        String storeResolver = Files.readString(tempDir.resolve(
-                "io/quarkiverse/jimmer/generated/graphql/resolver/BookStoreGqlSourceResolver.java"));
+        String storeResolver = generated.get(
+                "io.quarkiverse.jimmer.generated.graphql.resolver.BookStoreGqlSourceResolver");
+        Assertions.assertNotNull(storeResolver);
         Assertions.assertTrue(storeResolver.contains("public java.util.List<java.math.BigDecimal> avgPrice("));
         Assertions.assertTrue(storeResolver.contains("return support.loadValueBatch(sources, \"avgPrice\", env);"));
         Assertions.assertTrue(storeResolver.contains(

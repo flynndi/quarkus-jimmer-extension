@@ -1,4 +1,4 @@
-package io.quarkiverse.jimmer.deployment.graphql.codegen;
+package io.quarkiverse.jimmer.graphql.apt;
 
 import java.util.List;
 
@@ -7,7 +7,6 @@ record JimmerGraphQLSourceType(
         String simpleName,
         String qualifiedName,
         JimmerGraphQLSourceKind kind,
-        List<String> imports,
         List<String> extendsTypes,
         List<JimmerGraphQLSourceMethod> methods) {
 

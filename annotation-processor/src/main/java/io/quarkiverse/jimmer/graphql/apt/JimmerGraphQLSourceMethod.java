@@ -1,4 +1,4 @@
-package io.quarkiverse.jimmer.deployment.graphql.codegen;
+package io.quarkiverse.jimmer.graphql.apt;
 
 import java.util.List;
 

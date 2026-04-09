@@ -1,4 +1,4 @@
-package io.quarkiverse.jimmer.deployment.graphql.codegen;
+package io.quarkiverse.jimmer.graphql.apt;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,17 +11,12 @@ final class JimmerGraphQLSourceModel {
 
     private final Map<String, JimmerGraphQLSourceType> typesByQualifiedName;
 
-    private final Map<String, String> qualifiedNameBySimpleName;
-
     JimmerGraphQLSourceModel(List<JimmerGraphQLSourceType> types) {
         this.typesByQualifiedName = new LinkedHashMap<>();
-        this.qualifiedNameBySimpleName = new LinkedHashMap<>();
         for (JimmerGraphQLSourceType type : types) {
-            typesByQualifiedName.put(type.qualifiedName(), type);
-            String previous = qualifiedNameBySimpleName.putIfAbsent(type.simpleName(), type.qualifiedName());
-            if (previous != null && !previous.equals(type.qualifiedName())) {
-                throw new IllegalStateException(
-                        "Duplicate simple type name for GraphQL facade generation: " + type.simpleName());
+            JimmerGraphQLSourceType previous = typesByQualifiedName.putIfAbsent(type.qualifiedName(), type);
+            if (previous != null && !previous.equals(type)) {
+                throw new IllegalStateException("Duplicate GraphQL source type: " + type.qualifiedName());
             }
         }
     }
@@ -34,10 +29,6 @@ final class JimmerGraphQLSourceModel {
             }
         }
         return entities;
-    }
-
-    String qualifiedNameBySimpleName(String simpleName) {
-        return qualifiedNameBySimpleName.get(simpleName);
     }
 
     JimmerGraphQLSourceType type(String qualifiedName) {
@@ -79,7 +70,7 @@ final class JimmerGraphQLSourceModel {
     }
 
     String facadeClassName(String qualifiedName) {
-        JimmerGraphQLSourceType type = typesByQualifiedName.get(qualifiedName);
+        JimmerGraphQLSourceType type = type(qualifiedName);
         if (type == null) {
             throw new IllegalArgumentException("Illegal GraphQL source type: " + qualifiedName);
         }
@@ -87,7 +78,7 @@ final class JimmerGraphQLSourceModel {
     }
 
     String facadeQualifiedName(String qualifiedName) {
-        return JimmerGraphQLSourceWriter.MODEL_PACKAGE + '.' + facadeClassName(qualifiedName);
+        return JimmerGraphQLSourceGenerator.MODEL_PACKAGE + '.' + facadeClassName(qualifiedName);
     }
 
     List<String> entityQualifiedNames() {
