@@ -2,6 +2,8 @@ package io.quarkiverse.jimmer.graphql.apt;
 
 import java.util.List;
 
+import com.squareup.javapoet.AnnotationSpec;
+
 record JimmerGraphQLSourceMethod(
         String name,
         String rawAccessorName,
@@ -10,5 +12,6 @@ record JimmerGraphQLSourceMethod(
         String elementType,
         boolean complex,
         boolean transientResolver,
-        List<String> annotations) {
+        String graphQLName,
+        List<AnnotationSpec> annotations) {
 }

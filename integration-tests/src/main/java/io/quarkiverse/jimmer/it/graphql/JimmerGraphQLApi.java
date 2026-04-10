@@ -9,11 +9,11 @@ import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
 import graphql.schema.DataFetchingEnvironment;
-import io.quarkiverse.jimmer.generated.graphql.model.BookGql;
-import io.quarkiverse.jimmer.generated.graphql.model.BookStoreGql;
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.BookStore;
 import io.quarkiverse.jimmer.it.entity.dto.BookInput;
+import io.quarkiverse.jimmer.it.entity.graphql.BookGql;
+import io.quarkiverse.jimmer.it.entity.graphql.BookStoreGql;
 import io.quarkiverse.jimmer.it.repository.BookRepository;
 import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
 import io.quarkiverse.jimmer.runtime.graphql.DataFetchingEnvironments;

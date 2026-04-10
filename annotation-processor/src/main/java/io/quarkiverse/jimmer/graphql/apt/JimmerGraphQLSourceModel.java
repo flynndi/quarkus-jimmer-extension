@@ -9,6 +9,8 @@ import java.util.Map;
 
 final class JimmerGraphQLSourceModel {
 
+    private static final String GRAPHQL_PACKAGE_SUFFIX = ".graphql";
+
     private final Map<String, JimmerGraphQLSourceType> typesByQualifiedName;
 
     JimmerGraphQLSourceModel(List<JimmerGraphQLSourceType> types) {
@@ -78,7 +80,7 @@ final class JimmerGraphQLSourceModel {
     }
 
     String facadeQualifiedName(String qualifiedName) {
-        return JimmerGraphQLSourceGenerator.MODEL_PACKAGE + '.' + facadeClassName(qualifiedName);
+        return graphqlPackageName(qualifiedName) + '.' + facadeClassName(qualifiedName);
     }
 
     List<String> entityQualifiedNames() {
@@ -87,5 +89,29 @@ final class JimmerGraphQLSourceModel {
             entityNames.add(entity.qualifiedName());
         }
         return new ArrayList<>(entityNames);
+    }
+
+    Map<String, List<String>> entityQualifiedNamesByGraphqlPackage() {
+        Map<String, List<String>> entityNamesByPackage = new LinkedHashMap<>();
+        for (JimmerGraphQLSourceType entity : entities()) {
+            entityNamesByPackage
+                    .computeIfAbsent(graphqlPackageName(entity.qualifiedName()), ignored -> new ArrayList<>())
+                    .add(entity.qualifiedName());
+        }
+        return entityNamesByPackage;
+    }
+
+    String graphqlPackageName(String qualifiedName) {
+        JimmerGraphQLSourceType type = type(qualifiedName);
+        if (type == null) {
+            throw new IllegalArgumentException("Illegal GraphQL source type: " + qualifiedName);
+        }
+        if (type.packageName().isEmpty()) {
+            return "graphql";
+        }
+        if (type.packageName().endsWith(GRAPHQL_PACKAGE_SUFFIX)) {
+            return type.packageName();
+        }
+        return type.packageName() + GRAPHQL_PACKAGE_SUFFIX;
     }
 }

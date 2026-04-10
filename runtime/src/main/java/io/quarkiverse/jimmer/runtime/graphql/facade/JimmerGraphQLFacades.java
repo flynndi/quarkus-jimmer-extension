@@ -12,11 +12,32 @@ public final class JimmerGraphQLFacades {
     }
 
     public static <T> T wrap(Object raw, Class<T> facadeType) {
-        return registry().wrap(raw, facadeType);
+        if (raw == null) {
+            return null;
+        }
+        if (facadeType.isInstance(raw)) {
+            return facadeType.cast(raw);
+        }
+        for (InstanceHandle<JimmerGraphQLGeneratedFacadeRegistry> handle : registries()) {
+            JimmerGraphQLGeneratedFacadeRegistry registry = handle.get();
+            if (registry.supportsFacadeType(facadeType)) {
+                return registry.wrap(raw, facadeType);
+            }
+        }
+        throw new IllegalArgumentException("Unsupported GraphQL facade type: " + facadeType.getName());
     }
 
     public static Object wrap(Object raw) {
-        return registry().wrap(raw);
+        if (raw == null || raw instanceof JimmerGraphQLFacade<?>) {
+            return raw;
+        }
+        for (InstanceHandle<JimmerGraphQLGeneratedFacadeRegistry> handle : registries()) {
+            JimmerGraphQLGeneratedFacadeRegistry registry = handle.get();
+            if (registry.supportsRaw(raw)) {
+                return registry.wrap(raw);
+            }
+        }
+        return raw;
     }
 
     public static <T> List<T> wrapList(Iterable<?> values, Class<T> facadeType) {
@@ -30,12 +51,12 @@ public final class JimmerGraphQLFacades {
         return wrappedValues;
     }
 
-    private static JimmerGraphQLGeneratedFacadeRegistry registry() {
-        InstanceHandle<JimmerGraphQLGeneratedFacadeRegistry> handle = Arc.container()
-                .instance(JimmerGraphQLGeneratedFacadeRegistry.class);
-        if (!handle.isAvailable()) {
+    private static List<InstanceHandle<JimmerGraphQLGeneratedFacadeRegistry>> registries() {
+        List<InstanceHandle<JimmerGraphQLGeneratedFacadeRegistry>> handles = Arc.container()
+                .listAll(JimmerGraphQLGeneratedFacadeRegistry.class);
+        if (handles.isEmpty()) {
             throw new IllegalStateException("No generated GraphQL facade registry is available");
         }
-        return handle.get();
+        return handles;
     }
 }

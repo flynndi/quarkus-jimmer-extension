@@ -16,11 +16,14 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 
+import com.squareup.javapoet.AnnotationSpec;
+
 final class JimmerGraphQLElementScanner {
 
     static final String ENTITY = "org.babyfish.jimmer.sql.Entity";
     static final String MAPPED_SUPERCLASS = "org.babyfish.jimmer.sql.MappedSuperclass";
     static final String TRANSIENT = "org.babyfish.jimmer.sql.Transient";
+    static final String GRAPHQL_NAME = "org.eclipse.microprofile.graphql.Name";
 
     private static final Set<String> ASSOCIATION_ANNOTATIONS = Set.of(
             "org.babyfish.jimmer.sql.ManyToOne",
@@ -53,13 +56,13 @@ final class JimmerGraphQLElementScanner {
             if (!isPropertyCandidate(method)) {
                 continue;
             }
-            Set<String> annotations = annotationNames(method);
+            Set<String> annotationNames = annotationNames(method);
             TypeMirror returnType = method.getReturnType();
             boolean collection = isCollectionType(returnType);
             TypeMirror elementType = collection ? collectionElementType(returnType) : returnType;
             String elementTypeName = qualifiedTypeName(elementType);
-            boolean complex = annotations.contains(TRANSIENT)
-                    || annotations.stream().anyMatch(ASSOCIATION_ANNOTATIONS::contains)
+            boolean complex = annotationNames.contains(TRANSIENT)
+                    || annotationNames.stream().anyMatch(ASSOCIATION_ANNOTATIONS::contains)
                     || sourceKind(elementType) == JimmerGraphQLSourceKind.ENTITY;
             methods.add(new JimmerGraphQLSourceMethod(
                     method.getSimpleName().toString(),
@@ -68,8 +71,9 @@ final class JimmerGraphQLElementScanner {
                     collection,
                     elementTypeName,
                     complex,
-                    annotations.contains(TRANSIENT),
-                    List.copyOf(annotations)));
+                    annotationNames.contains(TRANSIENT),
+                    graphQLName(method),
+                    annotationSpecs(method)));
         }
         return new JimmerGraphQLSourceType(
                 elementUtils.getPackageOf(type).getQualifiedName().toString(),
@@ -117,6 +121,37 @@ final class JimmerGraphQLElementScanner {
             annotations.add(annotation.getAnnotationType().toString());
         }
         return annotations;
+    }
+
+    private static String graphQLName(Element element) {
+        for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
+            if (!annotation.getAnnotationType().toString().equals(GRAPHQL_NAME)) {
+                continue;
+            }
+            for (var entry : annotation.getElementValues().entrySet()) {
+                if (entry.getKey().getSimpleName().contentEquals("value")) {
+                    Object value = entry.getValue().getValue();
+                    if (value instanceof String stringValue && !stringValue.isBlank()) {
+                        return stringValue;
+                    }
+                }
+            }
+        }
+        return element.getSimpleName().toString();
+    }
+
+    private static List<AnnotationSpec> annotationSpecs(Element element) {
+        List<AnnotationSpec> annotations = new ArrayList<>();
+        for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
+            String annotationType = annotation.getAnnotationType().toString();
+            if (annotationType.equals(GRAPHQL_NAME)
+                    || annotationType.equals(TRANSIENT)
+                    || ASSOCIATION_ANNOTATIONS.contains(annotationType)) {
+                continue;
+            }
+            annotations.add(AnnotationSpec.get(annotation));
+        }
+        return List.copyOf(annotations);
     }
 
     private static boolean hasAnnotation(Element element, String annotationType) {
