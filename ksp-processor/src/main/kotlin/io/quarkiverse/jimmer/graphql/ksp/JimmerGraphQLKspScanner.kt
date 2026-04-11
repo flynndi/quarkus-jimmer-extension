@@ -57,7 +57,6 @@ class JimmerGraphQLKspScanner {
                     sourceKind(elementType) == JimmerGraphQLSourceKind.ENTITY
                 JimmerGraphQLSourceMethod(
                     name = property.simpleName.asString(),
-                    rawAccessorName = rawAccessorName(property, returnType),
                     returnType = qualifiedTypeName(returnType),
                     collection = collection,
                     elementType = elementTypeName,
@@ -155,20 +154,6 @@ class JimmerGraphQLKspScanner {
 
     private fun collectionElementType(type: KSType): KSType =
         type.arguments.firstOrNull()?.type?.resolve() ?: type
-
-    private fun rawAccessorName(property: KSPropertyDeclaration, type: KSType): String {
-        val name = property.simpleName.asString()
-        return if (isBooleanType(type) && name.length > 2 && name.startsWith("is") && name[2].isUpperCase()) {
-            name
-        } else {
-            "get" + name.replaceFirstChar { ch ->
-                if (ch.isLowerCase()) ch.titlecase() else ch.toString()
-            }
-        }
-    }
-
-    private fun isBooleanType(type: KSType): Boolean =
-        rawTypeQualifiedName(type) in setOf("kotlin.Boolean", "java.lang.Boolean")
 
     private fun rawTypeQualifiedName(type: KSType): String? =
         (type.declaration as? KSClassDeclaration)?.qualifiedName?.asString()

@@ -62,7 +62,7 @@ class JimmerGraphQLKotlinSourceGenerator(
                     appendIndented(annotation)
                 }
                 appendIndented(
-                    "fun ${getterName(method)}(): ${method.returnType} = raw.${method.rawAccessorName}()"
+                    "fun ${getterName(method)}(): ${method.returnType} = raw.${rawPropertyName(method)}"
                 )
                 appendLine()
             }
@@ -113,6 +113,7 @@ class JimmerGraphQLKotlinSourceGenerator(
             appendPackage(packageName)
             appendLine("@jakarta.inject.Singleton")
             appendLine("@io.quarkus.arc.Unremovable")
+            appendLine("@Suppress(\"UNCHECKED_CAST\")")
             appendLine(
                 "class JimmerGraphQLFacadeRegistry : " +
                     "io.quarkiverse.jimmer.runtime.graphql.facade.JimmerGraphQLGeneratedFacadeRegistry {"
@@ -245,6 +246,16 @@ class JimmerGraphQLKotlinSourceGenerator(
             }
         }
 
+    private fun rawPropertyName(method: JimmerGraphQLSourceMethod): String =
+        kotlinIdentifier(method.name)
+
+    private fun kotlinIdentifier(value: String): String =
+        if (value.matches(Regex("[A-Za-z_][A-Za-z0-9_]*")) && value !in KOTLIN_HARD_KEYWORDS) {
+            value
+        } else {
+            "`" + value.replace("`", "``") + "`"
+        }
+
     private fun isBooleanType(typeName: String): Boolean =
         typeName.removeSuffix("?") in setOf("kotlin.Boolean", "java.lang.Boolean")
 
@@ -266,4 +277,37 @@ class JimmerGraphQLKotlinSourceGenerator(
 
     private fun escape(value: String): String =
         value.replace("\\", "\\\\").replace("\"", "\\\"")
+
+    companion object {
+        private val KOTLIN_HARD_KEYWORDS = setOf(
+            "as",
+            "break",
+            "class",
+            "continue",
+            "do",
+            "else",
+            "false",
+            "for",
+            "fun",
+            "if",
+            "in",
+            "interface",
+            "is",
+            "null",
+            "object",
+            "package",
+            "return",
+            "super",
+            "this",
+            "throw",
+            "true",
+            "try",
+            "typealias",
+            "typeof",
+            "val",
+            "var",
+            "when",
+            "while",
+        )
+    }
 }

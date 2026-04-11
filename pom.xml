@@ -199,11 +199,5 @@
         <module>docs</module>
       </modules>
     </profile>
-    <profile>
-      <id>ksp-sample</id>
-      <modules>
-        <module>ksp-consumer-example</module>
-      </modules>
-    </profile>
   </profiles>
 </project>
