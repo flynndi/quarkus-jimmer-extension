@@ -63,6 +63,9 @@ jobs:
           java-version: 17
 #          cache: 'maven'
 
+      - name: Install parent POM
+        run: mvn -N -B install -Dgpg.skip=true
+
       - name: Build with Maven
         run: mvn -B clean install -Dno-format -Dgpg.skip=true
 
