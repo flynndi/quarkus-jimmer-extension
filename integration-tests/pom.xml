@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>io.github.flynndi</groupId>
     <artifactId>quarkus-jimmer-parent</artifactId>
     <version>999-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>quarkus-jimmer-integration-tests</artifactId>
   <name>Quarkus Jimmer Extension - Integration Tests</name>
@@ -23,6 +22,10 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-graphql</artifactId>
     </dependency>
     <!-- http://localhost:8080/h2 -->
     <dependency>
@@ -56,6 +59,13 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.github.flynndi</groupId>
+      <artifactId>quarkus-jimmer-graphql-apt</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
       <groupId>org.redisson</groupId>
       <artifactId>redisson-quarkus-30</artifactId>
       <version>${redisson.version}</version>
@@ -76,6 +86,7 @@
       <plugin>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
+        <extensions>true</extensions>
         <executions>
           <execution>
             <goals>
@@ -107,11 +118,20 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.12.1</version>
         <configuration>
+          <annotationProcessors>
+            <annotationProcessor>org.babyfish.jimmer.apt.JimmerProcessor</annotationProcessor>
+            <annotationProcessor>io.quarkiverse.jimmer.graphql.apt.JimmerGraphQLProcessor</annotationProcessor>
+          </annotationProcessors>
           <annotationProcessorPaths>
             <path>
               <groupId>org.babyfish.jimmer</groupId>
               <artifactId>jimmer-apt</artifactId>
               <version>${jimmer.version}</version>
+            </path>
+            <path>
+              <groupId>io.github.flynndi</groupId>
+              <artifactId>quarkus-jimmer-graphql-apt</artifactId>
+              <version>${project.version}</version>
             </path>
           </annotationProcessorPaths>
         </configuration>

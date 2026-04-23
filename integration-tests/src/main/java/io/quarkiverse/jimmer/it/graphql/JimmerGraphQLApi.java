@@ -1,0 +1,73 @@
+package io.quarkiverse.jimmer.it.graphql;
+
+import java.util.List;
+
+import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Mutation;
+import org.eclipse.microprofile.graphql.Name;
+import org.eclipse.microprofile.graphql.Query;
+
+import graphql.schema.DataFetchingEnvironment;
+import io.quarkiverse.jimmer.it.entity.Book;
+import io.quarkiverse.jimmer.it.entity.BookStore;
+import io.quarkiverse.jimmer.it.entity.dto.BookInput;
+import io.quarkiverse.jimmer.it.entity.graphql.BookGql;
+import io.quarkiverse.jimmer.it.entity.graphql.BookStoreGql;
+import io.quarkiverse.jimmer.it.repository.BookRepository;
+import io.quarkiverse.jimmer.it.repository.BookStoreRepository;
+import io.quarkiverse.jimmer.runtime.graphql.DataFetchingEnvironments;
+import io.quarkiverse.jimmer.runtime.graphql.facade.JimmerGraphQLFacades;
+import io.smallrye.graphql.api.Context;
+
+@GraphQLApi
+public class JimmerGraphQLApi {
+
+    private final BookRepository bookRepository;
+
+    private final BookStoreRepository bookStoreRepository;
+
+    public JimmerGraphQLApi(BookRepository bookRepository, BookStoreRepository bookStoreRepository) {
+        this.bookRepository = bookRepository;
+        this.bookStoreRepository = bookStoreRepository;
+    }
+
+    @Query
+    public BookGql book(@Name("id") long id, Context context) {
+        DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
+        Fetcher<Book> fetcher = DataFetchingEnvironments.createFetcher(Book.class, env);
+        Book book = bookRepository.findNullable(id, fetcher);
+        return JimmerGraphQLFacades.wrap(book, BookGql.class);
+    }
+
+    @Query
+    public List<BookGql> books(@Name("ids") List<Long> ids, Context context) {
+        DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
+        Fetcher<Book> fetcher = DataFetchingEnvironments.createFetcher(Book.class, env);
+        return JimmerGraphQLFacades.wrapList(bookRepository.findByIds(ids, fetcher), BookGql.class);
+    }
+
+    @Query
+    public BookStoreGql bookStore(@Name("id") long id, Context context) {
+        DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
+        Fetcher<BookStore> fetcher = DataFetchingEnvironments.createFetcher(BookStore.class, env);
+        BookStore bookStore = bookStoreRepository.findNullable(id, fetcher);
+        return JimmerGraphQLFacades.wrap(bookStore, BookStoreGql.class);
+    }
+
+    @Query
+    public List<BookStoreGql> bookStores(@Name("ids") List<Long> ids, Context context) {
+        DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
+        Fetcher<BookStore> fetcher = DataFetchingEnvironments.createFetcher(BookStore.class, env);
+        return JimmerGraphQLFacades.wrapList(bookStoreRepository.findByIds(ids, fetcher), BookStoreGql.class);
+    }
+
+    @Mutation
+    public BookGql saveBook(@Name("input") BookInput input, Context context) {
+        DataFetchingEnvironment env = context.unwrap(DataFetchingEnvironment.class);
+        return JimmerGraphQLFacades.wrap(bookRepository
+                .saveCommand(input)
+                .execute(DataFetchingEnvironments.createFetcher(Book.class, env))
+                .getModifiedEntity(), BookGql.class);
+    }
+}
