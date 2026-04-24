@@ -7,23 +7,22 @@ Kotlin has been supported since 0.0.1.CR7
 In most cases you can refer to jimmer's configuration of spring, there is no real difference between the two, only a few differences   
 Refer to: https://github.com/babyfish-ct/jimmer   
 
-TODO: GraphQL  
-Please let me know if you have any suggestions on these parts
+GraphQL has been supported since 0.0.1.CR59
 
 
 # Quick Start
 ## Dependency
 Gradle
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR57'
-annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.9.114'
+implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR59'
+annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.9.120'
 ```
 Maven
 ```xml
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR57</version>
+   <version>0.0.1.CR59</version>
 </dependency>
 
 <build>
@@ -37,7 +36,7 @@ Maven
                     <path>
                         <groupId>org.babyfish.jimmer</groupId>
                         <artifactId>jimmer-apt</artifactId>
-                        <version>0.9.114</version>
+                        <version>0.9.120</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
