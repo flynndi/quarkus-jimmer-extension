@@ -92,6 +92,44 @@ public class JimmerGraphQLApiTestCase {
                         .collect(Collectors.toList()));
     }
 
+    @Test
+    void testBookStoreQuery() {
+        Response response = given()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "query",
+                        """
+                                query {
+                                  bookStore(id: 1) {
+                                    id
+                                    name
+                                    avgPrice
+                                    newestBooks {
+                                      id
+                                      name
+                                      edition
+                                    }
+                                  }
+                                }
+                                """))
+                .when()
+                .post("/graphql");
+
+        JsonPath jsonPath = response.jsonPath();
+        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertNull(jsonPath.get("errors"));
+        Assertions.assertEquals(1L, jsonPath.getLong("data.bookStore.id"));
+        Assertions.assertEquals("O'REILLY", jsonPath.getString("data.bookStore.name"));
+        Assertions.assertEquals(53.1D, jsonPath.getDouble("data.bookStore.avgPrice"), 0.001D);
+        List<Map<String, Object>> newestBooks = jsonPath.getList("data.bookStore.newestBooks");
+        Assertions.assertNotNull(newestBooks);
+        Assertions.assertEquals(3, newestBooks.size());
+        Assertions.assertEquals("Learning GraphQL", newestBooks.get(0).get("name"));
+        Assertions.assertEquals(3, newestBooks.get(0).get("edition"));
+        Assertions.assertEquals("Effective TypeScript", newestBooks.get(1).get("name"));
+        Assertions.assertEquals("Programming TypeScript", newestBooks.get(2).get("name"));
+    }
+
     private static <T> void clearObjectCache(JSqlClient sqlClient, Class<T> type, List<Long> ids) {
         if (ids.isEmpty()) {
             return;
