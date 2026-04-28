@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.babyfish.jimmer.meta.TypedProp;
@@ -128,6 +129,78 @@ public class JimmerGraphQLApiTestCase {
         Assertions.assertEquals(3, newestBooks.get(0).get("edition"));
         Assertions.assertEquals("Effective TypeScript", newestBooks.get(1).get("name"));
         Assertions.assertEquals("Programming TypeScript", newestBooks.get(2).get("name"));
+    }
+
+    @Test
+    void testBookStoresQuery() {
+        Response response = given()
+                .contentType(ContentType.JSON)
+                .body(Map.of(
+                        "query",
+                        """
+                                query {
+                                  bookStores(ids: [1, 2]) {
+                                    id
+                                    name
+                                    avgPrice
+                                    newestBooks {
+                                      id
+                                      name
+                                      edition
+                                      store {
+                                        id
+                                        name
+                                      }
+                                      authors {
+                                        firstName
+                                      }
+                                    }
+                                  }
+                                }
+                                """))
+                .when()
+                .post("/graphql");
+
+        JsonPath jsonPath = response.jsonPath();
+        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertNull(jsonPath.get("errors"));
+
+        List<Map<String, Object>> stores = jsonPath.getList("data.bookStores");
+        Assertions.assertNotNull(stores);
+        Assertions.assertEquals(2, stores.size());
+
+        Map<Long, Map<String, Object>> storesById = stores.stream()
+                .collect(Collectors.toMap(
+                        store -> ((Number) store.get("id")).longValue(),
+                        Function.identity()));
+
+        Assertions.assertEquals("O'REILLY", storesById.get(1L).get("name"));
+        Assertions.assertEquals(53.1D, ((Number) storesById.get(1L).get("avgPrice")).doubleValue(), 0.001D);
+        List<Map<String, Object>> storeOneNewestBooks = castMaps(storesById.get(1L).get("newestBooks"));
+        Assertions.assertEquals(3, storeOneNewestBooks.size());
+        Assertions.assertEquals("Learning GraphQL", storeOneNewestBooks.get(0).get("name"));
+        Assertions.assertEquals(3, storeOneNewestBooks.get(0).get("edition"));
+        Assertions.assertEquals("O'REILLY", ((Map<?, ?>) storeOneNewestBooks.get(0).get("store")).get("name"));
+        Assertions.assertEquals("Effective TypeScript", storeOneNewestBooks.get(1).get("name"));
+        Assertions.assertEquals(2, storeOneNewestBooks.get(1).get("edition"));
+        Assertions.assertEquals("Programming TypeScript", storeOneNewestBooks.get(2).get("name"));
+
+        Assertions.assertEquals("MANNING", storesById.get(2L).get("name"));
+        Assertions.assertEquals(81.0D, ((Number) storesById.get(2L).get("avgPrice")).doubleValue(), 0.01D);
+        List<Map<String, Object>> storeTwoNewestBooks = castMaps(storesById.get(2L).get("newestBooks"));
+        Assertions.assertEquals(1, storeTwoNewestBooks.size());
+        Assertions.assertEquals("GraphQL in Action", storeTwoNewestBooks.get(0).get("name"));
+        Assertions.assertEquals(2, storeTwoNewestBooks.get(0).get("edition"));
+        Assertions.assertEquals("MANNING", ((Map<?, ?>) storeTwoNewestBooks.get(0).get("store")).get("name"));
+
+        List<Map<String, Object>> authors = castMaps(storeTwoNewestBooks.get(0).get("authors"));
+        Assertions.assertEquals(1, authors.size());
+        Assertions.assertEquals("Samer", authors.get(0).get("firstName"));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> castMaps(Object value) {
+        return (List<Map<String, Object>>) value;
     }
 
     private static <T> void clearObjectCache(JSqlClient sqlClient, Class<T> type, List<Long> ids) {
