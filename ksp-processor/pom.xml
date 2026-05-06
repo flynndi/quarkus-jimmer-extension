@@ -10,6 +10,9 @@
     </parent>
     <artifactId>quarkus-jimmer-graphql-ksp</artifactId>
     <name>Quarkus Jimmer Extension - GraphQL KSP</name>
+    <properties>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -50,6 +53,22 @@
                             <sourceDirs>
                                 <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
                             </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadoc-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>javadoc</classifier>
+                            <classesDirectory>${project.basedir}/src/main/javadoc</classesDirectory>
                         </configuration>
                     </execution>
                 </executions>
