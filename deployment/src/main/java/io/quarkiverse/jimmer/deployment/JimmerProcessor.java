@@ -155,22 +155,9 @@ final class JimmerProcessor {
     void verifyConfig(@SuppressWarnings("unused") JimmerDataSourcesRecorder recorder, JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems) {
         if (!jdbcDataSourceBuildItems.isEmpty()) {
-            for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
-                String dataSourceName = jdbcDataSourceBuildItem.getName();
-                if (buildTimeConfig.dataSources().get(dataSourceName).prettySql()
-                        && !buildTimeConfig.dataSources().get(dataSourceName).showSql()) {
-                    throw new IllegalArgumentException(
-                            "When `pretty-sql` is true, `show-sql` must be true");
-                }
-                if (buildTimeConfig.dataSources().get(dataSourceName).inlineSqlVariables()
-                        && !buildTimeConfig.dataSources().get(dataSourceName).prettySql()) {
-                    throw new IllegalArgumentException(
-                            "When `inline-sql-variables` is true, `pretty-sql` must be true");
-                }
-                if (buildTimeConfig.client().ts().path().isPresent()) {
-                    if (!buildTimeConfig.client().ts().path().get().startsWith("/")) {
-                        throw new IllegalArgumentException("`jimmer.client.ts.path` must start with \"/\"");
-                    }
+            if (buildTimeConfig.client().ts().path().isPresent()) {
+                if (!buildTimeConfig.client().ts().path().get().startsWith("/")) {
+                    throw new IllegalArgumentException("`jimmer.client.ts.path` must start with \"/\"");
                 }
             }
         }

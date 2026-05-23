@@ -9,24 +9,6 @@ import io.smallrye.config.WithDefault;
 public interface JimmerDataSourceBuildTimeConfig {
 
     /**
-     * jimmer.showSql
-     */
-    @WithDefault("false")
-    boolean showSql();
-
-    /**
-     * jimmer.prettySql
-     */
-    @WithDefault("false")
-    boolean prettySql();
-
-    /**
-     * jimmer.inlineSqlVariables
-     */
-    @WithDefault("false")
-    boolean inlineSqlVariables();
-
-    /**
      * jimmer.triggerType
      */
     @WithDefault("BINLOG_ONLY")

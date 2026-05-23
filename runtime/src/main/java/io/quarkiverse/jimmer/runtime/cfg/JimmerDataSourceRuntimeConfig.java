@@ -22,6 +22,24 @@ public interface JimmerDataSourceRuntimeConfig {
     Optional<Boolean> active();
 
     /**
+     * jimmer.showSql
+     */
+    @WithDefault("false")
+    boolean showSql();
+
+    /**
+     * jimmer.prettySql
+     */
+    @WithDefault("false")
+    boolean prettySql();
+
+    /**
+     * jimmer.inlineSqlVariables
+     */
+    @WithDefault("false")
+    boolean inlineSqlVariables();
+
+    /**
      * jimmer.dialect
      */
     Optional<String> dialect();
