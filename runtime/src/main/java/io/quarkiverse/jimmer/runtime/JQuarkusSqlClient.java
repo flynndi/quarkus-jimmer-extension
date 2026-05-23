@@ -165,15 +165,15 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         runtimeConfig.dataSources().get(dataSourceName).executorContextPrefixes()
                 .ifPresent(builder::setExecutorContextPrefixes);
 
-        if (buildTimeConfig.dataSources().get(dataSourceName).showSql()) {
+        if (runtimeConfig.dataSources().get(dataSourceName).showSql()) {
             builder.setExecutor(Executor.log(executor));
         } else {
             builder.setExecutor(executor);
         }
         if (sqlFormatter != null) {
             builder.setSqlFormatter(sqlFormatter);
-        } else if (buildTimeConfig.dataSources().get(dataSourceName).prettySql()) {
-            if (buildTimeConfig.dataSources().get(dataSourceName).inlineSqlVariables()) {
+        } else if (runtimeConfig.dataSources().get(dataSourceName).prettySql()) {
+            if (runtimeConfig.dataSources().get(dataSourceName).inlineSqlVariables()) {
                 builder.setSqlFormatter(SqlFormatter.INLINE_PRETTY);
             } else {
                 builder.setSqlFormatter(SqlFormatter.PRETTY);
