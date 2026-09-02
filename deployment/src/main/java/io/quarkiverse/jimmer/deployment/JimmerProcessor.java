@@ -55,6 +55,7 @@ import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.*;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
@@ -77,6 +78,23 @@ final class JimmerProcessor {
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
+    }
+
+    @BuildStep
+    void registerDialectsForReflection(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
+                "org.babyfish.jimmer.sql.dialect.DefaultDialect",
+                "org.babyfish.jimmer.sql.dialect.H2Dialect",
+                "org.babyfish.jimmer.sql.dialect.MySql5Dialect",
+                "org.babyfish.jimmer.sql.dialect.MySqlDialect",
+                "org.babyfish.jimmer.sql.dialect.MySqlStyleDialect",
+                "org.babyfish.jimmer.sql.dialect.OracleDialect",
+                "org.babyfish.jimmer.sql.dialect.PostgresDialect",
+                "org.babyfish.jimmer.sql.dialect.SQLiteDialect",
+                "org.babyfish.jimmer.sql.dialect.SqlServerDialect",
+                "org.babyfish.jimmer.sql.dialect.TiDBDialect")
+                .constructors()
+                .build());
     }
 
     @BuildStep(onlyIf = IsJavaEnable.class)
