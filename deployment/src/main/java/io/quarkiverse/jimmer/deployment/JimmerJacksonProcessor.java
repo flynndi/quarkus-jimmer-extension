@@ -7,7 +7,7 @@ import io.quarkus.jackson.spi.ClassPathJacksonModuleBuildItem;
 
 final class JimmerJacksonProcessor {
 
-    private static final String JIMMER_JACKSON_MODULE = "org.babyfish.jimmer.jackson.ImmutableModule";
+    private static final String JIMMER_JACKSON_MODULE = "org.babyfish.jimmer.jackson.v2.ImmutableModuleV2";
 
     @BuildStep
     void registerJimmerJacksonModule(BuildProducer<ClassPathJacksonModuleBuildItem> classPathJacksonModules) {

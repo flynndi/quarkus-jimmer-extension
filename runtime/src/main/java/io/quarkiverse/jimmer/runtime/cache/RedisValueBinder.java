@@ -3,6 +3,8 @@ package io.quarkiverse.jimmer.runtime.cache;
 import java.time.Duration;
 import java.util.*;
 
+import org.babyfish.jimmer.jackson.codec.JsonCodec;
+import org.babyfish.jimmer.jackson.v2.JsonCodecV2;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.cache.CacheTracker;
@@ -35,8 +37,12 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
             @NotNull Duration duration,
             int randomPercent,
             @NotNull RedisDataSource redisDataSource) {
-        super(type, prop, tracker, objectMapper, keyPrefixProvider, duration, randomPercent);
+        super(type, prop, tracker, toCodec(objectMapper), keyPrefixProvider, duration, randomPercent);
         this.operations = redisDataSource.value(byte[].class);
+    }
+
+    static JsonCodec<?> toCodec(@Nullable ObjectMapper objectMapper) {
+        return objectMapper != null ? new JsonCodecV2(objectMapper) : null;
     }
 
     @Override
@@ -89,12 +95,19 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
 
         private RedisDataSource redisDataSource;
 
+        private ObjectMapper objectMapper;
+
         protected Builder(ImmutableType type, ImmutableProp prop) {
-            super(type, prop);
+            super(type, prop, null);
         }
 
         public Builder<K, V> redis(RedisDataSource redisDataSource) {
             this.redisDataSource = redisDataSource;
+            return this;
+        }
+
+        public Builder<K, V> objectMapper(ObjectMapper objectMapper) {
+            this.objectMapper = objectMapper;
             return this;
         }
 
