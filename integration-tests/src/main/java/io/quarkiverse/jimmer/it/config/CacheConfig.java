@@ -6,6 +6,7 @@ import java.util.List;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Singleton;
 
+import org.babyfish.jimmer.jackson.v2.JsonCodecV2;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.cache.AbstractCacheFactory;
@@ -29,7 +30,7 @@ public class CacheConfig {
     @Unremovable
     public CacheFactory cacheFactory(RedissonClient redissonClient, RedisDataSource redisDataSource,
             ObjectMapper objectMapper) {
-        CacheCreator creator = new RedisCacheCreator(redisDataSource, objectMapper)
+        CacheCreator creator = new RedisCacheCreator(redisDataSource, new JsonCodecV2(objectMapper))
                 .withRemoteDuration(Duration.ofHours(1))
                 .withLocalCache(100, Duration.ofMinutes(5))
                 .withMultiViewProperties(40, Duration.ofMinutes(2), Duration.ofMinutes(24))

@@ -16,6 +16,7 @@ import jakarta.enterprise.util.TypeLiteral;
 import jakarta.interceptor.InvocationContext;
 
 import org.babyfish.jimmer.impl.util.ObjectUtil;
+import org.babyfish.jimmer.jackson.v2.JsonCodecV2;
 import org.babyfish.jimmer.sql.DraftInterceptor;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.CacheAbandonedCallback;
@@ -185,7 +186,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         }
         builder
                 .setDatabaseValidationMode(runtimeConfig.databaseValidation().mode())
-                .setDefaultSerializedTypeObjectMapper(objectMapper)
+                .setDefaultSerializedTypeJsonCodec(
+                        objectMapper != null ? new JsonCodecV2(objectMapper) : null)
                 .setCacheFactory(cacheFactory)
                 .setCacheOperator(cacheOperator)
                 .addCacheAbandonedCallbacks(callbacks);

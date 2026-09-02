@@ -41,7 +41,7 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
             @NotNull Duration duration,
             int randomPercent,
             @NotNull RedisDataSource redisDataSource) {
-        super(type, prop, tracker, objectMapper, keyPrefixProvider, duration, randomPercent);
+        super(type, prop, tracker, RedisValueBinder.toCodec(objectMapper), keyPrefixProvider, duration, randomPercent);
         this.hashCommands = redisDataSource.hash(byte[].class);
         this.valueCommands = redisDataSource.value(byte[].class);
     }
@@ -92,12 +92,19 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
 
         private RedisDataSource redisDataSource;
 
+        private ObjectMapper objectMapper;
+
         protected Builder(ImmutableType type, ImmutableProp prop) {
-            super(type, prop);
+            super(type, prop, null);
         }
 
         public Builder<K, V> redis(RedisDataSource redisDataSource) {
             this.redisDataSource = redisDataSource;
+            return this;
+        }
+
+        public Builder<K, V> objectMapper(ObjectMapper objectMapper) {
+            this.objectMapper = objectMapper;
             return this;
         }
 
