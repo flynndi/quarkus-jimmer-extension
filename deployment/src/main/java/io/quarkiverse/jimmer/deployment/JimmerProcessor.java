@@ -61,6 +61,7 @@ import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.ClassOutput;
 import io.quarkus.jackson.deployment.IgnoreJsonDeserializeClassBuildItem;
+import io.quarkus.maven.dependency.ArtifactKey;
 import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
@@ -139,6 +140,43 @@ final class JimmerProcessor {
                     .setUnremovable()
                     .build());
         }
+    }
+
+    // org.babyfish.jimmer.jackson.v3.* (jimmer-core) is Jimmer's Jackson-3 codec implementation. It is never
+    // used at runtime here (Quarkus manages Jackson 2), but Quarkus's reflective-hierarchy registration expands
+    // any registered org.babyfish.jimmer.jackson.codec.* interface (JsonCodec, JsonReader, JsonWriter,
+    // JsonConverter, JsonTypeFactory) to every implementation found in the Jandex index, including these V3
+    // ones. Those V3 classes reference tools.jackson.databind types absent from the classpath, so registering
+    // them for native-image reflection fails with NoClassDefFoundError. Removing the .class files from the
+    // augmentation/native-image classpath entirely keeps them out of the index so they can never be reached.
+    private static final String[] JIMMER_JACKSON_V3_CLASSES = {
+            "ImmutableAnnotationIntrospectorV3",
+            "ImmutableAnnotationIntrospectorV3$1",
+            "ImmutableAnnotationIntrospectorV3$2",
+            "ImmutableModuleV3",
+            "ImmutablePropertyWriterV3",
+            "ImmutableSerializerModifierV3",
+            "JacksonUtilsV3",
+            "JsonCodecProviderV3",
+            "JsonCodecV3",
+            "JsonConverterV3",
+            "JsonReaderV3",
+            "JsonTypeFactoryV3",
+            "JsonWriterV3",
+            "ModulesRegistrarV3",
+            "ModulesRegistrarV3$ImmutableModuleRegistrar",
+            "ModulesRegistrarV3$KotlinModuleRegistrar",
+            "NodePropertiesIteratorV3",
+            "NodeV3",
+    };
+
+    @BuildStep
+    RemovedResourceBuildItem removeJimmerJacksonV3Classes() {
+        Set<String> resources = new HashSet<>();
+        for (String simpleName : JIMMER_JACKSON_V3_CLASSES) {
+            resources.add("org/babyfish/jimmer/jackson/v3/" + simpleName + ".class");
+        }
+        return new RemovedResourceBuildItem(ArtifactKey.of("org.babyfish.jimmer", "jimmer-core"), resources);
     }
 
     @BuildStep
