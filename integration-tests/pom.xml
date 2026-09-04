@@ -11,7 +11,7 @@
   <name>Quarkus Jimmer Extension - Integration Tests</name>
   <properties>
     <skipITs>true</skipITs>
-    <redisson.version>3.38.0</redisson.version>
+    <redisson.version>3.45.0</redisson.version>
     <native.surefire.skip>${skipITs}</native.surefire.skip>
   </properties>
   <dependencies>
@@ -31,6 +31,17 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-jdbc-h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <!--
+      Not used to connect to a real Postgres database here (tests run against H2), but jimmer's dialect
+      auto-detection (io.quarkiverse.jimmer.runtime.dialect.DialectDetector.Impl) unconditionally references
+      org.babyfish.jimmer.sql.dialect.PostgresDialect, which in turn references org.postgresql.util.PGobject.
+      Without the driver present, that reference can't be resolved during a native-image build.
+    -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-postgresql</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
