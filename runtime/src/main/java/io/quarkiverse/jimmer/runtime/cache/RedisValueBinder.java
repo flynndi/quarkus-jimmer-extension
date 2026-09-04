@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.util.*;
 
 import org.babyfish.jimmer.jackson.codec.JsonCodec;
-import org.babyfish.jimmer.jackson.v2.JsonCodecV2;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.cache.CacheTracker;
@@ -17,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
 import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.value.GetExArgs;
 import io.quarkus.redis.datasource.value.ValueCommands;
@@ -42,7 +42,7 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
     }
 
     static JsonCodec<?> toCodec(@Nullable ObjectMapper objectMapper) {
-        return objectMapper != null ? new JsonCodecV2(objectMapper) : null;
+        return JimmerJsonCodecs.toJsonCodecV2(objectMapper);
     }
 
     @Override

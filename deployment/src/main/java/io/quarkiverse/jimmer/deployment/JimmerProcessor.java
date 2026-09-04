@@ -60,6 +60,7 @@ import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarn
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.ClassOutput;
+import io.quarkus.jackson.deployment.IgnoreJsonDeserializeClassBuildItem;
 import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
@@ -74,6 +75,21 @@ final class JimmerProcessor {
     private static final String FEATURE = "jimmer";
 
     private static final String JIMMER_CONTAINER_BEAN_NAME_PREFIX = "jimmer_container_";
+
+    // org.babyfish.jimmer.client.meta(.impl) classes that carry both a Jackson-2 (V2) and a Jackson-3 (V3)
+    // serializer/deserializer as nested classes.
+    private static final String[] JIMMER_CLIENT_METADATA_CLASSES = {
+            "org.babyfish.jimmer.client.meta.Doc",
+            "org.babyfish.jimmer.client.meta.TypeName",
+            "org.babyfish.jimmer.client.meta.impl.ApiOperationImpl",
+            "org.babyfish.jimmer.client.meta.impl.ApiParameterImpl",
+            "org.babyfish.jimmer.client.meta.impl.ApiServiceImpl",
+            "org.babyfish.jimmer.client.meta.impl.EnumConstantImpl",
+            "org.babyfish.jimmer.client.meta.impl.PropImpl",
+            "org.babyfish.jimmer.client.meta.impl.SchemaImpl",
+            "org.babyfish.jimmer.client.meta.impl.TypeDefinitionImpl",
+            "org.babyfish.jimmer.client.meta.impl.TypeRefImpl",
+    };
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -130,6 +146,35 @@ final class JimmerProcessor {
         // Jimmer bundles Jackson 3 support classes in the same artifacts as the Jackson 2 runtime used by Quarkus.
         // When Quarkus scans Jackson 2 annotations, it can reach those unused Jackson 3 signatures and warn.
         return new ReflectiveHierarchyIgnoreWarningBuildItem(dotName -> dotName.toString().startsWith("tools.jackson."));
+    }
+
+    @BuildStep
+    void excludeJimmerClientMetadataFromAutoJacksonReflection(
+            BuildProducer<IgnoreJsonDeserializeClassBuildItem> ignoredClasses) {
+        // Each class below declares both a Jackson-2 (V2) and a Jackson-3 (V3) serializer/deserializer as
+        // nested classes. Quarkus's automatic Jackson reflection registration walks the *entire* declared-class
+        // hierarchy (allDeclaredClasses) of every Jackson-annotated type it finds, which drags in the V3 nested
+        // classes even though only Jackson 2 is on the runtime classpath. Loading those V3 classes during the
+        // native-image build fails with NoClassDefFoundError (tools.jackson.databind.ValueSerializer/ValueDeserializer
+        // are absent), so these classes are excluded from that automatic walk; the members actually needed are
+        // registered explicitly below.
+        for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
+            ignoredClasses.produce(new IgnoreJsonDeserializeClassBuildItem(DotName.createSimple(metadataClass)));
+        }
+    }
+
+    @BuildStep
+    void registerJimmerClientMetadataForReflection(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+        List<String> classes = new ArrayList<>();
+        for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
+            classes.add(metadataClass);
+            classes.add(metadataClass + "$SerializerV2");
+            classes.add(metadataClass + "$DeserializerV2");
+        }
+        classes.add("org.babyfish.jimmer.client.meta.Doc$Builder");
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(classes.toArray(new String[0]))
+                .constructors()
+                .build());
     }
 
     @BuildStep
