@@ -57,6 +57,7 @@ import io.quarkiverse.jimmer.runtime.dialect.DialectDetector;
 import io.quarkiverse.jimmer.runtime.meta.QuarkusMetaStringResolver;
 import io.quarkiverse.jimmer.runtime.util.Assert;
 import io.quarkiverse.jimmer.runtime.util.Constant;
+import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InstanceHandle;
@@ -185,7 +186,8 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         }
         builder
                 .setDatabaseValidationMode(runtimeConfig.databaseValidation().mode())
-                .setDefaultSerializedTypeObjectMapper(objectMapper)
+                .setDefaultSerializedTypeJsonCodec(
+                        objectMapper != null ? JimmerJsonCodecs.toJsonCodecV2(objectMapper) : null)
                 .setCacheFactory(cacheFactory)
                 .setCacheOperator(cacheOperator)
                 .addCacheAbandonedCallbacks(callbacks);

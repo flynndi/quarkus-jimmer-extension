@@ -2,7 +2,7 @@ package io.quarkiverse.jimmer.runtime.cache;
 
 import java.util.Objects;
 
-import org.babyfish.jimmer.jackson.ImmutableModule;
+import org.babyfish.jimmer.jackson.v2.ImmutableModuleV2;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.cache.Cache;
@@ -174,7 +174,7 @@ public class RedisCacheCreator extends AbstractCacheCreator {
             ObjectMapper clonedMapper = mapper != null ? new ObjectMapper(mapper) {
             } : new ObjectMapper();
             clonedMapper.registerModule(new JavaTimeModule());
-            clonedMapper.registerModule(new ImmutableModule());
+            clonedMapper.registerModule(new ImmutableModuleV2());
             this.objectMapper = clonedMapper;
         }
     }
