@@ -55,10 +55,13 @@ import io.quarkus.deployment.annotations.*;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.*;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.ClassOutput;
+import io.quarkus.jackson.deployment.IgnoreJsonDeserializeClassBuildItem;
+import io.quarkus.maven.dependency.ArtifactKey;
 import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
@@ -74,9 +77,41 @@ final class JimmerProcessor {
 
     private static final String JIMMER_CONTAINER_BEAN_NAME_PREFIX = "jimmer_container_";
 
+    // org.babyfish.jimmer.client.meta(.impl) classes that carry both a Jackson-2 (V2) and a Jackson-3 (V3)
+    // serializer/deserializer as nested classes.
+    private static final String[] JIMMER_CLIENT_METADATA_CLASSES = {
+            "org.babyfish.jimmer.client.meta.Doc",
+            "org.babyfish.jimmer.client.meta.TypeName",
+            "org.babyfish.jimmer.client.meta.impl.ApiOperationImpl",
+            "org.babyfish.jimmer.client.meta.impl.ApiParameterImpl",
+            "org.babyfish.jimmer.client.meta.impl.ApiServiceImpl",
+            "org.babyfish.jimmer.client.meta.impl.EnumConstantImpl",
+            "org.babyfish.jimmer.client.meta.impl.PropImpl",
+            "org.babyfish.jimmer.client.meta.impl.SchemaImpl",
+            "org.babyfish.jimmer.client.meta.impl.TypeDefinitionImpl",
+            "org.babyfish.jimmer.client.meta.impl.TypeRefImpl",
+    };
+
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
+    }
+
+    @BuildStep
+    void registerDialectsForReflection(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
+                "org.babyfish.jimmer.sql.dialect.DefaultDialect",
+                "org.babyfish.jimmer.sql.dialect.H2Dialect",
+                "org.babyfish.jimmer.sql.dialect.MySql5Dialect",
+                "org.babyfish.jimmer.sql.dialect.MySqlDialect",
+                "org.babyfish.jimmer.sql.dialect.MySqlStyleDialect",
+                "org.babyfish.jimmer.sql.dialect.OracleDialect",
+                "org.babyfish.jimmer.sql.dialect.PostgresDialect",
+                "org.babyfish.jimmer.sql.dialect.SQLiteDialect",
+                "org.babyfish.jimmer.sql.dialect.SqlServerDialect",
+                "org.babyfish.jimmer.sql.dialect.TiDBDialect")
+                .constructors()
+                .build());
     }
 
     @BuildStep(onlyIf = IsJavaEnable.class)
@@ -107,11 +142,77 @@ final class JimmerProcessor {
         }
     }
 
+    // org.babyfish.jimmer.jackson.v3.* (jimmer-core) is Jimmer's Jackson-3 codec implementation. It is never
+    // used at runtime here (Quarkus manages Jackson 2), but Quarkus's reflective-hierarchy registration expands
+    // any registered org.babyfish.jimmer.jackson.codec.* interface (JsonCodec, JsonReader, JsonWriter,
+    // JsonConverter, JsonTypeFactory) to every implementation found in the Jandex index, including these V3
+    // ones. Those V3 classes reference tools.jackson.databind types absent from the classpath, so registering
+    // them for native-image reflection fails with NoClassDefFoundError. Removing the .class files from the
+    // augmentation/native-image classpath entirely keeps them out of the index so they can never be reached.
+    private static final String[] JIMMER_JACKSON_V3_CLASSES = {
+            "ImmutableAnnotationIntrospectorV3",
+            "ImmutableAnnotationIntrospectorV3$1",
+            "ImmutableAnnotationIntrospectorV3$2",
+            "ImmutableModuleV3",
+            "ImmutablePropertyWriterV3",
+            "ImmutableSerializerModifierV3",
+            "JacksonUtilsV3",
+            "JsonCodecProviderV3",
+            "JsonCodecV3",
+            "JsonConverterV3",
+            "JsonReaderV3",
+            "JsonTypeFactoryV3",
+            "JsonWriterV3",
+            "ModulesRegistrarV3",
+            "ModulesRegistrarV3$ImmutableModuleRegistrar",
+            "ModulesRegistrarV3$KotlinModuleRegistrar",
+            "NodePropertiesIteratorV3",
+            "NodeV3",
+    };
+
+    @BuildStep
+    RemovedResourceBuildItem removeJimmerJacksonV3Classes() {
+        Set<String> resources = new HashSet<>();
+        for (String simpleName : JIMMER_JACKSON_V3_CLASSES) {
+            resources.add("org/babyfish/jimmer/jackson/v3/" + simpleName + ".class");
+        }
+        return new RemovedResourceBuildItem(ArtifactKey.of("org.babyfish.jimmer", "jimmer-core"), resources);
+    }
+
     @BuildStep
     ReflectiveHierarchyIgnoreWarningBuildItem ignoreJackson3ReflectionWarnings() {
         // Jimmer bundles Jackson 3 support classes in the same artifacts as the Jackson 2 runtime used by Quarkus.
         // When Quarkus scans Jackson 2 annotations, it can reach those unused Jackson 3 signatures and warn.
         return new ReflectiveHierarchyIgnoreWarningBuildItem(dotName -> dotName.toString().startsWith("tools.jackson."));
+    }
+
+    @BuildStep
+    void excludeJimmerClientMetadataFromAutoJacksonReflection(
+            BuildProducer<IgnoreJsonDeserializeClassBuildItem> ignoredClasses) {
+        // Each class below declares both a Jackson-2 (V2) and a Jackson-3 (V3) serializer/deserializer as
+        // nested classes. Quarkus's automatic Jackson reflection registration walks the *entire* declared-class
+        // hierarchy (allDeclaredClasses) of every Jackson-annotated type it finds, which drags in the V3 nested
+        // classes even though only Jackson 2 is on the runtime classpath. Loading those V3 classes during the
+        // native-image build fails with NoClassDefFoundError (tools.jackson.databind.ValueSerializer/ValueDeserializer
+        // are absent), so these classes are excluded from that automatic walk; the members actually needed are
+        // registered explicitly below.
+        for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
+            ignoredClasses.produce(new IgnoreJsonDeserializeClassBuildItem(DotName.createSimple(metadataClass)));
+        }
+    }
+
+    @BuildStep
+    void registerJimmerClientMetadataForReflection(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+        List<String> classes = new ArrayList<>();
+        for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
+            classes.add(metadataClass);
+            classes.add(metadataClass + "$SerializerV2");
+            classes.add(metadataClass + "$DeserializerV2");
+        }
+        classes.add("org.babyfish.jimmer.client.meta.Doc$Builder");
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(classes.toArray(new String[0]))
+                .constructors()
+                .build());
     }
 
     @BuildStep
