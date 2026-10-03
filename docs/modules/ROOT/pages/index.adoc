@@ -100,6 +100,42 @@ For a manual client that needs transaction-aware cache invalidation, configure a
 
 The GraphQL integration and its APT/KSP modules have been removed from this development version.
 
+[[transactions]]
+== Transactions
+
+`TxConnectionManager.executeTransaction(propagation, callback)` uses the same Narayana interceptors as Quarkus `@Transactional` methods.
+The JDBC connection is acquired inside that transaction boundary and closed before the callback's transaction boundary ends.
+Agroal handles enlistment in the current JTA transaction.
+
+[cols="1,2,2",options="header"]
+|===
+|Propagation |Without an existing transaction |With an existing transaction
+|`REQUIRED` |Start and complete a transaction |Participate in the caller's transaction
+|`REQUIRES_NEW` |Start and complete a transaction |Suspend the caller's transaction, complete a new transaction, then resume the caller
+|`SUPPORTS` |Run without a transaction |Participate in the caller's transaction
+|`NOT_SUPPORTED` |Run without a transaction |Suspend the caller's transaction, run without a transaction, then resume the caller
+|`MANDATORY` |Reject before invoking the callback |Participate in the caller's transaction
+|`NEVER` |Run without a transaction |Reject before invoking the callback
+|===
+
+`MANDATORY` without a transaction throws `TransactionalException` with a `TransactionRequiredException` cause.
+`NEVER` with a transaction throws `TransactionalException` with an `InvalidTransactionException` cause.
+A transaction marked rollback-only still counts as an existing transaction.
+
+By default, a `RuntimeException` or `Error` rolls back a newly created transaction or marks a participating transaction rollback-only.
+Catching the exception in the caller does not clear that mark.
+Quarkus `@Rollback` annotations on exception types retain their normal Narayana semantics.
+Unlike the previous programmatic runner, checked exceptions do not trigger rollback by default.
+This also applies to checked exceptions thrown from Kotlin callbacks: use `@Rollback(true)` on the exception type when rollback is required.
+ArC wraps an undeclared checked exception in `ArcUndeclaredThrowableException`, preserving it as the cause;
+that wrapper does not change the rollback decision already made for the original exception.
+Failures in a `REQUIRES_NEW` or `NOT_SUPPORTED` callback restore the suspended caller's transaction without marking it rollback-only;
+an exception escaping an enclosing transactional method can still trigger that method's rollback rules.
+
+This API is synchronous: a returned `CompletionStage` or publisher is a return value, not asynchronous database work managed by this transaction.
+It does not delay transaction completion after the callback returns.
+The ordinary `ConnectionManager.execute(...)` methods keep their connection-only behavior and do not start a transaction.
+
 == REST client metadata
 
 Jimmer's generated clients recognize JAX-RS `@QueryParam`, `@PathParam`, and `@HeaderParam`,

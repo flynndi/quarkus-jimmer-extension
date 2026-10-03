@@ -11,8 +11,8 @@ import org.babyfish.jimmer.sql.transaction.TxConnectionManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import io.quarkus.narayana.jta.QuarkusTransaction;
-import io.quarkus.narayana.jta.TransactionRunnerOptions;
+import io.quarkiverse.jimmer.runtime.transaction.QuarkusTransactionExecutor;
+import io.quarkus.arc.Arc;
 
 public class QuarkusConnectionManager implements DataSourceAwareConnectionManager, TxConnectionManager {
 
@@ -47,25 +47,8 @@ public class QuarkusConnectionManager implements DataSourceAwareConnectionManage
 
     @Override
     public <R> R executeTransaction(Propagation propagation, Function<Connection, R> block) {
-        TransactionRunnerOptions transactionRunnerOptions = behavior(propagation);
-        return transactionRunnerOptions.call(() -> execute(block));
-    }
-
-    private TransactionRunnerOptions behavior(Propagation propagation) {
-        switch (propagation) {
-            case REQUIRES_NEW:
-                return QuarkusTransaction.requiringNew();
-            case SUPPORTS:
-                throw new UnsupportedOperationException("Quarkus does not support SUPPORTS");
-            case NOT_SUPPORTED:
-                return QuarkusTransaction.suspendingExisting();
-            case MANDATORY:
-                throw new UnsupportedOperationException("Quarkus does not support MANDATORY");
-            case NEVER:
-                throw new UnsupportedOperationException("Quarkus does not support NEVER");
-            default:
-                // REQUIRED:
-                return QuarkusTransaction.joiningExisting();
-        }
+        // Acquire the JDBC connection inside the intercepted boundary, after Narayana applies propagation.
+        return Arc.container().instance(QuarkusTransactionExecutor.class).get()
+                .execute(propagation, () -> execute(block));
     }
 }

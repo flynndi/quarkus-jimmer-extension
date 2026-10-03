@@ -162,6 +162,12 @@ Only the selected Java or Kotlin filters, customizers, and initializers are inst
 
 `SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately; construction failures are reported by the factory call. The extension's automatic `TransactionCacheOperator` belongs only to its CDI-managed client. Manual clients do not reuse that operator; configure a dedicated operator through the builder if the manually created client needs transaction-aware cache invalidation. User-provided operators remain supported, including ordinary `@Default` and the legacy `@DataSource("<default>")` form for the default datasource; multiple matching user operators are rejected. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator, because an operator cannot be shared by multiple SQL clients.
 
+### Transactions
+
+Jimmer's `TxConnectionManager.executeTransaction(...)` uses Quarkus Narayana's `@Transactional` semantics for all six propagation modes: `REQUIRED`, `REQUIRES_NEW`, `SUPPORTS`, `NOT_SUPPORTED`, `MANDATORY`, and `NEVER`. Participating calls leave transaction completion to their caller; suspended transactions are restored when the callback returns or throws.
+
+This is a synchronous JDBC boundary. Returning a future or publisher as a value does not extend the transaction beyond the callback. Narayana's rollback rules apply, including Quarkus `@Rollback` annotations on exception types. See [transaction behavior](docs/modules/ROOT/pages/index.adoc#transactions) for the propagation matrix and failure contracts.
+
 ### Cache
 
 example: [CacheConfig.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fconfig%2FCacheConfig.java)   
