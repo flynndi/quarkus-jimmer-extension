@@ -6,8 +6,6 @@ import java.util.Optional;
 
 import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.Converter;
 
 import io.quarkiverse.jimmer.runtime.util.StringUtils;
@@ -54,9 +52,9 @@ public interface JimmerBuildTimeConfig {
     interface ErrorTranslator {
 
         /**
-         * ErrorTranslatorBuildTimeConfig
+         * Disables Jimmer's REST exception mappers. Set to false to enable them when using quarkus-rest-jackson.
          */
-        @WithDefault("false")
+        @WithDefault("true")
         boolean disabled();
 
         /**
@@ -145,16 +143,14 @@ public interface JimmerBuildTimeConfig {
     interface Openapi {
 
         /**
-         * Openapi.path
+         * Path for the generated OpenAPI specification. No endpoint is exposed unless this is configured.
          */
-        @WithDefault("/openapi.yml")
-        String path();
+        Optional<String> path();
 
         /**
-         * Openapi.uiPath
+         * Path for the OpenAPI UI. Requires a specification path or an explicit reference path.
          */
-        @WithDefault("/openapi.html")
-        String uiPath();
+        Optional<String> uiPath();
 
         /**
          * Openapi.refPath
@@ -424,17 +420,7 @@ public interface JimmerBuildTimeConfig {
 
         @Override
         public String convert(String s) {
-            final ClassLoader cl = OpenapiRefPathConverter.class.getClassLoader();
-            final Config config = ConfigProviderResolver.instance().getConfig(cl);
-            if (!StringUtils.hasText(s)) {
-                if (config.getOptionalValue("quarkus.jimmer.client.openapi.path", String.class).isEmpty()) {
-                    return null;
-                } else {
-                    return config.getOptionalValue("quarkus.jimmer.client.openapi.path", String.class).get();
-                }
-            } else {
-                return s;
-            }
+            return StringUtils.hasText(s) ? s : null;
         }
     }
 }

@@ -13,7 +13,11 @@ import io.vertx.ext.web.RoutingContext;
 public class OpenApiUiRecorder {
 
     public Handler<RoutingContext> getHandler(JimmerBuildTimeConfig config) {
-        return new OpenApiUiHandler(config);
+        return getHandler(config, config.client().openapi().refPath().or(() -> config.client().openapi().path()).orElse(null));
+    }
+
+    public Handler<RoutingContext> getHandler(JimmerBuildTimeConfig config, String resolvedRefPath) {
+        return new OpenApiUiHandler(config, resolvedRefPath);
     }
 
     public Consumer<Route> route() {

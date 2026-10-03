@@ -168,11 +168,25 @@ Jimmer's `TxConnectionManager.executeTransaction(...)` uses Quarkus Narayana's `
 
 This is a synchronous JDBC boundary. Returning a future or publisher as a value does not extend the transaction beyond the callback. Narayana's rollback rules apply, including Quarkus `@Rollback` annotations on exception types. See [transaction behavior](docs/modules/ROOT/pages/index.adoc#transactions) for the propagation matrix and failure contracts.
 
+### Optional integrations and configuration
+
+The extension uses Quarkus's lightweight Scheduler by default. Applications that need Quartz can add `io.quarkus:quarkus-quartz` explicitly; Quarkus then selects it for the existing scheduled job.
+
+REST, HTTP endpoints, and the default microservice HTTP exchange are optional. Add `quarkus-rest-jackson` for REST exception translation, `quarkus-vertx-http` (or an extension that brings it in) for document endpoints, and `quarkus-rest-client` plus HTTP support for the microservice bridge. These dependencies are no longer supplied transitively by Jimmer. Jackson support remains a separate core dependency; REST Jackson supplies the HTTP JSON writer for translated errors.
+
+REST exception translation is disabled by default. Set `quarkus.jimmer.error-translator.disabled=false` explicitly to enable it; configuring its status code or debug options alone does not enable the integration.
+
+Document endpoints are opt-in: set `quarkus.jimmer.client.ts.path`, `quarkus.jimmer.client.openapi.path`, or `quarkus.jimmer.client.openapi.ui-path` to expose them. The previous default OpenAPI/UI URLs are no longer registered automatically. Relative endpoint paths follow Quarkus's non-application root; absolute paths retain their explicit location. A UI needs either a generated specification path or an explicit `ref-path`.
+
+Configuration errors report the complete property keys at build time or runtime initialization, without opening database connections or eagerly creating clients. The checks use Quarkus configuration APIs and do not require Hibernate Validator. See [optional integrations and validation](docs/modules/ROOT/pages/index.adoc#optional-integrations) for the dependency and migration contracts.
+
 ### Cache
 
 Transaction cache invalidation is associated with the JTA transaction, including suspended transactions and transactions resumed on another thread. A transaction that emits Jimmer database events schedules one flush after successful commit; rollback does not trigger it. Only operators for the datasources involved are flushed, each in its own new transaction after Agroal releases the completed transaction's connection.
 
 A cache failure cannot undo an already committed business transaction. If cache deletion throws, its flush transaction rolls back and the durable invalidation records remain for scheduled retry. Cache deletion must be idempotent because retries can repeat it. Events outside a JTA transaction rely on scheduled retry. See [cache completion behavior](docs/modules/ROOT/pages/index.adoc#transaction-cache) for the full contract.
+
+The retry interval defaults to `5s`. Setting `quarkus.jimmer.transaction-cache-operator-fixed-delay=off` disables this retry job while preserving commit callbacks; failed or nontransactional invalidations then have no periodic retry. This does not disable the application's other scheduled jobs.
 
 example: [CacheConfig.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fconfig%2FCacheConfig.java)   
 use blocking RedisDataSource 
@@ -268,10 +282,8 @@ public class CacheConfig {
 ```
 
 ### Remote Associations
-#### reference
-Quarkus remote associations Depend on quarkus-rest-client-reactive-jackson   
-Read the Quarkus-rest-client-reaction-jackson documentation before you begin   
-https://quarkus.io/guides/rest-client-reactive
+
+Add `io.quarkus:quarkus-rest-client` and HTTP server support such as `io.quarkus:quarkus-vertx-http` or `io.quarkus:quarkus-rest`. The bridge uses the configured Jackson mapper directly, so it does not require the REST Client Jackson provider. Setting `quarkus.jimmer.micro-service-name` enables the default HTTP exchange and export endpoints; missing required extensions produce a configuration error.
 
 #### application.yml
 ```yaml
