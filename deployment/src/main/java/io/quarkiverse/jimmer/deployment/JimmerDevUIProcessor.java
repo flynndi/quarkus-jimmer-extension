@@ -11,6 +11,7 @@ import org.eclipse.microprofile.config.ConfigProvider;
 
 import io.quarkiverse.jimmer.deployment.devui.JimmerDevUIModel;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
+import io.quarkiverse.jimmer.runtime.devui.JimmerDevUIService;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
@@ -20,10 +21,18 @@ import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.devui.spi.DevContextBuildItem;
+import io.quarkus.devui.spi.JsonRPCProvidersBuildItem;
 import io.quarkus.devui.spi.page.CardPageBuildItem;
 import io.quarkus.devui.spi.page.Page;
 
 final class JimmerDevUIProcessor {
+
+    @BuildStep
+    JsonRPCProvidersBuildItem registerRuntimeService() {
+        // Dev UI registers this unscoped class as a bean only in local development. Keep the item available in
+        // every mode so Quarkus can also recognize JSON-RPC entry points during execution-model validation.
+        return new JsonRPCProvidersBuildItem(JimmerDevUIService.class);
+    }
 
     @BuildStep(onlyIf = IsDevelopment.class)
     CardPageBuildItem createCard(JimmerBuildTimeConfig config, CombinedIndexBuildItem index,
@@ -54,6 +63,8 @@ final class JimmerDevUIProcessor {
                 .icon("font-awesome-solid:circle-info"));
         card.addPage(Page.webComponentPageBuilder().title("Model").componentLink("qwc-jimmer-model.js")
                 .icon("font-awesome-solid:diagram-project"));
+        card.addPage(Page.webComponentPageBuilder().title("Runtime").componentLink("qwc-jimmer-runtime.js")
+                .icon("font-awesome-solid:circle-play"));
         if (!enabled) {
             return card;
         }
