@@ -192,6 +192,18 @@ The former Jimmer `client.openapi.ui-path` and `ref-path` settings have been rem
 
 Configuration errors report the complete property keys at build time or runtime initialization, without opening database connections or eagerly creating clients. The checks use Quarkus configuration APIs and do not require Hibernate Validator. See [optional integrations and validation](docs/modules/ROOT/pages/index.adoc#optional-integrations) for the dependency and migration contracts.
 
+### Dev UI
+
+In development mode, the Jimmer card in `/q/dev-ui/` offers an overview of configured integrations,
+datasources and repositories, plus a searchable declared entity model with association navigation.
+Configured OpenAPI and TypeScript endpoints appear as links; adding and enabling `quarkus-swagger-ui`
+also adds a link to Quarkus's native Swagger UI.
+
+The pages use build-time metadata and do not initialize SQL clients or query databases. They show
+datasource names and database kinds, without connection URLs or credentials. Runtime customizations
+and manually assembled repository bindings cannot be inferred from this view; see
+[Dev UI](docs/modules/ROOT/pages/index.adoc#_dev_ui) for its scope.
+
 ### Cache
 
 Transaction cache invalidation is associated with the JTA transaction, including suspended transactions and transactions resumed on another thread. A transaction that emits Jimmer database events schedules one flush after successful commit; rollback does not trigger it. Only operators for the datasources involved are flushed, each in its own new transaction after Agroal releases the completed transaction's connection.

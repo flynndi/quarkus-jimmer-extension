@@ -15,11 +15,16 @@ final class JimmerHttpPaths {
     }
 
     static String managementUrl(String path, LaunchModeBuildItem launchMode) {
+        return url(path, launchMode, true);
+    }
+
+    static String url(String path, LaunchModeBuildItem launchMode, boolean managementRoute) {
         SmallRyeConfig config = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class);
         VertxHttpBuildTimeConfig http = config.getConfigMapping(VertxHttpBuildTimeConfig.class);
         ManagementInterfaceBuildTimeConfig management = config.getConfigMapping(ManagementInterfaceBuildTimeConfig.class);
         NonApplicationRootPathBuildItem paths = new NonApplicationRootPathBuildItem(http.rootPath(),
                 http.nonApplicationRootPath(), management.enabled() ? management.rootPath() : null);
-        return paths.resolveManagementPath(path, management, launchMode);
+        // A framework route that opts out of management stays under the HTTP non-application root.
+        return managementRoute ? paths.resolveManagementPath(path, management, launchMode) : paths.resolvePath(path);
     }
 }
