@@ -199,9 +199,13 @@ datasources and repositories, plus a searchable declared entity model with assoc
 Configured OpenAPI and TypeScript endpoints appear as links; adding and enabling `quarkus-swagger-ui`
 also adds a link to Quarkus's native Swagger UI.
 
-The pages use build-time metadata and do not initialize SQL clients or query databases. They show
-datasource names and database kinds, without connection URLs or credentials. Runtime customizations
-and manually assembled repository bindings cannot be inferred from this view; see
+The Runtime page reads client activation and initialization state through Quarkus's dev-only JSON-RPC.
+Select a client to compare configured values with its actual dialect, cache registrations, and transaction
+settings after the application has initialized it. Refreshing or inspecting never initializes a client.
+
+Overview and Model use build-time metadata; Runtime reads existing CDI instances. None of these pages
+queries business data or exposes connection URLs and credentials. Manually assembled repository bindings
+cannot be inferred from these views; see
 [Dev UI](docs/modules/ROOT/pages/index.adoc#_dev_ui) for its scope.
 
 ### Cache

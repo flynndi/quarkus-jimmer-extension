@@ -149,12 +149,14 @@ No additional Jimmer UI dependency is required. The card provides:
   plus the entity, ID type, and datasource binding of discovered repositories.
 * *Model*: searchable entities and their declared properties, including IDs, nullable types,
   associations and target entities, inherited properties, transient properties, and logical deletion.
+* *Runtime*: client activation and initialization state, selected configuration, and the actual dialect,
+  connection manager, transaction settings, cache operator and cache counts of an initialized client.
 * *Schema yaml* and *TypeScript*: links to configured document endpoints.
 * *Swagger UI*: a link to the application's optional `quarkus-swagger-ui`, using its native path and
   management-server configuration. The standalone Swagger extension does not supply its own Dev UI card;
   the Jimmer card supplies this navigation without requiring the SmallRye OpenAPI scanner.
 
-These pages use build-time Jandex metadata. Viewing them does not create a SQL client, query a database,
+Overview and Model use build-time Jandex metadata. Viewing them does not create a SQL client, query a database,
 or read database contents. Datasource URLs and credentials are not included. The model describes source
 declarations, not live database schema or the final mapping after runtime customizers and naming strategies.
 Only explicitly declared table names are displayed.
@@ -163,8 +165,25 @@ Repository entries cover generated legacy repositories and discovered subclasses
 `AbstractJavaRepository` / `AbstractKotlinRepository`. An application-owned repository's datasource is
 reported only when its SQL-client injection point has a recognizable binding. Manual construction,
 custom qualifiers, or ambiguous injection points are shown as unknown, with an explanation.
-Arbitrary implementations of the repository interfaces are not inferred. Runtime diagnostics and
-interactive SQL execution are outside these pages' scope.
+Arbitrary implementations of the repository interfaces are not inferred.
+
+Runtime uses Quarkus's native JSON-RPC integration, available only in local development mode.
+Opening the page fetches client states; choose *Inspect* to load a client's details, or *Refresh clients*
+to update the snapshot. There is no background polling. Both actions inspect ArC's existing contextual
+instances without creating a client, obtaining a database connection, or running initialization callbacks.
+An uninitialized client therefore has configuration but no actual settings until normal application use
+initializes it. Inactive, missing, ambiguous, or unsupported client scopes are reported explicitly.
+
+Configured values and actual client settings are separate: customizers may override configuration.
+Actual inspection supports Jimmer's native Java and Kotlin client implementations in shared CDI scopes.
+Custom client implementations remain opaque, and unsupported custom cache registries have unknown cache
+counts. Cache counts describe enabled registrations, not cached records, cache contents, or hit rates.
+The page never loads, evicts, or flushes caches. Connection URLs, credentials, and raw exception messages
+are not exported. The cache retry interval is a configured value, not a scheduler health check; the
+transaction completion contract is described in <<transaction-cache>>.
+
+The Runtime page and its JSON-RPC provider are not registered in test or production mode. Interactive SQL,
+client initialization controls, and transaction/cache mutation actions are outside this Dev UI's scope.
 
 == Configuration validation
 
