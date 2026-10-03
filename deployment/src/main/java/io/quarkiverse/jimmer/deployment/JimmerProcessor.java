@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.deployment;
 
 import java.beans.Introspector;
 import java.util.*;
+import java.util.function.Consumer;
 
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Named;
@@ -34,7 +35,6 @@ import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
-import io.quarkiverse.jimmer.runtime.graphql.facade.JimmerGraphQLFacadeSupport;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.repo.RepoRecord;
@@ -46,6 +46,7 @@ import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
+import io.quarkus.arc.InjectableInstance;
 import io.quarkus.arc.deployment.*;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
@@ -127,19 +128,48 @@ final class JimmerProcessor {
     }
 
     @BuildStep
-    IgnoreSplitPackageBuildItem splitPackages() {
-        return new IgnoreSplitPackageBuildItem(List.of("org.babyfish.jimmer", "org.babyfish.jimmer.sql"));
+    void retainJimmerExtensionPoints(BuildProducer<UnremovableBeanBuildItem> unremovableBeans) {
+        // These beans are discovered dynamically while constructing each SQL client.
+        unremovableBeans.produce(UnremovableBeanBuildItem.beanTypes(
+                org.babyfish.jimmer.sql.di.UserIdGeneratorProvider.class,
+                org.babyfish.jimmer.sql.di.LogicalDeletedValueGeneratorProvider.class,
+                org.babyfish.jimmer.sql.di.TransientResolverProvider.class,
+                org.babyfish.jimmer.sql.di.AopProxyProvider.class,
+                org.babyfish.jimmer.sql.meta.UserIdGenerator.class,
+                org.babyfish.jimmer.sql.meta.LogicalDeletedValueGenerator.class,
+                TransientResolver.class,
+                org.babyfish.jimmer.sql.runtime.EntityManager.class,
+                org.babyfish.jimmer.sql.meta.DatabaseSchemaStrategy.class,
+                org.babyfish.jimmer.sql.meta.DatabaseNamingStrategy.class,
+                org.babyfish.jimmer.sql.meta.MetaStringResolver.class,
+                org.babyfish.jimmer.sql.dialect.Dialect.class,
+                io.quarkiverse.jimmer.runtime.dialect.DialectDetector.class,
+                org.babyfish.jimmer.sql.runtime.Executor.class,
+                org.babyfish.jimmer.sql.runtime.SqlFormatter.class,
+                org.babyfish.jimmer.sql.runtime.ConnectionManager.class,
+                org.babyfish.jimmer.sql.runtime.MicroServiceExchange.class,
+                org.babyfish.jimmer.sql.runtime.ScalarProvider.class,
+                org.babyfish.jimmer.sql.runtime.ExceptionTranslator.class,
+                org.babyfish.jimmer.sql.DraftInterceptor.class,
+                org.babyfish.jimmer.sql.cache.CacheFactory.class,
+                org.babyfish.jimmer.sql.cache.CacheOperator.class,
+                org.babyfish.jimmer.sql.cache.CacheAbandonedCallback.class,
+                org.babyfish.jimmer.sql.filter.Filter.class,
+                org.babyfish.jimmer.sql.runtime.Customizer.class,
+                org.babyfish.jimmer.sql.runtime.Initializer.class,
+                org.babyfish.jimmer.sql.kt.filter.KFilter.class,
+                org.babyfish.jimmer.sql.kt.cfg.KCustomizer.class,
+                org.babyfish.jimmer.sql.kt.cfg.KInitializer.class));
+        unremovableBeans.produce(new UnremovableBeanBuildItem(bean -> bean.getTypes().stream()
+                .anyMatch(type -> type.kind() == Type.Kind.PARAMETERIZED_TYPE
+                        && type.name().equals(DotName.createSimple(Consumer.class))
+                        && type.asParameterizedType().arguments().get(0).name()
+                                .equals(DotName.createSimple(JSqlClient.Builder.class)))));
     }
 
     @BuildStep
-    void registerGraphQLSupport(Capabilities capabilities,
-            BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-        if (capabilities.isPresent(Capability.SMALLRYE_GRAPHQL)) {
-            additionalBeans.produce(AdditionalBeanBuildItem.builder()
-                    .addBeanClasses(JimmerGraphQLFacadeSupport.class)
-                    .setUnremovable()
-                    .build());
-        }
+    IgnoreSplitPackageBuildItem splitPackages() {
+        return new IgnoreSplitPackageBuildItem(List.of("org.babyfish.jimmer", "org.babyfish.jimmer.sql"));
     }
 
     // org.babyfish.jimmer.jackson.v3.* (jimmer-core) is Jimmer's Jackson-3 codec implementation. It is never
@@ -502,8 +532,9 @@ final class JimmerProcessor {
     }
 
     @BuildStep(onlyIf = IsJavaEnable.class)
-    @Record(ExecutionTime.STATIC_INIT)
+    @Record(ExecutionTime.RUNTIME_INIT)
     void setTransactionJCacheOperatorBean(JimmerTransactionCacheOperatorRecorder recorder,
+            JimmerDataSourcesRecorder dataSourcesRecorder,
             JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
@@ -524,23 +555,34 @@ final class JimmerProcessor {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
             if (!buildTimeConfig.dataSources().get(dataSourceName).triggerType().equals(TriggerType.BINLOG_ONLY)) {
                 SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
-                        .configure(TransactionCacheOperator.class)
+                        .configure(JimmerTransactionCacheOperatorRecorder.LazyTransactionCacheOperator.class)
+                        .addType(TransactionCacheOperator.class)
+                        .addType(org.babyfish.jimmer.sql.cache.CacheOperator.class)
+                        .defaultBean()
                         .scope(Singleton.class)
                         .unremovable()
-                        .addInjectionPoint(ClassType.create(DotName.createSimple(javax.sql.DataSource.class)))
+                        .setRuntimeInit()
+                        .checkActive(dataSourcesRecorder.checkActiveSupplier(dataSourceName))
+                        .addInjectionPoint(
+                                ParameterizedType.create(InjectableInstance.class,
+                                        ClassType.create(QuarkusJSqlClientContainer.class)),
+                                DataSourceUtil.isDefault(dataSourceName)
+                                        ? AnnotationInstance.builder(Default.class).build()
+                                        : AnnotationInstance.builder(DataSource.class).add("value", dataSourceName).build())
                         .createWith(recorder.transactionJCacheOperatorFunction(dataSourceName));
 
                 if (DataSourceUtil.isDefault(dataSourceName)) {
+                    transactionCacheOperatorConfigurator.addQualifier(Default.class);
                     transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
                             .addValue("value", dataSourceName).done();
 
-                    transactionCacheOperatorConfigurator.priority(10);
+                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
 
                 } else {
                     transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
                             .addValue("value", dataSourceName).done();
 
-                    transactionCacheOperatorConfigurator.priority(5);
+                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
                 }
 
                 syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
@@ -549,8 +591,9 @@ final class JimmerProcessor {
     }
 
     @BuildStep(onlyIf = IsKotlinEnable.class)
-    @Record(ExecutionTime.STATIC_INIT)
+    @Record(ExecutionTime.RUNTIME_INIT)
     void setTransactionKCacheOperatorBean(JimmerTransactionCacheOperatorRecorder recorder,
+            JimmerDataSourcesRecorder dataSourcesRecorder,
             JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
@@ -571,23 +614,34 @@ final class JimmerProcessor {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
             if (!buildTimeConfig.dataSources().get(dataSourceName).triggerType().equals(TriggerType.BINLOG_ONLY)) {
                 SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
-                        .configure(TransactionCacheOperator.class)
+                        .configure(JimmerTransactionCacheOperatorRecorder.LazyTransactionCacheOperator.class)
+                        .addType(TransactionCacheOperator.class)
+                        .addType(org.babyfish.jimmer.sql.cache.CacheOperator.class)
+                        .defaultBean()
                         .scope(Singleton.class)
                         .unremovable()
-                        .addInjectionPoint(ClassType.create(DotName.createSimple(javax.sql.DataSource.class)))
+                        .setRuntimeInit()
+                        .checkActive(dataSourcesRecorder.checkActiveSupplier(dataSourceName))
+                        .addInjectionPoint(
+                                ParameterizedType.create(InjectableInstance.class,
+                                        ClassType.create(QuarkusKSqlClientContainer.class)),
+                                DataSourceUtil.isDefault(dataSourceName)
+                                        ? AnnotationInstance.builder(Default.class).build()
+                                        : AnnotationInstance.builder(DataSource.class).add("value", dataSourceName).build())
                         .createWith(recorder.transactionKCacheOperatorFunction(dataSourceName));
 
                 if (DataSourceUtil.isDefault(dataSourceName)) {
+                    transactionCacheOperatorConfigurator.addQualifier(Default.class);
                     transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
                             .addValue("value", dataSourceName).done();
 
-                    transactionCacheOperatorConfigurator.priority(10);
+                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
 
                 } else {
                     transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
                             .addValue("value", dataSourceName).done();
 
-                    transactionCacheOperatorConfigurator.priority(5);
+                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
                 }
 
                 syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
@@ -623,7 +677,13 @@ final class JimmerProcessor {
                     .setRuntimeInit()
                     .unremovable()
                     .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusSqlClientProducer.class)))
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(javax.sql.DataSource.class)))
+                    // An Instance dependency permits inactive datasources to remain unused at startup.
+                    .addInjectionPoint(
+                            ParameterizedType.create(InjectableInstance.class, ClassType.create(javax.sql.DataSource.class)),
+                            DataSourceUtil.isDefault(dataSourceName)
+                                    ? AnnotationInstance.builder(Default.class).build()
+                                    : AnnotationInstance.builder(DataSource.class).add("value", dataSourceName).build())
+                    .checkActive(recorder.checkActiveSupplier(dataSourceName))
                     .createWith(recorder.jSqlClientContainerFunction(dataSourceName));
 
             AnnotationInstance quarkusJSqlClientContainerQualifier;
@@ -655,8 +715,11 @@ final class JimmerProcessor {
                     .scope(Singleton.class)
                     .setRuntimeInit()
                     .unremovable()
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusJSqlClientContainer.class)),
+                    .addInjectionPoint(
+                            ParameterizedType.create(InjectableInstance.class,
+                                    ClassType.create(QuarkusJSqlClientContainer.class)),
                             quarkusJSqlClientContainerQualifier)
+                    .checkActive(recorder.checkActiveSupplier(dataSourceName))
                     .createWith(recorder.quarkusJSqlClientFunction(dataSourceName));
 
             if (DataSourceUtil.isDefault(dataSourceName)) {
@@ -705,7 +768,13 @@ final class JimmerProcessor {
                     .setRuntimeInit()
                     .unremovable()
                     .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusSqlClientProducer.class)))
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(javax.sql.DataSource.class)))
+                    // An Instance dependency permits inactive datasources to remain unused at startup.
+                    .addInjectionPoint(
+                            ParameterizedType.create(InjectableInstance.class, ClassType.create(javax.sql.DataSource.class)),
+                            DataSourceUtil.isDefault(dataSourceName)
+                                    ? AnnotationInstance.builder(Default.class).build()
+                                    : AnnotationInstance.builder(DataSource.class).add("value", dataSourceName).build())
+                    .checkActive(recorder.checkActiveSupplier(dataSourceName))
                     .createWith(recorder.kSqlClientContainerFunction(dataSourceName));
 
             AnnotationInstance quarkusKSqlClientContainerQualifier;
@@ -737,8 +806,11 @@ final class JimmerProcessor {
                     .scope(Singleton.class)
                     .setRuntimeInit()
                     .unremovable()
-                    .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusKSqlClientContainer.class)),
+                    .addInjectionPoint(
+                            ParameterizedType.create(InjectableInstance.class,
+                                    ClassType.create(QuarkusKSqlClientContainer.class)),
                             quarkusKSqlClientContainerQualifier)
+                    .checkActive(recorder.checkActiveSupplier(dataSourceName))
                     .createWith(recorder.quarkusKSqlClientFunction(dataSourceName));
 
             if (DataSourceUtil.isDefault(dataSourceName)) {

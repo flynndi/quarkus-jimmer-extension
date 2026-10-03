@@ -3,6 +3,7 @@ package io.quarkiverse.jimmer.runtime.cache;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.hash.HashCommands;
-import io.quarkus.redis.datasource.value.GetExArgs;
-import io.quarkus.redis.datasource.value.ValueCommands;
+import io.quarkus.redis.datasource.keys.KeyCommands;
 
 @Deprecated
 public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
@@ -30,7 +30,7 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
 
     private final HashCommands<String, String, byte[]> hashCommands;
 
-    private final ValueCommands<String, byte[]> valueCommands;
+    private final KeyCommands<String> keyCommands;
 
     protected RedisHashBinder(
             @Nullable ImmutableType type,
@@ -43,14 +43,14 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
             @NotNull RedisDataSource redisDataSource) {
         super(type, prop, tracker, RedisValueBinder.toCodec(objectMapper), keyPrefixProvider, duration, randomPercent);
         this.hashCommands = redisDataSource.hash(byte[].class);
-        this.valueCommands = redisDataSource.value(byte[].class);
+        this.keyCommands = redisDataSource.key();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected List<byte[]> read(Collection<String> keys, String hashKey) {
         if (keys.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
         List<byte[]> list = new ArrayList<>();
         for (String key : keys) {
@@ -64,17 +64,16 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
     protected void write(Map<String, byte[]> map, String hashKey) {
         for (Map.Entry<String, byte[]> e : map.entrySet()) {
             hashCommands.hset(e.getKey(), hashKey, e.getValue());
-            for (String key : map.keySet()) {
-                valueCommands.getex(key, new GetExArgs().px(nextExpireMillis()));
-            }
+            keyCommands.pexpire(e.getKey(), nextExpireMillis());
         }
     }
 
     @Override
     protected void deleteAllSerializedKeys(List<String> serializedKeys) {
         LOGGER.info("Delete data from redis: {}", serializedKeys);
+        // Keys can belong to different Redis Cluster slots.
         for (String key : serializedKeys) {
-            valueCommands.getdel(key);
+            keyCommands.del(key);
         }
     }
 
