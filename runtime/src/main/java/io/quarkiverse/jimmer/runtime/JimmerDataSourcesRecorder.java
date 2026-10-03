@@ -49,39 +49,31 @@ public class JimmerDataSourcesRecorder {
 
     public Function<SyntheticCreationalContext<QuarkusJSqlClientContainer>, QuarkusJSqlClientContainer> jSqlClientContainerFunction(
             String dataSourceName) {
-        return context -> {
-            DataSource dataSource = context.getInjectedReference(new TypeLiteral<InjectableInstance<DataSource>>() {
-            }, AgroalDataSourceUtil.qualifier(dataSourceName)).get();
-            QuarkusSqlClientProducer producer = context.getInjectedReference(QuarkusSqlClientProducer.class);
-            return producer.createQuarkusJSqlClientContainer(dataSource, dataSourceName);
-        };
+        return context -> new QuarkusJSqlClientContainer(context.getInjectedReference(
+                new TypeLiteral<InjectableInstance<JSqlClient>>() {
+                }, QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName)).get(), dataSourceName);
     }
 
     public Function<SyntheticCreationalContext<JSqlClient>, JSqlClient> quarkusJSqlClientFunction(String dataSourceName) {
         return context -> {
-            QuarkusJSqlClientContainer QuarkusJSqlClientContainer = context.getInjectedReference(
-                    new TypeLiteral<InjectableInstance<QuarkusJSqlClientContainer>>() {
-                    }, QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName)).get();
-            return QuarkusJSqlClientContainer.getjSqlClient();
+            DataSource dataSource = context.getInjectedReference(new TypeLiteral<InjectableInstance<DataSource>>() {
+            }, AgroalDataSourceUtil.qualifier(dataSourceName)).get();
+            return context.getInjectedReference(QuarkusSqlClientProducer.class).createJSqlClient(dataSource, dataSourceName);
         };
     }
 
     public Function<SyntheticCreationalContext<QuarkusKSqlClientContainer>, QuarkusKSqlClientContainer> kSqlClientContainerFunction(
             String dataSourceName) {
-        return context -> {
-            DataSource dataSource = context.getInjectedReference(new TypeLiteral<InjectableInstance<DataSource>>() {
-            }, AgroalDataSourceUtil.qualifier(dataSourceName)).get();
-            QuarkusSqlClientProducer producer = context.getInjectedReference(QuarkusSqlClientProducer.class);
-            return producer.createQuarkusKSqlClientContainer(dataSource, dataSourceName);
-        };
+        return context -> new QuarkusKSqlClientContainer(context.getInjectedReference(
+                new TypeLiteral<InjectableInstance<KSqlClient>>() {
+                }, QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName)).get(), dataSourceName);
     }
 
     public Function<SyntheticCreationalContext<KSqlClient>, KSqlClient> quarkusKSqlClientFunction(String dataSourceName) {
         return context -> {
-            QuarkusKSqlClientContainer QuarkusKSqlClientContainer = context.getInjectedReference(
-                    new TypeLiteral<InjectableInstance<QuarkusKSqlClientContainer>>() {
-                    }, QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName)).get();
-            return QuarkusKSqlClientContainer.getKSqlClient();
+            DataSource dataSource = context.getInjectedReference(new TypeLiteral<InjectableInstance<DataSource>>() {
+            }, AgroalDataSourceUtil.qualifier(dataSourceName)).get();
+            return context.getInjectedReference(QuarkusSqlClientProducer.class).createKSqlClient(dataSource, dataSourceName);
         };
     }
 }

@@ -148,11 +148,19 @@ New `JavaRepository` / `KotlinRepository` interfaces do not trigger implementati
 
 ### Data sources and CDI
 
+Prefer injecting `JSqlClient` or `KSqlClient`, with `@DataSource("name")` for a named datasource. CDI-managed clients are application-scoped: ArC creates the underlying client lazily when its proxy is first used. Each datasource has one managed client, and the compatibility client containers expose that same CDI proxy.
+
+Injecting a client proxy alone does not initialize it or validate its active state; calling an inactive client fails on first use. Construction failures are reported as CDI creation errors with the underlying cause preserved.
+
 A Jimmer client uses its matching Quarkus Agroal datasource. Named datasources do not require a default datasource. `quarkus.jimmer.active=false` (or `quarkus.jimmer.<datasource-name>.active=false`) deactivates that client; an inactive datasource also deactivates its client and transaction cache operator. Use `InjectableInstance` and check the bean's active state when choosing between clients that may be inactive.
 
 For single-valued CDI extension points such as `Dialect`, `ConnectionManager`, and `Consumer<JSqlClient.Builder>`, an explicit `@DataSource(name)` bean takes precedence over an ordinary `@Default` bean. This includes `@DataSource("<default>")` for the default datasource. If no datasource-qualified bean matches, the ordinary default bean is used. Ambiguous beans at the selected level fail resolution instead of silently selecting one or falling back. Collection extension points, such as filters and customizers, include global beans and beans for the matching datasource. Supported Jimmer extension-point beans are retained automatically; they do not need `@Unremovable`.
 
-The extension's automatic `TransactionCacheOperator` belongs only to its CDI-managed client. Clients created manually with `SqlClients.java(...)` or `SqlClients.kotlin(...)` do not reuse that operator; configure a dedicated operator through the builder if the manually created client needs transaction-aware cache invalidation. User-provided operators remain supported, including ordinary `@Default` and the legacy `@DataSource("<default>")` form for the default datasource; multiple matching user operators are rejected. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator, because an operator cannot be shared by multiple SQL clients.
+SPI beans may inject the matching client for later use. During construction, `@PostConstruct`, `customize`, or `initialize`, do not call back through the injected proxy if that client is being created. An `Initializer` should use the client passed to its callback.
+
+Only the selected Java or Kotlin filters, customizers, and initializers are instantiated. Connection and dialect defaults are completed after Jimmer executes the user customizers. A customizer's explicit dialect avoids JDBC dialect probing; if it replaces the connection manager, dialect detection uses the replacement.
+
+`SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately; construction failures are reported by the factory call. The extension's automatic `TransactionCacheOperator` belongs only to its CDI-managed client. Manual clients do not reuse that operator; configure a dedicated operator through the builder if the manually created client needs transaction-aware cache invalidation. User-provided operators remain supported, including ordinary `@Default` and the legacy `@DataSource("<default>")` form for the default datasource; multiple matching user operators are rejected. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator, because an operator cannot be shared by multiple SQL clients.
 
 ### Cache
 

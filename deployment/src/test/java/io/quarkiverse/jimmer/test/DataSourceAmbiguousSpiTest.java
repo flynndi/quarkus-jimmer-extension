@@ -1,11 +1,13 @@
 package io.quarkiverse.jimmer.test;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.function.Consumer;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.AmbiguousResolutionException;
+import jakarta.enterprise.inject.CreationException;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -13,6 +15,7 @@ import jakarta.inject.Singleton;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.H2Dialect;
+import org.babyfish.jimmer.sql.exception.ExecutionException;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -42,12 +45,18 @@ class DataSourceAmbiguousSpiTest {
 
     @Test
     void ambiguousSingletonDoesNotSilentlyFallBackToDefault() {
-        assertThrows(AmbiguousResolutionException.class, () -> ((JSqlClientImplementor) dialects).getDialect());
+        CreationException failure = assertThrows(CreationException.class,
+                () -> ((JSqlClientImplementor) dialects).getDialect());
+        // Dialect fallback runs in Jimmer's final customizer, which preserves the CDI resolution failure as its cause.
+        ExecutionException customizationFailure = assertInstanceOf(ExecutionException.class, failure.getCause());
+        assertInstanceOf(AmbiguousResolutionException.class, customizationFailure.getCause());
     }
 
     @Test
     void ambiguousBuilderDoesNotSelectAnArbitraryFirstBean() {
-        assertThrows(AmbiguousResolutionException.class, () -> ((JSqlClientImplementor) builders).getDialect());
+        CreationException failure = assertThrows(CreationException.class,
+                () -> ((JSqlClientImplementor) builders).getDialect());
+        assertInstanceOf(AmbiguousResolutionException.class, failure.getCause());
     }
 
     @ApplicationScoped

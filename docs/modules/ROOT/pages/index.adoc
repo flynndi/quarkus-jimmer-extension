@@ -72,6 +72,12 @@ See xref:repository-migration.adoc[Repository contracts and migration] for the p
 
 == Data sources and CDI
 
+Prefer injecting `JSqlClient` or `KSqlClient`.
+CDI-managed clients are application-scoped: ArC creates the underlying client lazily when its proxy is first used.
+Each datasource has one managed client, and the compatibility client containers expose that same CDI proxy.
+Injecting a proxy alone does not initialize the client or validate its active state; invoking an inactive client fails on first use.
+Construction failures are reported as CDI creation errors with the underlying cause preserved.
+
 Named Jimmer clients use the corresponding Quarkus `@DataSource("name")` qualifier and do not require a default datasource.
 `quarkus.jimmer."name".active=false` disables the Jimmer client for that datasource without disabling the datasource itself.
 By default, Jimmer follows the datasource's active state; an inactive datasource cannot supply an active Jimmer client.
@@ -79,6 +85,17 @@ Use programmatic CDI lookup when choosing between active and inactive clients, a
 
 Jimmer SPI beans such as filters, customizers, initializers, scalar providers, and draft interceptors are retained automatically.
 They do not need `@Unremovable` merely because Jimmer discovers them dynamically.
+SPI beans may inject the matching client for later use, but must not call back through its proxy during construction,
+`@PostConstruct`, `customize`, or `initialize` while that client is being created.
+An `Initializer` should use the client passed to its callback.
+Only the selected language's filters, customizers, and initializers are instantiated.
+Connection and dialect defaults are completed after user customizers run.
+An explicit dialect skips JDBC probing; replacing the connection manager makes detection use that connection manager.
+
+`SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately and report construction failures at the factory call.
+The automatic `TransactionCacheOperator` belongs only to the CDI-managed client.
+For a manual client that needs transaction-aware cache invalidation, configure a dedicated operator through its builder.
+
 `quarkus.jimmer.database-validation-mode` takes precedence over the deprecated `quarkus.jimmer.database-validation.mode` key.
 
 The GraphQL integration and its APT/KSP modules have been removed from this development version.

@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.runtime.java;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 
+/** Compatibility facade for a datasource's CDI-managed client; it does not own client initialization. */
 public class QuarkusJSqlClientContainer {
 
     private final JSqlClient jSqlClient;
