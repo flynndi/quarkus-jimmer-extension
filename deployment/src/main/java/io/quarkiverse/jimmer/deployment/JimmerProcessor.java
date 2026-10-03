@@ -34,7 +34,9 @@ import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
+import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsHandler;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsRecorder;
+import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsHandler;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
@@ -297,21 +299,30 @@ final class JimmerProcessor {
     }
 
     @BuildStep(onlyIf = IsMicroServiceEnable.class)
+    void registerMicroServiceBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeans,
+            BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClasses) {
+        additionalBeans.produce(AdditionalBeanBuildItem.builder().setUnremovable()
+                .addBeanClasses(QuarkusExchange.class, MicroServiceExporterIdsHandler.class,
+                        MicroServiceExporterAssociatedIdsHandler.class)
+                .build());
+        additionalIndexedClasses.produce(new AdditionalIndexedClassesBuildItem(ExchangeRestClient.class.getName()));
+    }
+
+    @BuildStep(onlyIf = IsMicroServiceEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
     void setUpMicroService(BuildProducer<RouteBuildItem> routes,
             LaunchModeBuildItem launchModeBuildItem,
             BuildProducer<RegistryBuildItem> registries,
-            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
+            BeanContainerBuildItem beanContainer,
             MicroServiceExporterIdsRecorder microServiceExporterIdsRecorder,
             MicroServiceExporterAssociatedIdsRecorder microServiceExporterAssociatedIdsRecorder,
             NonApplicationRootPathBuildItem nonApplicationRootPathBuildItem,
-            ManagementInterfaceBuildTimeConfig managementInterfaceBuildTimeConfig,
-            BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClassesBuildItem) {
+            ManagementInterfaceBuildTimeConfig managementInterfaceBuildTimeConfig) {
 
         routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
                 .management()
                 .routeFunction(Constant.BY_IDS, microServiceExporterIdsRecorder.route())
-                .handler(microServiceExporterIdsRecorder.getHandler())
+                .handler(microServiceExporterIdsRecorder.getHandler(beanContainer.getValue()))
                 .blockingRoute()
                 .build());
 
@@ -326,7 +337,7 @@ final class JimmerProcessor {
         routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
                 .management()
                 .routeFunction(Constant.BY_ASSOCIATED_IDS, microServiceExporterAssociatedIdsRecorder.route())
-                .handler(microServiceExporterAssociatedIdsRecorder.getHandler())
+                .handler(microServiceExporterAssociatedIdsRecorder.getHandler(beanContainer.getValue()))
                 .blockingRoute()
                 .build());
 
@@ -339,10 +350,6 @@ final class JimmerProcessor {
         registries.produce(
                 new RegistryBuildItem("microServiceExporterAssociatedPath", microServiceExporterAssociatedIdsPath));
 
-        additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(QuarkusExchange.class));
-
-        additionalIndexedClassesBuildItem
-                .produce(new AdditionalIndexedClassesBuildItem(ExchangeRestClient.class.getName()));
     }
 
     @BuildStep
@@ -363,7 +370,7 @@ final class JimmerProcessor {
                     .management()
                     .routeFunction(buildTimeConfig.client().ts().path().get(), typeScriptRecorder.route())
                     .routeConfigKey("quarkus.jimmer.client.ts.path")
-                    .handler(typeScriptRecorder.getHandler())
+                    .handler(typeScriptRecorder.getHandler(buildTimeConfig))
                     .blockingRoute()
                     .build());
 
@@ -400,7 +407,7 @@ final class JimmerProcessor {
                 .management()
                 .routeFunction(buildTimeConfig.client().openapi().path(), openApiRecorder.route())
                 .routeConfigKey("quarkus.jimmer.client.openapi.path")
-                .handler(openApiRecorder.getHandler())
+                .handler(openApiRecorder.getHandler(buildTimeConfig))
                 .blockingRoute()
                 .build());
 
@@ -414,7 +421,7 @@ final class JimmerProcessor {
                 .management()
                 .routeFunction(buildTimeConfig.client().openapi().uiPath(), openApiUiRecorder.route())
                 .routeConfigKey("quarkus.jimmer.client.openapi.ui-path")
-                .handler(openApiUiRecorder.getHandler())
+                .handler(openApiUiRecorder.getHandler(buildTimeConfig))
                 .blockingRoute()
                 .build());
 

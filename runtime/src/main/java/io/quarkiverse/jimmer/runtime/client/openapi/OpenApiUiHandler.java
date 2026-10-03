@@ -7,20 +7,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Enumeration;
 
-import jakarta.enterprise.inject.Default;
-import jakarta.enterprise.inject.Instance;
-import jakarta.enterprise.inject.spi.CDI;
-
 import org.babyfish.jimmer.client.meta.ApiService;
 import org.babyfish.jimmer.client.meta.Schema;
 import org.babyfish.jimmer.client.runtime.impl.MetadataBuilder;
-import org.jboss.logging.Logger;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
-import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptHandler;
 import io.quarkiverse.jimmer.runtime.util.Constant;
-import io.quarkus.arc.Arc;
-import io.quarkus.arc.ManagedContext;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
@@ -29,31 +21,17 @@ import io.vertx.ext.web.RoutingContext;
 
 public class OpenApiUiHandler implements Handler<RoutingContext> {
 
-    private static final Logger log = Logger.getLogger(TypeScriptHandler.class);
+    private final JimmerBuildTimeConfig buildTimeConfig;
 
-    private JimmerBuildTimeConfig buildTimeConfig;
-
-    private boolean setup = false;
+    public OpenApiUiHandler(JimmerBuildTimeConfig buildTimeConfig) {
+        this.buildTimeConfig = buildTimeConfig;
+    }
 
     @Override
     public void handle(RoutingContext routingContext) {
-        if (!setup) {
-            setup();
-        }
-
         String html = this.html(routingContext.request().getParam("groups"));
         HttpServerResponse response = routingContext.response();
-        ManagedContext requestContext = Arc.container().requestContext();
-        if (requestContext.isActive()) {
-            doHandle(response, html);
-        } else {
-            requestContext.activate();
-            try {
-                doHandle(response, html);
-            } finally {
-                requestContext.terminate();
-            }
-        }
+        doHandle(response, html);
 
     }
 
@@ -62,25 +40,8 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
                 .end(Buffer.buffer(html.getBytes(StandardCharsets.UTF_8)));
     }
 
-    private void setup() {
-        Instance<JimmerBuildTimeConfig> buildTimeConfigs = CDI.current().select(JimmerBuildTimeConfig.class,
-                Default.Literal.INSTANCE);
-
-        if (buildTimeConfigs.isUnsatisfied()) {
-            buildTimeConfig = null;
-        } else if (buildTimeConfigs.isAmbiguous()) {
-            buildTimeConfig = buildTimeConfigs.iterator().next();
-            log.warnf("Multiple JimmerBuildTimeConfig registries present. Using %s with the built in scrape endpoint",
-                    buildTimeConfigs);
-        } else {
-            buildTimeConfig = buildTimeConfigs.get();
-        }
-
-        setup = true;
-    }
-
     private String html(String groups) {
-        String refPath = buildTimeConfig.client().openapi().refPath().orElseThrow();
+        String refPath = buildTimeConfig.client().openapi().refPath().orElse(null);
         String resource;
         if (hasMetadata()) {
             resource = refPath != null && !refPath.isEmpty() ? "META-INF/jimmer/openapi/index.html.template"
@@ -91,14 +52,16 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
         StringBuilder builder = new StringBuilder();
         char[] buf = new char[1024];
         InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resource);
-        assert inputStream != null;
-        try (Reader reader = new InputStreamReader(inputStream)) {
+        if (inputStream == null) {
+            throw new IllegalStateException("The resource \"" + resource + "\" does not exist");
+        }
+        try (Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
             int len;
-            if ((len = reader.read(buf)) != -1) {
+            while ((len = reader.read(buf)) != -1) {
                 builder.append(buf, 0, len);
             }
         } catch (IOException ex) {
-            throw new AssertionError("Internal bug: Can read \"" + resource + "\"");
+            throw new IllegalStateException("Cannot read resource \"" + resource + "\"", ex);
         }
         boolean isTemplate = resource.endsWith(".template");
         if (!isTemplate) {

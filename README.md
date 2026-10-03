@@ -170,6 +170,10 @@ This is a synchronous JDBC boundary. Returning a future or publisher as a value 
 
 ### Cache
 
+Transaction cache invalidation is associated with the JTA transaction, including suspended transactions and transactions resumed on another thread. A transaction that emits Jimmer database events schedules one flush after successful commit; rollback does not trigger it. Only operators for the datasources involved are flushed, each in its own new transaction after Agroal releases the completed transaction's connection.
+
+A cache failure cannot undo an already committed business transaction. If cache deletion throws, its flush transaction rolls back and the durable invalidation records remain for scheduled retry. Cache deletion must be idempotent because retries can repeat it. Events outside a JTA transaction rely on scheduled retry. See [cache completion behavior](docs/modules/ROOT/pages/index.adoc#transaction-cache) for the full contract.
+
 example: [CacheConfig.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fconfig%2FCacheConfig.java)   
 use blocking RedisDataSource 
 
