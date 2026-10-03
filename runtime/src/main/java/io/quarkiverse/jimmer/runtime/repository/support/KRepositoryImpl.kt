@@ -16,6 +16,11 @@ import org.babyfish.jimmer.sql.kt.ast.mutation.KSaveCommandDsl
 import org.babyfish.jimmer.sql.kt.ast.query.SortDsl
 import kotlin.reflect.KClass
 
+/**
+ * Implementation base used by generated legacy repositories.
+ * Existing constructors are retained for compatibility; new application repositories should extend
+ * [io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository].
+ */
 open class KRepositoryImpl<E: Any, ID: Any> (override val sql: KSqlClient, entityType: Class<E>? = null): KRepository<E, ID> {
 
     init {

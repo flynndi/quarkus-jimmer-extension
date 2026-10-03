@@ -3,6 +3,11 @@ package io.quarkiverse.jimmer.runtime.repo.support;
 import java.util.Collections;
 import java.util.Map;
 
+/**
+ * Internal entity-type registry populated by the extension during initialization.
+ * Its public visibility supports the recorder and repository implementations;
+ * it is not an application registration API.
+ */
 public class RepoOperationsData {
 
     private static volatile Map<String, Class<?>> entityToClassUnit = Collections.emptyMap();

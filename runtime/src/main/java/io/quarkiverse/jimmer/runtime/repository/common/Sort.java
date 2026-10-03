@@ -8,6 +8,12 @@ import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.runtime.util.Assert;
 
+/**
+ * Sort parameter retained for the legacy repository API.
+ *
+ * @deprecated New repositories use Jimmer typed properties, order expressions, or the Kotlin sort DSL.
+ */
+@Deprecated(forRemoval = false)
 public class Sort implements Streamable<Sort.Order>, Serializable {
 
     private static final long serialVersionUID = 5737186511678863905L;

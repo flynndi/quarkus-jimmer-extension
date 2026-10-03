@@ -435,6 +435,7 @@ final class JimmerProcessor {
                 .produce(new AdditionalIndexedClassesBuildItem(KRepository.class.getName(), KRepositoryImpl.class.getName()));
     }
 
+    // Only legacy JRepository/KRepository interfaces participate in derived-query generation.
     @BuildStep
     void collectRepositoryMetadata(CombinedIndexBuildItem combinedIndex,
             BuildProducer<RepositoryMetadata> repositoryMetadataBuildProducer) {
@@ -484,6 +485,7 @@ final class JimmerProcessor {
         }
     }
 
+    // Application-owned repository classes need entity metadata, not a generated implementation.
     @BuildStep(onlyIf = IsJavaEnable.class)
     @Record(ExecutionTime.STATIC_INIT)
     void analyzeJavaRepository(@SuppressWarnings("unused") RepoRecord repoRecord,

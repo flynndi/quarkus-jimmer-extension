@@ -18,6 +18,16 @@ import org.jetbrains.annotations.NotNull;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 
+/**
+ * Legacy repository contract for interfaces implemented by derived-query generation.
+ * Existing signatures and entity-returning save methods are retained for compatibility.
+ *
+ * @deprecated For new repositories, use
+ *             {@link io.quarkiverse.jimmer.runtime.repo.JavaRepository} with
+ *             {@link io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository},
+ *             or a CDI bean using {@link JSqlClient} directly.
+ */
+@Deprecated(forRemoval = false)
 public interface JRepository<E, ID> {
 
     JSqlClient sql();
@@ -121,7 +131,7 @@ public interface JRepository<E, ID> {
     @NotNull
     default <S extends E> List<S> saveAll(
             @NotNull Iterable<S> entities) {
-        return (List<S>) saveEntitiesCommand((List<E>) entities)
+        return (List<S>) saveEntitiesCommand((Iterable<E>) entities)
                 .execute()
                 .getItems()
                 .stream()

@@ -1,0 +1,152 @@
+= Repository contracts and migration
+
+This guide describes the current source branch using Jimmer `0.12.3`.
+The POM currently uses `0.0.1.CR60`, but the already published CR60 artifact does not include these changes.
+
+== Public application contracts
+
+Use an ordinary CDI class extending `io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository<E, ID>`
+or `AbstractKotlinRepository<E, ID>` for reusable repository operations.
+Both base classes are public inheritance contracts despite the `support` package name.
+Their constructor receives the application's injected `JSqlClient` or `KSqlClient`.
+Use `jakarta.inject.Singleton` for these constructor-injected subclasses. The base classes have no no-argument constructor,
+so ArC cannot automatically make the subclasses proxyable for a normal scope such as `@ApplicationScoped`.
+`@Singleton` beans still support CDI injection and transaction interceptors.
+
+`io.quarkiverse.jimmer.runtime.repo.JavaRepository`, `KotlinRepository`, and `PageParam` are public API types.
+Applications can implement the interfaces themselves, but declaring an interface does not generate an implementation.
+Injecting a SQL client directly into a CDI service is equally supported and requires no repository abstraction.
+
+Repository metadata, `RepoRecord`, `RepoOperationsData`, parsers, generated implementation classes,
+bytecode generators, and other implementation helpers are internal. Their visibility does not make them application SPIs.
+In particular, the old implementation classes are not the base classes for new application repositories.
+
+The application owns transaction boundaries. Use `jakarta.transaction.Transactional` on an intercepted CDI service or repository method
+when multiple operations must share a transaction. Extending a repository base class does not itself start a transaction.
+
+== Compatibility APIs
+
+The older APIs remain available for existing applications:
+
+* `io.quarkiverse.jimmer.runtime.repository.JRepository`
+* `io.quarkiverse.jimmer.runtime.repository.KRepository`
+
+Their interface generation and method-name query derivation belong to this compatibility path.
+For example, this is a legacy repository declaration, not the pattern for new code:
+
+[source,java]
+----
+public interface LegacyBookRepository extends JRepository<Book, Long> {
+    List<Book> findByName(String name);
+}
+----
+
+Migrate one repository at a time. Retaining a compatibility repository does not require rewriting its consumers immediately.
+Use a distinct repository type while both coexist, and migrate its injection points explicitly.
+Do not implement both old and new interfaces on the same class: methods with the same names have different return contracts.
+
+== Lookup and save results
+
+[cols="1,2,2",options="header"]
+|===
+|Operation |Compatibility API |New API
+|Lookup by id
+|`findById(id)` returns `Optional<E>`; `findNullable(id)` returns a nullable entity.
+|`findById(id)` returns nullable `E` in Java or `E?` in Kotlin.
+|Save an entity
+|`save(entity)` returns the modified entity.
+|Returns `SimpleSaveResult<E>` in Java or `KSimpleSaveResult<E>` in Kotlin.
+|DTO lookup
+|`viewer(MyView.class).findNullable(id)` in Java.
+|`findById(id, MyView.class)` in Java; `findById(id, MyView::class)` in Kotlin.
+|Pagination
+|`findAll(new Pagination(index, size))` in Java.
+|`findPage(PageParam.byIndex(index, size))`.
+|===
+
+Java callers that still need `Optional` can wrap the nullable result explicitly:
+
+[source,java]
+----
+Book book = books.findById(id);
+Optional<Book> optional = Optional.ofNullable(book);
+
+SimpleSaveResult<Book> result = books.save(inputBook);
+Book saved = result.getModifiedEntity();
+----
+
+Kotlin callers use nullable values and the save result directly:
+
+[source,kotlin]
+----
+val book: Book? = books.findById(id)
+val result = books.save(inputBook)
+val saved: Book = result.modifiedEntity
+----
+
+Preserve the application's not-found handling when migrating; replacing `Optional.get()` with an unchecked dereference is not equivalent.
+Retain the save result when the application needs mutation details instead of immediately extracting its entity.
+
+== Pagination
+
+Import `io.quarkiverse.jimmer.runtime.repo.PageParam` for the new API.
+`PageParam.byIndex(0, 20)` requests the first page of twenty rows using a zero-based index.
+`PageParam.byNo(1, 20)` expresses the same page with a one-based page number.
+Page size must be positive.
+
+[source,java]
+----
+Page<Book> firstPage = books.findPage(PageParam.byIndex(0, 20));
+----
+
+Replace imports of the compatibility `runtime.repository.support.Pagination` type at the same time as the method calls.
+Where the old call supplied sorting, preserve that ordering using typed properties, the Kotlin sort DSL, or an explicit query.
+
+== Replace derived methods with Jimmer DSL
+
+Moving `findByName` onto a new repository interface will not generate a query.
+Write its implementation in the CDI class, using the protected SQL client from the base class.
+For example, with the Jimmer-generated Java `BookTable`:
+
+[source,java]
+----
+@Singleton
+public class BookRepository extends AbstractJavaRepository<Book, Long> {
+    @Inject
+    public BookRepository(JSqlClient sql) {
+        super(sql);
+    }
+
+    public List<Book> findByName(String name) {
+        BookTable book = BookTable.$;
+        return sql.createQuery(book)
+                .where(book.name().eq(name))
+                .select(book)
+                .execute();
+    }
+}
+----
+
+The Kotlin version uses the generated table property extensions and Jimmer's `eq` expression:
+
+[source,kotlin]
+----
+import org.babyfish.jimmer.sql.kt.ast.expression.eq
+// Also import the table property extensions generated for your Book entity.
+
+@Singleton
+class BookRepository @Inject constructor(sql: KSqlClient) :
+    AbstractKotlinRepository<Book, Long>(sql) {
+
+    fun findByName(name: String): List<Book> =
+        sql.createQuery(Book::class) {
+            where(table.name eq name)
+            select(table)
+        }.execute()
+}
+----
+
+Preserve each old method's predicates, sorting, fetcher, null handling, and pagination explicitly.
+CDI qualifiers select a repository bean; the qualifier on its injected client selects the datasource.
+For example, a constructor parameter `@DataSource("DB2") JSqlClient sql` binds a Java repository to `DB2`
+without requiring the repository's consumers to repeat that qualifier.

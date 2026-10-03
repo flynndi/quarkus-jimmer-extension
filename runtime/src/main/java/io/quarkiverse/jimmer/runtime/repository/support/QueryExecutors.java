@@ -29,6 +29,10 @@ import io.quarkiverse.jimmer.runtime.repository.QuarkusOrders;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.parser.*;
 
+/**
+ * Internal execution support for generated legacy repositories.
+ * Public visibility is required by generated classes; this is not an application extension SPI.
+ */
 public class QueryExecutors {
 
     private QueryExecutors() {

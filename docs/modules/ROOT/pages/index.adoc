@@ -1,23 +1,74 @@
-= Quarkus Quarkus Jimmer Extension
+= Quarkus Jimmer Extension
 
 include::./includes/attributes.adoc[]
 
-TIP: Describe what the extension does here.
+Use Jimmer's data access APIs with Quarkus CDI, datasources, and transaction management.
 
 == Installation
 
-If you want to use this extension, you need to add the `io.quarkiverse.jimmer:quarkus-jimmer` extension first to your build file.
+This source branch currently uses coordinates `io.github.flynndi:quarkus-jimmer:0.0.1.CR60` and Jimmer `0.12.3`.
+Build and install the branch artifacts locally; the already published CR60 artifact does not include this upgrade.
+Use the same Jimmer version for the entity APT/KSP processor and runtime; older published extension versions retain their own dependency versions.
 
 For instance, with Maven, add the following dependency to your POM file:
 
 [source,xml,subs=attributes+]
 ----
 <dependency>
-    <groupId>io.quarkiverse.jimmer</groupId>
+    <groupId>io.github.flynndi</groupId>
     <artifactId>quarkus-jimmer</artifactId>
-    <version>{project-version}</version>
+    <version>0.0.1.CR60</version>
 </dependency>
 ----
+
+For Java entities, configure `org.babyfish.jimmer:jimmer-apt:0.12.3` as the annotation processor.
+For Kotlin entities, configure `org.babyfish.jimmer:jimmer-ksp:0.12.3` with your Kotlin/KSP build setup.
+
+== Application repositories
+
+Write repositories as ordinary CDI classes. The extension supplies the SQL client; the application supplies the repository implementation.
+The optional base classes provide common operations and are public inheritance contracts.
+Use `@Singleton` for constructor-injected subclasses; these base classes have no no-argument constructor
+for a normal-scope client proxy. CDI injection and transaction interceptors remain available.
+
+[source,java]
+----
+import jakarta.inject.Singleton;
+import jakarta.inject.Inject;
+import org.babyfish.jimmer.sql.JSqlClient;
+import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
+
+@Singleton
+public class BookRepository extends AbstractJavaRepository<Book, Long> {
+    @Inject
+    public BookRepository(JSqlClient sql) {
+        super(sql);
+    }
+}
+----
+
+The Kotlin equivalent uses `quarkus.jimmer.language=kotlin`:
+
+[source,kotlin]
+----
+import jakarta.inject.Singleton
+import jakarta.inject.Inject
+import org.babyfish.jimmer.sql.kt.KSqlClient
+import io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository
+
+@Singleton
+class BookRepository @Inject constructor(sql: KSqlClient) :
+    AbstractKotlinRepository<Book, Long>(sql)
+----
+
+`findById` returns a nullable entity, and `save` returns a Jimmer save result.
+Inject these repositories into services through CDI, and use `@Transactional` where the application needs a transaction boundary.
+The new `JavaRepository` and `KotlinRepository` interfaces do not trigger implementation generation or derived queries.
+Implement custom queries with Jimmer DSL in the concrete class.
+
+Direct injection of `JSqlClient` or `KSqlClient` is also a supported application entry point; repositories are optional.
+For a named datasource, put `@DataSource("name")` on the injected client or the repository constructor's client parameter.
+See xref:repository-migration.adoc[Repository contracts and migration] for the public API boundary and migration from the compatibility APIs.
 
 == Data sources and CDI
 
@@ -49,7 +100,7 @@ server-side validation still requires the application's validation integration.
 Unannotated entity parameters are JSON request bodies, including when `@Consumes` is absent.
 Method-level `@Consumes` takes precedence over the resource class.
 Bodies retain Jimmer's non-null metadata by default; use a runtime-visible annotation such as
-`org.jspecify.annotations.Nullable` for optional bodies. Jimmer 0.11.7 cannot reconcile a nullable
+`org.jspecify.annotations.Nullable` for optional bodies. Jimmer 0.12.3 cannot reconcile a nullable
 body known only through a class-retained annotation with this runtime parser and will reject it.
 
 Multipart support covers named `@RestForm`/`@FormParam` parameters on methods consuming
@@ -61,7 +112,5 @@ Standard framework context types, such as `UriInfo`, and Quarkus REST's `Routing
 
 [[extension-configuration-reference]]
 == Extension Configuration Reference
-
-TIP: Remove this section if you don't have Quarkus configuration properties in your extension.
 
 include::includes/quarkus-jimmer.adoc[leveloffset=+1, opts=optional]

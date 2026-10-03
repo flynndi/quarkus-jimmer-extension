@@ -23,6 +23,10 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 
+/**
+ * Internal utilities for legacy repository implementations, not an application extension SPI.
+ * Existing public methods are retained for compatibility.
+ */
 public class Utils {
 
     private Utils() {
@@ -44,12 +48,6 @@ public class Utils {
 
     public static JSqlClientImplementor validateSqlClient(JSqlClient sqlClient) {
         JSqlClientImplementor implementor = (JSqlClientImplementor) sqlClient;
-        if (!(implementor.getTransientResolverProvider() instanceof QuarkusTransientResolverProvider)) {
-            throw new IllegalArgumentException(
-                    "The transient resolver provider of sql client must be instance of \"" +
-                            QuarkusTransientResolverProvider.class.getName() +
-                            "\"");
-        }
         if (!(implementor.getTransientResolverProvider() instanceof QuarkusTransientResolverProvider)) {
             throw new IllegalArgumentException(
                     "The transient resolver provider of sql client must be instance of \"" +

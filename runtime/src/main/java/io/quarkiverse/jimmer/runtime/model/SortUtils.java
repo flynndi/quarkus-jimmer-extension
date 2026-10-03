@@ -11,6 +11,12 @@ import org.babyfish.jimmer.sql.ast.query.OrderMode;
 
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 
+/**
+ * Converts sorting expressions to the legacy repository {@link Sort} type.
+ *
+ * @deprecated New repositories use Jimmer typed properties, order expressions, or the Kotlin sort DSL.
+ */
+@Deprecated(forRemoval = false)
 public class SortUtils {
 
     private SortUtils() {

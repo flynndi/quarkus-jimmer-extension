@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.babyfish.jimmer.Specification;
 import org.babyfish.jimmer.View;
 import org.babyfish.jimmer.impl.util.Classes;
+import org.babyfish.jimmer.lang.Generics;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 
@@ -65,7 +66,7 @@ class QueryMethodParser {
         if (pageableParamIndex != -1 && sortParamIndex != -1) {
             throw new IllegalArgumentException(
                     "Cannot have parameters of type \"" +
-                            org.babyfish.jimmer.Page.class.getName() +
+                            Pagination.class.getName() +
                             "\" and \"" +
                             Sort.class.getName() +
                             "\" at the same time");
@@ -109,16 +110,14 @@ class QueryMethodParser {
                     "Return type \"" +
                             method.getReturnType() +
                             "\" requires parameter whose type is \"" +
-                            org.babyfish.jimmer.Page.class +
+                            Pagination.class.getName() +
                             "\"");
         }
         if (!isPage(method.getReturnType()) && pageableParamIndex != -1) {
             throw new IllegalArgumentException(
                     "The parameter whose type is \"" +
-                            org.babyfish.jimmer.Page.class +
-                            "\" requires the return type \"" +
                             Pagination.class.getName() +
-                            "\" or \"" +
+                            "\" requires the return type \"" +
                             org.babyfish.jimmer.Page.class.getName() +
                             "\"");
         }
@@ -139,9 +138,7 @@ class QueryMethodParser {
                                     "\", \"" +
                                     Collection.class.getName() +
                                     "\", \"" +
-                                    Iterator.class.getName() +
-                                    "\", \"" +
-                                    Pagination.class.getName() +
+                                    Iterable.class.getName() +
                                     "\", \"" +
                                     org.babyfish.jimmer.Page.class.getName() +
                                     "\" or \"" +
@@ -294,9 +291,8 @@ class QueryMethodParser {
             if (clazz == entityType) {
                 return new ReturnedElementType(null);
             } else if (View.class.isAssignableFrom(clazz)) {
-                //                Type[] typeArguments = GenericTypeResolver.resolveTypeArguments(clazz, View.class);
-                Type[] typeArguments = this.getGenericTypes(View.class);
-                if (typeArguments != null && typeArguments[0] == entityType) {
+                Type[] typeArguments = Generics.getTypeArguments(clazz, View.class);
+                if (typeArguments.length == 1 && typeArguments[0] == entityType) {
                     return new ReturnedElementType(clazz);
                 }
             }
@@ -517,14 +513,4 @@ class QueryMethodParser {
         }
     }
 
-    private Type[] getGenericTypes(Class<?> aClass) {
-        Type[] genericInterfaces = aClass.getGenericInterfaces();
-        Type[] genericTypes = NO_TYPES;
-        for (Type genericInterface : genericInterfaces) {
-            if (genericInterface instanceof ParameterizedType) {
-                genericTypes = ((ParameterizedType) genericInterface).getActualTypeArguments();
-            }
-        }
-        return genericTypes;
-    }
 }

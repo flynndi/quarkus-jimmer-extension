@@ -20,6 +20,14 @@ import org.babyfish.jimmer.sql.kt.ast.query.SortDsl
 import java.util.*
 import kotlin.reflect.KClass
 
+/**
+ * Legacy contract for repositories implemented by derived-query generation.
+ * Existing signatures and entity-returning save methods are retained for compatibility.
+ * New repositories should use [io.quarkiverse.jimmer.runtime.repo.KotlinRepository]
+ * with [io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository], or a CDI bean
+ * using [KSqlClient] directly.
+ */
+@Deprecated("Retained for compatibility. Use KotlinRepository with AbstractKotlinRepository for new repositories.")
 interface KRepository<E: Any, ID: Any> {
 
     val sql: KSqlClient
@@ -160,7 +168,7 @@ interface KRepository<E: Any, ID: Any> {
     fun <S:E> saveAll(
         entity: Iterable<S>,
     ): List<S> =
-        saveEntitiesCommand(entity as List<E>)
+        saveEntitiesCommand(entity)
             .execute()
             .items
             .map { it.modifiedEntity as S }
@@ -232,7 +240,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(entity) {...}.execute(fetcher)")
+        replaceWith = ReplaceWith("saveCommand(entity, block).execute(fetcher).modifiedEntity")
     )
     fun save(
         entity: E ,
@@ -246,7 +254,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(entity, mode, associatedMode) {...}.execute(fetcher)")
+        replaceWith = ReplaceWith("saveCommand(entity, mode, associatedMode, block).execute(fetcher).modifiedEntity")
     )
     fun save(
         entity: E ,
@@ -262,7 +270,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(entities) {...}.execute(fetcher)")
+        replaceWith = ReplaceWith("saveEntitiesCommand(entities, block).execute(fetcher).items.map { it.modifiedEntity }")
     )
     fun saveEntities(
         entities: Iterable<E> ,
@@ -276,7 +284,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(entities, mode, associatedMode) {...}.execute(fetcher)")
+        replaceWith = ReplaceWith("saveEntitiesCommand(entities, mode, associatedMode, block).execute(fetcher).items.map { it.modifiedEntity }")
     )
     fun saveEntities(
         entities: Iterable<E> ,
@@ -292,7 +300,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(input) {...}.execute(fetcher)")
+        replaceWith = ReplaceWith("saveCommand(input, block).execute(fetcher).modifiedEntity")
     )
     fun save(
         input: Input<E> ,
@@ -306,7 +314,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(input, mode, associatedMode) {...}.execute(fetcher)")
+        replaceWith = ReplaceWith("saveCommand(input, mode, associatedMode, block).execute(fetcher).modifiedEntity")
     )
     fun save(
         input: Input<E> ,
@@ -322,7 +330,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveInputsCommand(inputs) {...}.execute(fetcher)")
+        replaceWith = ReplaceWith("saveInputsCommand(inputs, block).execute(fetcher).items.map { it.modifiedEntity }")
     )
     fun saveInputs(
         inputs: Iterable<Input<E>> ,
@@ -336,7 +344,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(entity, mode, associatedMode) {...}.execute(fetcher)")
+        replaceWith = ReplaceWith("saveInputsCommand(inputs, mode, associatedMode, block).execute(fetcher).items.map { it.modifiedEntity }")
     )
     fun saveInputs(
         inputs: Iterable<Input<E>> ,
@@ -352,7 +360,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(entity) {...}.execute(viewType)")
+        replaceWith = ReplaceWith("saveCommand(entity, block).execute(viewType).modifiedView")
     )
     fun <V: View<E>> save(
         entity: E ,
@@ -366,7 +374,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(entity, mode, associatedMode) {...}.execute(viewType)")
+        replaceWith = ReplaceWith("saveCommand(entity, mode, associatedMode, block).execute(viewType).modifiedView")
     )
     fun <V: View<E>> save(
         entity: E ,
@@ -382,7 +390,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveEntitiesCommand(entities) {...}.execute(viewType)")
+        replaceWith = ReplaceWith("saveEntitiesCommand(entities, block).execute(viewType).viewItems.map { it.modifiedView }")
     )
     fun <V: View<E>> saveEntities(
         entities: Iterable<E> ,
@@ -396,7 +404,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveEntitiesCommand(entity, mode, associatedMode) {...}.execute(viewType)")
+        replaceWith = ReplaceWith("saveEntitiesCommand(entities, mode, associatedMode, block).execute(viewType).viewItems.map { it.modifiedView }")
     )
     fun <V: View<E>> saveEntities(
         entities: Iterable<E> ,
@@ -412,7 +420,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(input) {...}.execute(viewType)")
+        replaceWith = ReplaceWith("saveCommand(input, block).execute(viewType).modifiedView")
     )
     fun <V: View<E>> save(
         input: Input<E> ,
@@ -426,7 +434,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveCommand(input, mode, associatedMode) {...}.execute(viewType)")
+        replaceWith = ReplaceWith("saveCommand(input, mode, associatedMode, block).execute(viewType).modifiedView")
     )
     fun <V: View<E>> save(
         input: Input<E> ,
@@ -442,7 +450,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveInputsCommand(inputs) {...}.execute(viewType)")
+        replaceWith = ReplaceWith("saveInputsCommand(inputs, block).execute(viewType).viewItems.map { it.modifiedView }")
     )
     fun <V: View<E>> saveInputs(
         inputs: Iterable<Input<E>> ,
@@ -456,7 +464,7 @@ interface KRepository<E: Any, ID: Any> {
     @Deprecated(
         "saving and re-fetching by fetcher/viewType is advanced feature, " +
                 "please use `saveCommand`",
-        replaceWith = ReplaceWith("saveInputsCommand(inputs, mode, associatedMode) {...}.execute(viewType)")
+        replaceWith = ReplaceWith("saveInputsCommand(inputs, mode, associatedMode, block).execute(viewType).viewItems.map { it.modifiedView }")
     )
     fun <V: View<E>> saveInputs(
         inputs: Iterable<Input<E>> ,
@@ -470,7 +478,7 @@ interface KRepository<E: Any, ID: Any> {
             .viewItems.map { it.modifiedView }
 
     @Deprecated("Please use save", ReplaceWith(
-        "save(input, SaveMode.INSERT_ONLY, associatedMode, null, block)",
+        "save(input, SaveMode.INSERT_ONLY, associatedMode, block)",
         "org.babyfish.jimmer.sql.ast.mutation.SaveMode"
     )
     )
@@ -482,7 +490,7 @@ interface KRepository<E: Any, ID: Any> {
         save(input, SaveMode.INSERT_ONLY, associatedMode, block)
 
     @Deprecated("Please use save", ReplaceWith(
-        "save(entity, SaveMode.INSERT_ONLY, associatedMode, null, block)",
+        "save(entity, SaveMode.INSERT_ONLY, associatedMode, block)",
         "org.babyfish.jimmer.sql.ast.mutation.SaveMode"
     )
     )
@@ -494,7 +502,7 @@ interface KRepository<E: Any, ID: Any> {
         save(entity, SaveMode.INSERT_ONLY, associatedMode, block)
 
     @Deprecated("Please use save", ReplaceWith(
-        "save(input, SaveMode.INSERT_IF_ABSENT, associatedMode, null, block)",
+        "save(input, SaveMode.INSERT_IF_ABSENT, associatedMode, block)",
         "org.babyfish.jimmer.sql.ast.mutation.SaveMode"
     )
     )
@@ -506,7 +514,7 @@ interface KRepository<E: Any, ID: Any> {
         save(input, SaveMode.INSERT_IF_ABSENT, associatedMode, block)
 
     @Deprecated("Please use save", ReplaceWith(
-        "save(entity, SaveMode.INSERT_IF_ABSENT, associatedMode, null, block)",
+        "save(entity, SaveMode.INSERT_IF_ABSENT, associatedMode, block)",
         "org.babyfish.jimmer.sql.ast.mutation.SaveMode"
     )
     )
@@ -518,7 +526,7 @@ interface KRepository<E: Any, ID: Any> {
         save(entity, SaveMode.INSERT_IF_ABSENT, associatedMode, block)
 
     @Deprecated("Please use save", ReplaceWith(
-        "save(input, SaveMode.UPDATE_ONLY, associatedMode, null, block)",
+        "save(input, SaveMode.UPDATE_ONLY, associatedMode, block)",
         "org.babyfish.jimmer.sql.ast.mutation.SaveMode"
     )
     )
@@ -530,7 +538,7 @@ interface KRepository<E: Any, ID: Any> {
         save(input, SaveMode.UPDATE_ONLY, associatedMode, block)
 
     @Deprecated("Please use save", ReplaceWith(
-        "save(entity, SaveMode.UPDATE_ONLY, associatedMode, null, block)",
+        "save(entity, SaveMode.UPDATE_ONLY, associatedMode, block)",
         "org.babyfish.jimmer.sql.ast.mutation.SaveMode"
     )
     )
@@ -542,7 +550,7 @@ interface KRepository<E: Any, ID: Any> {
         save(entity, SaveMode.UPDATE_ONLY, associatedMode, block)
 
     @Deprecated("Please use save", ReplaceWith(
-        "save(input, SaveMode.UPSERT, AssociatedSaveMode.MERGE, null, block)",
+        "save(input, SaveMode.UPSERT, AssociatedSaveMode.MERGE, block)",
         "org.babyfish.jimmer.sql.ast.mutation.SaveMode",
         "org.babyfish.jimmer.sql.ast.mutation.AssociatedSaveMode"
     )
@@ -554,7 +562,7 @@ interface KRepository<E: Any, ID: Any> {
         save(input, SaveMode.UPSERT, AssociatedSaveMode.MERGE, block)
 
     @Deprecated("Please use save", ReplaceWith(
-        "save(entity, SaveMode.UPSERT, AssociatedSaveMode.MERGE, null, block)",
+        "save(entity, SaveMode.UPSERT, AssociatedSaveMode.MERGE, block)",
         "org.babyfish.jimmer.sql.ast.mutation.SaveMode",
         "org.babyfish.jimmer.sql.ast.mutation.AssociatedSaveMode"
     )
