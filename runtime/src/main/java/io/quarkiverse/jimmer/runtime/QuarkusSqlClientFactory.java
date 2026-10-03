@@ -45,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
+import io.quarkiverse.jimmer.runtime.cfg.JimmerConfigValidator;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusAopProxyProvider;
@@ -94,6 +95,8 @@ final class QuarkusSqlClientFactory {
         this.dataSourceName = dataSourceName != null ? dataSourceName : DataSourceUtil.DEFAULT_DATASOURCE_NAME;
         this.block = block;
         this.isKotlin = isKotlin;
+        JimmerConfigValidator.validateDataSource(this.dataSourceName,
+                runtimeConfig.dataSources().get(this.dataSourceName));
     }
 
     JSqlClientImplementor create() {

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsHandler;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsHandler;
 import io.quarkiverse.jimmer.runtime.util.Constant;
@@ -43,7 +45,9 @@ import io.quarkiverse.jimmer.test.http.model.HttpBookFetcher;
 import io.quarkiverse.jimmer.test.http.model.HttpStore;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ManagedContext;
+import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
 import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.common.http.TestHTTPResource;
 
 class MicroServiceHandlersTest {
 
@@ -72,6 +76,9 @@ class MicroServiceHandlersTest {
 
     @Inject
     Counters counters;
+
+    @TestHTTPResource
+    URL baseUrl;
 
     @BeforeEach
     void prepare() throws SQLException {
@@ -138,6 +145,18 @@ class MicroServiceHandlersTest {
         assertEquals(1, counters.destroyed.get());
         assertEquals(1, counters.mappersDisposed.get());
         assertFalse(Arc.container().requestContext().isActive());
+    }
+
+    @Test
+    void programmaticRestClientCallsBothExportersWithoutRegisterRestClient() throws Exception {
+        ExchangeRestClient client = QuarkusRestClientBuilder.newBuilder().baseUrl(baseUrl).build(ExchangeRestClient.class);
+        try {
+            assertTrue(client.findByIds("[1]", fetcher()).contains("Alpha"));
+            assertTrue(client.findByAssociatedIds("store", "[10]", fetcher()).contains("Alpha"));
+        } finally {
+            ((AutoCloseable) client).close();
+        }
+        assertTrue(counters.queries.get() >= 2);
     }
 
     private static Map<String, String> parameters() {

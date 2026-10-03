@@ -23,8 +23,11 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
 
     private final JimmerBuildTimeConfig buildTimeConfig;
 
-    public OpenApiUiHandler(JimmerBuildTimeConfig buildTimeConfig) {
+    private final String resolvedRefPath;
+
+    public OpenApiUiHandler(JimmerBuildTimeConfig buildTimeConfig, String resolvedRefPath) {
         this.buildTimeConfig = buildTimeConfig;
+        this.resolvedRefPath = resolvedRefPath;
     }
 
     @Override
@@ -41,9 +44,9 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
     }
 
     private String html(String groups) {
-        String refPath = buildTimeConfig.client().openapi().refPath().orElse(null);
+        String refPath = resolvedRefPath;
         String resource;
-        if (hasMetadata()) {
+        if (buildTimeConfig.client().openapi().refPath().isPresent() || hasMetadata()) {
             resource = refPath != null && !refPath.isEmpty() ? "META-INF/jimmer/openapi/index.html.template"
                     : "META-INF/jimmer/openapi/no-api.html";
         } else {
@@ -68,7 +71,11 @@ public class OpenApiUiHandler implements Handler<RoutingContext> {
             return builder.toString();
         }
         if (groups != null && !groups.isEmpty()) {
-            refPath += "?groups=" + URLEncoder.encode(groups, StandardCharsets.UTF_8);
+            int fragmentIndex = refPath.indexOf('#');
+            String fragment = fragmentIndex < 0 ? "" : refPath.substring(fragmentIndex);
+            String location = fragmentIndex < 0 ? refPath : refPath.substring(0, fragmentIndex);
+            refPath = location + (location.contains("?") ? "&" : "?")
+                    + "groups=" + URLEncoder.encode(groups, StandardCharsets.UTF_8) + fragment;
         }
         return builder
                 .toString()

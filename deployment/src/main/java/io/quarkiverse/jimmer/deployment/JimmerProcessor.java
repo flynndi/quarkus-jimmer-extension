@@ -8,10 +8,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import jakarta.ws.rs.Priorities;
 
-import org.babyfish.jimmer.error.CodeBasedException;
-import org.babyfish.jimmer.error.CodeBasedRuntimeException;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.TransientResolver;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
@@ -19,26 +16,12 @@ import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.jboss.jandex.*;
-import org.jboss.logging.Logger;
 
 import io.quarkiverse.jimmer.deployment.bytecode.JimmerRepositoryFactory;
 import io.quarkiverse.jimmer.runtime.*;
 import io.quarkiverse.jimmer.runtime.QuarkusSqlClientProducer;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
-import io.quarkiverse.jimmer.runtime.client.CodeBasedExceptionAdvice;
-import io.quarkiverse.jimmer.runtime.client.CodeBasedRuntimeExceptionAdvice;
-import io.quarkiverse.jimmer.runtime.client.openapi.CssRecorder;
-import io.quarkiverse.jimmer.runtime.client.openapi.JsRecorder;
-import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
-import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
-import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptRecorder;
-import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
-import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsHandler;
-import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsRecorder;
-import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsHandler;
-import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsRecorder;
-import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.repo.RepoRecord;
@@ -67,16 +50,10 @@ import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.ClassOutput;
 import io.quarkus.jackson.deployment.IgnoreJsonDeserializeClassBuildItem;
 import io.quarkus.maven.dependency.ArtifactKey;
-import io.quarkus.resteasy.reactive.spi.ExceptionMapperBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
-import io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem;
-import io.quarkus.vertx.http.deployment.RouteBuildItem;
-import io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig;
 
 @BuildSteps(onlyIf = JimmerProcessor.JimmerEnable.class)
 final class JimmerProcessor {
-
-    private static final Logger log = Logger.getLogger(JimmerProcessor.class);
 
     private static final String FEATURE = "jimmer";
 
@@ -263,19 +240,6 @@ final class JimmerProcessor {
     }
 
     @BuildStep
-    void setUpExceptionMapper(JimmerBuildTimeConfig buildTimeConfig,
-            BuildProducer<ExceptionMapperBuildItem> exceptionMapperProducer) {
-        if (buildTimeConfig.errorTranslator().isPresent()) {
-            if (!buildTimeConfig.errorTranslator().get().disabled()) {
-                exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedExceptionAdvice.class.getName(),
-                        CodeBasedException.class.getName(), Priorities.USER + 1, true));
-                exceptionMapperProducer.produce(new ExceptionMapperBuildItem(CodeBasedRuntimeExceptionAdvice.class.getName(),
-                        CodeBasedRuntimeException.class.getName(), Priorities.USER + 1, true));
-            }
-        }
-    }
-
-    @BuildStep
     void checkTransactionsSupport(Capabilities capabilities,
             BuildProducer<ValidationPhaseBuildItem.ValidationErrorBuildItem> validationErrors) {
         // JTA is necessary for Jimmer
@@ -283,153 +247,6 @@ final class JimmerProcessor {
             validationErrors.produce(new ValidationPhaseBuildItem.ValidationErrorBuildItem(
                     new ConfigurationException("The Jimmer extension is only functional in a JTA environment.")));
         }
-    }
-
-    @BuildStep
-    @Record(ExecutionTime.STATIC_INIT)
-    void verifyConfig(@SuppressWarnings("unused") JimmerDataSourcesRecorder recorder, JimmerBuildTimeConfig buildTimeConfig,
-            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems) {
-        if (!jdbcDataSourceBuildItems.isEmpty()) {
-            if (buildTimeConfig.client().ts().path().isPresent()) {
-                if (!buildTimeConfig.client().ts().path().get().startsWith("/")) {
-                    throw new IllegalArgumentException("`jimmer.client.ts.path` must start with \"/\"");
-                }
-            }
-        }
-    }
-
-    @BuildStep(onlyIf = IsMicroServiceEnable.class)
-    void registerMicroServiceBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeans,
-            BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClasses) {
-        additionalBeans.produce(AdditionalBeanBuildItem.builder().setUnremovable()
-                .addBeanClasses(QuarkusExchange.class, MicroServiceExporterIdsHandler.class,
-                        MicroServiceExporterAssociatedIdsHandler.class)
-                .build());
-        additionalIndexedClasses.produce(new AdditionalIndexedClassesBuildItem(ExchangeRestClient.class.getName()));
-    }
-
-    @BuildStep(onlyIf = IsMicroServiceEnable.class)
-    @Record(ExecutionTime.STATIC_INIT)
-    void setUpMicroService(BuildProducer<RouteBuildItem> routes,
-            LaunchModeBuildItem launchModeBuildItem,
-            BuildProducer<RegistryBuildItem> registries,
-            BeanContainerBuildItem beanContainer,
-            MicroServiceExporterIdsRecorder microServiceExporterIdsRecorder,
-            MicroServiceExporterAssociatedIdsRecorder microServiceExporterAssociatedIdsRecorder,
-            NonApplicationRootPathBuildItem nonApplicationRootPathBuildItem,
-            ManagementInterfaceBuildTimeConfig managementInterfaceBuildTimeConfig) {
-
-        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
-                .management()
-                .routeFunction(Constant.BY_IDS, microServiceExporterIdsRecorder.route())
-                .handler(microServiceExporterIdsRecorder.getHandler(beanContainer.getValue()))
-                .blockingRoute()
-                .build());
-
-        String microServiceExporterIdsPath = nonApplicationRootPathBuildItem.resolveManagementPath(
-                Constant.BY_IDS,
-                managementInterfaceBuildTimeConfig, launchModeBuildItem);
-        log.debug(
-                "Initialized a Jimmer microServiceExporterIdsPath meter registry on path = " + microServiceExporterIdsPath);
-
-        registries.produce(new RegistryBuildItem("microServiceExporterIdsPath", microServiceExporterIdsPath));
-
-        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
-                .management()
-                .routeFunction(Constant.BY_ASSOCIATED_IDS, microServiceExporterAssociatedIdsRecorder.route())
-                .handler(microServiceExporterAssociatedIdsRecorder.getHandler(beanContainer.getValue()))
-                .blockingRoute()
-                .build());
-
-        String microServiceExporterAssociatedIdsPath = nonApplicationRootPathBuildItem.resolveManagementPath(
-                Constant.BY_ASSOCIATED_IDS,
-                managementInterfaceBuildTimeConfig, launchModeBuildItem);
-        log.debug("Initialized a Jimmer microServiceExporterAssociatedPath meter registry on path = "
-                + microServiceExporterAssociatedIdsPath);
-
-        registries.produce(
-                new RegistryBuildItem("microServiceExporterAssociatedPath", microServiceExporterAssociatedIdsPath));
-
-    }
-
-    @BuildStep
-    @Record(ExecutionTime.STATIC_INIT)
-    void initializeResourceRegistry(TypeScriptRecorder typeScriptRecorder,
-            CssRecorder cssRecorder,
-            JsRecorder jsRecorder,
-            OpenApiRecorder openApiRecorder,
-            OpenApiUiRecorder openApiUiRecorder,
-            BuildProducer<RouteBuildItem> routes,
-            NonApplicationRootPathBuildItem nonApplicationRootPathBuildItem,
-            ManagementInterfaceBuildTimeConfig managementInterfaceBuildTimeConfig,
-            LaunchModeBuildItem launchModeBuildItem,
-            JimmerBuildTimeConfig buildTimeConfig,
-            BuildProducer<RegistryBuildItem> registries) {
-        if (buildTimeConfig.client().ts().path().isPresent()) {
-            routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
-                    .management()
-                    .routeFunction(buildTimeConfig.client().ts().path().get(), typeScriptRecorder.route())
-                    .routeConfigKey("quarkus.jimmer.client.ts.path")
-                    .handler(typeScriptRecorder.getHandler(buildTimeConfig))
-                    .blockingRoute()
-                    .build());
-
-            String tsPath = nonApplicationRootPathBuildItem.resolveManagementPath(buildTimeConfig.client().ts().path().get(),
-                    managementInterfaceBuildTimeConfig, launchModeBuildItem);
-            log.debug("Initialized a Jimmer TypeScript meter registry on path = " + tsPath);
-
-            registries.produce(new RegistryBuildItem("TypeScriptResource", tsPath));
-        }
-
-        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
-                .management()
-                .routeFunction(Constant.CSS_URL, cssRecorder.route())
-                .handler(cssRecorder.getHandler())
-                .blockingRoute()
-                .build());
-
-        String cssPath = nonApplicationRootPathBuildItem.resolveManagementPath(Constant.CSS_URL,
-                managementInterfaceBuildTimeConfig, launchModeBuildItem);
-        log.debug("Initialized a Jimmer CSS meter registry on path = " + cssPath);
-
-        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
-                .management()
-                .routeFunction(Constant.JS_URL, jsRecorder.route())
-                .handler(jsRecorder.getHandler())
-                .blockingRoute()
-                .build());
-
-        String jsPath = nonApplicationRootPathBuildItem.resolveManagementPath(Constant.JS_URL,
-                managementInterfaceBuildTimeConfig, launchModeBuildItem);
-        log.debug("Initialized a Jimmer JS meter registry on path = " + jsPath);
-
-        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
-                .management()
-                .routeFunction(buildTimeConfig.client().openapi().path(), openApiRecorder.route())
-                .routeConfigKey("quarkus.jimmer.client.openapi.path")
-                .handler(openApiRecorder.getHandler(buildTimeConfig))
-                .blockingRoute()
-                .build());
-
-        String openapiPath = nonApplicationRootPathBuildItem.resolveManagementPath(buildTimeConfig.client().openapi().path(),
-                managementInterfaceBuildTimeConfig, launchModeBuildItem);
-        log.debug("Initialized a Jimmer OpenApi meter registry on path = " + openapiPath);
-
-        registries.produce(new RegistryBuildItem("OpenApiResource", openapiPath));
-
-        routes.produce(nonApplicationRootPathBuildItem.routeBuilder()
-                .management()
-                .routeFunction(buildTimeConfig.client().openapi().uiPath(), openApiUiRecorder.route())
-                .routeConfigKey("quarkus.jimmer.client.openapi.ui-path")
-                .handler(openApiUiRecorder.getHandler(buildTimeConfig))
-                .blockingRoute()
-                .build());
-
-        String uiPath = nonApplicationRootPathBuildItem.resolveManagementPath(buildTimeConfig.client().openapi().uiPath(),
-                managementInterfaceBuildTimeConfig, launchModeBuildItem);
-        log.debug("Initialized a Jimmer OpenApiUi meter registry on path = " + uiPath);
-
-        registries.produce(new RegistryBuildItem("OpenApiUiResource", uiPath));
     }
 
     @BuildStep(onlyIf = IsJavaEnable.class)
@@ -872,19 +689,6 @@ final class JimmerProcessor {
         @Override
         public boolean getAsBoolean() {
             return jimmerBuildTimeConfig.enable();
-        }
-    }
-
-    static final class IsMicroServiceEnable extends AbstractJimmerBooleanSupplier {
-
-        private IsMicroServiceEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
-            super(jimmerBuildTimeConfig);
-        }
-
-        @Override
-        public boolean getAsBoolean() {
-            return jimmerBuildTimeConfig.microServiceName().isPresent()
-                    && !jimmerBuildTimeConfig.microServiceName().get().isEmpty();
         }
     }
 

@@ -55,8 +55,25 @@ class ClientResourceHandlersTest {
         byte[] page = ("<html>" + "no-metadata ".repeat(200) + "</html>").getBytes(StandardCharsets.UTF_8);
         withResources(false, Map.of(Constant.NO_METADATA_RESOURCE, page), () -> {
             HttpTestResponse response = new HttpTestResponse();
-            new OpenApiUiRecorder().getHandler(config()).handle(response.context(Map.of()));
+            JimmerBuildTimeConfig localSpec = new SmallRyeConfigBuilder().addDefaultInterceptors()
+                    .withMapping(JimmerBuildTimeConfig.class)
+                    .withDefaultValue("quarkus.jimmer.client.openapi.path", "/local-spec")
+                    .build().getConfigMapping(JimmerBuildTimeConfig.class);
+            new OpenApiUiRecorder().getHandler(localSpec).handle(response.context(Map.of()));
             assertArrayEquals(page, response.body.getBytes());
+        });
+    }
+
+    @Test
+    void externalSpecificationDoesNotRequireLocalMetadataAndPreservesItsQueryAndFragment() throws IOException {
+        withResources(false, Map.of(Constant.TEMPLATE_RESOURCE, "${openapi.refPath}".getBytes(StandardCharsets.UTF_8)), () -> {
+            JimmerBuildTimeConfig external = new SmallRyeConfigBuilder().addDefaultInterceptors()
+                    .withMapping(JimmerBuildTimeConfig.class)
+                    .withDefaultValue("quarkus.jimmer.client.openapi.ref-path", "https://example.org/spec?version=1#api")
+                    .build().getConfigMapping(JimmerBuildTimeConfig.class);
+            HttpTestResponse response = new HttpTestResponse();
+            new OpenApiUiRecorder().getHandler(external).handle(response.context(Map.of("groups", "a b")));
+            assertEquals("https://example.org/spec?version=1&groups=a+b#api", response.body.toString());
         });
     }
 
