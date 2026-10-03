@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.babyfish.jimmer.meta.TypedProp;
 import org.babyfish.jimmer.sql.ast.Expression;
+import org.babyfish.jimmer.sql.ast.StringExpression;
 import org.babyfish.jimmer.sql.ast.query.Order;
 import org.babyfish.jimmer.sql.ast.table.Props;
 
@@ -32,6 +33,9 @@ public class QuarkusOrders {
         List<Order> astOrders = new ArrayList<>();
         for (Sort.Order order : sort) {
             Expression<?> expr = Order.orderedExpression(table, order.getProperty());
+            if (order.isIgnoreCase() && expr instanceof StringExpression) {
+                expr = ((StringExpression) expr).lower();
+            }
             Order astOrder = order.isDescending() ? expr.desc() : expr.asc();
             switch (order.getNullHandling()) {
                 case NULLS_FIRST:

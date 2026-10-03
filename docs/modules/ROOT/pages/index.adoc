@@ -46,6 +46,12 @@ their routes or beans. Deployment SPI libraries used to contribute routes and ex
 install a server. The REST Client Jackson provider is unnecessary for the bridge's string transport;
 the bridge uses the application's Jackson mapper for payload conversion.
 
+The default microservice bridge reuses one REST client per target service. The exchange owns these clients
+and closes them when its CDI bean is destroyed, including dev-mode reload. Shutdown waits for calls already
+in progress before closing their clients; subsequent calls are rejected. ID collections and exporter responses
+are serialized as JSON through the application's mapper, including string/UUID IDs and associated-entity tuples.
+Custom mappers must retain Jimmer's Jackson support for immutable entity values.
+
 REST exception translation is now disabled by default. Enable it explicitly with
 `quarkus.jimmer.error-translator.disabled=false`; setting only its status code or debug options does not enable it.
 It requires REST Jackson and returns `application/json`. Core Jackson support alone does not install a REST JSON writer.

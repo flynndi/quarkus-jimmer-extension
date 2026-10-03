@@ -49,6 +49,6 @@ public class MicroServiceExporterIdsHandler extends AbstractMicroServiceExporter
 
         List<ImmutableSpi> result = exporter.findByIds(ids, fetcher);
 
-        doHandle(routingContext.response(), result.toString());
+        doHandle(routingContext.response(), objectMapper, result);
     }
 }

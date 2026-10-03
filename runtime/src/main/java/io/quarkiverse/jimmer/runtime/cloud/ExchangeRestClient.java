@@ -1,5 +1,7 @@
 package io.quarkiverse.jimmer.runtime.cloud;
 
+import java.io.Closeable;
+
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -8,7 +10,7 @@ import jakarta.ws.rs.core.MediaType;
 
 import io.quarkiverse.jimmer.runtime.util.Constant;
 
-public interface ExchangeRestClient {
+public interface ExchangeRestClient extends Closeable {
 
     @GET
     @Path(Constant.BY_IDS)
