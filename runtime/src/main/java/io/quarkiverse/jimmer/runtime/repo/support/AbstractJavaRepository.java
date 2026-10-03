@@ -36,6 +36,13 @@ import io.quarkiverse.jimmer.runtime.repo.PageParam;
 /**
  * Base implementation of {@link JavaRepository}
  *
+ * <p>
+ * Concrete subclasses are application-owned CDI beans, normally using
+ * {@link jakarta.inject.Singleton}. The SQL client constructor does not provide
+ * the no-argument constructor required for a normal-scope client proxy.
+ * Transaction boundaries are controlled by the application.
+ * </p>
+ *
  * @param <E> The entity type
  * @param <ID> The entity id type
  */

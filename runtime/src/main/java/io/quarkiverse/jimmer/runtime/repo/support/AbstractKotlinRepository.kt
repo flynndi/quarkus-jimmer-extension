@@ -2,7 +2,6 @@ package io.quarkiverse.jimmer.runtime.repo.support
 
 import io.quarkiverse.jimmer.runtime.repo.KotlinRepository
 import io.quarkiverse.jimmer.runtime.repo.PageParam
-import io.quarkiverse.jimmer.runtime.repository.orderBy
 import org.babyfish.jimmer.Page
 import org.babyfish.jimmer.Slice
 import org.babyfish.jimmer.View
@@ -30,7 +29,9 @@ import kotlin.reflect.KClass
 /**
  * The base implementation of [KotlinRepository]
  *
- * If the repository
+ * Register concrete subclasses as CDI beans, normally using [jakarta.inject.Singleton].
+ * The SQL client constructor does not provide the no-argument constructor required for a normal-scope client proxy.
+ * Transaction boundaries are controlled by the application.
  */
 abstract class AbstractKotlinRepository<E: Any, ID: Any>(protected val sql: KSqlClient) : KotlinRepository<E, ID> {
 
@@ -147,6 +148,26 @@ abstract class AbstractKotlinRepository<E: Any, ID: Any>(protected val sql: KSql
     override fun deleteByIds(ids: Iterable<ID>, deleteMode: DeleteMode): Int =
         sql.deleteByIds(entityType, ids, deleteMode).affectedRowCount(entityType)
 
+    inline fun <reified V : View<E>> findView(id: ID): V? =
+        findById(id, V::class)
+
+    inline fun <reified V : View<E>> findViews(ids: Iterable<ID>): List<V> =
+        findByIds(ids, V::class)
+
+    inline fun <reified V : View<E>> findMapView(ids: Iterable<ID>): Map<ID, V> =
+        findMapByIds(ids, V::class)
+
+    inline fun <reified V : View<E>> findAllViews(
+        noinline block: (SortDsl<E>.() -> Unit)? = null
+    ): List<V> =
+        findAll(V::class, block)
+
+    inline fun <reified V : View<E>> findPageView(
+        pageParam: PageParam,
+        noinline block: (SortDsl<E>.() -> Unit)? = null
+    ): Page<V> =
+        findPage(pageParam, V::class, block)
+
     protected fun <R> executeQuery(
         block: KMutableRootQuery.ForEntity<E>.() -> KConfigurableRootQuery<KNonNullTable<E>, R>
     ): List<R> =
@@ -191,4 +212,14 @@ abstract class AbstractKotlinRepository<E: Any, ID: Any>(protected val sql: KSql
         block: KMutableRootQuery<B>.() -> KConfigurableRootQuery<B, R>
     ): KConfigurableRootQuery<B, R> =
         sql.createQuery(symbol, block)
+
+    protected fun executeUpdate(
+        block: KMutableUpdate<E>.() -> Unit
+    ): Int =
+        createUpdate(block).execute()
+
+    protected fun executeDelete(
+        block: KMutableDelete<E>.() -> Unit
+    ): Int =
+        createDelete(block).execute()
 }

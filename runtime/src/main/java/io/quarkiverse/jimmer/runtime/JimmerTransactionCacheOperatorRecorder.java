@@ -51,8 +51,8 @@ public class JimmerTransactionCacheOperatorRecorder {
 
         @Override
         public void flush() {
-            // Building the client initializes its selected operator with the real client, not a lazy delegate.
-            // Do this after CDI bean creation has completed, to avoid recursive operator resolution.
+            // Accessing the ArC client proxy initializes the real client and its selected operator.
+            // Resolve it only when flushing, after the operator bean has finished creation.
             client.get().getCaches();
             if (initialized) {
                 super.flush();

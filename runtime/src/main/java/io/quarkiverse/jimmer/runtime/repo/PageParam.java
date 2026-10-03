@@ -25,12 +25,12 @@ public class PageParam {
      * Construct page param by page number and page size
      *
      * @param no Start from 1
-     * @param size Must be greater than or equal to 0
+     * @param size Must be positive
      * @return A new page param object
      */
     public static PageParam byNo(int no, int size) {
-        if (no < 0) {
-            throw new IllegalArgumentException("no must be negative");
+        if (no < 1) {
+            throw new IllegalArgumentException("no must be positive");
         }
         if (size < 1) {
             throw new IllegalArgumentException("size must be positive");

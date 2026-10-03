@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.deployment;
 
 import io.quarkus.builder.item.MultiBuildItem;
 
+/** Internal metadata for generating legacy interface-based repositories. */
 public final class RepositoryMetadata extends MultiBuildItem {
 
     private final Class<?> domainType;

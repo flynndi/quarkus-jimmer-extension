@@ -11,31 +11,44 @@ The GraphQL integration and its APT/KSP processors have been removed from this d
 
 # Quick Start
 ## Dependency
+
+These examples target the current source branch with Jimmer `0.12.3`. Its POM currently uses extension version `0.0.1.CR60`; build and install this branch locally to use these changes. The already published CR60 artifact retains its original dependencies and does not include this upgrade. Keep the runtime and entity processor versions aligned.
+
 Gradle
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR60'
-annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.9.120'
+def quarkusJimmerVersion = '0.0.1.CR60'
+def jimmerVersion = '0.12.3'
+
+implementation "io.github.flynndi:quarkus-jimmer:${quarkusJimmerVersion}"
+annotationProcessor "org.babyfish.jimmer:jimmer-apt:${jimmerVersion}"
 ```
 Maven
 ```xml
+<properties>
+    <quarkus-jimmer.version>0.0.1.CR60</quarkus-jimmer.version>
+    <jimmer.version>0.12.3</jimmer.version>
+</properties>
+
+<dependencies>
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR60</version>
+   <version>${quarkus-jimmer.version}</version>
 </dependency>
+</dependencies>
 
 <build>
     <plugins>
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.10.1</version>
+            <version>3.13.0</version>
             <configuration>
                 <annotationProcessorPaths>
                     <path>
                         <groupId>org.babyfish.jimmer</groupId>
                         <artifactId>jimmer-apt</artifactId>
-                        <version>0.9.120</version>
+                        <version>${jimmer.version}</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
@@ -44,79 +57,110 @@ Maven
 </build>
 ```
 ## Java
-### JPA
+
+### Repository as a CDI bean
+
+For new code, write a concrete CDI class extending `io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository`. Its constructor receives the SQL client. The base class implements `JavaRepository`; extending it is optional when direct `JSqlClient` access is sufficient.
+
+Use `@Singleton` for these subclasses: the base classes have no no-argument constructor for ArC to generate a normal-scope client proxy. CDI injection and `@Transactional` interception remain available.
+
 ```java
-// default db
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
+import jakarta.inject.Inject;
+import org.babyfish.jimmer.sql.JSqlClient;
+import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
 
-// repository
-public interface BookRepository extends JRepository<Book, Long> {
+@Singleton
+public class BookRepository extends AbstractJavaRepository<Book, Long> {
 
+    @Inject
+    public BookRepository(JSqlClient sql) {
+        super(sql);
+    }
 }
+```
 
-// service
+Use the repository through ordinary CDI injection. `findById` returns `null` when absent; `save` returns a Jimmer save result. Put transaction boundaries on your application service or repository methods with Quarkus `@Transactional`.
+
+```java
 @ApplicationScoped
 public class BookService {
 
     @Inject
-    BookRepository bookRepository;
-    
+    BookRepository books;
+
     public Book findById(long id) {
-        return bookRepository.findNullable(id);
+        return books.findById(id);
     }
-}
 
-// if other databases exist
-
-// repository
-@DataSource("DB2")
-public interface UserRoleRepository extends JRepository<UserRole, UUID> {
-
-}
-
-// service
-@ApplicationScoped
-public class UserRoleService {
-
-    @Inject
-    @DataSource("DB2")
-    UserRoleRepository userRoleRepository;
-    
-    public UserRole findById(long id) {
-        return userRoleRepository.findNullable(id);
+    @jakarta.transaction.Transactional
+    public Book save(Book book) {
+        return books.save(book).getModifiedEntity();
     }
 }
 ```
 
-### Code
+For a named datasource, qualify the injected client in the repository constructor:
+
 ```java
-    // Inject JSqlClient or static method Jimmer.getJSqlClient
-    // default db
+import java.util.UUID;
+import io.quarkus.agroal.DataSource;
+
+@Singleton
+public class UserRoleRepository extends AbstractJavaRepository<UserRole, UUID> {
+
     @Inject
-    JSqlClient jSqlClient;
-    
-    // if other databases exist
+    public UserRoleRepository(@DataSource("DB2") JSqlClient sql) {
+        super(sql);
+    }
+}
+```
+
+This remains a normal CDI repository bean. The constructor's `@DataSource` chooses its client; consumers can inject `UserRoleRepository` without repeating that qualifier.
+
+### Direct SQL client access
+
+Injecting `JSqlClient` is also a supported application entry point. A repository is not required for Jimmer queries, fetchers, DTOs, or save commands.
+
+```java
+@ApplicationScoped
+public class BookQueries {
+
+    @Inject
+    JSqlClient sql;
+
     @Inject
     @DataSource("DB2")
-    JSqlClient jSqlClientDB2;
-    
-    public Book findById(int id) {
-        return jSqlClient.findById(Book.class, id);
-//  or  return Jimmer.getDefaultJSqlClient().findById(Book.class, id);    
+    JSqlClient otherSql;
+
+    public Book findById(long id) {
+        return sql.findById(Book.class, id);
     }
-    
-    public Book2 findById(int id) {
-        return jSqlClientDB2.findById(Book2.class, id);
-//  or  return Jimmer.getJSqlClient(DB2).findById(Book2.class, id);
+
+    public UserRole findRoleById(UUID id) {
+        return otherSql.findById(UserRole.class, id);
     }
+}
 ```
+
+New `JavaRepository` / `KotlinRepository` interfaces do not trigger implementation or method-name query generation. Implement custom queries with Jimmer's DSL in your CDI class. See [repository migration and public contracts](docs/modules/ROOT/pages/repository-migration.adoc).
 
 ### Data sources and CDI
+
+Prefer injecting `JSqlClient` or `KSqlClient`, with `@DataSource("name")` for a named datasource. CDI-managed clients are application-scoped: ArC creates the underlying client lazily when its proxy is first used. Each datasource has one managed client, and the compatibility client containers expose that same CDI proxy.
+
+Injecting a client proxy alone does not initialize it or validate its active state; calling an inactive client fails on first use. Construction failures are reported as CDI creation errors with the underlying cause preserved.
 
 A Jimmer client uses its matching Quarkus Agroal datasource. Named datasources do not require a default datasource. `quarkus.jimmer.active=false` (or `quarkus.jimmer.<datasource-name>.active=false`) deactivates that client; an inactive datasource also deactivates its client and transaction cache operator. Use `InjectableInstance` and check the bean's active state when choosing between clients that may be inactive.
 
 For single-valued CDI extension points such as `Dialect`, `ConnectionManager`, and `Consumer<JSqlClient.Builder>`, an explicit `@DataSource(name)` bean takes precedence over an ordinary `@Default` bean. This includes `@DataSource("<default>")` for the default datasource. If no datasource-qualified bean matches, the ordinary default bean is used. Ambiguous beans at the selected level fail resolution instead of silently selecting one or falling back. Collection extension points, such as filters and customizers, include global beans and beans for the matching datasource. Supported Jimmer extension-point beans are retained automatically; they do not need `@Unremovable`.
 
-The extension's automatic `TransactionCacheOperator` belongs only to its CDI-managed client. Clients created manually with `SqlClients.java(...)` or `SqlClients.kotlin(...)` do not reuse that operator; configure a dedicated operator through the builder if the manually created client needs transaction-aware cache invalidation. User-provided operators remain supported, including ordinary `@Default` and the legacy `@DataSource("<default>")` form for the default datasource; multiple matching user operators are rejected. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator, because an operator cannot be shared by multiple SQL clients.
+SPI beans may inject the matching client for later use. During construction, `@PostConstruct`, `customize`, or `initialize`, do not call back through the injected proxy if that client is being created. An `Initializer` should use the client passed to its callback.
+
+Only the selected Java or Kotlin filters, customizers, and initializers are instantiated. Connection and dialect defaults are completed after Jimmer executes the user customizers. A customizer's explicit dialect avoids JDBC dialect probing; if it replaces the connection manager, dialect detection uses the replacement.
+
+`SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately; construction failures are reported by the factory call. The extension's automatic `TransactionCacheOperator` belongs only to its CDI-managed client. Manual clients do not reuse that operator; configure a dedicated operator through the builder if the manually created client needs transaction-aware cache invalidation. User-provided operators remain supported, including ordinary `@Default` and the legacy `@DataSource("<default>")` form for the default datasource; multiple matching user operators are rejected. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator, because an operator cannot be shared by multiple SQL clients.
 
 ### Cache
 
@@ -249,13 +293,13 @@ public interface BookStore {}
 [TestResources.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fresource%2FTestResources.java)
 ```java
 @Inject
-BookStoreRepository bookStoreRepository;
+BookRepository bookRepository;
 
 @GET
 @Path("/path")
 @Api
 public Response testBookRepositoryViewById(@RestQuery long id) {
-    return Response.ok(bookRepository.viewer(BookDetailView.class).findNullable(id)).build();
+    return Response.ok(bookRepository.findById(id, BookDetailView.class)).build();
 }
 ```
 
@@ -300,70 +344,67 @@ quarkus:
                 in: QUERY
 ```
 ## Kotlin
-### JPA
+
+### Repository as a CDI bean
+
+Select Kotlin clients with `quarkus.jimmer.language=kotlin`. Generate your entity model with the Jimmer KSP processor matching the runtime version; the removed GraphQL processors are unrelated to Jimmer's entity generation.
+
 ```kotlin
-// default db
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Singleton
+import jakarta.inject.Inject
+import org.babyfish.jimmer.sql.kt.KSqlClient
+import io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository
 
-// repository
+@Singleton
+class BookRepository @Inject constructor(sql: KSqlClient) :
+    AbstractKotlinRepository<Book, Long>(sql)
+
 @ApplicationScoped
-class BookRepository : KRepository<Book, Long>
+class BookService @Inject constructor(private val books: BookRepository) {
 
-// service
-@ApplicationScoped
-class BookService {
+    fun findById(id: Long): Book? = books.findById(id)
 
-    @Inject
-    @field:Default
-    lateinit var bookRepository: BookRepository
-
-    fun findById (id : Long) : Book? {
-        return bookRepository.findNullable(id)
-    }
-}
-
-// if other databases exist
-
-// repository
-@ApplicationScoped
-@DataSource("DB2")
-class UserRoleRepository : KRepository<UserRole, UUID>
-
-// service
-@ApplicationScoped
-@DataSource("DB2")
-class UserRoleService {
-
-    @Inject
-    @field:DataSource("DB2")
-    lateinit var userRoleRepository: UserRoleRepository
-
-    fun findById(id : UUID) : UserRole? {
-        return userRoleRepository.findNullable(id)
-    }
+    @jakarta.transaction.Transactional
+    fun save(book: Book): Book = books.save(book).modifiedEntity
 }
 ```
 
-### Code
+Choose a named client on the constructor parameter:
+
 ```kotlin
-    // Inject KSqlClient or static method Jimmer.getKSqlClient
+import java.util.UUID
+import io.quarkus.agroal.DataSource
 
-    // default db
-    @Inject
-    @field: Default
-    lateinit var kSqlClient: KSqlClient
-    
-    // if other databases exist
-    @Inject
-    @field:DataSource("DB2")
-    lateinit var kSqlClientDB2: KSqlClient
-
-    fun findById(id : Long) : Book? {
-        return kSqlClient.findById(Book::class, id)
-//  or  return Jimmer.getDefaultKSqlClient().findById(Book::class, id)
-    }
-
-    fun findById(id : Long) : Book2? {
-        return kSqlClientDB2.findById(Book2::class, id)
-//  or  return Jimmer.getKSqlClient("DB2").findById(Book2::class, id)
-    }
+@Singleton
+class UserRoleRepository @Inject constructor(
+    @param:DataSource("DB2") sql: KSqlClient
+) : AbstractKotlinRepository<UserRole, UUID>(sql)
 ```
+
+### Direct SQL client access
+
+```kotlin
+@ApplicationScoped
+class BookQueries @Inject constructor(private val sql: KSqlClient) {
+
+    fun findById(id: Long): Book? = sql.findById(Book::class, id)
+}
+```
+
+## Compatibility and migration
+
+The older `io.quarkiverse.jimmer.runtime.repository.JRepository` and `KRepository` APIs remain a compatibility surface for existing applications. Their generated implementations and derived method names belong to that legacy path. New code should use the CDI classes or direct clients shown above.
+
+| Existing repository API | New repository API |
+| --- | --- |
+| `findById(id)` returns `Optional<E>` | `findById(id)` returns nullable `E` / `E?` |
+| `findNullable(id)` returns nullable `E` | Use `findById(id)` |
+| `save(entity)` returns the modified entity | Returns `SimpleSaveResult<E>` / `KSimpleSaveResult<E>`; read `modifiedEntity` when needed |
+| `findAll(new Pagination(index, size))` | `findPage(PageParam.byIndex(index, size))` |
+| Derived methods such as `findByName(...)` | Write a method with Jimmer DSL in the concrete CDI class |
+| Declaring an interface triggers legacy generation | New repository interfaces require an application implementation |
+
+`JavaRepository`, `KotlinRepository`, `PageParam`, and the two `runtime.repo.support.Abstract*Repository` base classes are public application contracts. The base classes are intentionally supported for inheritance despite their `support` package. Repository metadata, parsers, bytecode generators, and other implementation helpers are internal, not application SPIs.
+
+See the [migration guide](docs/modules/ROOT/pages/repository-migration.adoc) for concrete before/after examples, pagination indexing, and transaction guidance.

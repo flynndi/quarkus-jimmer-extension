@@ -10,6 +10,12 @@ import org.babyfish.jimmer.sql.ast.table.Props;
 
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 
+/**
+ * Adapter retained for legacy repository sorting.
+ *
+ * @deprecated New repositories use Jimmer typed properties, order expressions, or the Kotlin sort DSL.
+ */
+@Deprecated(forRemoval = false)
 public class QuarkusOrders {
 
     private static final TypedProp.Scalar<?, ?>[] EMPTY_PROPS = new TypedProp.Scalar<?, ?>[0];

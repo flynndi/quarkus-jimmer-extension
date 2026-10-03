@@ -2,6 +2,9 @@ package io.quarkiverse.jimmer.test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import jakarta.inject.Inject;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
@@ -12,6 +15,7 @@ import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkus.agroal.DataSource.DataSourceLiteral;
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.InactiveBeanException;
 import io.quarkus.test.QuarkusUnitTest;
 
 class DataSourceInactiveTest {
@@ -31,6 +35,14 @@ class DataSourceInactiveTest {
             .overrideConfigKey("quarkus.jimmer.optout.active", "false")
             .overrideConfigKey("quarkus.jimmer.optout.trigger-type", "TRANSACTION_ONLY");
 
+    @Inject
+    @io.quarkus.agroal.DataSource("disabled")
+    JSqlClient disabled;
+
+    @Inject
+    @io.quarkus.agroal.DataSource("optout")
+    JSqlClient optout;
+
     @Test
     void inactiveBeansDoNotBreakStartupOrScheduledFlushing() {
         for (String name : new String[] { "disabled", "optout" }) {
@@ -43,5 +55,7 @@ class DataSourceInactiveTest {
             }
         }
         Arc.container().instance(TransactionCacheOperatorFlusher.class).get().retry();
+        assertThrows(InactiveBeanException.class, () -> disabled.getCaches());
+        assertThrows(InactiveBeanException.class, () -> optout.getCaches());
     }
 }

@@ -23,7 +23,11 @@ import java.lang.annotation.Target;
  * {@link NullPointerException} will be raised
  * </li>
  * </ul>
+ *
+ * @deprecated Retained for legacy derived-query repositories. New repositories express
+ *             optional predicates directly in Jimmer queries.
  */
+@Deprecated(forRemoval = false)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface DynamicParam {

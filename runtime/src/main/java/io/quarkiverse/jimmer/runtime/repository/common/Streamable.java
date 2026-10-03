@@ -15,6 +15,12 @@ import java.util.stream.StreamSupport;
 import io.quarkiverse.jimmer.runtime.util.Assert;
 import io.quarkiverse.jimmer.runtime.util.StreamUtils;
 
+/**
+ * Iterable utility retained as part of the legacy {@link Sort} API.
+ *
+ * @deprecated New code should use {@link Iterable} or {@link Stream} directly.
+ */
+@Deprecated(forRemoval = false)
 @FunctionalInterface
 public interface Streamable<T> extends Iterable<T>, Supplier<Stream<T>> {
 

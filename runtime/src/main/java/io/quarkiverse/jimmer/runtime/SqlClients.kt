@@ -8,6 +8,10 @@ import org.babyfish.jimmer.sql.kt.toKSqlClient
 import java.util.function.Consumer
 import javax.sql.DataSource
 
+/**
+ * Creates independent clients immediately, using the supplied Arc container's configuration and SPI beans.
+ * These clients are not CDI beans; inject JSqlClient or KSqlClient for the managed datasource client.
+ */
 object SqlClients {
 
     @JvmStatic
@@ -24,7 +28,7 @@ object SqlClients {
 
     @JvmStatic
     fun java(container: ArcContainer, dataSource: DataSource?, dataSourceName: String?, block: Consumer<JSqlClient.Builder>?): JSqlClient =
-        JQuarkusSqlClient(container, dataSource, dataSourceName, block, false)
+        QuarkusSqlClientFactory(container, dataSource, dataSourceName, block, false).create()
 
     @JvmStatic
     fun kotlin(container: ArcContainer): KSqlClient =
@@ -40,5 +44,5 @@ object SqlClients {
 
     @JvmStatic
     fun kotlin(container: ArcContainer, dataSource: DataSource?, dataSourceName: String?, block: (KSqlClientDsl.() -> Unit)?): KSqlClient =
-        JQuarkusSqlClient(container, dataSource, dataSourceName, block?.let { Consumer { KSqlClientDsl(it).block()} }, true).toKSqlClient()
+        QuarkusSqlClientFactory(container, dataSource, dataSourceName, block?.let { Consumer { KSqlClientDsl(it).block()} }, true).create().toKSqlClient()
 }

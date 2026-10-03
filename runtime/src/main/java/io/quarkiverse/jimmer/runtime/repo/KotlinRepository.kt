@@ -18,20 +18,13 @@ import org.babyfish.jimmer.sql.kt.ast.query.SortDsl
 import kotlin.reflect.KClass
 
 /**
- * In earlier versions of Jimmer, type [KotlinRepository]
- * was used to support spring data style repository support.
+ * Optional, type-safe repository contract for Jimmer entities.
  *
- * However, based on user feedback, this interface was rarely used. The root causes are:
- * - Unlike JPA and MyBatis, which have lifecycle management objects like EntityManager/Session,
- * Jimmer itself is already designed with a stateless API.
- * Therefore, the stateless abstraction of spring dData style repository is meaningless for Jimmer.</li>
- * - Jimmer itself emphasizes type safety and strives to detect problems at compile-time.
- * spring data's approach based on conventional method names and {@code @Query} annotations
- * would lead to problems only being found at runtime (How Intellij helps certain solutions
- * cheat is not discussed here), which goes against Jimmer's design philosophy.</li>
- *
- * Therefore, developer can simply write a class and annotate it with
- * [io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository]. Note, that this is optional, not mandatory.
+ * Implement this interface in a CDI bean, or extend
+ * [io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository].
+ * Applications may also inject [org.babyfish.jimmer.sql.kt.KSqlClient] directly.
+ * Repository methods do not introduce transaction boundaries; use
+ * [jakarta.transaction.Transactional] where a transaction is required.
  */
 interface KotlinRepository<E: Any, ID: Any> {
 

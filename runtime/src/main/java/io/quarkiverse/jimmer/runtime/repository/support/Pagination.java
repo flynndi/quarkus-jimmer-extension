@@ -2,6 +2,12 @@ package io.quarkiverse.jimmer.runtime.repository.support;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
+/**
+ * Page parameter retained for legacy repository signatures.
+ *
+ * @deprecated New repositories use {@link io.quarkiverse.jimmer.runtime.repo.PageParam}.
+ */
+@Deprecated(forRemoval = false)
 public class Pagination {
 
     public Pagination() {

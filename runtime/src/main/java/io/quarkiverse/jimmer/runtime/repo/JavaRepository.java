@@ -14,23 +14,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * In earlier versions of Jimmer, type {@link io.quarkiverse.jimmer.runtime.repository.JRepository}
- * was used to support spring data style repository support.
+ * Optional, type-safe repository contract for Jimmer entities.
  *
  * <p>
- * However, based on user feedback, this interface was rarely used. The root causes are:
+ * Implement this interface in a CDI bean, or extend
+ * {@link io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository}.
+ * Applications may also inject {@link org.babyfish.jimmer.sql.JSqlClient} directly.
+ * Repository methods do not introduce transaction boundaries; use
+ * {@link jakarta.transaction.Transactional} where a transaction is required.
  * </p>
- * <ul>
- * <li>Unlike JPA and MyBatis, which have lifecycle management objects like EntityManager/Session,
- * Jimmer itself is already designed with a stateless API.
- * Therefore, the stateless abstraction of spring dData style repository is meaningless for Jimmer.</li>
- * <li>Jimmer itself emphasizes type safety and strives to detect problems at compile-time.
- * spring data's approach based on conventional method names and {@code @Query} annotations
- * would lead to problems only being found at runtime (How Intellij helps certain solutions
- * cheat is not discussed here), which goes against Jimmer's design philosophy.</li>
- * </ul>
- * Therefore, developer can simply write a class and annotate it with
- * {@link io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository}. Note, that this is optional, not mandatory.
  *
  * @param <E> The entity type
  * @param <ID> The entity id type

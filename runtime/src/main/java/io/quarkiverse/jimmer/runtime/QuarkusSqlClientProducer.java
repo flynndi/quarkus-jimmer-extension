@@ -2,8 +2,9 @@ package io.quarkiverse.jimmer.runtime;
 
 import javax.sql.DataSource;
 
-import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
+import org.babyfish.jimmer.sql.kt.KSqlClientKt;
+import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
@@ -11,18 +12,10 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusCacheOperatorProvider;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkus.arc.Arc;
-import kotlin.Unit;
 
 /**
- * This class is sort of a producer for {@link JQuarkusSqlClient}.
- * It isn't a CDI producer in the literal sense, but it is marked as a bean,
- * and it's {@link #createQuarkusJSqlClientContainer} or
- * {@link #createQuarkusKSqlClientContainer}
- * method is called at runtime in order to produce
- * the actual {@link JSqlClient} or {@link KSqlClient} objects.
- * CDI scopes and qualifiers are set up at build-time, which is why this class is devoid of
- * any CDI annotations
- * <p>
+ * Runtime factory used by the synthetic SQL client beans.
+ * Configuration is constructor-injected by ArC; the returned clients have completed Jimmer initialization.
  *
  * @author <a href="mailto:lixuan0520@gmail.com">flynndi</a>
  */
@@ -37,19 +30,25 @@ public class QuarkusSqlClientProducer {
         this.jimmerBuildTimeConfig = jimmerBuildTimeConfig;
     }
 
+    public JSqlClientImplementor createJSqlClient(DataSource dataSource, String dataSourceName) {
+        var container = Arc.container();
+        return new QuarkusSqlClientFactory(container, jimmerRuntimeConfig, jimmerBuildTimeConfig,
+                dataSource, dataSourceName, null, false)
+                .create(QuarkusCacheOperatorProvider.findManagedOperator(container, dataSourceName));
+    }
+
+    public KSqlClient createKSqlClient(DataSource dataSource, String dataSourceName) {
+        var container = Arc.container();
+        return KSqlClientKt.toKSqlClient(new QuarkusSqlClientFactory(container, jimmerRuntimeConfig, jimmerBuildTimeConfig,
+                dataSource, dataSourceName, null, true)
+                .create(QuarkusCacheOperatorProvider.findManagedOperator(container, dataSourceName)));
+    }
+
     public QuarkusJSqlClientContainer createQuarkusJSqlClientContainer(DataSource dataSource, String dataSourceName) {
-        final JSqlClient jSqlClient = SqlClients.java(Arc.container(), dataSource, dataSourceName,
-                builder -> builder
-                        .setCacheOperator(QuarkusCacheOperatorProvider.findManagedOperator(Arc.container(), dataSourceName)));
-        return new QuarkusJSqlClientContainer(jSqlClient, dataSourceName);
+        return new QuarkusJSqlClientContainer(createJSqlClient(dataSource, dataSourceName), dataSourceName);
     }
 
     public QuarkusKSqlClientContainer createQuarkusKSqlClientContainer(DataSource dataSource, String dataSourceName) {
-        final KSqlClient kSqlClient = SqlClients.kotlin(Arc.container(), dataSource, dataSourceName, dsl -> {
-            dsl.getJavaBuilder()
-                    .setCacheOperator(QuarkusCacheOperatorProvider.findManagedOperator(Arc.container(), dataSourceName));
-            return Unit.INSTANCE;
-        });
-        return new QuarkusKSqlClientContainer(kSqlClient, dataSourceName);
+        return new QuarkusKSqlClientContainer(createKSqlClient(dataSource, dataSourceName), dataSourceName);
     }
 }

@@ -37,6 +37,11 @@ import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.repository.QuarkusOrders;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 
+/**
+ * Implementation base used by generated legacy repositories.
+ * Existing constructors are retained for compatibility; new application repositories should extend
+ * {@link io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository}.
+ */
 public class JRepositoryImpl<E, ID> implements JRepository<E, ID> {
 
     protected final JSqlClientImplementor sqlClient;
