@@ -13,7 +13,7 @@ The GraphQL integration and its APT/KSP processors have been removed from this d
 ## Dependency
 Gradle
 ```groovy
-implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR59'
+implementation 'io.github.flynndi:quarkus-jimmer:0.0.1.CR60'
 annotationProcessor 'org.babyfish.jimmer:jimmer-apt:0.9.120'
 ```
 Maven
@@ -21,7 +21,7 @@ Maven
 <dependency>
    <groupId>io.github.flynndi</groupId>
    <artifactId>quarkus-jimmer</artifactId>
-   <version>0.0.1.CR59</version>
+   <version>0.0.1.CR60</version>
 </dependency>
 
 <build>
