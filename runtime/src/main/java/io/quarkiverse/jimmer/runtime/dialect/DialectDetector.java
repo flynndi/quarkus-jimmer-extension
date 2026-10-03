@@ -20,16 +20,14 @@ public interface DialectDetector {
 
         private static final Logger LOGGER = Logger.getLogger(DialectDetector.class);
 
-        private final DataSource dataSource;
-
         public Impl(DataSource dataSource) {
-            this.dataSource = dataSource;
+            // Kept for source compatibility; the connection manager owns the supplied connection.
         }
 
         @Override
         public @Nullable Dialect detectDialect(@NotNull Connection con) {
-            try (Connection connection = dataSource.getConnection()) {
-                DatabaseMetaData metaData = connection.getMetaData();
+            try {
+                DatabaseMetaData metaData = con.getMetaData();
                 String databaseProductName = metaData.getDatabaseProductName();
                 switch (databaseProductName) {
                     case "PostgreSQL":

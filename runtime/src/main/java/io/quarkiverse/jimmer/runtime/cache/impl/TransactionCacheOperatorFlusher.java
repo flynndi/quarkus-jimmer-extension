@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.quarkus.arc.All;
+import io.quarkus.arc.InstanceHandle;
 import io.quarkus.scheduler.Scheduled;
 
 @ApplicationScoped
@@ -19,15 +20,12 @@ public class TransactionCacheOperatorFlusher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransactionCacheOperatorFlusher.class);
 
-    private final List<TransactionCacheOperator> operators;
+    private final List<InstanceHandle<TransactionCacheOperator>> operatorHandles;
 
     private final ThreadLocal<Boolean> dirtyLocal = new ThreadLocal<>();
 
-    public TransactionCacheOperatorFlusher(@All List<TransactionCacheOperator> operators) {
-        if (operators.isEmpty()) {
-            throw new IllegalArgumentException("`operators` cannot be empty");
-        }
-        this.operators = operators;
+    public TransactionCacheOperatorFlusher(@All List<InstanceHandle<TransactionCacheOperator>> operatorHandles) {
+        this.operatorHandles = operatorHandles;
     }
 
     public void beforeCommit(@Observes(during = TransactionPhase.IN_PROGRESS) DatabaseEvent e) {
@@ -47,6 +45,10 @@ public class TransactionCacheOperatorFlusher {
     }
 
     private void flush() {
+        List<TransactionCacheOperator> operators = operatorHandles.stream()
+                .filter(handle -> handle.getBean().isActive())
+                .map(InstanceHandle::get)
+                .toList();
         if (operators.size() == 1) {
             TransactionCacheOperator operator = operators.get(0);
             operator.flush();

@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
 import io.quarkus.redis.datasource.RedisDataSource;
-import io.quarkus.redis.datasource.value.GetExArgs;
+import io.quarkus.redis.datasource.keys.KeyCommands;
 import io.quarkus.redis.datasource.value.ValueCommands;
 
 @Deprecated
@@ -27,6 +27,8 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisValueBinder.class);
 
     private final ValueCommands<String, byte[]> operations;
+
+    private final KeyCommands<String> keyCommands;
 
     protected RedisValueBinder(
             @Nullable ImmutableType type,
@@ -39,6 +41,7 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
             @NotNull RedisDataSource redisDataSource) {
         super(type, prop, tracker, toCodec(objectMapper), keyPrefixProvider, duration, randomPercent);
         this.operations = redisDataSource.value(byte[].class);
+        this.keyCommands = redisDataSource.key();
     }
 
     static JsonCodec<?> toCodec(@Nullable ObjectMapper objectMapper) {
@@ -53,17 +56,21 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
     @SuppressWarnings("unchecked")
     @Override
     protected void write(Map<String, byte[]> map) {
+        if (map.isEmpty()) {
+            return;
+        }
         operations.mset(map);
         for (String key : map.keySet()) {
-            operations.getex(key, new GetExArgs().px(nextExpireMillis()));
+            keyCommands.pexpire(key, nextExpireMillis());
         }
     }
 
     @Override
     protected void deleteAllSerializedKeys(List<String> serializedKeys) {
         LOGGER.info("Delete data from redis: {}", serializedKeys);
+        // Keys can belong to different Redis Cluster slots.
         for (String key : serializedKeys) {
-            operations.getdel(key);
+            keyCommands.del(key);
         }
     }
 

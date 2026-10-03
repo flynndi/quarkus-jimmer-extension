@@ -5,6 +5,7 @@ import java.util.*;
 import org.babyfish.jimmer.sql.runtime.DatabaseValidationMode;
 
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
+import io.quarkus.runtime.annotations.ConfigDocDefault;
 import io.quarkus.runtime.annotations.ConfigDocMapKey;
 import io.quarkus.runtime.annotations.ConfigGroup;
 import io.quarkus.runtime.annotations.ConfigPhase;
@@ -31,9 +32,10 @@ public interface JimmerRuntimeConfig {
     String transactionCacheOperatorFixedDelay();
 
     /**
-     * jimmer.databaseValidationMode
+     * Database validation mode. If absent, the deprecated database-validation.mode setting is used.
      */
-    @WithDefault("NONE")
+    @WithDefault("${quarkus.jimmer.database-validation.mode:NONE}")
+    @ConfigDocDefault("NONE")
     DatabaseValidationMode databaseValidationMode();
 
     /**

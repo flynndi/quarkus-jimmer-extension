@@ -12,7 +12,14 @@ public class RepoOperationsData {
     }
 
     public static Class<?> getEntityClass(Class<?> clazz) {
-        String clazzName = clazz.getName();
-        return entityToClassUnit.get(clazzName);
+        Map<String, Class<?>> registeredTypes = entityToClassUnit;
+        // ArC creates subclasses for intercepted/decorated beans. Their repository superclass is indexed.
+        for (Class<?> current = clazz; current != null; current = current.getSuperclass()) {
+            Class<?> entityClass = registeredTypes.get(current.getName());
+            if (entityClass != null) {
+                return entityClass;
+            }
+        }
+        throw new IllegalArgumentException("No Jimmer entity type was registered for repository " + clazz.getName());
     }
 }

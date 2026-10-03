@@ -4,10 +4,9 @@
 Support Kotlin   
 Kotlin has been supported since 0.0.1.CR7
 
-In most cases you can refer to jimmer's configuration of spring, there is no real difference between the two, only a few differences   
-Refer to: https://github.com/babyfish-ct/jimmer   
+Refer to [Jimmer](https://github.com/babyfish-ct/jimmer) for its data access APIs. This extension integrates them with Quarkus configuration, CDI, datasources, and transactions.
 
-GraphQL has been supported since 0.0.1.CR59
+The GraphQL integration and its APT/KSP processors have been removed from this development version. GraphQL integration will be reconsidered separately.
 
 
 # Quick Start
@@ -110,6 +109,14 @@ public class UserRoleService {
 //  or  return Jimmer.getJSqlClient(DB2).findById(Book2.class, id);
     }
 ```
+
+### Data sources and CDI
+
+A Jimmer client uses its matching Quarkus Agroal datasource. Named datasources do not require a default datasource. `quarkus.jimmer.active=false` (or `quarkus.jimmer.<datasource-name>.active=false`) deactivates that client; an inactive datasource also deactivates its client and transaction cache operator. Use `InjectableInstance` and check the bean's active state when choosing between clients that may be inactive.
+
+For single-valued CDI extension points such as `Dialect`, `ConnectionManager`, and `Consumer<JSqlClient.Builder>`, an explicit `@DataSource(name)` bean takes precedence over an ordinary `@Default` bean. This includes `@DataSource("<default>")` for the default datasource. If no datasource-qualified bean matches, the ordinary default bean is used. Ambiguous beans at the selected level fail resolution instead of silently selecting one or falling back. Collection extension points, such as filters and customizers, include global beans and beans for the matching datasource. Supported Jimmer extension-point beans are retained automatically; they do not need `@Unremovable`.
+
+The extension's automatic `TransactionCacheOperator` belongs only to its CDI-managed client. Clients created manually with `SqlClients.java(...)` or `SqlClients.kotlin(...)` do not reuse that operator; configure a dedicated operator through the builder if the manually created client needs transaction-aware cache invalidation. User-provided operators remain supported, including ordinary `@Default` and the legacy `@DataSource("<default>")` form for the default datasource; multiple matching user operators are rejected. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator, because an operator cannot be shared by multiple SQL clients.
 
 ### Cache
 

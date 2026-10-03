@@ -23,7 +23,7 @@ public class OpenApiRecorder {
         return new Consumer<Route>() {
             @Override
             public void accept(Route route) {
-                route.order(1).produces(HttpMethod.GET.name());
+                route.order(1).method(HttpMethod.GET);
             }
         };
     }

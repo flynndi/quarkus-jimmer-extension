@@ -19,6 +19,46 @@ For instance, with Maven, add the following dependency to your POM file:
 </dependency>
 ----
 
+== Data sources and CDI
+
+Named Jimmer clients use the corresponding Quarkus `@DataSource("name")` qualifier and do not require a default datasource.
+`quarkus.jimmer."name".active=false` disables the Jimmer client for that datasource without disabling the datasource itself.
+By default, Jimmer follows the datasource's active state; an inactive datasource cannot supply an active Jimmer client.
+Use programmatic CDI lookup when choosing between active and inactive clients, and check the bean's active state before obtaining it.
+
+Jimmer SPI beans such as filters, customizers, initializers, scalar providers, and draft interceptors are retained automatically.
+They do not need `@Unremovable` merely because Jimmer discovers them dynamically.
+`quarkus.jimmer.database-validation-mode` takes precedence over the deprecated `quarkus.jimmer.database-validation.mode` key.
+
+The GraphQL integration and its APT/KSP modules have been removed from this development version.
+
+== REST client metadata
+
+Jimmer's generated clients recognize JAX-RS `@QueryParam`, `@PathParam`, and `@HeaderParam`,
+and Quarkus REST's `@RestQuery`, `@RestPath`, and `@RestHeader`.
+An unnamed Quarkus query or path parameter uses the parameter name recorded by Jimmer.
+Path parameters must declare `@PathParam` or `@RestPath`; implicit matching against URI templates is not inferred.
+An unnamed `@RestHeader` follows Quarkus REST's header naming convention
+(for example, `contentType` becomes `Content-Type`) and requires compilation with `-parameters`.
+`@DefaultValue` supplies the actual default; the binding name is not a default value.
+
+Path parameters are required. Query, header, and multipart parameters may be omitted unless
+a runtime-visible non-null annotation or Bean Validation constraint declares otherwise.
+A default value permits omission. Bean Validation annotations describe the client contract;
+server-side validation still requires the application's validation integration.
+Unannotated entity parameters are JSON request bodies, including when `@Consumes` is absent.
+Method-level `@Consumes` takes precedence over the resource class.
+Bodies retain Jimmer's non-null metadata by default; use a runtime-visible annotation such as
+`org.jspecify.annotations.Nullable` for optional bodies. Jimmer 0.11.7 cannot reconcile a nullable
+body known only through a class-retained annotation with this runtime parser and will reject it.
+
+Multipart support covers named `@RestForm`/`@FormParam` parameters on methods consuming
+`multipart/form-data`, including `FileUpload` and `FilePart`. Wildcard uploads, aggregated form
+beans, URL-encoded forms, cookie/matrix bindings, and non-JSON entity bodies are outside this
+client metadata contract. They must not be represented as JSON bodies or query parameters.
+Standard framework context types, such as `UriInfo`, and Quarkus REST's `RoutingContext`,
+`HttpServerRequest`, and `HttpServerResponse` are omitted from generated client parameters.
+
 [[extension-configuration-reference]]
 == Extension Configuration Reference
 

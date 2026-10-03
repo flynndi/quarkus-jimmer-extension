@@ -54,18 +54,6 @@
       <artifactId>quarkus-jackson-deployment</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-smallrye-graphql-deployment</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-jsonb-deployment</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-hibernate-validator-deployment</artifactId>
-    </dependency>
-    <dependency>
       <groupId>io.github.flynndi</groupId>
       <artifactId>quarkus-jimmer</artifactId>
       <version>${project.version}</version>
@@ -75,11 +63,30 @@
       <artifactId>quarkus-junit-internal</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-h2</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-testCompile</id>
+            <configuration>
+              <annotationProcessorPaths>
+                <path>
+                  <groupId>org.babyfish.jimmer</groupId>
+                  <artifactId>jimmer-apt</artifactId>
+                  <version>${jimmer.version}</version>
+                </path>
+              </annotationProcessorPaths>
+            </configuration>
+          </execution>
+        </executions>
         <configuration>
           <annotationProcessorPaths>
             <path>

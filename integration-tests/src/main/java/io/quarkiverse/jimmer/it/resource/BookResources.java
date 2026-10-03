@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.Response;
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.Api;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -112,8 +113,9 @@ public class BookResources implements Fetchers {
 
     @POST
     @Path("/testFile")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Api
-    public Response testFile(FileUpload filePart) {
+    public Response testFile(@RestForm("file") FileUpload filePart) {
         return Response.ok().build();
     }
 

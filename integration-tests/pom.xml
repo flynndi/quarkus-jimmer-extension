@@ -23,10 +23,6 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-jackson</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-smallrye-graphql</artifactId>
-    </dependency>
     <!-- http://localhost:8080/h2 -->
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -68,13 +64,6 @@
       <groupId>io.github.flynndi</groupId>
       <artifactId>quarkus-jimmer</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.github.flynndi</groupId>
-      <artifactId>quarkus-jimmer-graphql-apt</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.redisson</groupId>
@@ -131,18 +120,12 @@
         <configuration>
           <annotationProcessors>
             <annotationProcessor>org.babyfish.jimmer.apt.JimmerProcessor</annotationProcessor>
-            <annotationProcessor>io.quarkiverse.jimmer.graphql.apt.JimmerGraphQLProcessor</annotationProcessor>
           </annotationProcessors>
           <annotationProcessorPaths>
             <path>
               <groupId>org.babyfish.jimmer</groupId>
               <artifactId>jimmer-apt</artifactId>
               <version>${jimmer.version}</version>
-            </path>
-            <path>
-              <groupId>io.github.flynndi</groupId>
-              <artifactId>quarkus-jimmer-graphql-apt</artifactId>
-              <version>${project.version}</version>
             </path>
           </annotationProcessorPaths>
         </configuration>

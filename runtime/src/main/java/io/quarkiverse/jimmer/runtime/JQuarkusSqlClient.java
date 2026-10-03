@@ -13,7 +13,6 @@ import javax.sql.DataSource;
 
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.util.TypeLiteral;
-import jakarta.interceptor.InvocationContext;
 
 import org.babyfish.jimmer.impl.util.ObjectUtil;
 import org.babyfish.jimmer.sql.DraftInterceptor;
@@ -49,6 +48,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
+import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusAopProxyProvider;
+import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusCacheOperatorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
@@ -61,6 +62,7 @@ import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InstanceHandle;
+import io.quarkus.datasource.common.runtime.DataSourceUtil;
 
 class JQuarkusSqlClient extends JLazyInitializationSqlClient {
 
@@ -80,7 +82,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
             Consumer<JSqlClient.Builder> block, boolean isKotlin) {
         this.container = Objects.requireNonNullElseGet(container, Arc::container);
         this.dataSource = dataSource;
-        this.dataSourceName = dataSourceName;
+        this.dataSourceName = dataSourceName != null ? dataSourceName : DataSourceUtil.DEFAULT_DATASOURCE_NAME;
         this.block = block;
         this.isKotlin = isKotlin;
     }
@@ -107,7 +109,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         SqlFormatter sqlFormatter = getOptionalBean(SqlFormatter.class);
         ObjectMapper objectMapper = getOptionalBean(ObjectMapper.class);
         CacheFactory cacheFactory = getOptionalBean(CacheFactory.class);
-        CacheOperator cacheOperator = getOptionalBean(CacheOperator.class, dataSourceName);
+        CacheOperator cacheOperator = QuarkusCacheOperatorProvider.findUserOperator(container, dataSourceName);
         MicroServiceExchange exchange = getOptionalBean(MicroServiceExchange.class);
         Collection<CacheAbandonedCallback> callbacks = getObjects(CacheAbandonedCallback.class);
         Consumer<JSqlClient.Builder> block = getObject(Constant.J_SQL_CLIENT_BUILDER_TYPE_LITERAL);
@@ -122,15 +124,12 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
                 () -> new QuarkusLogicalDeletedValueGeneratorProvider(container)));
         builder.setTransientResolverProvider(Objects.requireNonNullElseGet(transientResolverProvider,
                 () -> new QuarkusTransientResolverProvider(container)));
-        builder.setAopProxyProvider(Objects.requireNonNullElseGet(aopProxyProvider, () -> this::getTargetClass));
+        builder.setAopProxyProvider(Objects.requireNonNullElseGet(aopProxyProvider, QuarkusAopProxyProvider::new));
         if (null != entityManager) {
             builder.setEntityManager(entityManager);
         }
         if (null != databaseNamingStrategy) {
             builder.setDatabaseNamingStrategy(databaseNamingStrategy);
-        } else if (runtimeConfig.dataSources().get(dataSourceName).defaultSchema().isPresent()) {
-            builder.setDatabaseSchemaStrategy(
-                    new DefaultDatabaseSchemaStrategy(runtimeConfig.dataSources().get(dataSourceName).defaultSchema().get()));
         }
         builder.setDatabaseSchemaStrategy(databaseSchemaStrategy != null ? databaseSchemaStrategy
                 : new DefaultDatabaseSchemaStrategy(
@@ -185,7 +184,7 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
             callbacks.add(CacheAbandonedCallback.log());
         }
         builder
-                .setDatabaseValidationMode(runtimeConfig.databaseValidation().mode())
+                .setDatabaseValidationMode(runtimeConfig.databaseValidationMode())
                 .setDefaultSerializedTypeJsonCodec(
                         objectMapper != null ? JimmerJsonCodecs.toJsonCodecV2(objectMapper) : null)
                 .setCacheFactory(cacheFactory)
@@ -294,27 +293,12 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
     }
 
     private <T> T getOptionalBean(Class<T> type) {
-        if (container.instance(type).isAvailable()) {
-            return container.instance(type).get();
-        } else if (container
-                .instance(type, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName))
-                .isAvailable()) {
-            return container
-                    .instance(type, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName))
-                    .get();
-        } else {
-            return null;
+        var named = container.select(type, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName));
+        if (!named.isUnsatisfied()) {
+            return named.get();
         }
-    }
-
-    private <T> T getOptionalBean(Class<T> type, String dataSourceName) {
-        if (container.instance(type, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName))
-                .isAvailable()) {
-            return container
-                    .instance(type, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName))
-                    .get();
-        }
-        return null;
+        var defaults = container.select(type);
+        return defaults.isUnsatisfied() ? null : defaults.get();
     }
 
     @SuppressWarnings("unchecked")
@@ -355,22 +339,13 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         return collection;
     }
 
-    @SuppressWarnings("unchecked")
-    private <E> E getObject(TypeLiteral<?> typeLiteral) {
-        for (InstanceHandle<?> instanceHandle : container.listAll(typeLiteral)) {
-            if (instanceHandle.isAvailable()) {
-                Optional<Annotation> annotationOptional = instanceHandle.getBean().getQualifiers().stream()
-                        .filter(x -> x.annotationType().equals(io.quarkus.agroal.DataSource.class)).findFirst();
-                if (annotationOptional.isPresent()) {
-                    if (dataSourceName.equals(((io.quarkus.agroal.DataSource) annotationOptional.get()).value())) {
-                        return ((E) instanceHandle.get());
-                    }
-                } else {
-                    return ((E) instanceHandle.get());
-                }
-            }
+    private <E> E getObject(TypeLiteral<E> typeLiteral) {
+        var named = container.select(typeLiteral, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName));
+        if (!named.isUnsatisfied()) {
+            return named.get();
         }
-        return null;
+        var defaults = container.select(typeLiteral);
+        return defaults.isUnsatisfied() ? null : defaults.get();
     }
 
     @Nullable
@@ -430,11 +405,4 @@ class JQuarkusSqlClient extends JLazyInitializationSqlClient {
         }
     }
 
-    private Class<?> getTargetClass(Object instance) {
-        if (instance instanceof InvocationContext) {
-            return ((InvocationContext) instance).getMethod().getClass();
-        } else {
-            return instance.getClass();
-        }
-    }
 }

@@ -7,9 +7,11 @@ import org.babyfish.jimmer.sql.kt.KSqlClient;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
+import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusCacheOperatorProvider;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkus.arc.Arc;
+import kotlin.Unit;
 
 /**
  * This class is sort of a producer for {@link JQuarkusSqlClient}.
@@ -36,12 +38,18 @@ public class QuarkusSqlClientProducer {
     }
 
     public QuarkusJSqlClientContainer createQuarkusJSqlClientContainer(DataSource dataSource, String dataSourceName) {
-        final JSqlClient jSqlClient = SqlClients.java(Arc.container(), dataSource, dataSourceName);
+        final JSqlClient jSqlClient = SqlClients.java(Arc.container(), dataSource, dataSourceName,
+                builder -> builder
+                        .setCacheOperator(QuarkusCacheOperatorProvider.findManagedOperator(Arc.container(), dataSourceName)));
         return new QuarkusJSqlClientContainer(jSqlClient, dataSourceName);
     }
 
     public QuarkusKSqlClientContainer createQuarkusKSqlClientContainer(DataSource dataSource, String dataSourceName) {
-        final KSqlClient kSqlClient = SqlClients.kotlin(Arc.container(), dataSource, dataSourceName);
+        final KSqlClient kSqlClient = SqlClients.kotlin(Arc.container(), dataSource, dataSourceName, dsl -> {
+            dsl.getJavaBuilder()
+                    .setCacheOperator(QuarkusCacheOperatorProvider.findManagedOperator(Arc.container(), dataSourceName));
+            return Unit.INSTANCE;
+        });
         return new QuarkusKSqlClientContainer(kSqlClient, dataSourceName);
     }
 }
