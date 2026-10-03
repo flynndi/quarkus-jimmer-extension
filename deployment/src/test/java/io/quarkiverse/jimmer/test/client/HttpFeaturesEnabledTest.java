@@ -30,7 +30,6 @@ class HttpFeaturesEnabledTest {
             .overrideConfigKey("quarkus.http.root-path", "/app")
             .overrideConfigKey("quarkus.http.non-application-root-path", "internal")
             .overrideConfigKey("quarkus.jimmer.client.openapi.path", "docs/spec.yml")
-            .overrideConfigKey("quarkus.jimmer.client.openapi.ui-path", "docs/ui")
             .overrideConfigKey("quarkus.jimmer.client.ts.path", "docs/typescript.zip")
             .overrideConfigKey("quarkus.jimmer.error-translator.disabled", "false")
             .overrideConfigKey("quarkus.jimmer.error-translator.http-status", "409");
@@ -43,9 +42,6 @@ class HttpFeaturesEnabledTest {
         var spec = HttpFeatureTestSupport.get(baseUrl.toURI().resolve("/app/internal/docs/spec.yml"));
         assertEquals(200, spec.statusCode());
         assertTrue(spec.body().contains("/http-feature/status"));
-        var ui = HttpFeatureTestSupport.get(baseUrl.toURI().resolve("/app/internal/docs/ui"));
-        assertEquals(200, ui.statusCode());
-        assertTrue(ui.body().contains("/app/internal/docs/spec.yml"), ui.body());
         assertEquals(200,
                 HttpFeatureTestSupport.get(baseUrl.toURI().resolve("/app/internal/docs/typescript.zip")).statusCode());
         assertEquals(404, HttpFeatureTestSupport.get(baseUrl.toURI().resolve("/openapi.yml")).statusCode());

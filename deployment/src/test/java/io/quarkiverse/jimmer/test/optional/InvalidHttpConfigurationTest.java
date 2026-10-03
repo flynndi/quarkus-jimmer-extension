@@ -16,11 +16,11 @@ class InvalidHttpConfigurationTest {
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.jimmer.client.ts.path", "https://example.org/download")
-            .overrideConfigKey("quarkus.jimmer.client.openapi.ui-path", "docs")
+            .overrideConfigKey("quarkus.jimmer.client.openapi.path", "spec.yml?version=1")
             .assertException(failure -> {
                 String messages = OptionalIntegrationTestSupport.messages(failure);
                 assertTrue(messages.contains("quarkus.jimmer.client.ts.path"), messages);
-                assertTrue(messages.contains("quarkus.jimmer.client.openapi.ui-path"), messages);
+                assertTrue(messages.contains("quarkus.jimmer.client.openapi.path"), messages);
                 assertTrue(messages.contains("Invalid Jimmer configuration"), messages);
             });
 

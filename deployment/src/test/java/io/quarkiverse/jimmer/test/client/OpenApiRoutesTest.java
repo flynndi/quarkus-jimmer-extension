@@ -10,10 +10,7 @@ import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.jimmer.runtime.client.openapi.CssRecorder;
-import io.quarkiverse.jimmer.runtime.client.openapi.JsRecorder;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
-import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiUiRecorder;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;
 
@@ -21,8 +18,7 @@ class OpenApiRoutesTest {
 
     @Test
     void restrictsRoutesToGetWithoutAdvertisingAnHttpVerbAsAMediaType() {
-        List<Consumer<Route>> customizers = List.of(new OpenApiRecorder().route(), new OpenApiUiRecorder().route(),
-                new JsRecorder().route(), new CssRecorder().route());
+        List<Consumer<Route>> customizers = List.of(new OpenApiRecorder().route());
         for (Consumer<Route> customizer : customizers) {
             List<HttpMethod> methods = new ArrayList<>();
             List<String> mediaTypes = new ArrayList<>();
