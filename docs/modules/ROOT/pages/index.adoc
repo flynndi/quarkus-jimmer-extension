@@ -73,7 +73,8 @@ Relative paths use Quarkus's non-application root, while absolute paths retain t
 Add `io.quarkus:quarkus-swagger-ui` to applications that need a UI. This standalone extension supplies the HTML,
 JavaScript, CSS, icons, and resource serving. Jimmer retains its own OpenAPI generator and group filtering;
 the SmallRye OpenAPI scanner is not required. The Jimmer extension no longer depends on `jimmer-client-swagger`
-or supplies a UI template, CDN fallback, static resource handlers, or a separate Swagger link in its Dev UI card.
+or supplies a UI template, CDN fallback, or static resource handlers. Its Dev UI card links to the native
+Swagger UI when the application includes and enables it.
 
 Jimmer-specific schemas remain available: `@FetchBy` describes the declared fetcher's selected fields and
 nested associations, DTO and generic types retain their generated schemas, and declared business exceptions
@@ -138,6 +139,32 @@ URL and the appropriate CORS policy. For "Try it out" against application endpoi
 configure `quarkus.jimmer.client.openapi.properties.servers[0].url` with the application API address and allow
 the UI origin through the application's Quarkus HTTP CORS settings. Standalone Swagger UI does not apply the
 SmallRye OpenAPI scanner's automatic server-address or CORS adjustments.
+
+== Dev UI
+
+In dev mode, open Quarkus Dev UI (normally `/q/dev-ui/`) and select the Jimmer card.
+No additional Jimmer UI dependency is required. The card provides:
+
+* *Overview*: build-time language and feature configuration, datasource names and database kinds,
+  plus the entity, ID type, and datasource binding of discovered repositories.
+* *Model*: searchable entities and their declared properties, including IDs, nullable types,
+  associations and target entities, inherited properties, transient properties, and logical deletion.
+* *Schema yaml* and *TypeScript*: links to configured document endpoints.
+* *Swagger UI*: a link to the application's optional `quarkus-swagger-ui`, using its native path and
+  management-server configuration. The standalone Swagger extension does not supply its own Dev UI card;
+  the Jimmer card supplies this navigation without requiring the SmallRye OpenAPI scanner.
+
+These pages use build-time Jandex metadata. Viewing them does not create a SQL client, query a database,
+or read database contents. Datasource URLs and credentials are not included. The model describes source
+declarations, not live database schema or the final mapping after runtime customizers and naming strategies.
+Only explicitly declared table names are displayed.
+
+Repository entries cover generated legacy repositories and discovered subclasses of
+`AbstractJavaRepository` / `AbstractKotlinRepository`. An application-owned repository's datasource is
+reported only when its SQL-client injection point has a recognizable binding. Manual construction,
+custom qualifiers, or ambiguous injection points are shown as unknown, with an explanation.
+Arbitrary implementations of the repository interfaces are not inferred. Runtime diagnostics and
+interactive SQL execution are outside these pages' scope.
 
 == Configuration validation
 
