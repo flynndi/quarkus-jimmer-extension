@@ -8,6 +8,7 @@ import jakarta.ws.rs.core.MediaType;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkus.arc.WithCaching;
@@ -28,6 +29,14 @@ public abstract class AbstractMicroServiceExporterHandler implements Handler<Rou
     @Inject
     @WithCaching
     Instance<ObjectMapper> objectMappers;
+
+    protected void doHandle(HttpServerResponse response, ObjectMapper objectMapper, Object result) {
+        try {
+            doHandle(response, objectMapper.writeValueAsString(result));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot serialize the Jimmer microservice response", e);
+        }
+    }
 
     protected void doHandle(HttpServerResponse response, String stringResult) {
         response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)

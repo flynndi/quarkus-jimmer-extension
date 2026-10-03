@@ -53,6 +53,6 @@ public class MicroServiceExporterAssociatedIdsHandler extends AbstractMicroServi
 
         List<Tuple2<Object, ImmutableSpi>> result = exporter.findByAssociatedIds(immutableProp, targetIds, fetcher);
 
-        doHandle(routingContext.response(), result.toString());
+        doHandle(routingContext.response(), objectMapper, result);
     }
 }

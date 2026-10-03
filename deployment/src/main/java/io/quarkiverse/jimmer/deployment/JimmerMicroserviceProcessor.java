@@ -16,6 +16,7 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.spi.RouteBuildItem;
 
@@ -32,7 +33,7 @@ final class JimmerMicroserviceProcessor {
     @BuildStep
     void registerBeans(JimmerBuildTimeConfig config, Capabilities capabilities,
             BuildProducer<AdditionalBeanBuildItem> beans, BuildProducer<AdditionalIndexedClassesBuildItem> indexed,
-            BuildProducer<ExcludedTypeBuildItem> excluded) {
+            BuildProducer<ExcludedTypeBuildItem> excluded, BuildProducer<ReflectiveClassBuildItem> reflection) {
         if (!enabled(config)) {
             excluded.produce(new ExcludedTypeBuildItem(EXCHANGE));
             excluded.produce(new ExcludedTypeBuildItem(IDS));
@@ -42,6 +43,9 @@ final class JimmerMicroserviceProcessor {
         requireCapabilities(capabilities);
         beans.produce(AdditionalBeanBuildItem.builder().addBeanClasses(EXCHANGE, IDS, ASSOCIATED_IDS).setUnremovable().build());
         indexed.produce(new AdditionalIndexedClassesBuildItem("io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient"));
+        // The HTTP contract uses String; Jackson therefore cannot infer this response type from REST signatures.
+        reflection.produce(ReflectiveClassBuildItem.builder("org.babyfish.jimmer.sql.ast.tuple.Tuple2")
+                .constructors().methods().build());
     }
 
     @BuildStep

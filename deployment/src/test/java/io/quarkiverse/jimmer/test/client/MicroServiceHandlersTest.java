@@ -21,6 +21,7 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
+import org.babyfish.jimmer.jackson.v2.ImmutableModuleV2;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.runtime.DefaultExecutor;
@@ -214,7 +215,7 @@ class MicroServiceHandlersTest {
         ObjectMapper mapper(RequestState state, Counters counters) {
             state.touch();
             counters.mappersCreated.incrementAndGet();
-            return new ObjectMapper();
+            return new ObjectMapper().registerModule(new ImmutableModuleV2());
         }
 
         void dispose(@Disposes ObjectMapper mapper, Counters counters) {
