@@ -36,7 +36,8 @@ Quarkus's automatic scheduler selection, so adding Quartz selects it without reg
 |===
 |Integration |Application dependency |Activation
 |REST exception translation |`io.quarkus:quarkus-rest-jackson` |Set `quarkus.jimmer.error-translator.disabled=false`
-|OpenAPI, UI, TypeScript endpoints |`io.quarkus:quarkus-vertx-http` or an extension providing it |Explicitly configure the endpoint paths
+|OpenAPI and TypeScript endpoints |`io.quarkus:quarkus-vertx-http` or an extension providing it |Explicitly configure the endpoint paths
+|Swagger UI |`io.quarkus:quarkus-swagger-ui` |Configure `quarkus.swagger-ui.urls` to reference a document; production also requires `always-include=true`
 |Default microservice HTTP bridge |`io.quarkus:quarkus-rest-client` and HTTP server support |Configure `quarkus.jimmer.micro-service-name`
 |===
 
@@ -49,18 +50,88 @@ REST exception translation is now disabled by default. Enable it explicitly with
 `quarkus.jimmer.error-translator.disabled=false`; setting only its status code or debug options does not enable it.
 It requires REST Jackson and returns `application/json`. Core Jackson support alone does not install a REST JSON writer.
 
-Applications upgrading from the previous defaults must declare the extensions they use. To retain the former
-OpenAPI and UI URLs, configure both paths explicitly:
+Applications upgrading from the previous defaults must declare the extensions they use. Jimmer document
+endpoints require an explicit path:
 
 [source,properties]
 ----
 quarkus.jimmer.client.openapi.path=/openapi.yml
-quarkus.jimmer.client.openapi.ui-path=/openapi.html
 ----
 
-TypeScript uses `quarkus.jimmer.client.ts.path`. UI assets are registered only with the UI endpoint.
+TypeScript uses `quarkus.jimmer.client.ts.path`.
 Relative paths use Quarkus's non-application root, while absolute paths retain their explicit location.
-An OpenAPI UI can reference either the generated specification or an external `quarkus.jimmer.client.openapi.ref-path`.
+
+[[swagger-ui]]
+== Swagger UI
+
+Add `io.quarkus:quarkus-swagger-ui` to applications that need a UI. This standalone extension supplies the HTML,
+JavaScript, CSS, icons, and resource serving. Jimmer retains its own OpenAPI generator and group filtering;
+the SmallRye OpenAPI scanner is not required. The Jimmer extension no longer depends on `jimmer-client-swagger`
+or supplies a UI template, CDN fallback, static resource handlers, or a separate Swagger link in its Dev UI card.
+
+Jimmer-specific schemas remain available: `@FetchBy` describes the declared fetcher's selected fields and
+nested associations, DTO and generic types retain their generated schemas, and declared business exceptions
+retain their `family`/`code` fields and alternative response schemas. These are standard OpenAPI document
+features produced by `jimmer-client`, so the native UI can display them without a Jimmer JavaScript plugin.
+The UI does not discover arbitrary fetchers chosen at runtime; the API's metadata must describe its return shape.
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-swagger-ui</artifactId>
+</dependency>
+----
+
+[source,properties]
+----
+quarkus.jimmer.client.openapi.path=/jimmer/openapi.yml
+quarkus.swagger-ui.path=/jimmer/swagger
+quarkus.swagger-ui.urls.jimmer=/jimmer/openapi.yml
+# Add this only when production should include the UI:
+# quarkus.swagger-ui.always-include=true
+----
+
+Quarkus includes the UI in dev and test modes by default. Production requires the build-time
+`quarkus.swagger-ui.always-include=true` setting; `quarkus.swagger-ui.enabled=false` can disable an included UI
+at runtime. Visit `/jimmer/swagger/`: the native UI uses a directory of resources rather than Jimmer's former
+single HTML endpoint. The former no-metadata/no-API HTML pages are also removed; inspect the specification
+endpoint and its response when diagnosing a missing or empty document.
+
+[cols="1,2",options="header"]
+|===
+|Removed setting or behavior |Replacement
+|`quarkus.jimmer.client.openapi.ui-path` |`quarkus.swagger-ui.path`
+|`quarkus.jimmer.client.openapi.ref-path` |`quarkus.swagger-ui.urls.<name>`, including an external absolute URL
+|`/openapi.html?groups=public` |A named document URL containing `?groups=public`
+|===
+
+These settings are not aliases: remove the old keys from application configuration. For example, the UI can
+offer separate groups while the Jimmer specification endpoint continues to generate each document on request:
+
+[source,properties]
+----
+quarkus.swagger-ui.urls.public=/jimmer/openapi.yml?groups=public
+quarkus.swagger-ui.urls.admin=/jimmer/openapi.yml?groups=admin
+quarkus.swagger-ui.urls-primary-name=public
+----
+
+The UI does not forward its own `groups` query parameter to the document endpoint. Quarkus uses configured
+`urls` values verbatim: specify the document's final browser-visible path or a complete URL, including any
+HTTP/non-application/management root prefix. The examples use absolute paths to avoid ambiguity between roots.
+
+Group selection follows Jimmer's metadata rules. In Jimmer 0.12.3, a grouped request only includes services
+with declared service-level groups, and the request must contain all groups declared by that service.
+Method-only groups do not make an ungrouped service visible. Use separate service groups for the `public`
+and `admin` documents above; a service declaring both requires `?groups=public,admin`.
+
+With `quarkus.management.enabled=true`, Jimmer document routes run on the management server. The native UI
+also uses that server by default, controlled by `quarkus.smallrye-openapi.management.enabled` even when using
+standalone Swagger UI. If the UI and document are placed on different servers, configure the document's full
+URL and the appropriate CORS policy. For "Try it out" against application endpoints from the management port,
+configure `quarkus.jimmer.client.openapi.properties.servers[0].url` with the application API address and allow
+the UI origin through the application's Quarkus HTTP CORS settings. Standalone Swagger UI does not apply the
+SmallRye OpenAPI scanner's automatic server-address or CORS adjustments.
 
 == Configuration validation
 
@@ -69,7 +140,7 @@ Quarkus `ConfigurationException`, including complete property keys for the defau
 They do not install a global config validator or require Hibernate Validator.
 
 Build-time checks cover language selection, negative TypeScript indentation, invalid HTTP error settings,
-and a UI without a specification target. Runtime initialization checks active datasource settings, including
+and invalid document route paths. Runtime initialization checks active datasource settings, including
 positive batch sizes, a nonnegative offset optimization threshold, command join counts from 0 through 8,
 a default reference fetch type other than `AUTO`, and the configured dialect's class and public constructor.
 Multiple configuration problems are reported together. Dialect validation does not invoke its constructor
@@ -235,8 +306,9 @@ applications relying on Quartz-specific scheduling precision or clustering must 
 
 == HTTP handler lifecycle
 
-The OpenAPI, OpenAPI UI, and TypeScript handlers receive their build-time configuration from recorders.
-They and the static asset handlers do not look up CDI beans or create a request context.
+The OpenAPI document and TypeScript handlers receive their build-time configuration from recorders.
+They do not look up CDI beans or create a request context. Swagger UI and its static assets are managed
+by the application's optional Quarkus Swagger UI extension.
 
 Microservice export handlers are CDI singletons. `@ActivateRequestContext` covers dependency resolution,
 database access, and response generation; an existing request context is retained, and a context created by

@@ -176,7 +176,19 @@ REST, HTTP endpoints, and the default microservice HTTP exchange are optional. A
 
 REST exception translation is disabled by default. Set `quarkus.jimmer.error-translator.disabled=false` explicitly to enable it; configuring its status code or debug options alone does not enable the integration.
 
-Document endpoints are opt-in: set `quarkus.jimmer.client.ts.path`, `quarkus.jimmer.client.openapi.path`, or `quarkus.jimmer.client.openapi.ui-path` to expose them. The previous default OpenAPI/UI URLs are no longer registered automatically. Relative endpoint paths follow Quarkus's non-application root; absolute paths retain their explicit location. A UI needs either a generated specification path or an explicit `ref-path`.
+Document endpoints are opt-in: set `quarkus.jimmer.client.ts.path` or `quarkus.jimmer.client.openapi.path` to expose them. Relative endpoint paths follow Quarkus's non-application root; absolute paths retain their explicit location.
+
+For Swagger UI, add `io.quarkus:quarkus-swagger-ui` to the application. Jimmer generates the OpenAPI document; Quarkus serves the UI and all its static resources. The standalone UI does not require the SmallRye OpenAPI scanner. Configure the document URL explicitly:
+
+```properties
+quarkus.jimmer.client.openapi.path=/jimmer/openapi.yml
+quarkus.swagger-ui.path=/jimmer/swagger
+quarkus.swagger-ui.urls.jimmer=/jimmer/openapi.yml
+# Include the UI in production only when required:
+# quarkus.swagger-ui.always-include=true
+```
+
+The former Jimmer `client.openapi.ui-path` and `ref-path` settings have been removed. Use `quarkus.swagger-ui.path` and `quarkus.swagger-ui.urls.<name>` instead. For grouped documents, configure named URLs such as `quarkus.swagger-ui.urls.public=/jimmer/openapi.yml?groups=public`; the UI no longer forwards its own `groups` query parameter. See [Swagger UI migration](docs/modules/ROOT/pages/index.adoc#swagger-ui) for management ports, external documents, and production behavior.
 
 Configuration errors report the complete property keys at build time or runtime initialization, without opening database connections or eagerly creating clients. The checks use Quarkus configuration APIs and do not require Hibernate Validator. See [optional integrations and validation](docs/modules/ROOT/pages/index.adoc#optional-integrations) for the dependency and migration contracts.
 
@@ -330,6 +342,11 @@ quarkus datasource documentation https://quarkus.io/guides/datasource
 ```yml
 # Configuration file example
 quarkus:
+  # Requires io.quarkus:quarkus-swagger-ui
+  swagger-ui:
+    path: /jimmer/swagger
+    urls:
+      jimmer: /openapi.yml
   jimmer:           # jimmer config see https://github.com/babyfish-ct/jimmer
     show-sql: true
     pretty-sql: true
@@ -345,7 +362,6 @@ quarkus:
         path: /Code/ts.zip
       openapi:
         path: /openapi.yml
-        ui-path: /openapi.html
         properties:
           info:
             title: Jimmer REST Example(Java)

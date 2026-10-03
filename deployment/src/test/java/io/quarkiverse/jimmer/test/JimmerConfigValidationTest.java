@@ -39,32 +39,29 @@ class JimmerConfigValidationTest {
     }
 
     @Test
-    void acceptsQuarkusRelativeRoutesAndExternalUiReferencesWithoutImplicitEndpoints() {
+    void acceptsQuarkusRelativeRoutesWithoutImplicitEndpoints() {
         var defaults = config(JimmerBuildTimeConfig.class, Map.of());
         assertFalse(defaults.client().openapi().path().isPresent());
-        assertFalse(defaults.client().openapi().uiPath().isPresent());
-        assertFalse(defaults.client().openapi().refPath().isPresent());
+        assertFalse(defaults.client().ts().path().isPresent());
         var config = config(JimmerBuildTimeConfig.class, Map.of(
                 "quarkus.jimmer.language", "KoTlIn",
                 "quarkus.jimmer.client.ts.path", "generated/typescript",
                 "quarkus.jimmer.client.ts.indent", "0",
-                "quarkus.jimmer.client.openapi.ui-path", "docs",
-                "quarkus.jimmer.client.openapi.ref-path", "https://example.org/spec.yml?version=1",
+                "quarkus.jimmer.client.openapi.path", "generated/spec.yml",
                 "quarkus.jimmer.error-translator.http-status", "299",
                 "quarkus.jimmer.error-translator.debug-info-max-stack-trace-count", "0"));
         assertDoesNotThrow(() -> JimmerConfigValidator.validateBuildTime(config));
-        assertEquals("https://example.org/spec.yml?version=1", config.client().openapi().refPath().orElseThrow());
+        assertEquals("generated/spec.yml", config.client().openapi().path().orElseThrow());
     }
 
     @Test
-    void rejectsInvalidRouteUrisAndUiWithoutADocument() {
+    void aggregatesInvalidTypeScriptAndOpenApiRouteUris() {
         var config = config(JimmerBuildTimeConfig.class, Map.of(
                 "quarkus.jimmer.client.ts.path", "https://example.org/download",
-                "quarkus.jimmer.client.openapi.ui-path", "docs"));
+                "quarkus.jimmer.client.openapi.path", "spec.yml?version=1"));
         ConfigurationException failure = assertThrows(ConfigurationException.class,
                 () -> JimmerConfigValidator.validateBuildTime(config));
-        assertTrue(failure.getConfigKeys().contains("quarkus.jimmer.client.ts.path"));
-        assertTrue(failure.getConfigKeys().contains("quarkus.jimmer.client.openapi.ui-path"));
+        assertEquals(Set.of("quarkus.jimmer.client.ts.path", "quarkus.jimmer.client.openapi.path"), failure.getConfigKeys());
     }
 
     @Test

@@ -44,13 +44,6 @@ public final class JimmerConfigValidator {
         JimmerBuildTimeConfig.Openapi openapi = config.client().openapi();
         config.client().ts().path().ifPresent(path -> validateRoutePath("quarkus.jimmer.client.ts.path", path, problems));
         openapi.path().ifPresent(path -> validateRoutePath("quarkus.jimmer.client.openapi.path", path, problems));
-        openapi.uiPath().ifPresent(path -> validateRoutePath("quarkus.jimmer.client.openapi.ui-path", path, problems));
-        if (openapi.uiPath().isPresent() && openapi.path().isEmpty() && openapi.refPath().isEmpty()) {
-            problems.add("quarkus.jimmer.client.openapi.ui-path",
-                    "requires quarkus.jimmer.client.openapi.path or quarkus.jimmer.client.openapi.ref-path");
-            problems.keys.add("quarkus.jimmer.client.openapi.path");
-            problems.keys.add("quarkus.jimmer.client.openapi.ref-path");
-        }
         problems.throwIfAny();
     }
 

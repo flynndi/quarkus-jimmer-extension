@@ -1,4 +1,9 @@
 quarkus:
+  swagger-ui:
+    path: /jimmer/swagger
+    always-include: true
+    urls:
+      jimmer: /openapi.yml
   application:
     name: quarkus-jimmer-integration-tests
   package:
@@ -99,7 +104,6 @@ quarkus:
         path: /Code/ts.zip
       openapi:
         path: /openapi.yml
-        ui-path: /openapi.html
         properties:
           info:
             title: Jimmer REST Example(Java)

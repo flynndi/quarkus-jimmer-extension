@@ -1,7 +1,6 @@
 package io.quarkiverse.jimmer.test.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URL;
 
@@ -24,7 +23,7 @@ class HttpManagementRoutesTest {
             .overrideConfigKey("quarkus.management.test-port", "0")
             .overrideConfigKey("quarkus.management.root-path", "/manage")
             .overrideConfigKey("quarkus.jimmer.client.openapi.path", "docs/spec.yml")
-            .overrideConfigKey("quarkus.jimmer.client.openapi.ui-path", "docs/ui");
+            .overrideConfigKey("quarkus.jimmer.client.ts.path", "docs/typescript.zip");
 
     @TestHTTPResource
     URL applicationUrl;
@@ -33,13 +32,14 @@ class HttpManagementRoutesTest {
     URL managementUrl;
 
     @Test
-    void managementUiReferencesItsOwnServerAndResolvedRoot() throws Exception {
+    void documentsUseTheManagementServerAndResolvedRoot() throws Exception {
         assertEquals(404,
                 HttpFeatureTestSupport.get(applicationUrl.toURI().resolve("/manage/docs/spec.yml")).statusCode());
         assertEquals(200,
                 HttpFeatureTestSupport.get(managementUrl.toURI().resolve("/manage/docs/spec.yml")).statusCode());
-        var ui = HttpFeatureTestSupport.get(managementUrl.toURI().resolve("/manage/docs/ui"));
-        assertEquals(200, ui.statusCode());
-        assertTrue(ui.body().contains("/manage/docs/spec.yml"), ui.body());
+        assertEquals(200,
+                HttpFeatureTestSupport.get(managementUrl.toURI().resolve("/manage/docs/typescript.zip")).statusCode());
+        assertEquals(404,
+                HttpFeatureTestSupport.get(applicationUrl.toURI().resolve("/manage/docs/typescript.zip")).statusCode());
     }
 }

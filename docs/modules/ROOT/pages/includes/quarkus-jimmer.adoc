@@ -565,7 +565,7 @@ a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-op
 
 [.description]
 --
-Openapi.path
+Path for the generated OpenAPI specification. No endpoint is exposed unless this is configured.
 
 ifdef::add-copy-button-to-env-var[]
 Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_PATH+++[]
@@ -574,41 +574,7 @@ ifndef::add-copy-button-to-env-var[]
 Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_PATH+++`
 endif::add-copy-button-to-env-var[]
 --|string 
-|`/openapi.yml`
-
-
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-ui-path]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-ui-path[quarkus.jimmer.client.openapi.ui-path]`
-
-
-[.description]
---
-Openapi.uiPath
-
-ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_UI_PATH+++[]
-endif::add-copy-button-to-env-var[]
-ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_UI_PATH+++`
-endif::add-copy-button-to-env-var[]
---|string 
-|`/openapi.html`
-
-
-a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-ref-path]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-ref-path[quarkus.jimmer.client.openapi.ref-path]`
-
-
-[.description]
---
-Openapi.refPath
-
-ifdef::add-copy-button-to-env-var[]
-Environment variable: env_var_with_copy_button:+++QUARKUS_JIMMER_CLIENT_OPENAPI_REF_PATH+++[]
-endif::add-copy-button-to-env-var[]
-ifndef::add-copy-button-to-env-var[]
-Environment variable: `+++QUARKUS_JIMMER_CLIENT_OPENAPI_REF_PATH+++`
-endif::add-copy-button-to-env-var[]
---|string 
-|`/openapi.yml`
+|
 
 
 a|icon:lock[title=Fixed at build time] [[quarkus-jimmer_quarkus-jimmer-client-openapi-properties-info-title]]`link:#quarkus-jimmer_quarkus-jimmer-client-openapi-properties-info-title[quarkus.jimmer.client.openapi.properties.info.title]`

@@ -2,6 +2,8 @@ package io.quarkiverse.jimmer.test.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URL;
 
@@ -35,12 +37,18 @@ class HttpFeaturesDisabledTest {
     @Test
     void configuredRestServerDoesNotEnableJimmerHttpFeatures() throws Exception {
         assertEquals(200, HttpFeatureTestSupport.get(baseUrl.toURI().resolve("/http-feature/status")).statusCode());
-        for (String path : new String[] { "/openapi.yml", "/openapi.html", Constant.CSS_URL, Constant.JS_URL,
+        for (String path : new String[] { "/openapi.yml", "/openapi.html", "/jimmer-client/swagger-ui.css",
+                "/jimmer-client/swagger-ui.js", "/q/swagger-ui", "/q/swagger-ui/swagger-ui-bundle.js",
                 Constant.BY_IDS, Constant.BY_ASSOCIATED_IDS }) {
             assertEquals(404, HttpFeatureTestSupport.get(baseUrl.toURI().resolve(path)).statusCode(), path);
         }
         assertFalse(Arc.container().instance(QuarkusExchange.class).isAvailable());
         assertFalse(Arc.container().instance(MicroServiceExporterIdsHandler.class).isAvailable());
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        assertThrows(ClassNotFoundException.class,
+                () -> Class.forName("io.quarkus.swaggerui.runtime.SwaggerUiRecorder", false, loader));
+        assertNull(loader.getResource("META-INF/resources/openapi-ui/swagger-ui.css"));
+        assertNull(loader.getResource("META-INF/jimmer/openapi/index.html.template"));
     }
 
     @Test
