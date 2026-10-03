@@ -162,7 +162,17 @@ Only the selected Java or Kotlin filters, customizers, and initializers are inst
 
 `SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately; construction failures are reported by the factory call. The extension's automatic `TransactionCacheOperator` belongs only to its CDI-managed client. Manual clients do not reuse that operator; configure a dedicated operator through the builder if the manually created client needs transaction-aware cache invalidation. User-provided operators remain supported, including ordinary `@Default` and the legacy `@DataSource("<default>")` form for the default datasource; multiple matching user operators are rejected. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator, because an operator cannot be shared by multiple SQL clients.
 
+### Transactions
+
+Jimmer's `TxConnectionManager.executeTransaction(...)` uses Quarkus Narayana's `@Transactional` semantics for all six propagation modes: `REQUIRED`, `REQUIRES_NEW`, `SUPPORTS`, `NOT_SUPPORTED`, `MANDATORY`, and `NEVER`. Participating calls leave transaction completion to their caller; suspended transactions are restored when the callback returns or throws.
+
+This is a synchronous JDBC boundary. Returning a future or publisher as a value does not extend the transaction beyond the callback. Narayana's rollback rules apply, including Quarkus `@Rollback` annotations on exception types. See [transaction behavior](docs/modules/ROOT/pages/index.adoc#transactions) for the propagation matrix and failure contracts.
+
 ### Cache
+
+Transaction cache invalidation is associated with the JTA transaction, including suspended transactions and transactions resumed on another thread. A transaction that emits Jimmer database events schedules one flush after successful commit; rollback does not trigger it. Only operators for the datasources involved are flushed, each in its own new transaction after Agroal releases the completed transaction's connection.
+
+A cache failure cannot undo an already committed business transaction. If cache deletion throws, its flush transaction rolls back and the durable invalidation records remain for scheduled retry. Cache deletion must be idempotent because retries can repeat it. Events outside a JTA transaction rely on scheduled retry. See [cache completion behavior](docs/modules/ROOT/pages/index.adoc#transaction-cache) for the full contract.
 
 example: [CacheConfig.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fconfig%2FCacheConfig.java)   
 use blocking RedisDataSource 

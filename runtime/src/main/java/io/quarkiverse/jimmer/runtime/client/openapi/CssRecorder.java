@@ -9,14 +9,8 @@ import io.vertx.ext.web.Route;
 @Recorder
 public class CssRecorder {
 
-    CssHandler handler;
-
     public CssHandler getHandler() {
-        if (handler == null) {
-            handler = new CssHandler();
-        }
-
-        return handler;
+        return new CssHandler();
     }
 
     public Consumer<Route> route() {

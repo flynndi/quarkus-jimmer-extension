@@ -100,6 +100,86 @@ For a manual client that needs transaction-aware cache invalidation, configure a
 
 The GraphQL integration and its APT/KSP modules have been removed from this development version.
 
+[[transactions]]
+== Transactions
+
+`TxConnectionManager.executeTransaction(propagation, callback)` uses the same Narayana interceptors as Quarkus `@Transactional` methods.
+The JDBC connection is acquired inside that transaction boundary and closed before the callback's transaction boundary ends.
+Agroal handles enlistment in the current JTA transaction.
+
+[cols="1,2,2",options="header"]
+|===
+|Propagation |Without an existing transaction |With an existing transaction
+|`REQUIRED` |Start and complete a transaction |Participate in the caller's transaction
+|`REQUIRES_NEW` |Start and complete a transaction |Suspend the caller's transaction, complete a new transaction, then resume the caller
+|`SUPPORTS` |Run without a transaction |Participate in the caller's transaction
+|`NOT_SUPPORTED` |Run without a transaction |Suspend the caller's transaction, run without a transaction, then resume the caller
+|`MANDATORY` |Reject before invoking the callback |Participate in the caller's transaction
+|`NEVER` |Run without a transaction |Reject before invoking the callback
+|===
+
+`MANDATORY` without a transaction throws `TransactionalException` with a `TransactionRequiredException` cause.
+`NEVER` with a transaction throws `TransactionalException` with an `InvalidTransactionException` cause.
+A transaction marked rollback-only still counts as an existing transaction.
+
+By default, a `RuntimeException` or `Error` rolls back a newly created transaction or marks a participating transaction rollback-only.
+Catching the exception in the caller does not clear that mark.
+Quarkus `@Rollback` annotations on exception types retain their normal Narayana semantics.
+Unlike the previous programmatic runner, checked exceptions do not trigger rollback by default.
+This also applies to checked exceptions thrown from Kotlin callbacks: use `@Rollback(true)` on the exception type when rollback is required.
+ArC wraps an undeclared checked exception in `ArcUndeclaredThrowableException`, preserving it as the cause;
+that wrapper does not change the rollback decision already made for the original exception.
+Failures in a `REQUIRES_NEW` or `NOT_SUPPORTED` callback restore the suspended caller's transaction without marking it rollback-only;
+an exception escaping an enclosing transactional method can still trigger that method's rollback rules.
+
+This API is synchronous: a returned `CompletionStage` or publisher is a return value, not asynchronous database work managed by this transaction.
+It does not delay transaction completion after the callback returns.
+The ordinary `ConnectionManager.execute(...)` methods keep their connection-only behavior and do not start a transaction.
+
+[[transaction-cache]]
+== Transaction cache completion
+
+The transaction cache operator writes delayed cache deletion records through the client's connection manager.
+With an Agroal datasource participating in JTA, these records commit or roll back with the business changes.
+The first Jimmer database event observed in an active transaction registers one completion callback.
+The factory publishes events with the client's `@DataSource` qualifier, and the callback collects their datasource names.
+The existing `@Default` event qualifier is retained. Observers without a qualifier or with `@Default` continue
+to receive events from all clients; observers may select a specific datasource.
+Its registration marker belongs to the JTA transaction through `TransactionSynchronizationRegistry`, so
+suspension, `REQUIRES_NEW`, and completion on another thread do not share or lose the marker.
+
+Only `STATUS_COMMITTED` triggers a completion flush. Rollback, rollback-only transactions, and transactions
+without database events do not trigger one. The callback is a regular JTA synchronization: Narayana runs it
+after the interposed synchronization that releases Agroal's connection. Completion flushes only visit operators
+for the datasources involved in that transaction, avoiding attempts to borrow a connection held by a suspended
+outer transaction on another datasource. Scheduled retries visit all active operators. Each operator runs in its
+own `REQUIRES_NEW` transaction, so operators for different datasources are not enlisted together in one flush transaction.
+
+This is eventual cache invalidation. A failure after commit cannot undo the business transaction.
+A cache deletion exception rolls back that operator's flush transaction, preserving the delayed deletion
+records for the next scheduled attempt. Other active operators are still attempted. Completion failures are
+logged; scheduled retry failures are reported to the scheduler. Deletion can be repeated after a partial
+cache operation or a failed flush commit, so cache implementations must support idempotent deletion.
+Jimmer's own batching and internal SQL error handling still apply; the extension does not turn failures
+that Jimmer handles internally into exceptions or guarantee an immediate empty queue after every commit.
+
+Application-published events without a `@DataSource` qualifier cannot identify an operator and rely on scheduled retry.
+Events outside an active JTA transaction do not flush immediately: Jimmer's cache listeners may write the
+delayed deletion records after the CDI event observer returns. The scheduled job processes those records,
+using `quarkus.jimmer.transaction-cache-operator-fixed-delay` as its interval.
+
+== HTTP handler lifecycle
+
+The OpenAPI, OpenAPI UI, and TypeScript handlers receive their build-time configuration from recorders.
+They and the static asset handlers do not look up CDI beans or create a request context.
+
+Microservice export handlers are CDI singletons. `@ActivateRequestContext` covers dependency resolution,
+database access, and response generation; an existing request context is retained, and a context created by
+the interceptor is terminated when the synchronous handler returns or throws. The handlers use the default
+`JSqlClient` and `ObjectMapper` with standard CDI selection. Missing or ambiguous dependencies fail resolution
+instead of selecting an arbitrary bean. ArC caches the selected CDI references, preserving normal-scope
+proxies and managing the lifetime of dependent instances.
+
 == REST client metadata
 
 Jimmer's generated clients recognize JAX-RS `@QueryParam`, `@PathParam`, and `@HeaderParam`,

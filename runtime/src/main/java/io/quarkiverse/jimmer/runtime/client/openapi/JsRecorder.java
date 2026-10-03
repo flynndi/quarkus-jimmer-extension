@@ -9,14 +9,8 @@ import io.vertx.ext.web.Route;
 @Recorder
 public class JsRecorder {
 
-    JsHandler handler;
-
     public JsHandler getHandler() {
-        if (handler == null) {
-            handler = new JsHandler();
-        }
-
-        return handler;
+        return new JsHandler();
     }
 
     public Consumer<Route> route() {

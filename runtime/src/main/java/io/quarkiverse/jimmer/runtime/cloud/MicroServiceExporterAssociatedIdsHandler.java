@@ -2,30 +2,33 @@ package io.quarkiverse.jimmer.runtime.cloud;
 
 import java.util.List;
 
+import jakarta.enterprise.context.control.ActivateRequestContext;
+import jakarta.inject.Singleton;
+
 import org.babyfish.jimmer.impl.util.Classes;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.runtime.ImmutableSpi;
 import org.babyfish.jimmer.sql.ast.tuple.Tuple2;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.babyfish.jimmer.sql.fetcher.compiler.FetcherCompiler;
+import org.babyfish.jimmer.sql.runtime.MicroServiceExporter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.SimpleType;
 
 import io.quarkiverse.jimmer.runtime.util.Constant;
-import io.quarkus.arc.Arc;
-import io.quarkus.arc.ManagedContext;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
-class MicroServiceExporterAssociatedIdsHandler extends AbstractMicroServiceExporterHandler {
+@Singleton
+public class MicroServiceExporterAssociatedIdsHandler extends AbstractMicroServiceExporterHandler {
 
     @Override
+    @ActivateRequestContext
     public void handle(RoutingContext routingContext) {
-        if (!setup) {
-            setup();
-        }
+        ObjectMapper objectMapper = objectMappers.get();
+        MicroServiceExporter exporter = new MicroServiceExporter(sqlClients.get());
 
         String prop = routingContext.request().getParam(Constant.PROP);
         String targetIdArrStr = routingContext.request().getParam(Constant.TARGET_IDS);
@@ -50,17 +53,6 @@ class MicroServiceExporterAssociatedIdsHandler extends AbstractMicroServiceExpor
 
         List<Tuple2<Object, ImmutableSpi>> result = exporter.findByAssociatedIds(immutableProp, targetIds, fetcher);
 
-        HttpServerResponse response = routingContext.response();
-        ManagedContext requestContext = Arc.container().requestContext();
-        if (requestContext.isActive()) {
-            doHandle(response, result.toString());
-        } else {
-            requestContext.activate();
-            try {
-                doHandle(response, result.toString());
-            } finally {
-                requestContext.terminate();
-            }
-        }
+        doHandle(routingContext.response(), result.toString());
     }
 }

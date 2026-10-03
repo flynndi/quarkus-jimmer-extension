@@ -9,21 +9,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.enterprise.inject.Default;
-import jakarta.enterprise.inject.Instance;
-import jakarta.enterprise.inject.spi.CDI;
-
 import org.babyfish.jimmer.client.generator.openapi.OpenApiGenerator;
 import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.runtime.Metadata;
-import org.jboss.logging.Logger;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.client.Metadatas;
-import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptHandler;
 import io.quarkiverse.jimmer.runtime.util.Constant;
-import io.quarkus.arc.Arc;
-import io.quarkus.arc.ManagedContext;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
@@ -32,18 +24,14 @@ import io.vertx.ext.web.RoutingContext;
 
 public class OpenApiHandler implements Handler<RoutingContext> {
 
-    private static final Logger log = Logger.getLogger(TypeScriptHandler.class);
+    private final JimmerBuildTimeConfig buildTimeConfig;
 
-    private JimmerBuildTimeConfig buildTimeConfig;
-
-    private boolean setup = false;
+    public OpenApiHandler(JimmerBuildTimeConfig buildTimeConfig) {
+        this.buildTimeConfig = buildTimeConfig;
+    }
 
     @Override
     public void handle(RoutingContext routingContext) {
-        if (!setup) {
-            setup();
-        }
-
         Metadata metadata = Metadatas.create(false, routingContext.request().getParam("groups"),
                 buildTimeConfig.client().uriPrefix().orElse(null));
 
@@ -126,17 +114,7 @@ public class OpenApiHandler implements Handler<RoutingContext> {
         };
 
         HttpServerResponse response = routingContext.response();
-        ManagedContext requestContext = Arc.container().requestContext();
-        if (requestContext.isActive()) {
-            doHandle(response, generator);
-        } else {
-            requestContext.activate();
-            try {
-                doHandle(response, generator);
-            } finally {
-                requestContext.terminate();
-            }
-        }
+        doHandle(response, generator);
 
     }
 
@@ -149,20 +127,4 @@ public class OpenApiHandler implements Handler<RoutingContext> {
                 .end(Buffer.buffer(byteArrayOutputStream.toByteArray()));
     }
 
-    private void setup() {
-        Instance<JimmerBuildTimeConfig> buildTimeConfigs = CDI.current().select(JimmerBuildTimeConfig.class,
-                Default.Literal.INSTANCE);
-
-        if (buildTimeConfigs.isUnsatisfied()) {
-            buildTimeConfig = null;
-        } else if (buildTimeConfigs.isAmbiguous()) {
-            buildTimeConfig = buildTimeConfigs.iterator().next();
-            log.warnf("Multiple JimmerBuildTimeConfig registries present. Using %s with the built in scrape endpoint",
-                    buildTimeConfigs);
-        } else {
-            buildTimeConfig = buildTimeConfigs.get();
-        }
-
-        setup = true;
-    }
 }

@@ -202,7 +202,8 @@ final class QuarkusSqlClientFactory {
         builder.addDraftInterceptors(interceptors);
         builder.addExceptionTranslators(exceptionTranslators);
         configureLanguageExtensions(builder);
-        builder.addInitializers(new QuarkusEventInitializer(container.beanManager().getEvent()));
+        builder.addInitializers(new QuarkusEventInitializer(container.beanManager().getEvent()
+                .select(Default.Literal.INSTANCE, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName))));
 
         builder.setMicroServiceName(buildTimeConfig.microServiceName().orElse(null));
         if (buildTimeConfig.microServiceName().isPresent()) {

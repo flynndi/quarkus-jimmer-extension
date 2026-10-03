@@ -2,28 +2,31 @@ package io.quarkiverse.jimmer.runtime.cloud;
 
 import java.util.List;
 
+import jakarta.enterprise.context.control.ActivateRequestContext;
+import jakarta.inject.Singleton;
+
 import org.babyfish.jimmer.impl.util.Classes;
 import org.babyfish.jimmer.runtime.ImmutableSpi;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.babyfish.jimmer.sql.fetcher.compiler.FetcherCompiler;
+import org.babyfish.jimmer.sql.runtime.MicroServiceExporter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.SimpleType;
 
 import io.quarkiverse.jimmer.runtime.util.Constant;
-import io.quarkus.arc.Arc;
-import io.quarkus.arc.ManagedContext;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
-class MicroServiceExporterIdsHandler extends AbstractMicroServiceExporterHandler {
+@Singleton
+public class MicroServiceExporterIdsHandler extends AbstractMicroServiceExporterHandler {
 
     @Override
+    @ActivateRequestContext
     public void handle(RoutingContext routingContext) {
-        if (!setup) {
-            setup();
-        }
+        ObjectMapper objectMapper = objectMappers.get();
+        MicroServiceExporter exporter = new MicroServiceExporter(sqlClients.get());
 
         String idArrStr = routingContext.request().getParam(Constant.IDS);
         String fetcherStr = routingContext.request().getParam(Constant.FETCHER);
@@ -46,17 +49,6 @@ class MicroServiceExporterIdsHandler extends AbstractMicroServiceExporterHandler
 
         List<ImmutableSpi> result = exporter.findByIds(ids, fetcher);
 
-        HttpServerResponse response = routingContext.response();
-        ManagedContext requestContext = Arc.container().requestContext();
-        if (requestContext.isActive()) {
-            doHandle(response, result.toString());
-        } else {
-            requestContext.activate();
-            try {
-                doHandle(response, result.toString());
-            } finally {
-                requestContext.terminate();
-            }
-        }
+        doHandle(routingContext.response(), result.toString());
     }
 }

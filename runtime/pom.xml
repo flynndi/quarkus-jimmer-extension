@@ -56,6 +56,11 @@
       <artifactId>jimmer-sql</artifactId>
       <version>${jimmer.version}</version>
     </dependency>
+    <!-- Jimmer's FetcherCompiler is used by the HTTP microservice bridge, but jimmer-sql does not publish its ANTLR dependency. -->
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4-runtime</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.babyfish.jimmer</groupId>
       <artifactId>jimmer-sql-kotlin</artifactId>
