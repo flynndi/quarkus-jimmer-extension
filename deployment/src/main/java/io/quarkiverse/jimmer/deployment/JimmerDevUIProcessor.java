@@ -39,7 +39,7 @@ final class JimmerDevUIProcessor {
             List<RepositoryMetadata> legacyRepositories, List<EntityToClassBuildItem> repositories,
             List<JdbcDataSourceBuildItem> dataSources, List<RegistryBuildItem> registries,
             CurateOutcomeBuildItem application, Capabilities capabilities, LaunchModeBuildItem launchMode,
-            Optional<DevContextBuildItem> devContext) {
+            Optional<DevContextBuildItem> devContext, JimmerCacheRetryBuildItem cacheRetry) {
         Map<String, String> repositoryEntities = new TreeMap<>();
         repositories
                 .forEach(repository -> repositoryEntities.put(repository.getEntityClass(), repository.getClazz().getName()));
@@ -48,9 +48,12 @@ final class JimmerDevUIProcessor {
         var dependencies = application.getApplicationModel().getDependencies();
         Optional<String> swaggerUi = JimmerDevUILinks.swaggerUiUrl(config.enable(), capabilities, dependencies,
                 ConfigProvider.getConfig(), launchMode, contextRoot);
+        boolean caffeineInstalled = dependencies.stream().anyMatch(dependency -> dependency.isRuntimeCp()
+                && "io.quarkus".equals(dependency.getGroupId())
+                && "quarkus-caffeine".equals(dependency.getArtifactId()));
         Map<String, Object> jimmer = Map.of(
                 "overview", overview(config, dataSources, capabilities, JimmerDevUILinks.hasSwaggerUi(dependencies),
-                        swaggerUi.isPresent(), model.get("repositories")),
+                        swaggerUi.isPresent(), caffeineInstalled, cacheRetry, model.get("repositories")),
                 "entities", model.get("entities"));
         return card(config.enable(), jimmer, registries, swaggerUi, contextRoot);
     }
@@ -88,7 +91,8 @@ final class JimmerDevUIProcessor {
     }
 
     static Map<String, Object> overview(JimmerBuildTimeConfig config, List<JdbcDataSourceBuildItem> dataSources,
-            Capabilities capabilities, boolean swaggerInstalled, boolean swaggerEnabled, Object repositories) {
+            Capabilities capabilities, boolean swaggerInstalled, boolean swaggerEnabled, boolean caffeineInstalled,
+            JimmerCacheRetryBuildItem cacheRetry, Object repositories) {
         boolean http = capabilities.isPresent(Capability.VERTX_HTTP);
         List<Map<String, String>> features = new ArrayList<>();
         features.add(feature("OpenAPI", config.enable(), config.client().openapi().path().isPresent(), http,
@@ -99,17 +103,34 @@ final class JimmerDevUIProcessor {
                 config.errorTranslator().filter(translator -> !translator.disabled()).isPresent(),
                 capabilities.isPresent(Capability.REST) && capabilities.isPresent(Capability.REST_JACKSON),
                 "quarkus.jimmer.error-translator.disabled=false; requires quarkus-rest-jackson"));
-        features.add(feature("Microservice bridge", config.enable(),
-                config.microServiceName().filter(name -> !name.isEmpty()).isPresent(),
-                http && capabilities.isPresent(Capability.REST_CLIENT_REACTIVE),
-                "quarkus.jimmer.micro-service-name; requires HTTP and quarkus-rest-client"));
+        features.add(Map.of("name", "Default HTTP exchange", "status", !config.enable() ? "disabled"
+                : !JimmerMicroserviceSupport.httpExchangeAvailable(capabilities) ? "unavailable"
+                        : JimmerMicroserviceSupport.httpExchangeEnabled(config, capabilities) ? "available" : "disabled",
+                "detail",
+                "Default outbound adapter when no application MicroServiceExchange is provided. Availability does not identify the CDI bean in use."));
+        features.add(feature("Microservice exporter", config.enable(),
+                JimmerMicroserviceSupport.exporterEnabled(config, capabilities),
+                JimmerMicroserviceSupport.exporterAvailable(capabilities),
+                "Inbound routes; requires an HTTP extension and Jackson. Independent of the outbound exchange."));
+        features.add(Map.of("name", "Cache retry task", "status", !config.enable() ? "disabled"
+                : !cacheRetry.schedulerAvailable() ? "unavailable"
+                        : cacheRetry.retryJobRegistered() ? "registered" : "disabled",
+                "detail", "Build-time task registration only. Runtime shows the retry interval and scheduler configuration."));
+        features.add(Map.of("name", "Redis cache integration", "status", !config.enable() ? "disabled"
+                : capabilities.isPresent(Capability.REDIS_CLIENT) ? "available" : "unavailable",
+                "detail", "Availability does not create caches. Configure a CacheFactory or application cache binders."));
+        features.add(Map.of("name", "Caffeine cache integration", "status", !config.enable() ? "disabled"
+                : caffeineInstalled ? "available" : "unavailable",
+                "detail", "Availability does not create caches. Configure a CacheFactory or application cache binders."));
         features.add(feature("Swagger UI", config.enable(), swaggerEnabled, http && swaggerInstalled,
                 "Application-provided quarkus-swagger-ui; uses native quarkus.swagger-ui configuration"));
         return Map.of("enabled", config.enable(), "language", config.language(),
                 "microServiceName", config.microServiceName().orElse(""),
                 "dataSources", dataSources.stream().sorted(Comparator.comparing(JdbcDataSourceBuildItem::getName))
                         .map(source -> Map.of("name", source.getName(), "dbKind", source.getDbKind())).toList(),
-                "features", features, "repositories", repositories);
+                "features", features, "repositories", repositories,
+                "cacheRetry", Map.of("schedulerAvailable", cacheRetry.schedulerAvailable(),
+                        "retryJobRegistered", cacheRetry.retryJobRegistered()));
     }
 
     private static Map<String, String> feature(String name, boolean enabled, boolean configured, boolean available,

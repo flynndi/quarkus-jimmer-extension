@@ -19,6 +19,7 @@ import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.devui.JimmerDevUIService;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
 import io.quarkus.deployment.Capabilities;
+import io.quarkus.deployment.Capability;
 import io.quarkus.devui.spi.page.Page;
 import io.smallrye.config.SmallRyeConfigBuilder;
 
@@ -73,11 +74,33 @@ class JimmerDevUIProcessorTest {
         List<Map<String, String>> repositories = List.of(Map.of("name", "BookRepository"));
         var overview = JimmerDevUIProcessor.overview(config,
                 List.of(new JdbcDataSourceBuildItem("books", "postgresql", Optional.empty(), true, false, false)),
-                new Capabilities(Set.of()), false, false, repositories);
+                new Capabilities(Set.of()), false, false, false, new JimmerCacheRetryBuildItem(false, false), repositories);
         assertEquals(List.of(Map.of("name", "books", "dbKind", "postgresql")), overview.get("dataSources"));
         assertSame(repositories, overview.get("repositories"));
         List<Map<String, String>> features = (List<Map<String, String>>) overview.get("features");
         assertEquals(Set.of("unavailable"), features.stream().map(feature -> feature.get("status"))
                 .collect(java.util.stream.Collectors.toSet()));
+        assertEquals(Map.of("schedulerAvailable", false, "retryJobRegistered", false), overview.get("cacheRetry"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void distinguishesOutboundTransportTaskRegistrationAndCacheAvailability() {
+        JimmerBuildTimeConfig config = new SmallRyeConfigBuilder().addDefaultInterceptors()
+                .withMapping(JimmerBuildTimeConfig.class).withDefaultValue("quarkus.jimmer.micro-service-name", "books")
+                .build().getConfigMapping(JimmerBuildTimeConfig.class);
+        var capabilities = new Capabilities(Set.of(Capability.REST_CLIENT_REACTIVE, Capability.JACKSON,
+                Capability.REDIS_CLIENT, Capability.SCHEDULER));
+        var overview = JimmerDevUIProcessor.overview(config, List.of(), capabilities, false, false, true,
+                new JimmerCacheRetryBuildItem(true, true), List.of());
+        var features = ((List<Map<String, String>>) overview.get("features")).stream()
+                .collect(java.util.stream.Collectors.toMap(feature -> feature.get("name"), feature -> feature.get("status")));
+        assertEquals("available", features.get("Default HTTP exchange"));
+        assertEquals("unavailable", features.get("Microservice exporter"));
+        assertEquals("registered", features.get("Cache retry task"));
+        assertEquals("available", features.get("Redis cache integration"));
+        assertEquals("available", features.get("Caffeine cache integration"));
+        assertFalse(features.containsKey("Microservice bridge"), "A custom exchange is independent of the HTTP adapters");
+        assertEquals(Map.of("schedulerAvailable", true, "retryJobRegistered", true), overview.get("cacheRetry"));
     }
 }

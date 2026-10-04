@@ -202,6 +202,8 @@ also adds a link to Quarkus's native Swagger UI.
 The Runtime page reads client activation and initialization state through Quarkus's dev-only JSON-RPC.
 Select a client to compare configured values with its actual dialect, cache registrations, and transaction
 settings after the application has initialized it. Refreshing or inspecting never initializes a client.
+Integration status separates available dependencies, registered adapters, and scheduler configuration.
+Redis and Caffeine availability does not mean the application has configured a Jimmer cache.
 
 Overview and Model use build-time metadata; Runtime reads existing CDI instances. None of these pages
 queries business data or exposes connection URLs and credentials. Manually assembled repository bindings
@@ -212,9 +214,11 @@ cannot be inferred from these views; see
 
 Transaction cache invalidation is associated with the JTA transaction, including suspended transactions and transactions resumed on another thread. A transaction that emits Jimmer database events schedules one flush after successful commit; rollback does not trigger it. Only operators for the datasources involved are flushed, each in its own new transaction after Agroal releases the completed transaction's connection.
 
-A cache failure cannot undo an already committed business transaction. If cache deletion throws, its flush transaction rolls back and the durable invalidation records remain for scheduled retry. Cache deletion must be idempotent because retries can repeat it. Events outside a JTA transaction rely on scheduled retry. See [cache completion behavior](docs/modules/ROOT/pages/index.adoc#transaction-cache) for the full contract.
+A cache failure cannot undo an already committed business transaction. If cache deletion throws, its flush transaction rolls back and the durable invalidation records remain for a later flush. Cache deletion must be idempotent because retries can repeat it. Events outside a JTA transaction need a later flush as well. See [cache completion behavior](docs/modules/ROOT/pages/index.adoc#transaction-cache) for the full contract.
 
-The retry interval defaults to `5s`. Setting `quarkus.jimmer.transaction-cache-operator-fixed-delay=off` disables this retry job while preserving commit callbacks; failed or nontransactional invalidations then have no periodic retry. This does not disable the application's other scheduled jobs.
+Periodic retry is optional: add `io.quarkus:quarkus-scheduler` or `io.quarkus:quarkus-quartz` to enable it. Quarkus selects the scheduler implementation. The retry interval defaults to `5s`. Setting `quarkus.jimmer.transaction-cache-operator-fixed-delay=off` disables this retry job while preserving commit callbacks. Without a scheduler, or with retry disabled, failed and nontransactional invalidations have no periodic recovery; the application must arrange any required retry. This does not disable the application's other scheduled jobs.
+
+The extension does not transitively install Redis or Caffeine. Add the native extensions used by your cache factory or binders; merely adding Redis does not enable Jimmer caching.
 
 example: [CacheConfig.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fconfig%2FCacheConfig.java)   
 use blocking RedisDataSource 

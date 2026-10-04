@@ -77,7 +77,7 @@ public class JimmerDevModeTest {
         assertFalse(module.contains("dev-ui-must-not-export-this"));
 
         // Quarkus serves the component modules and replaces their build-time-data import.
-        for (String component : new String[] { "qwc-jimmer-overview.js", "qwc-jimmer-model.js" }) {
+        for (String component : new String[] { "qwc-jimmer-overview.js", "qwc-jimmer-model.js", "qwc-jimmer-runtime.js" }) {
             String componentUrl = "/q/dev-ui/" + namespace + "/" + component;
             String source = get(componentUrl);
             assertTrue(source.contains(namespace + "-data"));
@@ -91,6 +91,9 @@ public class JimmerDevModeTest {
         assertTrue(source.contains("JsonRpc"));
         JsonNode clients = rpc("getClients", Map.of());
         assertTrue(clients.path("enabled").asBoolean());
+        assertEquals("5s", clients.at("/cacheRetry/interval").asText());
+        assertTrue(clients.at("/cacheRetry/intervalEnabled").asBoolean());
+        assertTrue(clients.at("/cacheRetry/schedulerEnabled").asBoolean());
         assertEquals("uninitialized", clients.at("/clients/0/state").asText());
         assertEquals("inactive", clients.at("/clients/1/state").asText());
         JsonNode client = rpc("getClient", Map.of("name", "<default>"));

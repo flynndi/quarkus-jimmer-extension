@@ -28,7 +28,6 @@ import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.All;
 import io.quarkus.arc.InstanceHandle;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
-import io.quarkus.scheduler.Scheduled;
 
 @ApplicationScoped
 public class TransactionCacheOperatorFlusher {
@@ -53,7 +52,7 @@ public class TransactionCacheOperatorFlusher {
 
     public void onDatabaseEvent(@Observes DatabaseEvent event, EventMetadata metadata) {
         // Without a JTA transaction, later Jimmer listeners may not have written the invalidation record yet.
-        // Periodic retry handles those records; a rollback-only transaction cannot schedule a successful commit.
+        // Such records need a later retry; a rollback-only transaction cannot schedule a successful commit.
         if (synchronizationRegistry.getTransactionStatus() != Status.STATUS_ACTIVE) {
             return;
         }
@@ -94,7 +93,7 @@ public class TransactionCacheOperatorFlusher {
         }
     }
 
-    @Scheduled(every = "${quarkus.jimmer.transaction-cache-operator-fixed-delay}", identity = "jimmer.transaction-cache-operator-job")
+    /** Flushes pending invalidations, either explicitly or through the optional scheduler integration. */
     public void retry() {
         flush(null);
     }
@@ -157,7 +156,8 @@ public class TransactionCacheOperatorFlusher {
                     flush(sources);
                 } catch (RuntimeException | Error ex) {
                     // A cache deletion failure cannot undo the business commit; its flush transaction rolls back.
-                    LOGGER.warn("Transaction committed but cache invalidation failed; scheduled retry will retry it", ex);
+                    LOGGER.warn("Transaction committed but cache invalidation failed; pending records require a later retry",
+                            ex);
                 }
             }
         }

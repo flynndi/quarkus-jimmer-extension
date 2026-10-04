@@ -23,10 +23,12 @@ import org.jboss.logging.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
+import io.quarkus.arc.DefaultBean;
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
 import io.quarkus.restclient.config.RestClientsConfig;
 
 @ApplicationScoped
+@DefaultBean
 public class QuarkusExchange implements MicroServiceExchange {
 
     private static final Logger LOG = Logger.getLogger(QuarkusExchange.class);

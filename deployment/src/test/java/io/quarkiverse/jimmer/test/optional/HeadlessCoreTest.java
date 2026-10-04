@@ -1,9 +1,12 @@
 package io.quarkiverse.jimmer.test.optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.Status;
@@ -17,14 +20,14 @@ import org.babyfish.jimmer.sql.transaction.TxConnectionManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.scheduler.Scheduler;
+import io.quarkus.maven.dependency.ArtifactKey;
 import io.quarkus.test.QuarkusUnitTest;
 
 class HeadlessCoreTest {
 
     @RegisterExtension
     static final QuarkusUnitTest APP = OptionalIntegrationTestSupport.isolateExcludedDependencies(new QuarkusUnitTest(),
-            OptionalIntegrationTestSupport.withoutHttp())
+            withoutOptionalIntegrations())
             .withApplicationRoot(archive -> archive.addClass(OptionalIntegrationTestSupport.class))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
@@ -39,20 +42,19 @@ class HeadlessCoreTest {
     @Inject
     TransactionManager transactions;
 
-    @Inject
-    Scheduler scheduler;
-
     @Test
-    void dataAccessAndTransactionsWorkWithoutHttpRestClientOrQuartz() {
+    void dataAccessAndTransactionsWorkWithoutOptionalIntegrations() {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         for (String type : new String[] {
                 "io.quarkus.vertx.http.runtime.VertxHttpRecorder",
                 "io.quarkus.resteasy.reactive.server.runtime.QuarkusResteasyReactiveRequestContext",
                 "io.quarkus.rest.client.reactive.QuarkusRestClientBuilder",
+                "io.quarkus.scheduler.Scheduler",
+                "io.quarkus.redis.datasource.RedisDataSource",
+                "com.github.benmanes.caffeine.cache.Caffeine",
                 "org.quartz.Scheduler" }) {
             assertThrows(ClassNotFoundException.class, () -> Class.forName(type, false, loader), type);
         }
-        assertNotNull(scheduler);
         JSqlClientImplementor sqlClient = (JSqlClientImplementor) client;
         assertTrue(sqlClient.getDialect() instanceof H2Dialect);
         TxConnectionManager connections = (TxConnectionManager) sqlClient.getConnectionManager();
@@ -66,5 +68,10 @@ class HeadlessCoreTest {
             }
         });
         assertEquals(42, result);
+    }
+
+    private static Set<ArtifactKey> withoutOptionalIntegrations() {
+        return Stream.of(OptionalIntegrationTestSupport.withoutHttp(), OptionalIntegrationTestSupport.withoutScheduler(),
+                OptionalIntegrationTestSupport.withoutCacheBackends()).flatMap(Set::stream).collect(Collectors.toSet());
     }
 }

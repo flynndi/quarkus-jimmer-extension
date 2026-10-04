@@ -25,10 +25,6 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-scheduler-deployment</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-deployment</artifactId>
       <optional>true</optional>
     </dependency>
@@ -44,16 +40,6 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-vertx-http-deployment-spi</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-redis-client-deployment</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-caffeine-deployment</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -81,6 +67,16 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-jdbc-h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-scheduler-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-redis-client</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

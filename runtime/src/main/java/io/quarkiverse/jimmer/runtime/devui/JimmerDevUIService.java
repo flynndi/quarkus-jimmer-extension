@@ -22,6 +22,7 @@ import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.babyfish.jimmer.sql.transaction.TxConnectionManager;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
@@ -50,7 +51,13 @@ public class JimmerDevUIService {
                 clients.add(snapshot(name).summary());
             }
         }
-        return Map.of("enabled", buildTimeConfig.enable(), "language", buildTimeConfig.language(), "clients", clients);
+        String interval = runtimeConfig.transactionCacheOperatorFixedDelay();
+        return Map.of("enabled", buildTimeConfig.enable(), "language", buildTimeConfig.language(), "clients", clients,
+                "cacheRetry", Map.of("interval", interval,
+                        "intervalEnabled", !"off".equalsIgnoreCase(interval) && !"disabled".equalsIgnoreCase(interval),
+                        // Read configuration only: resolving a Scheduler bean could initialize an optional integration.
+                        "schedulerEnabled", ConfigProvider.getConfig()
+                                .getOptionalValue("quarkus.scheduler.enabled", Boolean.class).orElse(true)));
     }
 
     public Map<String, Object> getClient(String name) {

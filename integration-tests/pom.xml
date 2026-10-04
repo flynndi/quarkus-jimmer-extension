@@ -31,6 +31,10 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-client</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-scheduler</artifactId>
+    </dependency>
     <!-- http://localhost:8080/h2 -->
     <dependency>
       <groupId>io.quarkus</groupId>
