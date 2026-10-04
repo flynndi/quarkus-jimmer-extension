@@ -68,13 +68,7 @@ public class Metadatas {
         @Override
         public String uri(AnnotatedElement element) {
             Path path = element.getAnnotation(Path.class);
-            if (null != path) {
-                String uri = path.value();
-                if (null != uri) {
-                    return uri;
-                }
-            }
-            return null;
+            return path != null ? path.value() : null;
         }
 
         @Override

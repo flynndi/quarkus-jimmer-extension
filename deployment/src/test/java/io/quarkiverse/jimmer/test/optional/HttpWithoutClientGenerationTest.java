@@ -31,6 +31,8 @@ class HttpWithoutClientGenerationTest {
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
             .overrideConfigKey("quarkus.datasource.jdbc.url", "jdbc:h2:mem:http-without-client")
             .overrideConfigKey("quarkus.jimmer.client.ts.null-render-mode", "NULL_OR_UNDEFINED")
+            .overrideConfigKey("quarkus.jimmer.client.openapi.properties.components.securitySchemes.token.type", "apiKey")
+            .overrideConfigKey("quarkus.jimmer.client.openapi.properties.components.securitySchemes.token.name", "token")
             .overrideConfigKey("quarkus.jimmer.client.openapi.properties.components.securitySchemes.token.in", "COOKIE");
 
     @TestHTTPResource

@@ -1,11 +1,8 @@
 package io.quarkiverse.jimmer.runtime.client.openapi;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,99 +11,114 @@ import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
 import org.babyfish.jimmer.client.runtime.Metadata;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
+import io.quarkiverse.jimmer.runtime.cfg.JimmerOpenApiConfig;
 
-/** Generates a Jimmer OpenAPI document from resolved API metadata without an HTTP request. */
+/** Generates Jimmer OpenAPI documents using a snapshot of the configured document properties. */
 public final class OpenApiDocumentGenerator {
 
-    private OpenApiDocumentGenerator() {
+    private final OpenApiProperties properties;
+
+    private final int errorHttpStatus;
+
+    public OpenApiDocumentGenerator(JimmerOpenApiConfig.Properties properties, int errorHttpStatus) {
+        this.properties = convert(properties);
+        this.errorHttpStatus = errorHttpStatus;
     }
 
+    /** Generates one document without requiring an HTTP handler or a reusable generator instance. */
     public static byte[] generate(Metadata metadata, JimmerBuildTimeConfig buildTimeConfig) {
-        List<OpenApiProperties.Server> servers = null;
-        if (buildTimeConfig.client().openapi().properties().servers().isPresent()) {
-            servers = new ArrayList<>(buildTimeConfig.client().openapi().properties().servers().get().size());
-            for (JimmerBuildTimeConfig.Server server : buildTimeConfig.client().openapi().properties().servers().get()) {
-                Map<String, OpenApiProperties.Variable> map = new HashMap<>();
-                server.variables().forEach((k, v) -> map.put(k, new OpenApiProperties.Variable(v.enums().orElse(null),
-                        v.defaultValue().orElse(null), v.description().orElse(null))));
-                servers.add(new OpenApiProperties.Server(server.url().orElse(null), server.description().orElse(null), map));
-            }
-        }
+        return new OpenApiDocumentGenerator(buildTimeConfig.client().openapi().properties(),
+                buildTimeConfig.errorTranslator().map(JimmerBuildTimeConfig.ErrorTranslator::httpStatus).orElse(500))
+                .generate(metadata);
+    }
 
-        Map<String, OpenApiProperties.SecurityScheme> map;
-        if (!buildTimeConfig.client().openapi().properties().components().securitySchemes().isEmpty()) {
-            map = new HashMap<>();
-            buildTimeConfig.client().openapi().properties().components().securitySchemes().forEach((k, v) -> map.put(k,
-                    new OpenApiProperties.SecurityScheme(
-                            v.type().orElse(null),
-                            v.description().orElse(null),
-                            v.name().orElse(null),
-                            switch (v.in()) {
-                                case QUERY -> OpenApiProperties.In.QUERY;
-                                case HEADER -> OpenApiProperties.In.HEADER;
-                                case COOKIE -> OpenApiProperties.In.COOKIE;
-                            },
-                            v.scheme().orElse(null),
-                            v.bearerFormat().orElse(null),
-                            new OpenApiProperties.Flows(
-                                    v.flows().implicit().isEmpty() ? null
-                                            : new OpenApiProperties.Flow(
-                                                    v.flows().implicit().get().authorizationUrl().orElse(null),
-                                                    v.flows().implicit().get().tokenUrl().orElse(null),
-                                                    v.flows().implicit().get().refreshUrl().orElse(null),
-                                                    v.flows().implicit().get().scopes()),
-                                    v.flows().password().isEmpty() ? null
-                                            : new OpenApiProperties.Flow(
-                                                    v.flows().password().get().authorizationUrl().orElse(null),
-                                                    v.flows().password().get().tokenUrl().orElse(null),
-                                                    v.flows().password().get().refreshUrl().orElse(null),
-                                                    v.flows().password().get().scopes()),
-                                    v.flows().clientCredentials().isEmpty() ? null
-                                            : new OpenApiProperties.Flow(
-                                                    v.flows().clientCredentials().get().authorizationUrl().orElse(null),
-                                                    v.flows().clientCredentials().get().tokenUrl().orElse(null),
-                                                    v.flows().clientCredentials().get().refreshUrl().orElse(null),
-                                                    v.flows().clientCredentials().get().scopes()),
-                                    v.flows().authorizationCode().isEmpty() ? null
-                                            : new OpenApiProperties.Flow(
-                                                    v.flows().authorizationCode().get().authorizationUrl().orElse(null),
-                                                    v.flows().authorizationCode().get().tokenUrl().orElse(null),
-                                                    v.flows().authorizationCode().get().refreshUrl().orElse(null),
-                                                    v.flows().authorizationCode().get().scopes())),
-                            v.openIdConnectUrl().orElse(null))));
-        } else {
-            map = null;
-        }
-
-        OpenApiProperties openApiProperties = OpenApiProperties
-                .newBuilder()
-                .setInfo(new OpenApiProperties.Info(
-                        buildTimeConfig.client().openapi().properties().info().title().orElse(null),
-                        buildTimeConfig.client().openapi().properties().info().description().orElse(null),
-                        buildTimeConfig.client().openapi().properties().info().termsOfService().orElse(null),
-                        new OpenApiProperties.Contact(
-                                buildTimeConfig.client().openapi().properties().info().contact().name().orElse(null),
-                                buildTimeConfig.client().openapi().properties().info().contact().url().orElse(null),
-                                buildTimeConfig.client().openapi().properties().info().contact().email().orElse(null)),
-                        new OpenApiProperties.License(
-                                buildTimeConfig.client().openapi().properties().info().license().name().orElse(null),
-                                buildTimeConfig.client().openapi().properties().info().license().identifier().orElse(null)),
-                        buildTimeConfig.client().openapi().properties().info().version().orElse(null)))
-                .setServers(servers)
-                .setComponents(new OpenApiProperties.Components(map))
-                .setSecurities(buildTimeConfig.client().openapi().properties().securities().orElse(null))
-                .build();
-
-        OpenApiGenerator generator = new OpenApiGenerator(metadata, openApiProperties) {
+    public byte[] generate(Metadata metadata) {
+        // Jimmer's generator tracks rendered schemas and allocated names, so each document needs its own instance.
+        OpenApiGenerator generator = new OpenApiGenerator(metadata, properties) {
             @Override
             protected int errorHttpStatus() {
-                return buildTimeConfig.errorTranslator().isEmpty() ? 500 : buildTimeConfig.errorTranslator().get().httpStatus();
+                return errorHttpStatus;
             }
         };
 
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        Writer writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-        generator.generate(writer);
-        return output.toByteArray();
+        StringBuilder output = new StringBuilder();
+        generator.generate(output);
+        return output.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static OpenApiProperties convert(JimmerOpenApiConfig.Properties properties) {
+        var info = properties.info();
+        var contact = info.contact();
+        var license = info.license();
+        OpenApiProperties.Contact mappedContact = contact.name().isEmpty() && contact.url().isEmpty()
+                && contact.email().isEmpty()
+                        ? null
+                        : new OpenApiProperties.Contact(contact.name().orElse(null), contact.url().orElse(null),
+                                contact.email().orElse(null));
+        OpenApiProperties.License mappedLicense = license.name().isEmpty() && license.identifier().isEmpty() ? null
+                : new OpenApiProperties.License(license.name().orElse(null), license.identifier().orElse(null));
+
+        // An Info object bypasses Jimmer's defaults, including when only one info property was configured.
+        OpenApiProperties.Info mappedInfo = new OpenApiProperties.Info(
+                info.title().orElse("<No title>"),
+                info.description().orElse("<No Description>"),
+                info.termsOfService().orElse(null),
+                mappedContact,
+                mappedLicense,
+                info.version().orElse("1.0.0"));
+
+        List<OpenApiProperties.Server> servers = new ArrayList<>();
+        for (var server : properties.servers().orElse(List.of())) {
+            Map<String, OpenApiProperties.Variable> variables = new LinkedHashMap<>();
+            server.variables().forEach((name, variable) -> variables.put(name, new OpenApiProperties.Variable(
+                    variable.enums().map(List::copyOf).orElse(null),
+                    variable.defaultValue().orElse(null), variable.description().orElse(null))));
+            servers.add(new OpenApiProperties.Server(server.url().orElse(null), server.description().orElse(null), variables));
+        }
+
+        Map<String, OpenApiProperties.SecurityScheme> securitySchemes = new LinkedHashMap<>();
+        properties.components().securitySchemes().forEach((name, scheme) -> {
+            var flows = scheme.flows();
+            OpenApiProperties.Flow implicit = flows.implicit().map(OpenApiDocumentGenerator::convertFlow).orElse(null);
+            OpenApiProperties.Flow password = flows.password().map(OpenApiDocumentGenerator::convertFlow).orElse(null);
+            OpenApiProperties.Flow clientCredentials = flows.clientCredentials().map(OpenApiDocumentGenerator::convertFlow)
+                    .orElse(null);
+            OpenApiProperties.Flow authorizationCode = flows.authorizationCode().map(OpenApiDocumentGenerator::convertFlow)
+                    .orElse(null);
+            OpenApiProperties.Flows mappedFlows = implicit == null && password == null && clientCredentials == null
+                    && authorizationCode == null ? null
+                            : new OpenApiProperties.Flows(implicit, password, clientCredentials, authorizationCode);
+            securitySchemes.put(name, new OpenApiProperties.SecurityScheme(
+                    scheme.type().orElse(null),
+                    scheme.description().orElse(null),
+                    scheme.name().orElse(null),
+                    switch (scheme.in()) {
+                        case QUERY -> OpenApiProperties.In.QUERY;
+                        case HEADER -> OpenApiProperties.In.HEADER;
+                        case COOKIE -> OpenApiProperties.In.COOKIE;
+                    },
+                    scheme.scheme().orElse(null),
+                    scheme.bearerFormat().orElse(null),
+                    mappedFlows,
+                    scheme.openIdConnectUrl().orElse(null)));
+        });
+
+        List<Map<String, List<String>>> securities = new ArrayList<>();
+        for (var security : properties.securities().orElse(List.of())) {
+            Map<String, List<String>> scopes = new LinkedHashMap<>();
+            security.forEach((name, values) -> scopes.put(name, List.copyOf(values)));
+            securities.add(scopes);
+        }
+        return new OpenApiProperties(mappedInfo, servers, securities,
+                securitySchemes.isEmpty() ? null : new OpenApiProperties.Components(securitySchemes));
+    }
+
+    private static OpenApiProperties.Flow convertFlow(JimmerOpenApiConfig.Flow flow) {
+        if (flow.authorizationUrl().isEmpty() && flow.tokenUrl().isEmpty() && flow.refreshUrl().isEmpty()
+                && flow.scopes().isEmpty()) {
+            return null;
+        }
+        return new OpenApiProperties.Flow(flow.authorizationUrl().orElse(null), flow.tokenUrl().orElse(null),
+                flow.refreshUrl().orElse(null), new LinkedHashMap<>(flow.scopes()));
     }
 }
