@@ -15,8 +15,6 @@ import org.babyfish.jimmer.sql.runtime.MicroServiceExporter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.databind.type.SimpleType;
 
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.vertx.ext.web.RoutingContext;
@@ -37,16 +35,11 @@ public class MicroServiceExporterAssociatedIdsHandler extends AbstractMicroServi
         Fetcher<?> fetcher = FetcherCompiler.compile(fetcherStr, Thread.currentThread().getContextClassLoader());
         ImmutableProp immutableProp = fetcher.getImmutableType().getProp(prop);
         Class<?> targetIdType = immutableProp.getTargetType().getIdProp().getElementClass();
-        List<?> targetIds = null;
+        List<?> targetIds;
         try {
             targetIds = objectMapper.readValue(
                     targetIdArrStr,
-                    CollectionType.construct(
-                            List.class,
-                            null,
-                            null,
-                            null,
-                            SimpleType.constructUnsafe(Classes.boxTypeOf(targetIdType))));
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, Classes.boxTypeOf(targetIdType)));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

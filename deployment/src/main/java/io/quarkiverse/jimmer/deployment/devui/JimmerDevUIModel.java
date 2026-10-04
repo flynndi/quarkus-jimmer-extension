@@ -22,7 +22,7 @@ import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.deployment.util.JandexUtil;
 
 /** Declared model information for Dev UI. Does not load application classes or resolve runtime clients. */
-public final class JimmerDevUIModel {
+final class JimmerDevUIModel {
 
     private static final String SQL = "org.babyfish.jimmer.sql.";
     private static final String REPOSITORIES = "io.quarkiverse.jimmer.runtime.";
@@ -38,7 +38,7 @@ public final class JimmerDevUIModel {
     }
 
     /** The application repository map must come from the extension's existing repository analysis. */
-    public static Map<String, Object> create(IndexView index, List<RepositoryMetadata> legacyRepositories,
+    static Map<String, Object> create(IndexView index, List<RepositoryMetadata> legacyRepositories,
             Map<String, String> repositoryEntities) {
         Map<String, Map<String, Object>> entities = new TreeMap<>();
         for (ClassInfo type : index.getKnownClasses()) {

@@ -9,8 +9,6 @@ import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusCacheOperatorProvider;
-import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkus.arc.Arc;
 
 /**
@@ -42,13 +40,5 @@ public class QuarkusSqlClientProducer {
         return KSqlClientKt.toKSqlClient(new QuarkusSqlClientFactory(container, jimmerRuntimeConfig, jimmerBuildTimeConfig,
                 dataSource, dataSourceName, null, true)
                 .create(QuarkusCacheOperatorProvider.findManagedOperator(container, dataSourceName)));
-    }
-
-    public QuarkusJSqlClientContainer createQuarkusJSqlClientContainer(DataSource dataSource, String dataSourceName) {
-        return new QuarkusJSqlClientContainer(createJSqlClient(dataSource, dataSourceName), dataSourceName);
-    }
-
-    public QuarkusKSqlClientContainer createQuarkusKSqlClientContainer(DataSource dataSource, String dataSourceName) {
-        return new QuarkusKSqlClientContainer(createKSqlClient(dataSource, dataSourceName), dataSourceName);
     }
 }

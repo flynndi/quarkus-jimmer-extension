@@ -170,7 +170,7 @@ This is a synchronous JDBC boundary. Returning a future or publisher as a value 
 
 ### Optional integrations and configuration
 
-The extension uses Quarkus's lightweight Scheduler by default. Applications that need Quartz can add `io.quarkus:quarkus-quartz` explicitly; Quarkus then selects it for the existing scheduled job.
+Periodic cache retry requires an explicitly added scheduler extension. Add `io.quarkus:quarkus-scheduler` for lightweight scheduling or `io.quarkus:quarkus-quartz` when Quartz is needed; Quarkus selects the implementation for the retry job.
 
 REST, HTTP endpoints, and the default microservice HTTP exchange are optional. Add `quarkus-rest-jackson` for REST exception translation. Document endpoints need HTTP support and the JAX-RS/Quarkus REST metadata APIs, normally supplied by `quarkus-rest`; `quarkus-vertx-http` plus `quarkus-rest-client` also supplies these without a REST server. The default outbound microservice exchange uses REST Client, while inbound exporters use HTTP support. These dependencies are not supplied transitively by Jimmer. Jackson remains a core dependency; REST Jackson supplies the HTTP JSON writer for translated errors.
 

@@ -29,7 +29,7 @@ final class HttpTestResponse {
                         return proxy;
                     }
                     if (method.getName().equals("end")) {
-                        body = (Buffer) args[0];
+                        body = args[0] instanceof String text ? Buffer.buffer(text) : (Buffer) args[0];
                         return Future.succeededFuture();
                     }
                     throw new AssertionError("Unexpected response operation: " + method);

@@ -322,39 +322,34 @@ final class QuarkusSqlClientFactory {
 
     @Nullable
     private Dialect createConfiguredDialect(JimmerDataSourceRuntimeConfig jimmerDataSourceRuntimeConfig) {
-        Dialect dialect;
         if (jimmerDataSourceRuntimeConfig.dialect().isEmpty()) {
             return null;
-        } else {
-            Class<?> clazz;
-            try {
-                clazz = Class.forName(jimmerDataSourceRuntimeConfig.dialect().get(), true,
-                        Thread.currentThread().getContextClassLoader());
-            } catch (ClassNotFoundException ex) {
-                throw new IllegalArgumentException(
-                        "The class \"" + jimmerDataSourceRuntimeConfig.dialect().get()
-                                + "\" specified by `quarkus.jimmer.dialect` cannot be found");
-            }
-            if (!Dialect.class.isAssignableFrom(clazz) || clazz.isInterface()) {
-                throw new IllegalArgumentException(
-                        "The class \"" + jimmerDataSourceRuntimeConfig.dialect().get()
-                                + "\" specified by `quarkus.jimmer.dialect` must be a valid dialect implementation");
-            }
-            try {
-                dialect = (Dialect) clazz.getConstructor().newInstance();
-            } catch (InvocationTargetException ex) {
-                throw new IllegalArgumentException(
-                        "Cannot create instance for the class \"" + jimmerDataSourceRuntimeConfig.dialect().get()
-                                + "\" specified by `quarkus.jimmer.dialect`",
-                        ex.getTargetException());
-            } catch (Exception ex) {
-                throw new IllegalArgumentException(
-                        "Cannot create instance for the class \"" + jimmerDataSourceRuntimeConfig.dialect().get()
-                                + "\" specified by `quarkus.jimmer.dialect`",
-                        ex);
-            }
         }
-        return dialect;
+        String className = jimmerDataSourceRuntimeConfig.dialect().get();
+        String property = DataSourceUtil.isDefault(dataSourceName) ? "quarkus.jimmer.dialect"
+                : "quarkus.jimmer.\"" + dataSourceName.replace("\"", "\\\"") + "\".dialect";
+        Class<?> clazz;
+        try {
+            clazz = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException ex) {
+            throw new IllegalArgumentException(
+                    "The class \"" + className + "\" specified by `" + property + "` cannot be found");
+        }
+        if (!Dialect.class.isAssignableFrom(clazz) || clazz.isInterface()) {
+            throw new IllegalArgumentException(
+                    "The class \"" + className + "\" specified by `" + property + "` must be a valid dialect implementation");
+        }
+        try {
+            return (Dialect) clazz.getConstructor().newInstance();
+        } catch (InvocationTargetException ex) {
+            throw new IllegalArgumentException(
+                    "Cannot create instance for the class \"" + className + "\" specified by `" + property + "`",
+                    ex.getTargetException());
+        } catch (Exception ex) {
+            throw new IllegalArgumentException(
+                    "Cannot create instance for the class \"" + className + "\" specified by `" + property + "`",
+                    ex);
+        }
     }
 
     private static class QuarkusEventInitializer implements Initializer {

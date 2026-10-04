@@ -8,14 +8,12 @@ import io.quarkiverse.jimmer.runtime.repository.KRepository;
 
 public class JimmerRepositoryFactory {
 
-    private final Class<?> repositoryInterface;
-
     private final String repositoryClassName;
 
     private final byte[] bytecode;
 
     public JimmerRepositoryFactory(RepositoryMetadata metadata) {
-        this.repositoryInterface = metadata.getRepositoryInterface();
+        Class<?> repositoryInterface = metadata.getRepositoryInterface();
         boolean jRepository = JRepository.class.isAssignableFrom(repositoryInterface);
         boolean kRepository = KRepository.class.isAssignableFrom(repositoryInterface);
         if (jRepository && kRepository) {
@@ -46,11 +44,6 @@ public class JimmerRepositoryFactory {
     @NotNull
     public String getTargetRepositoryClassName() {
         return repositoryClassName;
-    }
-
-    @NotNull
-    public Class<?> getTargetRepositoryClass() {
-        return JavaClasses.define(this.bytecode, this.repositoryInterface);
     }
 
     public byte[] getTargetRepositoryBytes() {

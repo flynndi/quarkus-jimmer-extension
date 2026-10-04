@@ -68,10 +68,6 @@ final class JimmerCacheProcessor {
             JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
-        if (jdbcDataSourceBuildItems.isEmpty()) {
-            return;
-        }
-
         for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
             if (!buildTimeConfig.dataSources().get(dataSourceName).triggerType().equals(TriggerType.BINLOG_ONLY)) {
@@ -94,17 +90,10 @@ final class JimmerCacheProcessor {
 
                 if (DataSourceUtil.isDefault(dataSourceName)) {
                     transactionCacheOperatorConfigurator.addQualifier(Default.class);
-                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                            .addValue("value", dataSourceName).done();
-
-                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
-
-                } else {
-                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                            .addValue("value", dataSourceName).done();
-
-                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
                 }
+                transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
+                        .addValue("value", dataSourceName).done();
+                transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
 
                 syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
             }
@@ -118,10 +107,6 @@ final class JimmerCacheProcessor {
             JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
-        if (jdbcDataSourceBuildItems.isEmpty()) {
-            return;
-        }
-
         for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
             if (!buildTimeConfig.dataSources().get(dataSourceName).triggerType().equals(TriggerType.BINLOG_ONLY)) {
@@ -144,17 +129,10 @@ final class JimmerCacheProcessor {
 
                 if (DataSourceUtil.isDefault(dataSourceName)) {
                     transactionCacheOperatorConfigurator.addQualifier(Default.class);
-                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                            .addValue("value", dataSourceName).done();
-
-                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
-
-                } else {
-                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                            .addValue("value", dataSourceName).done();
-
-                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
                 }
+                transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
+                        .addValue("value", dataSourceName).done();
+                transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
 
                 syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
             }
