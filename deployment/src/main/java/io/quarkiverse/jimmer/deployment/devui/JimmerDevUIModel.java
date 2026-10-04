@@ -17,7 +17,7 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 
-import io.quarkiverse.jimmer.deployment.RepositoryMetadata;
+import io.quarkiverse.jimmer.deployment.repository.RepositoryMetadata;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.deployment.util.JandexUtil;
 

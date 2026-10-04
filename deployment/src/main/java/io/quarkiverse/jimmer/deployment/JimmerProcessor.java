@@ -1,7 +1,7 @@
 package io.quarkiverse.jimmer.deployment;
 
 import java.beans.Introspector;
-import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -11,67 +11,55 @@ import jakarta.inject.Singleton;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.TransientResolver;
-import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
-import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
-import org.jboss.jandex.*;
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationTransformation;
+import org.jboss.jandex.AnnotationValue;
+import org.jboss.jandex.ClassType;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.ParameterizedType;
+import org.jboss.jandex.Type;
 
-import io.quarkiverse.jimmer.deployment.bytecode.JimmerRepositoryFactory;
-import io.quarkiverse.jimmer.runtime.*;
+import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Enabled;
+import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.JavaEnabled;
+import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.KotlinEnabled;
+import io.quarkiverse.jimmer.runtime.JimmerDataSourcesRecorder;
 import io.quarkiverse.jimmer.runtime.QuarkusSqlClientProducer;
-import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.repo.RepoRecord;
-import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
-import io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository;
-import io.quarkiverse.jimmer.runtime.repository.*;
-import io.quarkiverse.jimmer.runtime.repository.support.JRepositoryImpl;
-import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
 import io.quarkus.arc.InjectableInstance;
-import io.quarkus.arc.deployment.*;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
+import io.quarkus.arc.deployment.CustomScopeAnnotationsBuildItem;
+import io.quarkus.arc.deployment.IgnoreSplitPackageBuildItem;
+import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
+import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
+import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
-import io.quarkus.deployment.Capabilities;
-import io.quarkus.deployment.Capability;
-import io.quarkus.deployment.annotations.*;
+import io.quarkus.deployment.annotations.BuildProducer;
+import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.BuildSteps;
+import io.quarkus.deployment.annotations.Consume;
+import io.quarkus.deployment.annotations.ExecutionTime;
+import io.quarkus.deployment.annotations.Produce;
 import io.quarkus.deployment.annotations.Record;
-import io.quarkus.deployment.builditem.*;
+import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyIgnoreWarningBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
-import io.quarkus.deployment.util.JandexUtil;
-import io.quarkus.gizmo.ClassOutput;
-import io.quarkus.jackson.deployment.IgnoreJsonDeserializeClassBuildItem;
-import io.quarkus.maven.dependency.ArtifactKey;
-import io.quarkus.runtime.configuration.ConfigurationException;
 
-@BuildSteps(onlyIf = JimmerProcessor.JimmerEnable.class)
+@BuildSteps(onlyIf = Enabled.class)
 final class JimmerProcessor {
 
     private static final String FEATURE = "jimmer";
 
     private static final String JIMMER_CONTAINER_BEAN_NAME_PREFIX = "jimmer_container_";
-
-    // org.babyfish.jimmer.client.meta(.impl) classes that carry both a Jackson-2 (V2) and a Jackson-3 (V3)
-    // serializer/deserializer as nested classes.
-    private static final String[] JIMMER_CLIENT_METADATA_CLASSES = {
-            "org.babyfish.jimmer.client.meta.Doc",
-            "org.babyfish.jimmer.client.meta.TypeName",
-            "org.babyfish.jimmer.client.meta.impl.ApiOperationImpl",
-            "org.babyfish.jimmer.client.meta.impl.ApiParameterImpl",
-            "org.babyfish.jimmer.client.meta.impl.ApiServiceImpl",
-            "org.babyfish.jimmer.client.meta.impl.EnumConstantImpl",
-            "org.babyfish.jimmer.client.meta.impl.PropImpl",
-            "org.babyfish.jimmer.client.meta.impl.SchemaImpl",
-            "org.babyfish.jimmer.client.meta.impl.TypeDefinitionImpl",
-            "org.babyfish.jimmer.client.meta.impl.TypeRefImpl",
-    };
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -95,13 +83,13 @@ final class JimmerProcessor {
                 .build());
     }
 
-    @BuildStep(onlyIf = IsJavaEnable.class)
+    @BuildStep(onlyIf = JavaEnabled.class)
     void indexJimmerForJava(BuildProducer<IndexDependencyBuildItem> indexDependency) {
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-core"));
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-sql"));
     }
 
-    @BuildStep(onlyIf = IsKotlinEnable.class)
+    @BuildStep(onlyIf = KotlinEnabled.class)
     void indexJimmerForKotlin(BuildProducer<IndexDependencyBuildItem> indexDependency) {
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-core-kotlin"));
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-sql-kotlin"));
@@ -152,79 +140,6 @@ final class JimmerProcessor {
         return new IgnoreSplitPackageBuildItem(List.of("org.babyfish.jimmer", "org.babyfish.jimmer.sql"));
     }
 
-    // org.babyfish.jimmer.jackson.v3.* (jimmer-core) is Jimmer's Jackson-3 codec implementation. It is never
-    // used at runtime here (Quarkus manages Jackson 2), but Quarkus's reflective-hierarchy registration expands
-    // any registered org.babyfish.jimmer.jackson.codec.* interface (JsonCodec, JsonReader, JsonWriter,
-    // JsonConverter, JsonTypeFactory) to every implementation found in the Jandex index, including these V3
-    // ones. Those V3 classes reference tools.jackson.databind types absent from the classpath, so registering
-    // them for native-image reflection fails with NoClassDefFoundError. Removing the .class files from the
-    // augmentation/native-image classpath entirely keeps them out of the index so they can never be reached.
-    private static final String[] JIMMER_JACKSON_V3_CLASSES = {
-            "ImmutableAnnotationIntrospectorV3",
-            "ImmutableAnnotationIntrospectorV3$1",
-            "ImmutableAnnotationIntrospectorV3$2",
-            "ImmutableModuleV3",
-            "ImmutablePropertyWriterV3",
-            "ImmutableSerializerModifierV3",
-            "JacksonUtilsV3",
-            "JsonCodecProviderV3",
-            "JsonCodecV3",
-            "JsonConverterV3",
-            "JsonReaderV3",
-            "JsonTypeFactoryV3",
-            "JsonWriterV3",
-            "ModulesRegistrarV3",
-            "ModulesRegistrarV3$ImmutableModuleRegistrar",
-            "ModulesRegistrarV3$KotlinModuleRegistrar",
-            "NodePropertiesIteratorV3",
-            "NodeV3",
-    };
-
-    @BuildStep
-    RemovedResourceBuildItem removeJimmerJacksonV3Classes() {
-        Set<String> resources = new HashSet<>();
-        for (String simpleName : JIMMER_JACKSON_V3_CLASSES) {
-            resources.add("org/babyfish/jimmer/jackson/v3/" + simpleName + ".class");
-        }
-        return new RemovedResourceBuildItem(ArtifactKey.of("org.babyfish.jimmer", "jimmer-core"), resources);
-    }
-
-    @BuildStep
-    ReflectiveHierarchyIgnoreWarningBuildItem ignoreJackson3ReflectionWarnings() {
-        // Jimmer bundles Jackson 3 support classes in the same artifacts as the Jackson 2 runtime used by Quarkus.
-        // When Quarkus scans Jackson 2 annotations, it can reach those unused Jackson 3 signatures and warn.
-        return new ReflectiveHierarchyIgnoreWarningBuildItem(dotName -> dotName.toString().startsWith("tools.jackson."));
-    }
-
-    @BuildStep
-    void excludeJimmerClientMetadataFromAutoJacksonReflection(
-            BuildProducer<IgnoreJsonDeserializeClassBuildItem> ignoredClasses) {
-        // Each class below declares both a Jackson-2 (V2) and a Jackson-3 (V3) serializer/deserializer as
-        // nested classes. Quarkus's automatic Jackson reflection registration walks the *entire* declared-class
-        // hierarchy (allDeclaredClasses) of every Jackson-annotated type it finds, which drags in the V3 nested
-        // classes even though only Jackson 2 is on the runtime classpath. Loading those V3 classes during the
-        // native-image build fails with NoClassDefFoundError (tools.jackson.databind.ValueSerializer/ValueDeserializer
-        // are absent), so these classes are excluded from that automatic walk; the members actually needed are
-        // registered explicitly below.
-        for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
-            ignoredClasses.produce(new IgnoreJsonDeserializeClassBuildItem(DotName.createSimple(metadataClass)));
-        }
-    }
-
-    @BuildStep
-    void registerJimmerClientMetadataForReflection(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
-        List<String> classes = new ArrayList<>();
-        for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
-            classes.add(metadataClass);
-            classes.add(metadataClass + "$SerializerV2");
-            classes.add(metadataClass + "$DeserializerV2");
-        }
-        classes.add("org.babyfish.jimmer.client.meta.Doc$Builder");
-        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(classes.toArray(new String[0]))
-                .constructors()
-                .build());
-    }
-
     @BuildStep
     AnnotationsTransformerBuildItem transform(CustomScopeAnnotationsBuildItem customScopes) {
         return new AnnotationsTransformerBuildItem(AnnotationTransformation.forClasses()
@@ -238,227 +153,7 @@ final class JimmerProcessor {
                 }));
     }
 
-    @BuildStep
-    void checkTransactionsSupport(Capabilities capabilities,
-            BuildProducer<ValidationPhaseBuildItem.ValidationErrorBuildItem> validationErrors) {
-        // JTA is necessary for Jimmer
-        if (capabilities.isMissing(Capability.TRANSACTIONS)) {
-            validationErrors.produce(new ValidationPhaseBuildItem.ValidationErrorBuildItem(
-                    new ConfigurationException("The Jimmer extension is only functional in a JTA environment.")));
-        }
-    }
-
-    @BuildStep(onlyIf = IsJavaEnable.class)
-    void contributeJRepositoryToIndex(BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClasses) {
-        additionalIndexedClasses
-                .produce(new AdditionalIndexedClassesBuildItem(JRepository.class.getName(), JRepositoryImpl.class.getName()));
-    }
-
-    @BuildStep(onlyIf = IsKotlinEnable.class)
-    void contributeKRepositoryToIndex(BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClasses) {
-        additionalIndexedClasses
-                .produce(new AdditionalIndexedClassesBuildItem(KRepository.class.getName(), KRepositoryImpl.class.getName()));
-    }
-
-    // Only legacy JRepository/KRepository interfaces participate in derived-query generation.
-    @BuildStep
-    void collectRepositoryMetadata(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<RepositoryMetadata> repositoryMetadataBuildProducer) {
-        Collection<ClassInfo> jRepositoryInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(JRepository.class);
-        for (ClassInfo repositoryInterface : jRepositoryInterfaces) {
-            Optional<AnnotationInstance> mapperDatasource = repositoryInterface.asClass().annotationsMap().entrySet().stream()
-                    .filter(entry -> entry.getKey().equals(DotName.createSimple(DataSource.class)))
-                    .map(Map.Entry::getValue)
-                    .map(annotationList -> annotationList.get(0))
-                    .findFirst();
-            if (mapperDatasource.isPresent()) {
-                String dataSourceName = mapperDatasource.get().value().asString();
-                List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterface.name(),
-                        DotName.createSimple(JRepository.class), combinedIndex.getIndex());
-                repositoryMetadataBuildProducer
-                        .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
-                                JandexReflection.loadClass(repositoryInterface), dataSourceName));
-            } else {
-                List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterface.name(),
-                        DotName.createSimple(JRepository.class), combinedIndex.getIndex());
-                repositoryMetadataBuildProducer
-                        .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
-                                JandexReflection.loadClass(repositoryInterface), DataSourceUtil.DEFAULT_DATASOURCE_NAME));
-            }
-        }
-        Collection<ClassInfo> kRepositoryInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(KRepository.class);
-        for (ClassInfo repositoryInterface : kRepositoryInterfaces) {
-            Optional<AnnotationInstance> mapperDatasource = repositoryInterface.asClass().annotationsMap().entrySet().stream()
-                    .filter(entry -> entry.getKey().equals(DotName.createSimple(DataSource.class)))
-                    .map(Map.Entry::getValue)
-                    .map(annotationList -> annotationList.get(0))
-                    .findFirst();
-            if (mapperDatasource.isPresent()) {
-                String dataSourceName = mapperDatasource.get().value().asString();
-                List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterface.name(),
-                        DotName.createSimple(KRepository.class), combinedIndex.getIndex());
-                repositoryMetadataBuildProducer
-                        .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
-                                JandexReflection.loadClass(repositoryInterface), dataSourceName));
-            } else {
-                List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterface.name(),
-                        DotName.createSimple(KRepository.class), combinedIndex.getIndex());
-                repositoryMetadataBuildProducer
-                        .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
-                                JandexReflection.loadClass(repositoryInterface), DataSourceUtil.DEFAULT_DATASOURCE_NAME));
-            }
-        }
-    }
-
-    // Application-owned repository classes need entity metadata, not a generated implementation.
-    @BuildStep(onlyIf = IsJavaEnable.class)
-    @Record(ExecutionTime.STATIC_INIT)
-    void analyzeJavaRepository(@SuppressWarnings("unused") RepoRecord repoRecord,
-            CombinedIndexBuildItem combinedIndex,
-            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
-            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
-        Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex()
-                .getAllKnownSubclasses(AbstractJavaRepository.class);
-        for (ClassInfo repositoryBean : repositoryBeans) {
-            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
-
-            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
-                    DotName.createSimple(AbstractJavaRepository.class), combinedIndex.getComputingIndex());
-            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
-                    JandexReflection.loadRawType(typeParameters.get(0))));
-        }
-    }
-
-    @BuildStep(onlyIf = IsKotlinEnable.class)
-    @Record(ExecutionTime.STATIC_INIT)
-    void analyzeKotlinRepository(@SuppressWarnings("unused") RepoRecord repoRecord,
-            CombinedIndexBuildItem combinedIndex,
-            BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
-            BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
-        Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex()
-                .getAllKnownSubclasses(AbstractKotlinRepository.class);
-        for (ClassInfo repositoryBean : repositoryBeans) {
-            unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
-
-            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
-                    DotName.createSimple(AbstractKotlinRepository.class), combinedIndex.getComputingIndex());
-            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
-                    JandexReflection.loadRawType(typeParameters.get(0))));
-        }
-    }
-
-    @BuildStep
-    @Record(ExecutionTime.STATIC_INIT)
-    void recordRepoOperationsData(RepoRecord repoRecord,
-            List<EntityToClassBuildItem> entityToClassBuildItems) {
-        Map<String, Class<?>> map = new HashMap<>();
-        for (EntityToClassBuildItem entityToClassBuildItem : entityToClassBuildItems) {
-            map.put(entityToClassBuildItem.getEntityClass(), entityToClassBuildItem.getClazz());
-        }
-        repoRecord.setEntityToClassUnit(map);
-    }
-
-    @BuildStep(onlyIf = IsJavaEnable.class)
-    @Record(ExecutionTime.RUNTIME_INIT)
-    void setTransactionJCacheOperatorBean(JimmerTransactionCacheOperatorRecorder recorder,
-            JimmerDataSourcesRecorder dataSourcesRecorder,
-            JimmerBuildTimeConfig buildTimeConfig,
-            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
-            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
-        if (jdbcDataSourceBuildItems.isEmpty()) {
-            return;
-        }
-
-        for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
-            String dataSourceName = jdbcDataSourceBuildItem.getName();
-            if (!buildTimeConfig.dataSources().get(dataSourceName).triggerType().equals(TriggerType.BINLOG_ONLY)) {
-                SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
-                        .configure(JimmerTransactionCacheOperatorRecorder.LazyTransactionCacheOperator.class)
-                        .addType(TransactionCacheOperator.class)
-                        .addType(org.babyfish.jimmer.sql.cache.CacheOperator.class)
-                        .defaultBean()
-                        .scope(Singleton.class)
-                        .unremovable()
-                        .setRuntimeInit()
-                        .checkActive(dataSourcesRecorder.checkActiveSupplier(dataSourceName))
-                        .addInjectionPoint(
-                                ParameterizedType.create(InjectableInstance.class,
-                                        ClassType.create(QuarkusJSqlClientContainer.class)),
-                                DataSourceUtil.isDefault(dataSourceName)
-                                        ? AnnotationInstance.builder(Default.class).build()
-                                        : AnnotationInstance.builder(DataSource.class).add("value", dataSourceName).build())
-                        .createWith(recorder.transactionJCacheOperatorFunction(dataSourceName));
-
-                if (DataSourceUtil.isDefault(dataSourceName)) {
-                    transactionCacheOperatorConfigurator.addQualifier(Default.class);
-                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                            .addValue("value", dataSourceName).done();
-
-                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
-
-                } else {
-                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                            .addValue("value", dataSourceName).done();
-
-                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
-                }
-
-                syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
-            }
-        }
-    }
-
-    @BuildStep(onlyIf = IsKotlinEnable.class)
-    @Record(ExecutionTime.RUNTIME_INIT)
-    void setTransactionKCacheOperatorBean(JimmerTransactionCacheOperatorRecorder recorder,
-            JimmerDataSourcesRecorder dataSourcesRecorder,
-            JimmerBuildTimeConfig buildTimeConfig,
-            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
-            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
-        if (jdbcDataSourceBuildItems.isEmpty()) {
-            return;
-        }
-
-        for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
-            String dataSourceName = jdbcDataSourceBuildItem.getName();
-            if (!buildTimeConfig.dataSources().get(dataSourceName).triggerType().equals(TriggerType.BINLOG_ONLY)) {
-                SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
-                        .configure(JimmerTransactionCacheOperatorRecorder.LazyTransactionCacheOperator.class)
-                        .addType(TransactionCacheOperator.class)
-                        .addType(org.babyfish.jimmer.sql.cache.CacheOperator.class)
-                        .defaultBean()
-                        .scope(Singleton.class)
-                        .unremovable()
-                        .setRuntimeInit()
-                        .checkActive(dataSourcesRecorder.checkActiveSupplier(dataSourceName))
-                        .addInjectionPoint(
-                                ParameterizedType.create(InjectableInstance.class,
-                                        ClassType.create(QuarkusKSqlClientContainer.class)),
-                                DataSourceUtil.isDefault(dataSourceName)
-                                        ? AnnotationInstance.builder(Default.class).build()
-                                        : AnnotationInstance.builder(DataSource.class).add("value", dataSourceName).build())
-                        .createWith(recorder.transactionKCacheOperatorFunction(dataSourceName));
-
-                if (DataSourceUtil.isDefault(dataSourceName)) {
-                    transactionCacheOperatorConfigurator.addQualifier(Default.class);
-                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                            .addValue("value", dataSourceName).done();
-
-                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
-
-                } else {
-                    transactionCacheOperatorConfigurator.addQualifier().annotation(DataSource.class)
-                            .addValue("value", dataSourceName).done();
-
-                    transactionCacheOperatorConfigurator.priority(Integer.MIN_VALUE);
-                }
-
-                syntheticBeanBuildItemBuildProducer.produce(transactionCacheOperatorConfigurator.done());
-            }
-        }
-    }
-
-    @BuildStep(onlyIf = IsJavaEnable.class)
+    @BuildStep(onlyIf = JavaEnabled.class)
     @Produce(SyntheticBeansRuntimeInitBuildItem.class)
     @Consume(LoggingSetupBuildItem.class)
     @Record(ExecutionTime.RUNTIME_INIT)
@@ -548,7 +243,7 @@ final class JimmerProcessor {
         }
     }
 
-    @BuildStep(onlyIf = IsKotlinEnable.class)
+    @BuildStep(onlyIf = KotlinEnabled.class)
     @Produce(SyntheticBeansRuntimeInitBuildItem.class)
     @Consume(LoggingSetupBuildItem.class)
     @Record(ExecutionTime.RUNTIME_INIT)
@@ -637,60 +332,9 @@ final class JimmerProcessor {
     }
 
     @BuildStep
-    @Consume(RepositoryMetadata.class)
-    void generateRepositoryImpl(List<RepositoryMetadata> repositoryBuildItems,
-            BuildProducer<GeneratedBeanBuildItem> generatedBeanBuildItem) {
-        if (repositoryBuildItems.isEmpty()) {
-            return;
-        }
-        ClassOutput classOutput = new GeneratedBeanGizmoAdaptor(generatedBeanBuildItem);
-        for (RepositoryMetadata metadata : repositoryBuildItems) {
-            JimmerRepositoryFactory jimmerRepositoryFactory = new JimmerRepositoryFactory(metadata);
-            classOutput.write(jimmerRepositoryFactory.getTargetRepositoryClassName(),
-                    jimmerRepositoryFactory.getTargetRepositoryBytes());
-        }
-    }
-
-    @BuildStep
     void registerNativeImageResources(BuildProducer<NativeImageResourceBuildItem> resource) {
         resource.produce(new NativeImageResourceBuildItem(
-                Constant.CLIENT_RESOURCE,
                 Constant.ENTITIES_RESOURCE,
                 Constant.IMMUTABLES_RESOURCE));
-    }
-
-    static final class JimmerEnable extends AbstractJimmerBooleanSupplier {
-        private JimmerEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
-            super(jimmerBuildTimeConfig);
-        }
-
-        @Override
-        public boolean getAsBoolean() {
-            return jimmerBuildTimeConfig.enable();
-        }
-    }
-
-    static final class IsKotlinEnable extends AbstractJimmerBooleanSupplier {
-
-        private IsKotlinEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
-            super(jimmerBuildTimeConfig);
-        }
-
-        @Override
-        public boolean getAsBoolean() {
-            return jimmerBuildTimeConfig.language().equalsIgnoreCase("kotlin");
-        }
-    }
-
-    static final class IsJavaEnable extends AbstractJimmerBooleanSupplier {
-
-        private IsJavaEnable(JimmerBuildTimeConfig jimmerBuildTimeConfig) {
-            super(jimmerBuildTimeConfig);
-        }
-
-        @Override
-        public boolean getAsBoolean() {
-            return jimmerBuildTimeConfig.language().equalsIgnoreCase("java");
-        }
     }
 }

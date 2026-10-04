@@ -34,7 +34,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
-import io.quarkiverse.jimmer.deployment.RepositoryMetadata;
+import io.quarkiverse.jimmer.deployment.repository.RepositoryMetadata;
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;

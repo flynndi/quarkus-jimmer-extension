@@ -172,7 +172,7 @@ This is a synchronous JDBC boundary. Returning a future or publisher as a value 
 
 The extension uses Quarkus's lightweight Scheduler by default. Applications that need Quartz can add `io.quarkus:quarkus-quartz` explicitly; Quarkus then selects it for the existing scheduled job.
 
-REST, HTTP endpoints, and the default microservice HTTP exchange are optional. Add `quarkus-rest-jackson` for REST exception translation, `quarkus-vertx-http` (or an extension that brings it in) for document endpoints, and `quarkus-rest-client` plus HTTP support for the microservice bridge. These dependencies are no longer supplied transitively by Jimmer. Jackson support remains a separate core dependency; REST Jackson supplies the HTTP JSON writer for translated errors.
+REST, HTTP endpoints, and the default microservice HTTP exchange are optional. Add `quarkus-rest-jackson` for REST exception translation. Document endpoints need HTTP support and the JAX-RS/Quarkus REST metadata APIs, normally supplied by `quarkus-rest`; `quarkus-vertx-http` plus `quarkus-rest-client` also supplies these without a REST server. The default outbound microservice exchange uses REST Client, while inbound exporters use HTTP support. These dependencies are not supplied transitively by Jimmer. Jackson remains a core dependency; REST Jackson supplies the HTTP JSON writer for translated errors.
 
 REST exception translation is disabled by default. Set `quarkus.jimmer.error-translator.disabled=false` explicitly to enable it; configuring its status code or debug options alone does not enable the integration.
 
@@ -315,7 +315,7 @@ public class CacheConfig {
 
 ### Remote Associations
 
-Add `io.quarkus:quarkus-rest-client` and HTTP server support such as `io.quarkus:quarkus-vertx-http` or `io.quarkus:quarkus-rest`. The bridge uses the configured Jackson mapper directly, so it does not require the REST Client Jackson provider. Setting `quarkus.jimmer.micro-service-name` enables the default HTTP exchange and export endpoints; missing required extensions produce a configuration error.
+Add `io.quarkus:quarkus-rest-client` for the default outbound exchange and HTTP support such as `io.quarkus:quarkus-vertx-http` for inbound export endpoints. Setting `quarkus.jimmer.micro-service-name` activates each adapter when its dependencies are available; an application-provided `MicroServiceExchange` can replace the default exchange. A managed microservice client must have one resolvable exchange. The bridge uses the configured Jackson mapper directly, so it does not require the REST Client Jackson provider.
 
 #### application.yml
 ```yaml
