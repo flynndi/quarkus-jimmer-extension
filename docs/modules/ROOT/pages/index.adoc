@@ -38,7 +38,7 @@ when the application needs Quartz. Quarkus selects the scheduler implementation 
 |Transaction-cache periodic retry |`io.quarkus:quarkus-scheduler` or `io.quarkus:quarkus-quartz` |A managed datasource uses transaction triggers; interval defaults to `5s`, and `off` disables retry
 |Redis / Caffeine cache adapters |`io.quarkus:quarkus-redis-client` / `io.quarkus:quarkus-caffeine` as used by the application |Explicit application cache factory or binders; installing a dependency does not enable caching
 |REST exception translation |`io.quarkus:quarkus-rest-jackson` |Set `quarkus.jimmer.error-translator.disabled=false`
-|OpenAPI and TypeScript endpoints |`io.quarkus:quarkus-vertx-http` or an extension providing it |Explicitly configure the endpoint paths
+|OpenAPI and TypeScript endpoints |HTTP support and JAX-RS/Quarkus REST metadata APIs, normally supplied by `io.quarkus:quarkus-rest` |Explicitly configure the endpoint paths
 |Swagger UI |`io.quarkus:quarkus-swagger-ui` |Configure `quarkus.swagger-ui.urls` to reference a document; production also requires `always-include=true`
 |Default outbound microservice HTTP exchange |`io.quarkus:quarkus-rest-client` |Configure `quarkus.jimmer.micro-service-name`; auto-enabled when the dependency is present, and replaceable by an application exchange
 |Inbound microservice HTTP exporter |`io.quarkus:quarkus-vertx-http` or an extension providing it |Configure `quarkus.jimmer.micro-service-name`; auto-enabled when HTTP is present
@@ -75,6 +75,17 @@ quarkus.jimmer.client.openapi.path=/openapi.yml
 
 TypeScript uses `quarkus.jimmer.client.ts.path`.
 Relative paths use Quarkus's non-application root, while absolute paths retain their explicit location.
+
+Document generation has three separate responsibilities: `Metadatas` adapts JAX-RS/Quarkus REST API declarations,
+`OpenApiDocumentGenerator` and `TypeScriptGenerator` render resolved Jimmer metadata, and the Vert.x handlers
+read the request's `groups` parameter and serve the resulting YAML or ZIP. The generators can also be called
+with resolved metadata and configuration without a routing context or CDI lookup. Generation remains on demand;
+group filtering, configuration names, and output formats are unchanged.
+
+The HTTP extension hosts the document routes; the metadata adapter additionally requires JAX-RS and Quarkus REST
+API types on the runtime classpath. These are supplied by `quarkus-rest` or `quarkus-rest-client`; a REST server
+implementation is not itself required for generation. Missing metadata APIs are reported during the build when
+a document endpoint is configured. The `jimmer-client` generation dependency remains included in this release.
 
 [[swagger-ui]]
 == Swagger UI
