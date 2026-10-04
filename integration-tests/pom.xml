@@ -78,6 +78,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.babyfish.jimmer</groupId>
+      <artifactId>jimmer-client</artifactId>
+      <version>${jimmer.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.redisson</groupId>
       <artifactId>redisson-quarkus-30</artifactId>
       <version>${redisson.version}</version>

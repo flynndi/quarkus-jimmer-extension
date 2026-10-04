@@ -82,6 +82,7 @@
       <groupId>org.babyfish.jimmer</groupId>
       <artifactId>jimmer-client</artifactId>
       <version>${jimmer.version}</version>
+      <optional>true</optional>
     </dependency>
   </dependencies>
   <build>

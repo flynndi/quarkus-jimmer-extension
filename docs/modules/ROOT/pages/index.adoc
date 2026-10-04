@@ -28,7 +28,7 @@ For Kotlin entities, configure `org.babyfish.jimmer:jimmer-ksp:0.12.3` with your
 == Optional integrations
 
 Core data access uses CDI, Agroal, Narayana, and Jackson.
-Scheduler, Quartz, Redis, Caffeine, the HTTP server, and REST Client integrations are optional.
+Scheduler, Quartz, Redis, Caffeine, client generation, the HTTP server, and REST Client integrations are optional.
 Add `io.quarkus:quarkus-scheduler` for periodic transaction-cache retry, or `io.quarkus:quarkus-quartz`
 when the application needs Quartz. Quarkus selects the scheduler implementation without registering a second copy of the job.
 
@@ -38,7 +38,8 @@ when the application needs Quartz. Quarkus selects the scheduler implementation 
 |Transaction-cache periodic retry |`io.quarkus:quarkus-scheduler` or `io.quarkus:quarkus-quartz` |A managed datasource uses transaction triggers; interval defaults to `5s`, and `off` disables retry
 |Redis / Caffeine cache adapters |`io.quarkus:quarkus-redis-client` / `io.quarkus:quarkus-caffeine` as used by the application |Explicit application cache factory or binders; installing a dependency does not enable caching
 |REST exception translation |`io.quarkus:quarkus-rest-jackson` |Set `quarkus.jimmer.error-translator.disabled=false`
-|OpenAPI and TypeScript endpoints |HTTP support and JAX-RS/Quarkus REST metadata APIs, normally supplied by `io.quarkus:quarkus-rest` |Explicitly configure the endpoint paths
+|OpenAPI and TypeScript generation |`org.babyfish.jimmer:jimmer-client:0.12.3` |Call the generators with resolved metadata; no HTTP dependency or endpoint path is required
+|OpenAPI and TypeScript endpoints |The generation library, HTTP support and JAX-RS/Quarkus REST metadata APIs, normally supplied by `io.quarkus:quarkus-rest` |Explicitly configure the endpoint paths
 |Swagger UI |`io.quarkus:quarkus-swagger-ui` |Configure `quarkus.swagger-ui.urls` to reference a document; production also requires `always-include=true`
 |Default outbound microservice HTTP exchange |`io.quarkus:quarkus-rest-client` |Configure `quarkus.jimmer.micro-service-name`; auto-enabled when the dependency is present, and replaceable by an application exchange
 |Inbound microservice HTTP exporter |`io.quarkus:quarkus-vertx-http` or an extension providing it |Configure `quarkus.jimmer.micro-service-name`; auto-enabled when HTTP is present
@@ -65,8 +66,22 @@ REST exception translation is now disabled by default. Enable it explicitly with
 `quarkus.jimmer.error-translator.disabled=false`; setting only its status code or debug options does not enable it.
 It requires REST Jackson and returns `application/json`. Core Jackson support alone does not install a REST JSON writer.
 
-Applications upgrading from the previous defaults must declare the extensions they use. Jimmer document
-endpoints require an explicit path:
+Applications upgrading from the previous defaults must declare the extensions they use. Client generation
+also requires an explicit dependency on the ordinary Jimmer library; no additional extension module is needed:
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.babyfish.jimmer</groupId>
+    <artifactId>jimmer-client</artifactId>
+    <version>0.12.3</version>
+</dependency>
+----
+
+Keep this version aligned with the extension's Jimmer version. The extension's optional dependency does not
+manage the version of an application's explicitly declared dependency.
+Without this library and without document paths, core ORM starts normally. Adding the library alone makes
+programmatic generation available without exposing a route. Jimmer document endpoints require an explicit path:
 
 [source,properties]
 ----
@@ -84,8 +99,15 @@ group filtering, configuration names, and output formats are unchanged.
 
 The HTTP extension hosts the document routes; the metadata adapter additionally requires JAX-RS and Quarkus REST
 API types on the runtime classpath. These are supplied by `quarkus-rest` or `quarkus-rest-client`; a REST server
-implementation is not itself required for generation. Missing metadata APIs are reported during the build when
-a document endpoint is configured. The `jimmer-client` generation dependency remains included in this release.
+implementation is not itself required for generation. Configuring a document endpoint without the generation
+library, HTTP support, or metadata APIs produces a build-time configuration error naming the configured path keys.
+Library presence is detected on the application's runtime classpath; HTTP support uses Quarkus capabilities.
+There is no separate client enable property.
+
+Configuration keys, enum values, and defaults remain unchanged. Java code implementing or directly accessing
+the configuration interfaces must use the extension's own `TypeScript.NullRenderMode` and `SecurityScheme.In`
+enums instead of generator-library enums. Conversion occurs inside the generators, so configuration mapping
+does not require `jimmer-client`.
 
 [[swagger-ui]]
 == Swagger UI
@@ -181,7 +203,9 @@ or read database contents. Datasource URLs and credentials are not included. The
 declarations, not live database schema or the final mapping after runtime customizers and naming strategies.
 Only explicitly declared table names are displayed.
 
-Integration status distinguishes dependency availability and adapter registration. Redis and Caffeine entries
+Integration status distinguishes dependency availability and adapter registration. OpenAPI and TypeScript
+check the generation library, HTTP support, and metadata APIs before reporting endpoint availability.
+Redis and Caffeine entries
 describe availability only, not whether the application has configured or used a cache. The Runtime page combines
 the registered retry task with its interval and global scheduler configuration; this is configuration status,
 not a scheduler health check or a guarantee that the task has executed.

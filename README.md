@@ -176,7 +176,17 @@ REST, HTTP endpoints, and the default microservice HTTP exchange are optional. A
 
 REST exception translation is disabled by default. Set `quarkus.jimmer.error-translator.disabled=false` explicitly to enable it; configuring its status code or debug options alone does not enable the integration.
 
-Document endpoints are opt-in: set `quarkus.jimmer.client.ts.path` or `quarkus.jimmer.client.openapi.path` to expose them. Relative endpoint paths follow Quarkus's non-application root; absolute paths retain their explicit location.
+Client generation is optional. Applications that use OpenAPI or TypeScript generation must explicitly add the matching Jimmer version:
+
+```xml
+<dependency>
+    <groupId>org.babyfish.jimmer</groupId>
+    <artifactId>jimmer-client</artifactId>
+    <version>0.12.3</version>
+</dependency>
+```
+
+This library is not a separate Quarkus extension. Without it, core ORM still works and no document endpoints are registered. Adding it makes programmatic generation available; set `quarkus.jimmer.client.ts.path` or `quarkus.jimmer.client.openapi.path` to expose HTTP endpoints with the dependencies described above. Configuring a path without the required dependencies fails at build time with the affected configuration keys. No additional enable switch is needed. Relative endpoint paths follow Quarkus's non-application root; absolute paths retain their explicit location.
 
 For Swagger UI, add `io.quarkus:quarkus-swagger-ui` to the application. Jimmer generates the OpenAPI document; Quarkus serves the UI and all its static resources. The standalone UI does not require the SmallRye OpenAPI scanner. Configure the document URL explicitly:
 
@@ -204,6 +214,7 @@ Select a client to compare configured values with its actual dialect, cache regi
 settings after the application has initialized it. Refreshing or inspecting never initializes a client.
 Integration status separates available dependencies, registered adapters, and scheduler configuration.
 Redis and Caffeine availability does not mean the application has configured a Jimmer cache.
+OpenAPI and TypeScript status also checks the generation library and metadata APIs; installing HTTP alone does not make these endpoints available.
 
 Overview and Model use build-time metadata; Runtime reads existing CDI instances. None of these pages
 queries business data or exposes connection URLs and credentials. Manually assembled repository bindings

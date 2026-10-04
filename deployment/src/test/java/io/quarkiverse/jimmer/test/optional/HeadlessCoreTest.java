@@ -52,6 +52,9 @@ class HeadlessCoreTest {
                 "io.quarkus.scheduler.Scheduler",
                 "io.quarkus.redis.datasource.RedisDataSource",
                 "com.github.benmanes.caffeine.cache.Caffeine",
+                "org.babyfish.jimmer.client.runtime.Metadata",
+                "org.babyfish.jimmer.client.generator.ts.TypeScriptContext",
+                "org.babyfish.jimmer.client.generator.openapi.OpenApiGenerator",
                 "org.quartz.Scheduler" }) {
             assertThrows(ClassNotFoundException.class, () -> Class.forName(type, false, loader), type);
         }
@@ -72,6 +75,7 @@ class HeadlessCoreTest {
 
     private static Set<ArtifactKey> withoutOptionalIntegrations() {
         return Stream.of(OptionalIntegrationTestSupport.withoutHttp(), OptionalIntegrationTestSupport.withoutScheduler(),
-                OptionalIntegrationTestSupport.withoutCacheBackends()).flatMap(Set::stream).collect(Collectors.toSet());
+                OptionalIntegrationTestSupport.withoutCacheBackends(),
+                OptionalIntegrationTestSupport.withoutClientGeneration()).flatMap(Set::stream).collect(Collectors.toSet());
     }
 }

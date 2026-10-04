@@ -60,6 +60,12 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.babyfish.jimmer</groupId>
+      <artifactId>jimmer-client</artifactId>
+      <version>${jimmer.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit-internal</artifactId>
       <scope>test</scope>

@@ -81,6 +81,22 @@ class ClientResourceHandlersTest {
     }
 
     @Test
+    void preservesConfiguredApiKeyLocations() throws IOException {
+        withMetadata(() -> {
+            for (String location : new String[] { "query", "header", "cookie" }) {
+                JimmerBuildTimeConfig config = config(Map.of(
+                        "quarkus.jimmer.client.openapi.properties.components.securitySchemes.token.type", "apiKey",
+                        "quarkus.jimmer.client.openapi.properties.components.securitySchemes.token.name", "token",
+                        "quarkus.jimmer.client.openapi.properties.components.securitySchemes.token.in", location));
+                String document = new String(
+                        OpenApiDocumentGenerator.generate(Metadatas.create(false, "public", null), config),
+                        StandardCharsets.UTF_8);
+                assertTrue(document.contains("in: " + location), document);
+            }
+        });
+    }
+
+    @Test
     void generatesTypeScriptWithoutAnHttpRequestAndPreservesClientOptions() throws IOException {
         withMetadata(() -> {
             var metadata = Metadatas.create(true, "public", "/v1");

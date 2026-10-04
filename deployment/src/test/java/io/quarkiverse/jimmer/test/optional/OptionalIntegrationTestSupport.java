@@ -51,16 +51,19 @@ final class OptionalIntegrationTestSupport {
         Set<Path> paths = new LinkedHashSet<>();
         try {
             for (ArtifactKey artifact : artifacts) {
-                String metadata = "META-INF/maven/" + artifact.getGroupId() + "/" + artifact.getArtifactId()
-                        + "/pom.properties";
-                var resources = parent.getResources(metadata);
+                // Jimmer publishes Gradle-built jars without Maven pom.properties. Use a class
+                // resource to locate its jar without loading a type that the test must exclude.
+                String resourceName = artifact.equals(ArtifactKey.of("org.babyfish.jimmer", "jimmer-client"))
+                        ? "org/babyfish/jimmer/client/runtime/Metadata.class"
+                        : "META-INF/maven/" + artifact.getGroupId() + "/" + artifact.getArtifactId() + "/pom.properties";
+                var resources = parent.getResources(resourceName);
                 while (resources.hasMoreElements()) {
                     URL resource = resources.nextElement();
                     if (resource.openConnection() instanceof JarURLConnection jar) {
                         paths.add(Path.of(jar.getJarFileURL().toURI()));
                     } else if ("file".equals(resource.getProtocol())) {
                         Path root = Path.of(resource.toURI());
-                        for (int i = 0; i < Path.of(metadata).getNameCount(); i++) {
+                        for (int i = 0; i < Path.of(resourceName).getNameCount(); i++) {
                             root = root.getParent();
                         }
                         paths.add(root);
@@ -106,6 +109,10 @@ final class OptionalIntegrationTestSupport {
                 .collect(Collectors.toSet());
         artifacts.add(ArtifactKey.of("com.github.ben-manes.caffeine", "caffeine"));
         return artifacts;
+    }
+
+    static Set<ArtifactKey> withoutClientGeneration() {
+        return Set.of(ArtifactKey.of("org.babyfish.jimmer", "jimmer-client"));
     }
 
     static String messages(Throwable failure) {
