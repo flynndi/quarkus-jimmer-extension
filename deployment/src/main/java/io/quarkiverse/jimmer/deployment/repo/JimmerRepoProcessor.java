@@ -30,9 +30,7 @@ final class JimmerRepoProcessor {
 
     // Application-owned repository classes need entity metadata, not a generated implementation.
     @BuildStep(onlyIf = JavaEnabled.class)
-    @Record(ExecutionTime.STATIC_INIT)
-    void analyzeJavaRepository(@SuppressWarnings("unused") RepoRecord repoRecord,
-            CombinedIndexBuildItem combinedIndex,
+    void analyzeJavaRepository(CombinedIndexBuildItem combinedIndex,
             BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
             BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
         Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex()
@@ -40,17 +38,15 @@ final class JimmerRepoProcessor {
         for (ClassInfo repositoryBean : repositoryBeans) {
             unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
 
-            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
+            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.name(),
                     DotName.createSimple(AbstractJavaRepository.class), combinedIndex.getComputingIndex());
-            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
+            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.name().toString(),
                     JandexReflection.loadRawType(typeParameters.get(0))));
         }
     }
 
     @BuildStep(onlyIf = KotlinEnabled.class)
-    @Record(ExecutionTime.STATIC_INIT)
-    void analyzeKotlinRepository(@SuppressWarnings("unused") RepoRecord repoRecord,
-            CombinedIndexBuildItem combinedIndex,
+    void analyzeKotlinRepository(CombinedIndexBuildItem combinedIndex,
             BuildProducer<UnremovableBeanBuildItem> unremovableBeanProducer,
             BuildProducer<EntityToClassBuildItem> entityToClassProducer) {
         Collection<ClassInfo> repositoryBeans = combinedIndex.getIndex()
@@ -58,9 +54,9 @@ final class JimmerRepoProcessor {
         for (ClassInfo repositoryBean : repositoryBeans) {
             unremovableBeanProducer.produce(UnremovableBeanBuildItem.beanTypes(repositoryBean.name()));
 
-            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.asClass().name(),
+            List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryBean.name(),
                     DotName.createSimple(AbstractKotlinRepository.class), combinedIndex.getComputingIndex());
-            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.asClass().name().toString(),
+            entityToClassProducer.produce(new EntityToClassBuildItem(repositoryBean.name().toString(),
                     JandexReflection.loadRawType(typeParameters.get(0))));
         }
     }

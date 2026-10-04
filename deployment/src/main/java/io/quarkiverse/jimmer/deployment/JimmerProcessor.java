@@ -198,10 +198,7 @@ final class JimmerProcessor {
                 sqlClientQualifier = AnnotationInstance.builder(Default.class).build();
             } else {
                 String beanName = JIMMER_CONTAINER_BEAN_NAME_PREFIX + dataSourceName;
-                quarkusJSqlClientContainerConfigurator.name(beanName);
-
-                quarkusJSqlClientContainerConfigurator.addQualifier().annotation(DotNames.NAMED).addValue("value", beanName)
-                        .done();
+                quarkusJSqlClientContainerConfigurator.named(beanName);
                 quarkusJSqlClientContainerConfigurator.addQualifier().annotation(DataSource.class)
                         .addValue("value", dataSourceName).done();
                 quarkusJSqlClientContainerConfigurator.priority(5);
@@ -232,10 +229,9 @@ final class JimmerProcessor {
                 configurator.priority(10);
             } else {
                 String beanName = FEATURE + "_" + dataSourceName;
-                configurator.name(beanName);
+                configurator.named(beanName);
                 configurator.priority(5);
 
-                configurator.addQualifier().annotation(DotNames.NAMED).addValue("value", beanName).done();
                 configurator.addQualifier().annotation(DataSource.class).addValue("value", dataSourceName).done();
             }
 
@@ -288,10 +284,7 @@ final class JimmerProcessor {
                 sqlClientQualifier = AnnotationInstance.builder(Default.class).build();
             } else {
                 String beanName = JIMMER_CONTAINER_BEAN_NAME_PREFIX + dataSourceName;
-                quarkusKSqlClientContainerConfigurator.name(beanName);
-
-                quarkusKSqlClientContainerConfigurator.addQualifier().annotation(DotNames.NAMED).addValue("value", beanName)
-                        .done();
+                quarkusKSqlClientContainerConfigurator.named(beanName);
                 quarkusKSqlClientContainerConfigurator.addQualifier().annotation(DataSource.class)
                         .addValue("value", dataSourceName).done();
                 quarkusKSqlClientContainerConfigurator.priority(5);
@@ -320,10 +313,9 @@ final class JimmerProcessor {
                 configurator.priority(10);
             } else {
                 String beanName = FEATURE + "_" + dataSourceName;
-                configurator.name(beanName);
+                configurator.named(beanName);
                 configurator.priority(5);
 
-                configurator.addQualifier().annotation(DotNames.NAMED).addValue("value", beanName).done();
                 configurator.addQualifier().annotation(DataSource.class).addValue("value", dataSourceName).done();
             }
 

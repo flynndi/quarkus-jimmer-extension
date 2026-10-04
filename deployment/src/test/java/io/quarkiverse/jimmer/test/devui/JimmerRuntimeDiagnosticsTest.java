@@ -72,7 +72,6 @@ class JimmerRuntimeDiagnosticsTest {
         Map<String, Object> actual = (Map<String, Object>) snapshot.get("actual");
         assertEquals("auto", configured.get("dialect"));
         assertEquals(false, configured.get("mutationTransactionRequired"));
-        assertEquals("off", configured.get("cacheRetryInterval"));
         assertEquals(H2Dialect.class.getName(), actual.get("dialect"));
         assertEquals(true, actual.get("mutationTransactionRequired"));
         assertEquals("TRANSACTION_ONLY", actual.get("triggerType"));

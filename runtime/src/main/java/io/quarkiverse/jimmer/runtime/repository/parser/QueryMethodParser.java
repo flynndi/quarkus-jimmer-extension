@@ -32,8 +32,6 @@ class QueryMethodParser {
 
     private final int pageableParamIndex;
 
-    public static final Type[] NO_TYPES = {};
-
     private final int sortParamIndex;
 
     private final int specificationIndex;
@@ -85,7 +83,7 @@ class QueryMethodParser {
             return parse0();
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException(
-                    "Illegal abstract spring-data method \"" + method + "\": " + ex.getMessage(),
+                    "Illegal derived-query repository method \"" + method + "\": " + ex.getMessage(),
                     ex);
         }
     }

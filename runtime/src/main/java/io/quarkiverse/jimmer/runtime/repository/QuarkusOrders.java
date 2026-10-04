@@ -3,7 +3,6 @@ package io.quarkiverse.jimmer.runtime.repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.babyfish.jimmer.meta.TypedProp;
 import org.babyfish.jimmer.sql.ast.Expression;
 import org.babyfish.jimmer.sql.ast.StringExpression;
 import org.babyfish.jimmer.sql.ast.query.Order;
@@ -18,8 +17,6 @@ import io.quarkiverse.jimmer.runtime.repository.common.Sort;
  */
 @Deprecated(forRemoval = false)
 public class QuarkusOrders {
-
-    private static final TypedProp.Scalar<?, ?>[] EMPTY_PROPS = new TypedProp.Scalar<?, ?>[0];
 
     private static final Order[] EMPTY_ORDERS = new Order[0];
 

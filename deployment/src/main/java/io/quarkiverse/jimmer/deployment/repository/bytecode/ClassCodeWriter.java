@@ -30,8 +30,6 @@ abstract class ClassCodeWriter implements Constants {
 
     private final String superInternalName;
 
-    private final String entityInternalName;
-
     private final String sqlClientDescriptor;
 
     protected final List<MethodCodeWriter> methodCodeWriters;
@@ -47,7 +45,6 @@ abstract class ClassCodeWriter implements Constants {
         this.interfaceInternalName = Type.getInternalName(metadata.getRepositoryInterface());
         this.implInternalName = interfaceInternalName + "_" + HashUtil.sha1(interfaceInternalName) + "Impl";
         this.superInternalName = Type.getInternalName(superType);
-        this.entityInternalName = Type.getInternalName(metadata.getDomainType());
         this.sqlClientDescriptor = Type.getDescriptor(sqlClientType);
         Class<?> repositoryInterface = metadata.getRepositoryInterface();
         List<MethodCodeWriter> list = new ArrayList<>();
@@ -77,16 +74,8 @@ abstract class ClassCodeWriter implements Constants {
         return metadata;
     }
 
-    public String getInterfaceInternalName() {
-        return interfaceInternalName;
-    }
-
     public String getImplInternalName() {
         return implInternalName;
-    }
-
-    public String getEntityInternalName() {
-        return entityInternalName;
     }
 
     public ClassWriter getClassVisitor() {
@@ -260,8 +249,4 @@ abstract class ClassCodeWriter implements Constants {
     }
 
     protected abstract MethodCodeWriter createMethodCodeWriter(Method method, String id);
-
-    public static String implementationClassName(Class<?> itf) {
-        return itf.getName() + "_" + HashUtil.sha1(itf.getName()) + "Impl";
-    }
 }

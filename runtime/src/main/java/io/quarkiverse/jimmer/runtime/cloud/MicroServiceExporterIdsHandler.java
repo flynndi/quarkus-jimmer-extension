@@ -13,8 +13,6 @@ import org.babyfish.jimmer.sql.runtime.MicroServiceExporter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.databind.type.SimpleType;
 
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.vertx.ext.web.RoutingContext;
@@ -33,16 +31,11 @@ public class MicroServiceExporterIdsHandler extends AbstractMicroServiceExporter
 
         Fetcher<?> fetcher = FetcherCompiler.compile(fetcherStr, Thread.currentThread().getContextClassLoader());
         Class<?> idType = fetcher.getImmutableType().getIdProp().getElementClass();
-        List<?> ids = null;
+        List<?> ids;
         try {
             ids = objectMapper.readValue(
                     idArrStr,
-                    CollectionType.construct(
-                            List.class,
-                            null,
-                            null,
-                            null,
-                            SimpleType.constructUnsafe(Classes.boxTypeOf(idType))));
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, Classes.boxTypeOf(idType)));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

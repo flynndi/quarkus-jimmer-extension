@@ -188,7 +188,6 @@ public class JimmerDevUIService {
             result.put("triggerType", buildTime.triggerType().name());
         }
         result.put("databaseValidationMode", runtimeConfig.databaseValidationMode().name());
-        result.put("cacheRetryInterval", runtimeConfig.transactionCacheOperatorFixedDelay());
         return result;
     }
 
