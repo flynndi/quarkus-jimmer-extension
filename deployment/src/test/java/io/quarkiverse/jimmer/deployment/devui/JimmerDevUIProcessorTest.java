@@ -3,6 +3,7 @@ package io.quarkiverse.jimmer.deployment.devui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import jakarta.inject.Scope;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.jimmer.deployment.cache.JimmerCacheRetryBuildItem;
+import io.quarkiverse.jimmer.deployment.client.JimmerClientAvailabilityBuildItem;
 import io.quarkiverse.jimmer.deployment.client.JimmerClientEndpointBuildItem;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.devui.JimmerDevUIService;
@@ -76,7 +78,8 @@ class JimmerDevUIProcessorTest {
         List<Map<String, String>> repositories = List.of(Map.of("name", "BookRepository"));
         var overview = JimmerDevUIProcessor.overview(config,
                 List.of(new JdbcDataSourceBuildItem("books", "postgresql", Optional.empty(), true, false, false)),
-                new Capabilities(Set.of()), false, false, false, new JimmerCacheRetryBuildItem(false, false), repositories);
+                new Capabilities(Set.of()), false, false, false, new JimmerCacheRetryBuildItem(false, false),
+                new JimmerClientAvailabilityBuildItem(false, false, false), repositories);
         assertEquals(List.of(Map.of("name", "books", "dbKind", "postgresql")), overview.get("dataSources"));
         assertSame(repositories, overview.get("repositories"));
         List<Map<String, String>> features = (List<Map<String, String>>) overview.get("features");
@@ -94,7 +97,7 @@ class JimmerDevUIProcessorTest {
         var capabilities = new Capabilities(Set.of(Capability.REST_CLIENT_REACTIVE, Capability.JACKSON,
                 Capability.REDIS_CLIENT, Capability.SCHEDULER));
         var overview = JimmerDevUIProcessor.overview(config, List.of(), capabilities, false, false, true,
-                new JimmerCacheRetryBuildItem(true, true), List.of());
+                new JimmerCacheRetryBuildItem(true, true), new JimmerClientAvailabilityBuildItem(true, false, true), List.of());
         var features = ((List<Map<String, String>>) overview.get("features")).stream()
                 .collect(java.util.stream.Collectors.toMap(feature -> feature.get("name"), feature -> feature.get("status")));
         assertEquals("available", features.get("Default HTTP exchange"));
@@ -104,5 +107,57 @@ class JimmerDevUIProcessorTest {
         assertEquals("available", features.get("Caffeine cache integration"));
         assertFalse(features.containsKey("Microservice bridge"), "A custom exchange is independent of the HTTP adapters");
         assertEquals(Map.of("schedulerAvailable", true, "retryJobRegistered", true), overview.get("cacheRetry"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void missingGeneratorRemainsUnavailableWhenHttpAndMetadataApisArePresent() {
+        JimmerBuildTimeConfig config = new SmallRyeConfigBuilder().addDefaultInterceptors()
+                .withMapping(JimmerBuildTimeConfig.class).build().getConfigMapping(JimmerBuildTimeConfig.class);
+        var overview = JimmerDevUIProcessor.overview(config, List.of(), new Capabilities(Set.of(Capability.VERTX_HTTP)),
+                false, false, false, new JimmerCacheRetryBuildItem(false, false),
+                new JimmerClientAvailabilityBuildItem(false, true, true), List.of());
+        var features = ((List<Map<String, String>>) overview.get("features")).stream()
+                .filter(feature -> Set.of("Client generation", "OpenAPI", "TypeScript").contains(feature.get("name")))
+                .toList();
+        assertEquals(3, features.size());
+        features.forEach(feature -> {
+            assertEquals("unavailable", feature.get("status"));
+            assertTrue(feature.get("detail").contains("org.babyfish.jimmer:jimmer-client"));
+        });
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void programmaticGenerationDoesNotRequireHttpDependenciesOrEndpointPaths() {
+        JimmerBuildTimeConfig config = new SmallRyeConfigBuilder().addDefaultInterceptors()
+                .withMapping(JimmerBuildTimeConfig.class).build().getConfigMapping(JimmerBuildTimeConfig.class);
+        var overview = JimmerDevUIProcessor.overview(config, List.of(), new Capabilities(Set.of()), false, false, false,
+                new JimmerCacheRetryBuildItem(false, false), new JimmerClientAvailabilityBuildItem(true, false, false),
+                List.of());
+        var features = ((List<Map<String, String>>) overview.get("features")).stream()
+                .collect(java.util.stream.Collectors.toMap(feature -> feature.get("name"), feature -> feature));
+        assertEquals("available", features.get("Client generation").get("status"));
+        assertEquals("unavailable", features.get("OpenAPI").get("status"));
+        assertEquals("unavailable", features.get("TypeScript").get("status"));
+        assertTrue(features.get("OpenAPI").get("detail").contains("an HTTP extension"));
+        assertTrue(features.get("OpenAPI").get("detail").contains("metadata APIs"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void endpointPathsControlRegistrationWhenClientDependenciesArePresent() {
+        JimmerBuildTimeConfig config = new SmallRyeConfigBuilder().addDefaultInterceptors()
+                .withMapping(JimmerBuildTimeConfig.class)
+                .withDefaultValue("quarkus.jimmer.client.openapi.path", "/openapi.yml")
+                .build().getConfigMapping(JimmerBuildTimeConfig.class);
+        var overview = JimmerDevUIProcessor.overview(config, List.of(), new Capabilities(Set.of(Capability.VERTX_HTTP)),
+                false, false, false, new JimmerCacheRetryBuildItem(false, false),
+                new JimmerClientAvailabilityBuildItem(true, true, true), List.of());
+        var features = ((List<Map<String, String>>) overview.get("features")).stream()
+                .collect(java.util.stream.Collectors.toMap(feature -> feature.get("name"), feature -> feature.get("status")));
+        assertEquals("available", features.get("Client generation"));
+        assertEquals("enabled", features.get("OpenAPI"));
+        assertEquals("disabled", features.get("TypeScript"));
     }
 }

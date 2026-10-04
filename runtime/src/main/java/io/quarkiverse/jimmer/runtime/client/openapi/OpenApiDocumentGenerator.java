@@ -41,7 +41,11 @@ public final class OpenApiDocumentGenerator {
                             v.type().orElse(null),
                             v.description().orElse(null),
                             v.name().orElse(null),
-                            v.in(),
+                            switch (v.in()) {
+                                case QUERY -> OpenApiProperties.In.QUERY;
+                                case HEADER -> OpenApiProperties.In.HEADER;
+                                case COOKIE -> OpenApiProperties.In.COOKIE;
+                            },
                             v.scheme().orElse(null),
                             v.bearerFormat().orElse(null),
                             new OpenApiProperties.Flows(

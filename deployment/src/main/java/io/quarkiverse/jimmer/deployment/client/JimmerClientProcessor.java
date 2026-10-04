@@ -45,8 +45,19 @@ final class JimmerClientProcessor {
     };
 
     @BuildStep
+    JimmerClientAvailabilityBuildItem clientAvailability(Capabilities capabilities) {
+        // jimmer-client is a library, not a Quarkus extension: an extension capability cannot identify its presence.
+        return new JimmerClientAvailabilityBuildItem(
+                QuarkusClassLoader.isClassPresentAtRuntime("org.babyfish.jimmer.client.runtime.Metadata"),
+                capabilities.isPresent(Capability.VERTX_HTTP),
+                QuarkusClassLoader.isClassPresentAtRuntime("jakarta.ws.rs.Path")
+                        && QuarkusClassLoader.isClassPresentAtRuntime("org.jboss.resteasy.reactive.RestMulti"));
+    }
+
+    @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
-    void registerRoutes(JimmerBuildTimeConfig config, Capabilities capabilities, LaunchModeBuildItem launchMode,
+    void registerRoutes(JimmerBuildTimeConfig config, JimmerClientAvailabilityBuildItem availability,
+            LaunchModeBuildItem launchMode,
             TypeScriptRecorder ts, OpenApiRecorder openapi,
             BuildProducer<RouteBuildItem> routes, BuildProducer<JimmerClientEndpointBuildItem> registries) {
         if (!config.enable()) {
@@ -61,13 +72,17 @@ final class JimmerClientProcessor {
         Set<String> keys = new LinkedHashSet<>();
         client.ts().path().ifPresent(path -> keys.add("quarkus.jimmer.client.ts.path"));
         client.openapi().path().ifPresent(path -> keys.add("quarkus.jimmer.client.openapi.path"));
-        if (capabilities.isMissing(Capability.VERTX_HTTP)) {
+        if (!availability.generatorAvailable()) {
+            throw new ConfigurationException("Configured Jimmer client endpoints " + keys
+                    + " require org.babyfish.jimmer:jimmer-client; add this dependency with the same Jimmer version "
+                    + "as the extension or remove these paths", keys);
+        }
+        if (!availability.httpAvailable()) {
             throw new ConfigurationException("Configured Jimmer client endpoints " + keys + " require quarkus-vertx-http "
                     + "(also supplied by quarkus-rest); add an HTTP extension or remove these paths", keys);
         }
         // The metadata adapter reads JAX-RS declarations even when routes are served directly by Vert.x.
-        if (!QuarkusClassLoader.isClassPresentAtRuntime("jakarta.ws.rs.Path")
-                || !QuarkusClassLoader.isClassPresentAtRuntime("org.jboss.resteasy.reactive.RestMulti")) {
+        if (!availability.metadataApisAvailable()) {
             throw new ConfigurationException("Configured Jimmer client endpoints " + keys
                     + " require JAX-RS and Quarkus REST metadata APIs used by the current client metadata adapter "
                     + "(normally supplied by quarkus-rest or quarkus-rest-client); add a compatible extension "
@@ -98,14 +113,19 @@ final class JimmerClientProcessor {
         // classes even though only Jackson 2 is on the runtime classpath. Loading those V3 classes during the
         // native-image build fails with NoClassDefFoundError (tools.jackson.databind.ValueSerializer/ValueDeserializer
         // are absent), so these classes are excluded from that automatic walk; the members actually needed are
-        // registered explicitly below.
+        // registered explicitly below when generation is available. These metadata types live in jimmer-core,
+        // so this exclusion must also apply when the optional jimmer-client dependency is absent.
         for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
             ignoredClasses.produce(new IgnoreJsonDeserializeClassBuildItem(DotName.createSimple(metadataClass)));
         }
     }
 
     @BuildStep(onlyIf = Enabled.class)
-    void registerJimmerClientMetadataForReflection(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+    void registerJimmerClientMetadataForReflection(JimmerClientAvailabilityBuildItem availability,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+        if (!availability.generatorAvailable()) {
+            return;
+        }
         List<String> classes = new ArrayList<>();
         for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
             classes.add(metadataClass);
@@ -119,7 +139,10 @@ final class JimmerClientProcessor {
     }
 
     @BuildStep(onlyIf = Enabled.class)
-    NativeImageResourceBuildItem registerClientMetadataResource() {
-        return new NativeImageResourceBuildItem(Constant.CLIENT_RESOURCE);
+    void registerClientMetadataResource(JimmerClientAvailabilityBuildItem availability,
+            BuildProducer<NativeImageResourceBuildItem> resources) {
+        if (availability.generatorAvailable()) {
+            resources.produce(new NativeImageResourceBuildItem(Constant.CLIENT_RESOURCE));
+        }
     }
 }

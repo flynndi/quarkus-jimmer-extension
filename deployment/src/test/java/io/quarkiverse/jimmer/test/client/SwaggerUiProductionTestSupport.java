@@ -15,6 +15,8 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 import java.util.zip.ZipFile;
 
+import org.babyfish.jimmer.JimmerVersionsKt;
+
 import io.quarkus.builder.Version;
 import io.quarkus.maven.dependency.Dependency;
 import io.quarkus.test.ProdModeTestResults;
@@ -32,7 +34,9 @@ final class SwaggerUiProductionTestSupport {
         return new QuarkusProdModeTest()
                 .withApplicationRoot(HttpFeatureTestSupport::addMetadata)
                 .setApplicationName(name)
-                .setForcedDependencies(List.of(Dependency.of("io.quarkus", "quarkus-swagger-ui", Version.getVersion())))
+                .setForcedDependencies(List.of(
+                        Dependency.of("io.quarkus", "quarkus-swagger-ui", Version.getVersion()),
+                        Dependency.of("org.babyfish.jimmer", "jimmer-client", JimmerVersionsKt.currentVersion())))
                 .overrideConfigKey("quarkus.devservices.enabled", "false")
                 .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
                 .overrideConfigKey("quarkus.redis.devservices.enabled", "false")

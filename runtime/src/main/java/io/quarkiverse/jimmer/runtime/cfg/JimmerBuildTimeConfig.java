@@ -4,9 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.babyfish.jimmer.client.generator.openapi.OpenApiProperties;
-import org.babyfish.jimmer.client.generator.ts.NullRenderMode;
-
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.runtime.annotations.ConfigDocMapKey;
 import io.quarkus.runtime.annotations.ConfigGroup;
@@ -135,6 +132,14 @@ public interface JimmerBuildTimeConfig {
          */
         @WithDefault("false")
         boolean isEnumTsStyle();
+
+        /**
+         * How nullable values are represented in generated TypeScript clients.
+         */
+        enum NullRenderMode {
+            UNDEFINED,
+            NULL_OR_UNDEFINED
+        }
     }
 
     @ConfigGroup
@@ -320,7 +325,7 @@ public interface JimmerBuildTimeConfig {
          * SecurityScheme.in
          */
         @WithDefault("HEADER")
-        OpenApiProperties.In in();
+        In in();
 
         /**
          * SecurityScheme.scheme
@@ -341,6 +346,15 @@ public interface JimmerBuildTimeConfig {
          * SecurityScheme.openIdConnectUrl
          */
         Optional<String> openIdConnectUrl();
+
+        /**
+         * The location of an API key in a request.
+         */
+        enum In {
+            QUERY,
+            HEADER,
+            COOKIE
+        }
     }
 
     @ConfigGroup

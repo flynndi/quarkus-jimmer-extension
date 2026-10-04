@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import io.quarkiverse.jimmer.deployment.cache.JimmerCacheRetryBuildItem;
+import io.quarkiverse.jimmer.deployment.client.JimmerClientAvailabilityBuildItem;
 import io.quarkiverse.jimmer.deployment.client.JimmerClientEndpointBuildItem;
 import io.quarkiverse.jimmer.deployment.microservice.JimmerMicroserviceSupport;
 import io.quarkiverse.jimmer.deployment.repo.EntityToClassBuildItem;
@@ -43,7 +44,8 @@ final class JimmerDevUIProcessor {
             List<RepositoryMetadata> legacyRepositories, List<EntityToClassBuildItem> repositories,
             List<JdbcDataSourceBuildItem> dataSources, List<JimmerClientEndpointBuildItem> registries,
             CurateOutcomeBuildItem application, Capabilities capabilities, LaunchModeBuildItem launchMode,
-            Optional<DevContextBuildItem> devContext, JimmerCacheRetryBuildItem cacheRetry) {
+            Optional<DevContextBuildItem> devContext, JimmerCacheRetryBuildItem cacheRetry,
+            JimmerClientAvailabilityBuildItem clientAvailability) {
         Map<String, String> repositoryEntities = new TreeMap<>();
         repositories
                 .forEach(repository -> repositoryEntities.put(repository.getEntityClass(), repository.getClazz().getName()));
@@ -57,7 +59,7 @@ final class JimmerDevUIProcessor {
                 && "quarkus-caffeine".equals(dependency.getArtifactId()));
         Map<String, Object> jimmer = Map.of(
                 "overview", overview(config, dataSources, capabilities, JimmerDevUILinks.hasSwaggerUi(dependencies),
-                        swaggerUi.isPresent(), caffeineInstalled, cacheRetry, model.get("repositories")),
+                        swaggerUi.isPresent(), caffeineInstalled, cacheRetry, clientAvailability, model.get("repositories")),
                 "entities", model.get("entities"));
         return card(config.enable(), jimmer, registries, swaggerUi, contextRoot);
     }
@@ -97,13 +99,30 @@ final class JimmerDevUIProcessor {
 
     static Map<String, Object> overview(JimmerBuildTimeConfig config, List<JdbcDataSourceBuildItem> dataSources,
             Capabilities capabilities, boolean swaggerInstalled, boolean swaggerEnabled, boolean caffeineInstalled,
-            JimmerCacheRetryBuildItem cacheRetry, Object repositories) {
+            JimmerCacheRetryBuildItem cacheRetry, JimmerClientAvailabilityBuildItem clientAvailability,
+            Object repositories) {
         boolean http = capabilities.isPresent(Capability.VERTX_HTTP);
         List<Map<String, String>> features = new ArrayList<>();
-        features.add(feature("OpenAPI", config.enable(), config.client().openapi().path().isPresent(), http,
-                "quarkus.jimmer.client.openapi.path; requires an HTTP extension"));
-        features.add(feature("TypeScript", config.enable(), config.client().ts().path().isPresent(), http,
-                "quarkus.jimmer.client.ts.path; requires an HTTP extension"));
+        features.add(Map.of("name", "Client generation", "status", !config.enable() ? "disabled"
+                : clientAvailability.generatorAvailable() ? "available" : "unavailable",
+                "detail",
+                "Optional org.babyfish.jimmer:jimmer-client dependency. Programmatic generation does not require HTTP endpoints."));
+        List<String> missingClientDependencies = new ArrayList<>();
+        if (!clientAvailability.generatorAvailable()) {
+            missingClientDependencies.add("org.babyfish.jimmer:jimmer-client");
+        }
+        if (!clientAvailability.httpAvailable()) {
+            missingClientDependencies.add("an HTTP extension");
+        }
+        if (!clientAvailability.metadataApisAvailable()) {
+            missingClientDependencies.add("JAX-RS and Quarkus REST metadata APIs");
+        }
+        String clientDependencyDetail = missingClientDependencies.isEmpty() ? ""
+                : "; missing " + String.join(", ", missingClientDependencies);
+        features.add(feature("OpenAPI", config.enable(), config.client().openapi().path().isPresent(),
+                clientAvailability.endpointsAvailable(), "quarkus.jimmer.client.openapi.path" + clientDependencyDetail));
+        features.add(feature("TypeScript", config.enable(), config.client().ts().path().isPresent(),
+                clientAvailability.endpointsAvailable(), "quarkus.jimmer.client.ts.path" + clientDependencyDetail));
         features.add(feature("REST error translation", config.enable(),
                 config.errorTranslator().filter(translator -> !translator.disabled()).isPresent(),
                 capabilities.isPresent(Capability.REST) && capabilities.isPresent(Capability.REST_JACKSON),
