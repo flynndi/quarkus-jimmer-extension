@@ -31,7 +31,7 @@ public interface JimmerBuildTimeConfig {
     String language();
 
     /**
-     * jimmer.microServiceName
+     * The Jimmer microservice identity, independent of the transport used to communicate with other services.
      */
     Optional<String> microServiceName();
 

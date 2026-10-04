@@ -116,7 +116,7 @@ export class QwcJimmerOverview extends LitElement {
 
     _feature(feature) {
         const status = String(feature.status || 'Unknown');
-        const positive = status === 'enabled';
+        const positive = ['enabled', 'available', 'registered'].includes(status);
         return html`<div class="feature">
             <div class="feature-heading">
                 <strong>${feature.name}</strong>

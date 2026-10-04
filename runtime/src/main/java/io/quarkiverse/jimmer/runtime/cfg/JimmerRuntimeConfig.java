@@ -26,7 +26,9 @@ public interface JimmerRuntimeConfig {
     Map<String, JimmerDataSourceRuntimeConfig> dataSources();
 
     /**
-     * jimmer.transactionCacheOperatorFixedDelay
+     * Interval for transaction-cache retry when the application includes Quarkus Scheduler or Quartz.
+     * Set to {@code off} or {@code disabled} to disable periodic retry. Successful-commit callbacks still run.
+     * Without a scheduler extension this value does not schedule a task.
      */
     @WithDefault("5s")
     String transactionCacheOperatorFixedDelay();

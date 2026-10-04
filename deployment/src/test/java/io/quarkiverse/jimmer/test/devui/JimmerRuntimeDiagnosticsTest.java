@@ -35,6 +35,7 @@ class JimmerRuntimeDiagnosticsTest {
             .overrideConfigKey("quarkus.datasource.disabled.db-kind", "h2")
             .overrideConfigKey("quarkus.datasource.disabled.active", "false")
             .overrideConfigKey("quarkus.jimmer.trigger-type", "TRANSACTION_ONLY")
+            .overrideConfigKey("quarkus.scheduler.enabled", "false")
             .overrideConfigKey("quarkus.jimmer.transaction-cache-operator-fixed-delay", "off");
 
     @Inject
@@ -50,7 +51,10 @@ class JimmerRuntimeDiagnosticsTest {
         var diagnostics = new JimmerDevUIService(buildConfig, runtimeConfig);
         assertTrue(Arc.container().select(JimmerDevUIService.class).isUnsatisfied(),
                 "Dev UI provider must not become an ordinary test/production bean");
-        List<Map<String, Object>> clients = (List<Map<String, Object>>) diagnostics.getClients().get("clients");
+        var clientsSnapshot = diagnostics.getClients();
+        List<Map<String, Object>> clients = (List<Map<String, Object>>) clientsSnapshot.get("clients");
+        assertEquals(Map.of("interval", "off", "intervalEnabled", false, "schedulerEnabled", false),
+                clientsSnapshot.get("cacheRetry"));
         assertEquals(List.of("<default>", "disabled"), clients.stream().map(row -> row.get("name")).toList());
         assertEquals("uninitialized", clients.get(0).get("state"));
         assertEquals("inactive", clients.get(1).get("state"));

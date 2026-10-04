@@ -27,24 +27,33 @@ For Kotlin entities, configure `org.babyfish.jimmer:jimmer-ksp:0.12.3` with your
 [[optional-integrations]]
 == Optional integrations
 
-Core data access uses CDI, Agroal, Narayana, Jackson, and the lightweight Quarkus Scheduler.
-It does not require Quartz, a REST server, or a REST Client implementation.
-Add `io.quarkus:quarkus-quartz` explicitly when the application needs it. The scheduled cache retry keeps
-Quarkus's automatic scheduler selection, so adding Quartz selects it without registering a second copy of the job.
+Core data access uses CDI, Agroal, Narayana, and Jackson.
+Scheduler, Quartz, Redis, Caffeine, the HTTP server, and REST Client integrations are optional.
+Add `io.quarkus:quarkus-scheduler` for periodic transaction-cache retry, or `io.quarkus:quarkus-quartz`
+when the application needs Quartz. Quarkus selects the scheduler implementation without registering a second copy of the job.
 
 [cols="1,2,2",options="header"]
 |===
 |Integration |Application dependency |Activation
+|Transaction-cache periodic retry |`io.quarkus:quarkus-scheduler` or `io.quarkus:quarkus-quartz` |A managed datasource uses transaction triggers; interval defaults to `5s`, and `off` disables retry
+|Redis / Caffeine cache adapters |`io.quarkus:quarkus-redis-client` / `io.quarkus:quarkus-caffeine` as used by the application |Explicit application cache factory or binders; installing a dependency does not enable caching
 |REST exception translation |`io.quarkus:quarkus-rest-jackson` |Set `quarkus.jimmer.error-translator.disabled=false`
 |OpenAPI and TypeScript endpoints |`io.quarkus:quarkus-vertx-http` or an extension providing it |Explicitly configure the endpoint paths
 |Swagger UI |`io.quarkus:quarkus-swagger-ui` |Configure `quarkus.swagger-ui.urls` to reference a document; production also requires `always-include=true`
-|Default microservice HTTP bridge |`io.quarkus:quarkus-rest-client` and HTTP server support |Configure `quarkus.jimmer.micro-service-name`
+|Default outbound microservice HTTP exchange |`io.quarkus:quarkus-rest-client` |Configure `quarkus.jimmer.micro-service-name`; auto-enabled when the dependency is present, and replaceable by an application exchange
+|Inbound microservice HTTP exporter |`io.quarkus:quarkus-vertx-http` or an extension providing it |Configure `quarkus.jimmer.micro-service-name`; auto-enabled when HTTP is present
 |===
 
 Required extensions are checked when an integration is explicitly enabled. Disabled integrations do not register
 their routes or beans. Deployment SPI libraries used to contribute routes and exception mappers do not themselves
 install a server. The REST Client Jackson provider is unnecessary for the bridge's string transport;
 the bridge uses the application's Jackson mapper for payload conversion.
+
+Microservice transports use the existing `quarkus.jimmer.micro-service-name` setting and available Quarkus
+capabilities, without additional transport switches. Outbound exchange does not require an HTTP server,
+and the exporter does not require REST Client. An application-provided `MicroServiceExchange` replaces the
+default exchange and can operate without either HTTP integration. A managed microservice client still needs
+one resolvable exchange; missing or ambiguous exchanges are reported during the build.
 
 The default microservice bridge reuses one REST client per target service. The exchange owns these clients
 and closes them when its CDI bean is destroyed, including dev-mode reload. Shutdown waits for calls already
@@ -160,6 +169,11 @@ Overview and Model use build-time Jandex metadata. Viewing them does not create 
 or read database contents. Datasource URLs and credentials are not included. The model describes source
 declarations, not live database schema or the final mapping after runtime customizers and naming strategies.
 Only explicitly declared table names are displayed.
+
+Integration status distinguishes dependency availability and adapter registration. Redis and Caffeine entries
+describe availability only, not whether the application has configured or used a cache. The Runtime page combines
+the registered retry task with its interval and global scheduler configuration; this is configuration status,
+not a scheduler health check or a guarantee that the task has executed.
 
 Repository entries cover generated legacy repositories and discovered subclasses of
 `AbstractJavaRepository` / `AbstractKotlinRepository`. An application-owned repository's datasource is
@@ -341,20 +355,23 @@ own `REQUIRES_NEW` transaction, so operators for different datasources are not e
 
 This is eventual cache invalidation. A failure after commit cannot undo the business transaction.
 A cache deletion exception rolls back that operator's flush transaction, preserving the delayed deletion
-records for the next scheduled attempt. Other active operators are still attempted. Completion failures are
+records for a later flush. Other active operators are still attempted. Completion failures are
 logged; scheduled retry failures are reported to the scheduler. Deletion can be repeated after a partial
 cache operation or a failed flush commit, so cache implementations must support idempotent deletion.
 Jimmer's own batching and internal SQL error handling still apply; the extension does not turn failures
 that Jimmer handles internally into exceptions or guarantee an immediate empty queue after every commit.
 
-Application-published events without a `@DataSource` qualifier cannot identify an operator and rely on scheduled retry.
+Application-published events without a `@DataSource` qualifier cannot identify an operator and need a later flush.
 Events outside an active JTA transaction do not flush immediately: Jimmer's cache listeners may write the
-delayed deletion records after the CDI event observer returns. The scheduled job processes those records,
+delayed deletion records after the CDI event observer returns. An optional scheduled job processes those records,
 using `quarkus.jimmer.transaction-cache-operator-fixed-delay` as its interval.
-The default interval is `5s`. `off` or `disabled` disables only this scheduled job; successful commit callbacks
-still run, but failures and nontransactional events lose their periodic retry. `quarkus.scheduler.enabled=false`
-disables the application's scheduler as a whole. The lightweight scheduler checks triggers once per second;
-applications relying on Quartz-specific scheduling precision or clustering must add Quartz explicitly.
+Add `quarkus-scheduler` or `quarkus-quartz` to register the job. Without either extension, successful commit
+callbacks still run and no periodic job is registered. The default interval is `5s`; `off` or `disabled`
+disables only this job. `quarkus.scheduler.enabled=false` disables the application's scheduler as a whole.
+Without periodic retry, failures, nontransactional events, and records left by an application crash need
+an application-arranged retry or a later flush; they are not guaranteed to recover automatically.
+The lightweight scheduler checks triggers once per second; applications relying on Quartz-specific
+scheduling precision or clustering must add Quartz explicitly.
 
 == HTTP handler lifecycle
 

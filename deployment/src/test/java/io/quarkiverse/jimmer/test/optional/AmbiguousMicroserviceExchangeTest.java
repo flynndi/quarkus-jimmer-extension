@@ -8,25 +8,26 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkus.test.QuarkusUnitTest;
 
-class MissingRestClientMicroserviceTest {
+class AmbiguousMicroserviceExchangeTest {
 
     @RegisterExtension
     static final QuarkusUnitTest APP = new QuarkusUnitTest()
-            .withApplicationRoot(archive -> archive.addClass(OptionalIntegrationTestSupport.class))
-            .setExcludedDependencies(OptionalIntegrationTestSupport.withoutRestClient())
+            .withApplicationRoot(archive -> archive.addClasses(OptionalIntegrationTestSupport.class,
+                    MicroserviceTestSupport.DefaultExchange.class,
+                    MicroserviceTestSupport.OtherDefaultExchange.class))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
-            .overrideConfigKey("quarkus.datasource.jdbc.url", "jdbc:h2:mem:missing-rest-client")
+            .overrideConfigKey("quarkus.datasource.jdbc.url", "jdbc:h2:mem:ambiguous-exchange")
             .overrideConfigKey("quarkus.jimmer.micro-service-name", "inventory")
             .assertException(failure -> {
                 String messages = OptionalIntegrationTestSupport.messages(failure);
-                assertTrue(messages.contains("quarkus.jimmer.micro-service-name"), messages);
-                assertTrue(messages.contains("quarkus-rest-client"), messages);
+                assertTrue(messages.contains("Ambiguous MicroServiceExchange"), messages);
+                assertTrue(messages.contains("<default>"), messages);
             });
 
     @Test
-    void microserviceClientRequiresAnExchangeWhenTheHttpDefaultIsUnavailable() {
+    void ambiguityIsRejectedBeforeTheLazyClientIsInitialized() {
         fail("Expected a configuration failure before startup");
     }
 }

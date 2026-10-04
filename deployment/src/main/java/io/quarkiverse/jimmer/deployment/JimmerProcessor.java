@@ -20,7 +20,6 @@ import org.jboss.jandex.*;
 import io.quarkiverse.jimmer.deployment.bytecode.JimmerRepositoryFactory;
 import io.quarkiverse.jimmer.runtime.*;
 import io.quarkiverse.jimmer.runtime.QuarkusSqlClientProducer;
-import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
@@ -365,18 +364,9 @@ final class JimmerProcessor {
             JimmerDataSourcesRecorder dataSourcesRecorder,
             JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
-            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
         if (jdbcDataSourceBuildItems.isEmpty()) {
             return;
-        }
-
-        boolean transactionCacheOperatorFlusherFlag = jdbcDataSourceBuildItems.stream()
-                .anyMatch(x -> !buildTimeConfig.dataSources().get(x.getName()).triggerType().equals(TriggerType.BINLOG_ONLY));
-        if (transactionCacheOperatorFlusherFlag) {
-            AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
-            builder.addBeanClass(TransactionCacheOperatorFlusher.class);
-            additionalBeans.produce(builder.build());
         }
 
         for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {
@@ -424,18 +414,9 @@ final class JimmerProcessor {
             JimmerDataSourcesRecorder dataSourcesRecorder,
             JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
-            BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
         if (jdbcDataSourceBuildItems.isEmpty()) {
             return;
-        }
-
-        boolean transactionCacheOperatorFlusherFlag = jdbcDataSourceBuildItems.stream()
-                .anyMatch(x -> !buildTimeConfig.dataSources().get(x.getName()).triggerType().equals(TriggerType.BINLOG_ONLY));
-        if (transactionCacheOperatorFlusherFlag) {
-            AdditionalBeanBuildItem.Builder builder = AdditionalBeanBuildItem.builder().setUnremovable();
-            builder.addBeanClass(TransactionCacheOperatorFlusher.class);
-            additionalBeans.produce(builder.build());
         }
 
         for (JdbcDataSourceBuildItem jdbcDataSourceBuildItem : jdbcDataSourceBuildItems) {

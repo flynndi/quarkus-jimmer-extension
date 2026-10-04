@@ -91,6 +91,23 @@ final class OptionalIntegrationTestSupport {
                 .collect(Collectors.toSet());
     }
 
+    static Set<ArtifactKey> withoutScheduler() {
+        return Stream.of("quarkus-scheduler", "quarkus-scheduler-deployment", "quarkus-scheduler-api",
+                "quarkus-scheduler-common", "quarkus-scheduler-kotlin", "quarkus-scheduler-dev",
+                "quarkus-quartz", "quarkus-quartz-deployment")
+                .map(name -> ArtifactKey.of("io.quarkus", name))
+                .collect(Collectors.toSet());
+    }
+
+    static Set<ArtifactKey> withoutCacheBackends() {
+        Set<ArtifactKey> artifacts = Stream.of("quarkus-redis-client", "quarkus-redis-client-deployment",
+                "quarkus-caffeine", "quarkus-caffeine-deployment")
+                .map(name -> ArtifactKey.of("io.quarkus", name))
+                .collect(Collectors.toSet());
+        artifacts.add(ArtifactKey.of("com.github.ben-manes.caffeine", "caffeine"));
+        return artifacts;
+    }
+
     static String messages(Throwable failure) {
         StringBuilder messages = new StringBuilder();
         for (Throwable cause = failure; cause != null; cause = cause.getCause()) {

@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { JsonRpc } from 'jsonrpc';
+import { jimmer } from 'build-time-data';
 import '@vaadin/button';
 import '@vaadin/progress-bar';
 import 'qui-alert';
@@ -14,6 +15,7 @@ export class QwcJimmerRuntime extends LitElement {
         _enabled: { state: true },
         _language: { state: true },
         _clients: { state: true },
+        _cacheRetry: { state: true },
         _selectedName: { state: true },
         _client: { state: true },
         _listLoading: { state: true },
@@ -38,6 +40,7 @@ export class QwcJimmerRuntime extends LitElement {
         .client p { margin: var(--lumo-space-s) 0; font-size: var(--lumo-font-size-s); overflow-wrap: anywhere; }
         .client strong { overflow-wrap: anywhere; }
         .details { min-width: 0; }
+        .retry { margin: var(--lumo-space-l) 0; }
         .details > section { margin: var(--lumo-space-l) 0; }
         .status-detail { margin-top: var(--lumo-space-s); overflow-wrap: anywhere; }
         dl { margin: 0; border: 1px solid var(--lumo-contrast-10pct); border-radius: var(--lumo-border-radius-m); overflow: hidden; }
@@ -63,6 +66,7 @@ export class QwcJimmerRuntime extends LitElement {
         this._enabled = null;
         this._language = '';
         this._clients = [];
+        this._cacheRetry = null;
         this._selectedName = null;
         this._client = null;
         this._listLoading = false;
@@ -93,6 +97,7 @@ export class QwcJimmerRuntime extends LitElement {
         this._detailLoading = false;
         this._listError = '';
         this._listLoading = true;
+        this._cacheRetry = null;
         try {
             const response = await this.jsonRpc.getClients();
             if (!this.isConnected || request !== this._listRequest) return;
@@ -101,6 +106,7 @@ export class QwcJimmerRuntime extends LitElement {
             this._enabled = result.enabled;
             this._language = result.language || '';
             this._clients = result.clients;
+            this._cacheRetry = result.cacheRetry || null;
             if (!this._enabled || !this._clients.some(client => client.name === this._selectedName)) {
                 this._selectedName = null;
             }
@@ -161,6 +167,7 @@ export class QwcJimmerRuntime extends LitElement {
             ${this._enabled === false ? html`<qui-alert level="info" permanent>
                 Jimmer is disabled. There are no managed SQL clients to inspect.
             </qui-alert>` : ''}
+            ${this._cacheRetry ? this._retryDetails() : ''}
             ${this._clients.length ? html`
                 <p class="muted" role="status">${this._clients.length} clients${this._language ? ` · ${this._language}` : ''}</p>
                 <div class="browser">
@@ -174,6 +181,27 @@ export class QwcJimmerRuntime extends LitElement {
             ` : !this._listLoading && !this._listError && this._enabled !== false
                 ? html`<qwc-no-data message="No managed SQL clients are available."></qwc-no-data>` : ''}
         `;
+    }
+
+    _retryDetails() {
+        const build = jimmer?.overview?.cacheRetry || {};
+        const runtime = this._cacheRetry;
+        const status = !this._enabled ? 'Jimmer disabled'
+            : !build.schedulerAvailable ? 'Scheduler unavailable'
+            : !build.retryJobRegistered ? 'No retry task registered'
+            : !runtime.schedulerEnabled ? 'Scheduler disabled'
+            : !runtime.intervalEnabled ? 'Retry interval disabled' : 'Enabled by configuration';
+        return html`<section class="retry" aria-label="Cache retry configuration">
+            <h3>Cache retry</h3>
+            <p class="muted">${status}. This describes registration and configuration, not task execution or scheduler health.</p>
+            <dl>
+                ${this._value('Scheduler available', build.schedulerAvailable)}
+                ${this._value('Retry task registered', build.retryJobRegistered)}
+                ${this._value('Scheduler enabled in configuration', runtime.schedulerEnabled)}
+                ${this._value('Retry interval', runtime.interval)}
+            </dl>
+            <p class="muted">Disabling periodic retries does not disable flushing after a successful transaction commit.</p>
+        </section>`;
     }
 
     _clientItem(client) {
@@ -214,7 +242,6 @@ export class QwcJimmerRuntime extends LitElement {
                     ${this._value('Trigger type', configured.triggerType)}
                     ${this._value('Mutations require a transaction', configured.mutationTransactionRequired)}
                     ${this._value('Database validation', configured.databaseValidationMode)}
-                    ${this._value('Cache retry interval', configured.cacheRetryInterval)}
                 </dl>` : html`<p class="muted">Configuration is unavailable.</p>`}
             </section>
             <section aria-label="Initialized client">
