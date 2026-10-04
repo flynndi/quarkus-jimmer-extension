@@ -202,6 +202,8 @@ The former Jimmer `client.openapi.ui-path` and `ref-path` settings have been rem
 
 Configuration errors report the complete property keys at build time or runtime initialization, without opening database connections or eagerly creating clients. The checks use Quarkus configuration APIs and do not require Hibernate Validator. See [optional integrations and validation](docs/modules/ROOT/pages/index.adoc#optional-integrations) for the dependency and migration contracts.
 
+Client configuration is grouped in `runtime.cfg.JimmerClientConfig` and `JimmerOpenApiConfig`, still accessed through `JimmerBuildTimeConfig.client()` with the same configuration keys. OpenAPI handlers convert fixed document settings once and create an independent Jimmer generator for each request. Absent title, description, and version use Jimmer's defaults; incomplete security-scheme configuration is rejected at build time. See the [client configuration migration notes](docs/modules/ROOT/pages/index.adoc#optional-integrations) when using configuration interfaces directly from Java.
+
 ### Dev UI
 
 In development mode, the Jimmer card in `/q/dev-ui/` offers an overview of configured integrations,

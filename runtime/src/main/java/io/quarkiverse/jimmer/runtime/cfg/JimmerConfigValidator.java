@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.babyfish.jimmer.sql.dialect.Dialect;
@@ -41,10 +42,52 @@ public final class JimmerConfigValidator {
                         "must be greater than or equal to 0");
             }
         });
-        JimmerBuildTimeConfig.Openapi openapi = config.client().openapi();
+        JimmerOpenApiConfig openapi = config.client().openapi();
         config.client().ts().path().ifPresent(path -> validateRoutePath("quarkus.jimmer.client.ts.path", path, problems));
         openapi.path().ifPresent(path -> validateRoutePath("quarkus.jimmer.client.openapi.path", path, problems));
+        validateSecuritySchemes(openapi.properties().components().securitySchemes(), problems);
         problems.throwIfAny();
+    }
+
+    private static void validateSecuritySchemes(Map<String, JimmerOpenApiConfig.SecurityScheme> schemes, Problems problems) {
+        schemes.forEach((name, scheme) -> {
+            String prefix = "quarkus.jimmer.client.openapi.properties.components.securitySchemes.\""
+                    + name.replace("\\", "\\\\").replace("\"", "\\\"") + "\".";
+            switch (scheme.type().orElse("")) {
+                case "apiKey" -> requireValue(prefix + "name", scheme.name(), "for an apiKey security scheme", problems);
+                case "http" -> requireValue(prefix + "scheme", scheme.scheme(), "for an http security scheme", problems);
+                case "openIdConnect" -> requireValue(prefix + "open-id-connect-url", scheme.openIdConnectUrl(),
+                        "for an openIdConnect security scheme", problems);
+                case "oauth2" -> {
+                    JimmerOpenApiConfig.Flows flows = scheme.flows();
+                    flows.implicit()
+                            .ifPresent(flow -> validateOAuthFlow(prefix + "flows.implicit.", flow, true, false, problems));
+                    flows.password()
+                            .ifPresent(flow -> validateOAuthFlow(prefix + "flows.password.", flow, false, true, problems));
+                    flows.clientCredentials().ifPresent(
+                            flow -> validateOAuthFlow(prefix + "flows.clientCredentials.", flow, false, true, problems));
+                    flows.authorizationCode().ifPresent(
+                            flow -> validateOAuthFlow(prefix + "flows.authorizationCode.", flow, true, true, problems));
+                }
+                default -> problems.add(prefix + "type", "must be apiKey, http, oauth2, or openIdConnect");
+            }
+        });
+    }
+
+    private static void validateOAuthFlow(String prefix, JimmerOpenApiConfig.Flow flow, boolean authorizationRequired,
+            boolean tokenRequired, Problems problems) {
+        if (authorizationRequired) {
+            requireValue(prefix + "authorizationUrl", flow.authorizationUrl(), "for this OAuth flow", problems);
+        }
+        if (tokenRequired) {
+            requireValue(prefix + "tokenUrl", flow.tokenUrl(), "for this OAuth flow", problems);
+        }
+    }
+
+    private static void requireValue(String key, Optional<String> value, String reason, Problems problems) {
+        if (value.isEmpty() || value.get().isBlank()) {
+            problems.add(key, "must be non-empty " + reason);
+        }
     }
 
     private static void validateRoutePath(String key, String path, Problems problems) {

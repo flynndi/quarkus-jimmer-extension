@@ -97,6 +97,12 @@ read the request's `groups` parameter and serve the resulting YAML or ZIP. The g
 with resolved metadata and configuration without a routing context or CDI lookup. Generation remains on demand;
 group filtering, configuration names, and output formats are unchanged.
 
+The HTTP handler prepares its fixed OpenAPI properties once when it is created. Each request still resolves
+its own group metadata and creates a fresh Jimmer generator, whose mutable rendering state is never shared
+between requests. Programmatic callers can likewise reuse an `OpenApiDocumentGenerator` constructed from
+`JimmerOpenApiConfig.Properties` and an error HTTP status, calling `generate(metadata)` for each document.
+The static `generate(metadata, buildTimeConfig)` convenience method remains available.
+
 The HTTP extension hosts the document routes; the metadata adapter additionally requires JAX-RS and Quarkus REST
 API types on the runtime classpath. These are supplied by `quarkus-rest` or `quarkus-rest-client`; a REST server
 implementation is not itself required for generation. Configuring a document endpoint without the generation
@@ -104,10 +110,17 @@ library, HTTP support, or metadata APIs produces a build-time configuration erro
 Library presence is detected on the application's runtime classpath; HTTP support uses Quarkus capabilities.
 There is no separate client enable property.
 
-Configuration keys, enum values, and defaults remain unchanged. Java code implementing or directly accessing
-the configuration interfaces must use the extension's own `TypeScript.NullRenderMode` and `SecurityScheme.In`
-enums instead of generator-library enums. Conversion occurs inside the generators, so configuration mapping
-does not require `jimmer-client`.
+Configuration keys and enum values remain unchanged. Client configuration groups now live in
+`runtime.cfg.JimmerClientConfig` and `runtime.cfg.JimmerOpenApiConfig`; `JimmerBuildTimeConfig.client()` remains
+the entry point. Java code explicitly referring to the former nested types must update its imports, including
+the extension's `JimmerClientConfig.TypeScript.NullRenderMode` and `JimmerOpenApiConfig.SecurityScheme.In`
+enums. Conversion occurs inside the generator integration, so configuration mapping does not require
+`jimmer-client`.
+
+Generated OpenAPI documents now apply Jimmer's fallback title (`<No title>`), description (`<No Description>`),
+and version (`1.0.0`) for each absent info field, including partially configured info. Previously, constructing
+an empty info object bypassed these fallbacks. Explicit values are retained, and absent contact, license,
+security-scheme and OAuth flow nodes are omitted.
 
 [[swagger-ui]]
 == Swagger UI
@@ -241,7 +254,11 @@ Quarkus `ConfigurationException`, including complete property keys for the defau
 They do not install a global config validator or require Hibernate Validator.
 
 Build-time checks cover language selection, negative TypeScript indentation, invalid HTTP error settings,
-and invalid document route paths. Runtime initialization checks active datasource settings, including
+invalid document route paths, and OpenAPI security scheme types and their required fields. API key schemes
+require a parameter name, HTTP schemes require an authentication scheme, and OpenID Connect schemes require
+a discovery URL. Explicit OAuth flows require their applicable authorization and token URLs. These checks
+also work without the optional generator library and report the complete security-scheme configuration key.
+Runtime initialization checks active datasource settings, including
 positive batch sizes, a nonnegative offset optimization threshold, command join counts from 0 through 8,
 a default reference fetch type other than `AUTO`, and the configured dialect's class and public constructor.
 Multiple configuration problems are reported together. Dialect validation does not invoke its constructor
