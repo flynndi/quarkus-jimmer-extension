@@ -6,7 +6,7 @@ Use Jimmer's data access APIs with Quarkus CDI, datasources, and transaction man
 
 == Installation
 
-This source branch currently uses coordinates `io.github.flynndi:quarkus-jimmer:0.0.1.CR60` and Jimmer `0.12.3`.
+This source branch currently uses coordinates `io.github.flynndi:quarkus-jimmer:0.0.1.CR61` and Jimmer `0.12.3`.
 Build and install the branch artifacts locally; the already published CR60 artifact does not include this upgrade.
 Use the same Jimmer version for the entity APT/KSP processor and runtime; older published extension versions retain their own dependency versions.
 
@@ -17,7 +17,7 @@ For instance, with Maven, add the following dependency to your POM file:
 <dependency>
     <groupId>io.github.flynndi</groupId>
     <artifactId>quarkus-jimmer</artifactId>
-    <version>0.0.1.CR60</version>
+    <version>0.0.1.CR61</version>
 </dependency>
 ----
 

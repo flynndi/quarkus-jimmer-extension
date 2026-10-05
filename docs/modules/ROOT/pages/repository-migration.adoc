@@ -1,7 +1,7 @@
 = Repository contracts and migration
 
 This guide describes the current source branch using Jimmer `0.12.3`.
-The POM currently uses `0.0.1.CR60`, but the already published CR60 artifact does not include these changes.
+The POM currently uses `0.0.1.CR61`, but the already published CR60 artifact does not include these changes.
 
 == Public application contracts
 
