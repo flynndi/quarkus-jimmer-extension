@@ -5,8 +5,10 @@ import java.util.List;
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
 
+import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.event.TriggerType;
+import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.ClassType;
 import org.jboss.jandex.ParameterizedType;
@@ -17,8 +19,6 @@ import io.quarkiverse.jimmer.runtime.JimmerDataSourcesRecorder;
 import io.quarkiverse.jimmer.runtime.JimmerTransactionCacheOperatorRecorder;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
-import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
 import io.quarkus.arc.InjectableInstance;
@@ -82,7 +82,7 @@ final class JimmerCacheProcessor {
                         .checkActive(dataSourcesRecorder.checkActiveSupplier(dataSourceName))
                         .addInjectionPoint(
                                 ParameterizedType.create(InjectableInstance.class,
-                                        ClassType.create(QuarkusJSqlClientContainer.class)),
+                                        ClassType.create(JSqlClient.class)),
                                 DataSourceUtil.isDefault(dataSourceName)
                                         ? AnnotationInstance.builder(Default.class).build()
                                         : AnnotationInstance.builder(DataSource.class).add("value", dataSourceName).build())
@@ -121,7 +121,7 @@ final class JimmerCacheProcessor {
                         .checkActive(dataSourcesRecorder.checkActiveSupplier(dataSourceName))
                         .addInjectionPoint(
                                 ParameterizedType.create(InjectableInstance.class,
-                                        ClassType.create(QuarkusKSqlClientContainer.class)),
+                                        ClassType.create(KSqlClient.class)),
                                 DataSourceUtil.isDefault(dataSourceName)
                                         ? AnnotationInstance.builder(Default.class).build()
                                         : AnnotationInstance.builder(DataSource.class).add("value", dataSourceName).build())

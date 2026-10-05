@@ -12,9 +12,6 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
-import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.util.QuarkusSqlClientContainerUtil;
 import io.quarkus.agroal.runtime.AgroalDataSourceUtil;
 import io.quarkus.arc.ActiveResult;
 import io.quarkus.arc.InjectableInstance;
@@ -47,26 +44,12 @@ public class JimmerDataSourcesRecorder {
         };
     }
 
-    public Function<SyntheticCreationalContext<QuarkusJSqlClientContainer>, QuarkusJSqlClientContainer> jSqlClientContainerFunction(
-            String dataSourceName) {
-        return context -> new QuarkusJSqlClientContainer(context.getInjectedReference(
-                new TypeLiteral<InjectableInstance<JSqlClient>>() {
-                }, QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName)).get(), dataSourceName);
-    }
-
     public Function<SyntheticCreationalContext<JSqlClient>, JSqlClient> quarkusJSqlClientFunction(String dataSourceName) {
         return context -> {
             DataSource dataSource = context.getInjectedReference(new TypeLiteral<InjectableInstance<DataSource>>() {
             }, AgroalDataSourceUtil.qualifier(dataSourceName)).get();
             return context.getInjectedReference(QuarkusSqlClientProducer.class).createJSqlClient(dataSource, dataSourceName);
         };
-    }
-
-    public Function<SyntheticCreationalContext<QuarkusKSqlClientContainer>, QuarkusKSqlClientContainer> kSqlClientContainerFunction(
-            String dataSourceName) {
-        return context -> new QuarkusKSqlClientContainer(context.getInjectedReference(
-                new TypeLiteral<InjectableInstance<KSqlClient>>() {
-                }, QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName)).get(), dataSourceName);
     }
 
     public Function<SyntheticCreationalContext<KSqlClient>, KSqlClient> quarkusKSqlClientFunction(String dataSourceName) {

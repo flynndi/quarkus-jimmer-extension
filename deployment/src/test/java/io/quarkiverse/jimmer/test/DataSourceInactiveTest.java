@@ -8,11 +8,11 @@ import jakarta.inject.Inject;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
+import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
-import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkus.agroal.DataSource.DataSourceLiteral;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.InactiveBeanException;
@@ -47,7 +47,7 @@ class DataSourceInactiveTest {
     void inactiveBeansDoNotBreakStartupOrScheduledFlushing() {
         for (String name : new String[] { "disabled", "optout" }) {
             var qualifier = new DataSourceLiteral(name);
-            for (Class<?> type : new Class<?>[] { JSqlClient.class, QuarkusJSqlClientContainer.class,
+            for (Class<?> type : new Class<?>[] { JSqlClient.class, JSqlClientImplementor.class,
                     TransactionCacheOperator.class }) {
                 var handle = Arc.container().select(type, qualifier).getHandle();
                 assertNotNull(handle.getBean());

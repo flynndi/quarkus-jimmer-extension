@@ -322,13 +322,22 @@ See xref:repository-migration.adoc[Repository contracts and migration] for the p
 
 == Data sources and CDI
 
-Prefer injecting `JSqlClient` or `KSqlClient`.
+Inject `JSqlClient` or `KSqlClient` directly.
 CDI-managed clients are application-scoped: ArC creates the underlying client lazily when its proxy is first used.
-Each datasource has one managed client, and the compatibility client containers expose that same CDI proxy.
+Each datasource has one managed client.
 Injecting a proxy alone does not initialize the client or validate its active state; invoking an inactive client fails on first use.
 Construction failures are reported as CDI creation errors with the underlying cause preserved.
 
 Named Jimmer clients use the corresponding Quarkus `@DataSource("name")` qualifier and do not require a default datasource.
+For programmatic lookup, use `Jimmer.getDefaultJSqlClient()` or `Jimmer.getDefaultKSqlClient()` for the default datasource,
+and `Jimmer.getJSqlClient("name")` or `Jimmer.getKSqlClient("name")` for a named datasource.
+These methods resolve the same CDI-managed clients.
+
+The `QuarkusJSqlClientContainer` and `QuarkusKSqlClientContainer` types, their `UnConfigured` subclasses,
+`get*Container()` methods, and `jimmer_container_*` named beans have been removed.
+Replace container injection with direct client injection and container lookups with the corresponding `Jimmer` client lookup method.
+Replace `@Named("jimmer_container_name")` with `@DataSource("name")`; the default client needs no datasource qualifier.
+
 `quarkus.jimmer."name".active=false` disables the Jimmer client for that datasource without disabling the datasource itself.
 By default, Jimmer follows the datasource's active state; an inactive datasource cannot supply an active Jimmer client.
 Use programmatic CDI lookup when choosing between active and inactive clients, and check the bean's active state before obtaining it.

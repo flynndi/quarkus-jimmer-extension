@@ -7,11 +7,10 @@ import jakarta.enterprise.util.TypeLiteral;
 
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
+import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
-import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.util.QuarkusSqlClientContainerUtil;
+import io.quarkus.agroal.runtime.AgroalDataSourceUtil;
 import io.quarkus.arc.InjectableInstance;
 import io.quarkus.arc.SyntheticCreationalContext;
 import io.quarkus.runtime.annotations.Recorder;
@@ -22,17 +21,15 @@ public class JimmerTransactionCacheOperatorRecorder {
     public Function<SyntheticCreationalContext<TransactionCacheOperator>, TransactionCacheOperator> transactionJCacheOperatorFunction(
             String dataSourceName) {
         return context -> new LazyTransactionCacheOperator(() -> context.getInjectedReference(
-                new TypeLiteral<InjectableInstance<QuarkusJSqlClientContainer>>() {
-                }, QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName))
-                .get().getjSqlClient());
+                new TypeLiteral<InjectableInstance<JSqlClient>>() {
+                }, AgroalDataSourceUtil.qualifier(dataSourceName)).get());
     }
 
     public Function<SyntheticCreationalContext<TransactionCacheOperator>, TransactionCacheOperator> transactionKCacheOperatorFunction(
             String dataSourceName) {
         return context -> new LazyTransactionCacheOperator(() -> context.getInjectedReference(
-                new TypeLiteral<InjectableInstance<QuarkusKSqlClientContainer>>() {
-                }, QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName))
-                .get().getKSqlClient().getJavaClient());
+                new TypeLiteral<InjectableInstance<KSqlClient>>() {
+                }, AgroalDataSourceUtil.qualifier(dataSourceName)).get().getJavaClient());
     }
 
     public static final class LazyTransactionCacheOperator extends TransactionCacheOperator {
