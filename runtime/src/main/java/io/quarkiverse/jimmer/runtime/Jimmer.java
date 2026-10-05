@@ -4,38 +4,25 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.jetbrains.annotations.NotNull;
 
-import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
-import io.quarkiverse.jimmer.runtime.util.QuarkusSqlClientContainerUtil;
+import io.quarkus.agroal.runtime.AgroalDataSourceUtil;
+import io.quarkus.arc.Arc;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 
 public class Jimmer {
 
     public static JSqlClient getDefaultJSqlClient() {
-        return QuarkusSqlClientContainerUtil.instantiateBeanOrClass(JSqlClient.class, QuarkusSqlClientContainerUtil
-                .getQuarkusSqlClientContainerQualifier(DataSourceUtil.DEFAULT_DATASOURCE_NAME));
+        return getJSqlClient(DataSourceUtil.DEFAULT_DATASOURCE_NAME);
     }
 
     public static JSqlClient getJSqlClient(@NotNull String dataSourceName) {
-        return QuarkusSqlClientContainerUtil.instantiateBeanOrClass(JSqlClient.class,
-                QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName));
-    }
-
-    public static QuarkusJSqlClientContainer getJSqlClientContainer(@NotNull String dataSourceName) {
-        return QuarkusSqlClientContainerUtil.getQuarkusJSqlClientContainer(dataSourceName);
+        return Arc.container().select(JSqlClient.class, AgroalDataSourceUtil.qualifier(dataSourceName)).get();
     }
 
     public static KSqlClient getDefaultKSqlClient() {
-        return QuarkusSqlClientContainerUtil.instantiateBeanOrClass(KSqlClient.class, QuarkusSqlClientContainerUtil
-                .getQuarkusSqlClientContainerQualifier(DataSourceUtil.DEFAULT_DATASOURCE_NAME));
+        return getKSqlClient(DataSourceUtil.DEFAULT_DATASOURCE_NAME);
     }
 
     public static KSqlClient getKSqlClient(@NotNull String dataSourceName) {
-        return QuarkusSqlClientContainerUtil.instantiateBeanOrClass(KSqlClient.class,
-                QuarkusSqlClientContainerUtil.getQuarkusSqlClientContainerQualifier(dataSourceName));
-    }
-
-    public static QuarkusKSqlClientContainer getKSqlClientContainer(@NotNull String dataSourceName) {
-        return QuarkusSqlClientContainerUtil.getQuarkusKSqlClientContainer(dataSourceName);
+        return Arc.container().select(KSqlClient.class, AgroalDataSourceUtil.qualifier(dataSourceName)).get();
     }
 }

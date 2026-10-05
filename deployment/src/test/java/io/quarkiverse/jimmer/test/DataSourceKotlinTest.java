@@ -1,28 +1,34 @@
 package io.quarkiverse.jimmer.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.dialect.H2Dialect;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
+import org.babyfish.jimmer.sql.kt.cfg.KInitializer;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
-import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.ClientProxy;
+import io.quarkus.arc.InactiveBeanException;
 import io.quarkus.test.QuarkusUnitTest;
 
 class DataSourceKotlinTest {
     @RegisterExtension
     static final QuarkusUnitTest APP = new QuarkusUnitTest()
-            .withEmptyApplication()
+            .withApplicationRoot(archive -> archive.addClass(InitializationProbe.class))
             .overrideConfigKey("quarkus.jimmer.language", "kotlin")
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
@@ -39,17 +45,55 @@ class DataSourceKotlinTest {
     @DataSource("books")
     KSqlClient client;
 
+    @Inject
+    @DataSource("books")
+    InitializationProbe probe;
+
+    @Inject
+    @DataSource("disabled")
+    KSqlClient disabled;
+
     @Test
-    void kotlinClientsShareTheDatasourceLifecycleAndCacheBinding() {
+    void flushingFirstInitializesTheKotlinClientAndBindsItsOperatorOnce() {
+        assertInstanceOf(ClientProxy.class, client);
+        assertEquals(0, probe.initializations);
+        var operator = Arc.container().select(TransactionCacheOperator.class, new DataSource.DataSourceLiteral("books")).get();
+        assertEquals(0, probe.initializations);
+        operator.flush();
+        assertEquals(1, probe.initializations);
+
         JSqlClientImplementor javaClient = client.getJavaClient();
         assertTrue(javaClient.getDialect() instanceof H2Dialect);
-        assertSame(javaClient.getCacheOperator(),
-                Arc.container().select(TransactionCacheOperator.class, new DataSource.DataSourceLiteral("books")).get());
-        for (Class<?> type : new Class<?>[] { KSqlClient.class, QuarkusKSqlClientContainer.class,
-                TransactionCacheOperator.class }) {
+        assertSame(operator, javaClient.getCacheOperator());
+        assertSame(javaClient, probe.initializedClient);
+        boolean tableExists = javaClient.getConnectionManager().execute(connection -> {
+            try (var result = connection.getMetaData().getTables(null, null, TransactionCacheOperator.TABLE_NAME, null)) {
+                return result.next();
+            } catch (java.sql.SQLException e) {
+                throw new AssertionError(e);
+            }
+        });
+        assertTrue(tableExists);
+        for (Class<?> type : new Class<?>[] { KSqlClient.class, TransactionCacheOperator.class }) {
             assertFalse(Arc.container().select(type, new DataSource.DataSourceLiteral("disabled"))
                     .getHandle().getBean().isActive());
         }
+        operator.flush();
         Arc.container().instance(TransactionCacheOperatorFlusher.class).get().retry();
+        assertEquals(1, probe.initializations);
+        assertThrows(InactiveBeanException.class, () -> disabled.getJavaClient());
+    }
+
+    @Singleton
+    @DataSource("books")
+    public static class InitializationProbe implements KInitializer {
+        int initializations;
+        JSqlClientImplementor initializedClient;
+
+        @Override
+        public void initialize(KSqlClient sqlClient) {
+            initializations++;
+            initializedClient = sqlClient.getJavaClient();
+        }
     }
 }

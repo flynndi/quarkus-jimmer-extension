@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.jimmer.runtime.Jimmer;
-import io.quarkiverse.jimmer.runtime.java.QuarkusJSqlClientContainer;
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkiverse.jimmer.test.model.CdiBookDraft;
 import io.quarkiverse.jimmer.test.model.CdiBookProps;
@@ -58,19 +57,15 @@ class CdiSqlClientLifecycleTest {
     JSqlClient client;
 
     @Inject
-    QuarkusJSqlClientContainer container;
-
-    @Inject
     Probe probe;
 
     @Test
     void arcOwnsLazyCreationAndAllManagedEntrypointsShareTheSameProxy() {
         assertInstanceOf(ClientProxy.class, client);
         assertInstanceOf(JSqlClientImplementor.class, client);
-        assertSame(client, container.getjSqlClient());
         assertSame(client, Jimmer.getDefaultJSqlClient());
         assertSame(client, Jimmer.getJSqlClient(DataSourceUtil.DEFAULT_DATASOURCE_NAME));
-        assertSame(container, Jimmer.getJSqlClientContainer(DataSourceUtil.DEFAULT_DATASOURCE_NAME));
+        assertSame(client, Arc.container().select(JSqlClient.class).get());
         assertSame(client, Arc.container().select(JSqlClientImplementor.class).get());
         assertEquals(0, probe.customizations);
         assertEquals(0, probe.initializations);
@@ -92,7 +87,7 @@ class CdiSqlClientLifecycleTest {
         assertSame(probe.initializedClient, probe.cacheOperator.initializedClient);
 
         client.getCaches();
-        container.getjSqlClient().getTriggers();
+        Arc.container().select(JSqlClient.class).get().getTriggers();
         Jimmer.getDefaultJSqlClient().getFilters();
         assertEquals(1, probe.customizations);
         assertEquals(1, probe.initializations);

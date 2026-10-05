@@ -2,9 +2,9 @@ package io.quarkiverse.jimmer.runtime;
 
 import javax.sql.DataSource;
 
+import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.babyfish.jimmer.sql.kt.KSqlClientKt;
-import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
@@ -28,7 +28,7 @@ public class QuarkusSqlClientProducer {
         this.jimmerBuildTimeConfig = jimmerBuildTimeConfig;
     }
 
-    public JSqlClientImplementor createJSqlClient(DataSource dataSource, String dataSourceName) {
+    public JSqlClient createJSqlClient(DataSource dataSource, String dataSourceName) {
         var container = Arc.container();
         return new QuarkusSqlClientFactory(container, jimmerRuntimeConfig, jimmerBuildTimeConfig,
                 dataSource, dataSourceName, null, false)

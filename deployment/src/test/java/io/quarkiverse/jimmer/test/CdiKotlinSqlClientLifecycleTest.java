@@ -21,10 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.jimmer.runtime.Jimmer;
-import io.quarkiverse.jimmer.runtime.kotlin.QuarkusKSqlClientContainer;
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkiverse.jimmer.test.model.CdiBookDraft;
 import io.quarkus.agroal.DataSource;
+import io.quarkus.arc.Arc;
 import io.quarkus.arc.ClientProxy;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.test.QuarkusUnitTest;
@@ -49,18 +49,14 @@ class CdiKotlinSqlClientLifecycleTest {
     KSqlClient client;
 
     @Inject
-    QuarkusKSqlClientContainer container;
-
-    @Inject
     Probe probe;
 
     @Test
     void kotlinClientUsesTheSameArcLifecycleAndRegistersTheEventBridgeOnce() {
         assertInstanceOf(ClientProxy.class, client);
-        assertSame(client, container.getKSqlClient());
         assertSame(client, Jimmer.getDefaultKSqlClient());
         assertSame(client, Jimmer.getKSqlClient(DataSourceUtil.DEFAULT_DATASOURCE_NAME));
-        assertSame(container, Jimmer.getKSqlClientContainer(DataSourceUtil.DEFAULT_DATASOURCE_NAME));
+        assertSame(client, Arc.container().select(KSqlClient.class).get());
         assertEquals(0, probe.customizations);
         assertEquals(0, probe.initializations);
 
@@ -69,7 +65,7 @@ class CdiKotlinSqlClientLifecycleTest {
         assertSame(client, probe.customizerClient);
         assertSame(client, probe.initializerClient);
         assertSame(javaClient, probe.initializedClient);
-        assertSame(javaClient, container.getKSqlClient().getJavaClient());
+        assertSame(javaClient, Arc.container().select(KSqlClient.class).get().getJavaClient());
         assertSame(javaClient, Jimmer.getDefaultKSqlClient().getJavaClient());
         assertEquals(1, probe.customizations);
         assertEquals(1, probe.initializations);
