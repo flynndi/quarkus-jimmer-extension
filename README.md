@@ -12,11 +12,11 @@ The GraphQL integration and its APT/KSP processors have been removed from this d
 # Quick Start
 ## Dependency
 
-These examples target the current source branch with Jimmer `0.12.3`. Its POM currently uses extension version `0.0.1.CR60`; build and install this branch locally to use these changes. The already published CR60 artifact retains its original dependencies and does not include this upgrade. Keep the runtime and entity processor versions aligned.
+These examples target the current source branch with Jimmer `0.12.3`. Its POM currently uses extension version `0.0.1.CR61`; build and install this branch locally to use these changes. The already published CR60 artifact retains its original dependencies and does not include this upgrade. Keep the runtime and entity processor versions aligned.
 
 Gradle
 ```groovy
-def quarkusJimmerVersion = '0.0.1.CR60'
+def quarkusJimmerVersion = '0.0.1.CR61'
 def jimmerVersion = '0.12.3'
 
 implementation "io.github.flynndi:quarkus-jimmer:${quarkusJimmerVersion}"
@@ -25,7 +25,7 @@ annotationProcessor "org.babyfish.jimmer:jimmer-apt:${jimmerVersion}"
 Maven
 ```xml
 <properties>
-    <quarkus-jimmer.version>0.0.1.CR60</quarkus-jimmer.version>
+    <quarkus-jimmer.version>0.0.1.CR61</quarkus-jimmer.version>
     <jimmer.version>0.12.3</jimmer.version>
 </properties>
 
