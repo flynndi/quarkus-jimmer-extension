@@ -1,4 +1,4 @@
-package io.quarkiverse.jimmer.deployment.cdi;
+package io.quarkiverse.jimmer.deployment.event;
 
 import java.lang.reflect.Modifier;
 import java.util.Map;
@@ -13,7 +13,7 @@ import org.babyfish.jimmer.sql.event.EntityEvent;
 import org.jboss.jandex.DotName;
 
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Enabled;
-import io.quarkiverse.jimmer.runtime.cdi.QuarkusEventDispatcher;
+import io.quarkiverse.jimmer.runtime.event.QuarkusEventDispatcher;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.arc.deployment.GeneratedBeanBuildItem;

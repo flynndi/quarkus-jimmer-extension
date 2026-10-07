@@ -1,4 +1,4 @@
-package io.quarkiverse.jimmer.runtime.cdi;
+package io.quarkiverse.jimmer.runtime.event;
 
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
