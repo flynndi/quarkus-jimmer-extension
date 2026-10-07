@@ -1,6 +1,8 @@
 package io.quarkiverse.jimmer.deployment;
 
 import java.beans.Introspector;
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -8,9 +10,16 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Named;
 
+import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.JoinTable;
+import org.babyfish.jimmer.sql.LogicalDeleted;
 import org.babyfish.jimmer.sql.TransientResolver;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
+import org.babyfish.jimmer.sql.meta.LogicalDeletedLongGenerator;
+import org.babyfish.jimmer.sql.meta.LogicalDeletedUUIDGenerator;
+import org.babyfish.jimmer.sql.meta.LogicalDeletedValueGenerator;
+import org.babyfish.jimmer.sql.meta.UserIdGenerator;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTransformation;
@@ -45,10 +54,12 @@ import io.quarkus.deployment.annotations.Consume;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Produce;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 
 @BuildSteps(onlyIf = Enabled.class)
@@ -78,8 +89,8 @@ final class JimmerProcessor {
                 .build());
     }
 
-    @BuildStep(onlyIf = JavaEnabled.class)
-    void indexJimmerForJava(BuildProducer<IndexDependencyBuildItem> indexDependency) {
+    @BuildStep
+    void indexJimmer(BuildProducer<IndexDependencyBuildItem> indexDependency) {
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-core"));
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-sql"));
     }
@@ -88,6 +99,46 @@ final class JimmerProcessor {
     void indexJimmerForKotlin(BuildProducer<IndexDependencyBuildItem> indexDependency) {
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-core-kotlin"));
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-sql-kotlin"));
+    }
+
+    @BuildStep
+    void registerGeneratorConstructors(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveMethodBuildItem> reflection) {
+        var index = combinedIndex.getIndex();
+        var generatorNames = new HashSet<DotName>();
+        // Jimmer chooses these defaults for long/UUID logical deletion without an explicit generatorType.
+        generatorNames.add(DotName.createSimple(LogicalDeletedLongGenerator.class));
+        generatorNames.add(DotName.createSimple(LogicalDeletedUUIDGenerator.class));
+        for (Class<?> annotationType : List.of(GeneratedValue.class, LogicalDeleted.class, JoinTable.class)) {
+            for (var annotation : index.getAnnotations(DotName.createSimple(annotationType))) {
+                if (annotationType == JoinTable.class) {
+                    var filter = annotation.value("logicalDeletedFilter");
+                    if (filter == null) {
+                        continue;
+                    }
+                    annotation = filter.asNested();
+                }
+                var generatorType = annotation.value("generatorType");
+                if (generatorType != null) {
+                    generatorNames.add(generatorType.asClass().name());
+                }
+            }
+        }
+        generatorNames.remove(DotName.createSimple(UserIdGenerator.None.class));
+        generatorNames.remove(DotName.createSimple(LogicalDeletedValueGenerator.None.class));
+        for (var generatorName : generatorNames) {
+            // The explicitly referenced generator may live in a dependency without a Jandex index.
+            var generator = combinedIndex.getComputingIndex().getClassByName(generatorName);
+            if (generator == null || Modifier.isAbstract(generator.flags())) {
+                continue;
+            }
+            var constructor = generator.method("<init>");
+            // StrategyProvider uses only a public no-arg constructor when ArC does not supply the generator.
+            // Constructors used for CDI injection do not need reflective registration.
+            if (constructor != null && Modifier.isPublic(constructor.flags())) {
+                reflection.produce(new ReflectiveMethodBuildItem(constructor));
+            }
+        }
     }
 
     @BuildStep
