@@ -1,18 +1,26 @@
 package io.quarkiverse.jimmer.deployment.cache;
 
+import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
+import java.util.HashSet;
 import java.util.List;
 
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
 
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.cache.PropCacheInvalidator;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
+import org.babyfish.jimmer.sql.event.AssociationEvent;
+import org.babyfish.jimmer.sql.event.EntityEvent;
 import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.ClassType;
+import org.jboss.jandex.DotName;
 import org.jboss.jandex.ParameterizedType;
 
+import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Enabled;
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.JavaEnabled;
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.KotlinEnabled;
 import io.quarkiverse.jimmer.runtime.JimmerDataSourcesRecorder;
@@ -32,11 +40,52 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 
 final class JimmerCacheProcessor {
 
     // Keep optional scheduler types out of the always-loaded processor's signatures and class literals.
     private static final String RETRY_JOB = "io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorRetryJob";
+
+    @BuildStep(onlyIf = Enabled.class)
+    void registerCacheInvalidatorReflection(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveMethodBuildItem> reflection) {
+        var index = combinedIndex.getIndex();
+        var invalidator = DotName.createSimple(PropCacheInvalidator.class);
+        var entityEvent = DotName.createSimple(EntityEvent.class);
+        var associationEvent = DotName.createSimple(AssociationEvent.class);
+        var pending = new ArrayDeque<DotName>();
+        var visited = new HashSet<DotName>();
+        pending.add(invalidator);
+        index.getAllKnownImplementors(invalidator).forEach(type -> pending.add(type.name()));
+        index.getAllKnownSubinterfaces(invalidator).forEach(type -> pending.add(type.name()));
+        while (!pending.isEmpty()) {
+            var name = pending.removeFirst();
+            if (!visited.add(name)) {
+                continue;
+            }
+            var type = combinedIndex.getComputingIndex().getClassByName(name);
+            if (type == null) {
+                continue;
+            }
+            for (var method : type.methods()) {
+                if (method.name().equals("getAffectedSourceIds") && method.parametersCount() == 1
+                        && Modifier.isPublic(method.flags()) && !Modifier.isStatic(method.flags())
+                        && (method.parameterType(0).name().equals(entityEvent)
+                                || method.parameterType(0).name().equals(associationEvent))) {
+                    // Jimmer queries the declaring class to detect overrides; invocation uses the interface directly.
+                    reflection.produce(new ReflectiveMethodBuildItem("Jimmer cache invalidator override detection", true,
+                            method));
+                }
+            }
+            // A callback can be inherited from a superclass that does not itself implement PropCacheInvalidator.
+            if (type.superName() != null) {
+                pending.add(type.superName());
+            }
+            pending.addAll(type.interfaceNames());
+        }
+    }
 
     @BuildStep
     JimmerCacheRetryBuildItem registerCacheFlushing(JimmerBuildTimeConfig config, Capabilities capabilities,
