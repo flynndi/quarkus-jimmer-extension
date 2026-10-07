@@ -395,6 +395,43 @@ This API is synchronous: a returned `CompletionStage` or publisher is a return v
 It does not delay transaction completion after the callback returns.
 The ordinary `ConnectionManager.execute(...)` methods keep their connection-only behavior and do not start a transaction.
 
+[[entity-events]]
+== CDI entity events
+
+Subscribe to a specific entity with `@Observes EntityEvent<Book>` or to all entities with
+`@Observes EntityEvent<?>`. The extension generates concrete CDI event injection points at build time
+for indexed Jimmer entities, including model dependencies containing `META-INF/jimmer/entities`.
+
+[source,java]
+----
+@Singleton
+public class BookObserver {
+    void onBook(@Observes EntityEvent<Book> event) {
+        // Book changes and evictions
+    }
+
+    void onInventoryBook(@Observes @DataSource("inventory") EntityEvent<Book> event) {
+        // Only the inventory SQL client's Book events
+    }
+}
+----
+
+The entity interface comes from `event.getImmutableType()`, including evictions without old/new snapshots.
+Each Jimmer trigger callback publishes one CDI event; matching concrete, wildcard and `DatabaseEvent`
+observers receive that same event. `AssociationEvent` subscriptions are unchanged. With `TriggerType.BOTH`,
+the binlog and transaction trigger channels remain separate sources.
+
+Events retain both `@Default` and the client's `@DataSource` qualifier. Unqualified and `@Default` observers
+receive matching events from every datasource; use `@DataSource("<default>")` to restrict an observer to the
+default datasource. CDI transactional observers such as `@Observes(during = TransactionPhase.AFTER_SUCCESS)`
+keep their normal transaction semantics.
+
+Generic matching follows CDI rules: `EntityEvent<Parent>` does not subscribe to every subtype; use
+`EntityEvent<? extends Parent>` for that purpose. Types introduced only at runtime, outside the build-time
+entity index, retain wildcard event delivery but cannot support concrete generic subscriptions.
+Manual clients created with `quarkus.jimmer.enable=false` also retain wildcard delivery; concrete subscriptions
+require the extension's build-time event integration to be enabled.
+
 [[transaction-cache]]
 == Transaction cache completion
 

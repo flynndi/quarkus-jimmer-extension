@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
-import jakarta.enterprise.event.Event;
 import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.util.TypeLiteral;
 
@@ -24,10 +23,6 @@ import org.babyfish.jimmer.sql.cache.CacheOperator;
 import org.babyfish.jimmer.sql.di.*;
 import org.babyfish.jimmer.sql.dialect.DefaultDialect;
 import org.babyfish.jimmer.sql.dialect.Dialect;
-import org.babyfish.jimmer.sql.event.AssociationEvent;
-import org.babyfish.jimmer.sql.event.EntityEvent;
-import org.babyfish.jimmer.sql.event.TriggerType;
-import org.babyfish.jimmer.sql.event.Triggers;
 import org.babyfish.jimmer.sql.filter.Filter;
 import org.babyfish.jimmer.sql.kt.cfg.KCustomizer;
 import org.babyfish.jimmer.sql.kt.cfg.KCustomizerKt;
@@ -44,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.quarkiverse.jimmer.runtime.cdi.QuarkusEventDispatcher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerConfigValidator;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceRuntimeConfig;
@@ -205,8 +201,11 @@ final class QuarkusSqlClientFactory {
         builder.addDraftInterceptors(interceptors);
         builder.addExceptionTranslators(exceptionTranslators);
         configureLanguageExtensions(builder);
-        builder.addInitializers(new QuarkusEventInitializer(container.beanManager().getEvent()
-                .select(Default.Literal.INSTANCE, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName))));
+        var dispatchers = container.select(QuarkusEventDispatcher.class);
+        QuarkusEventDispatcher dispatcher = dispatchers.isUnsatisfied()
+                ? new QuarkusEventDispatcher(container.beanManager().getEvent())
+                : dispatchers.get();
+        builder.addInitializers(dispatcher.initializer(dataSourceName));
 
         builder.setMicroServiceName(buildTimeConfig.microServiceName().orElse(null));
         if (buildTimeConfig.microServiceName().isPresent()) {
@@ -351,29 +350,4 @@ final class QuarkusSqlClientFactory {
                     ex);
         }
     }
-
-    private static class QuarkusEventInitializer implements Initializer {
-
-        private final Event<Object> event;
-
-        private QuarkusEventInitializer(Event<Object> event) {
-            this.event = event;
-        }
-
-        @Override
-        public void initialize(JSqlClient sqlClient) {
-            Triggers[] triggersArr = ((JSqlClientImplementor) sqlClient).getTriggerType() == TriggerType.BOTH
-                    ? new Triggers[] { sqlClient.getTriggers(), sqlClient.getTriggers(true) }
-                    : new Triggers[] { sqlClient.getTriggers() };
-            Event<EntityEvent<?>> entityEvent = event.select(new TypeLiteral<>() {
-            });
-            Event<AssociationEvent> associationEvent = event.select(new TypeLiteral<>() {
-            });
-            for (Triggers triggers : triggersArr) {
-                triggers.addEntityListener(entityEvent::fire);
-                triggers.addAssociationListener(associationEvent::fire);
-            }
-        }
-    }
-
 }
