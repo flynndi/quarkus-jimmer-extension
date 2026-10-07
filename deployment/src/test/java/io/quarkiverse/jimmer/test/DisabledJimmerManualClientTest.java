@@ -26,9 +26,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.jimmer.runtime.SqlClients;
-import io.quarkiverse.jimmer.runtime.cdi.QuarkusEventDispatcher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
+import io.quarkiverse.jimmer.runtime.event.QuarkusEventDispatcher;
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkiverse.jimmer.test.model.CdiBookDraft;
 import io.quarkus.agroal.DataSource;

@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.quarkiverse.jimmer.runtime.cdi.QuarkusEventDispatcher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerConfigValidator;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceRuntimeConfig;
@@ -51,6 +50,7 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGener
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusUserIdGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.dialect.DialectDetector;
+import io.quarkiverse.jimmer.runtime.event.QuarkusEventDispatcher;
 import io.quarkiverse.jimmer.runtime.meta.QuarkusMetaStringResolver;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;

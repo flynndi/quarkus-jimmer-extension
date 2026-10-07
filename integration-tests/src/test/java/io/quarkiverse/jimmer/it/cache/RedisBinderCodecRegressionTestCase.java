@@ -1,18 +1,24 @@
 package io.quarkiverse.jimmer.it.cache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
 
 import jakarta.inject.Inject;
 
+import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
-import org.junit.jupiter.api.Test;
+import org.babyfish.jimmer.sql.cache.RemoteKeyPrefixProvider;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,86 +30,97 @@ import io.quarkiverse.jimmer.runtime.cache.RedisValueBinder;
 import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.test.junit.QuarkusTest;
 
-/**
- * Regression coverage for the two {@link RedisValueBinder} / {@link RedisHashBinder} builder entry points:
- * an omitted {@link ObjectMapper} (must not NPE during construction, unlike before this was fixed) and a
- * plain, unconfigured {@link ObjectMapper} (must still serialize immutable entities correctly, and must not
- * be mutated by the binder).
- */
+/** Both legacy binders must work with an omitted or plain mapper, without modifying the caller's mapper. */
 @QuarkusTest
 class RedisBinderCodecRegressionTestCase {
 
     @Inject
     RedisDataSource redisDataSource;
 
-    @Test
-    void valueBinderBuildsAndRoundTripsWhenObjectMapperOmitted() {
-        RedisValueBinder<Long, Book> binder = RedisValueBinder.<Long, Book> forObject(ImmutableType.get(Book.class))
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void valueBinderRoundTripsImmutableEntities(boolean supplyMapper) {
+        ObjectMapper mapper = new ObjectMapper();
+        var modules = Set.copyOf(mapper.getRegisteredModuleIds());
+        var serializationConfig = mapper.getSerializationConfig();
+        var deserializationConfig = mapper.getDeserializationConfig();
+        var builder = RedisValueBinder.<Long, Book> forObject(ImmutableType.get(Book.class))
                 .duration(Duration.ofMinutes(1))
                 .randomPercent(10)
-                .redis(redisDataSource)
-                .build();
-
-        assertRoundTrips(binder, 90_001L);
-    }
-
-    @Test
-    void valueBinderBuildsAndRoundTripsWithPlainObjectMapper() {
-        ObjectMapper plainMapper = new ObjectMapper();
-        int modulesBefore = plainMapper.getRegisteredModuleIds().size();
-
-        RedisValueBinder<Long, Book> binder = RedisValueBinder.<Long, Book> forObject(ImmutableType.get(Book.class))
-                .objectMapper(plainMapper)
-                .duration(Duration.ofMinutes(1))
-                .randomPercent(10)
-                .redis(redisDataSource)
-                .build();
-
-        assertRoundTrips(binder, 90_002L);
-        // the caller's mapper must not be mutated in place
-        assertEquals(modulesBefore, plainMapper.getRegisteredModuleIds().size());
-    }
-
-    @Test
-    void hashBinderBuildsWhenObjectMapperOmitted() {
-        RedisHashBinder<Long, Long> binder = RedisHashBinder.<Long, Long> forProp(
-                ImmutableType.get(BookStore.class).getProp("books"))
-                .duration(Duration.ofMinutes(1))
-                .randomPercent(10)
-                .redis(redisDataSource)
-                .build();
-
-        assertNotNull(binder);
-    }
-
-    @Test
-    void hashBinderBuildsWithPlainObjectMapper() {
-        ObjectMapper plainMapper = new ObjectMapper();
-
-        RedisHashBinder<Long, Long> binder = RedisHashBinder.<Long, Long> forProp(
-                ImmutableType.get(BookStore.class).getProp("books"))
-                .objectMapper(plainMapper)
-                .duration(Duration.ofMinutes(1))
-                .randomPercent(10)
-                .redis(redisDataSource)
-                .build();
-
-        assertNotNull(binder);
-        assertFalse(plainMapper.getRegisteredModuleIds().stream()
-                .anyMatch(id -> String.valueOf(id).contains("Immutable")));
-    }
-
-    private void assertRoundTrips(RedisValueBinder<Long, Book> binder, long id) {
+                .keyPrefixProvider(isolatedKeys())
+                .redis(redisDataSource);
+        if (supplyMapper) {
+            builder.objectMapper(mapper);
+        }
+        RedisValueBinder<Long, Book> binder = builder.build();
+        long id = 1L;
         Book book = Immutables.createBook(draft -> {
             draft.setId(id);
             draft.setName("Effective Java");
             draft.setEdition(3);
             draft.setPrice(new BigDecimal("45.00"));
         });
+        try {
+            binder.setAll(Map.of(id, book));
+            assertEquals(Map.of(id, book), binder.getAll(List.of(id)));
+            assertEquals(modules, mapper.getRegisteredModuleIds());
+            assertSame(serializationConfig, mapper.getSerializationConfig());
+            assertSame(deserializationConfig, mapper.getDeserializationConfig());
+        } finally {
+            binder.deleteAll(List.of(id), "redis");
+        }
+        assertTrue(binder.getAll(List.of(id)).isEmpty());
+    }
 
-        binder.setAll(Collections.singletonMap(id, book));
-        Map<Long, Book> loaded = binder.getAll(Collections.singletonList(id));
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void hashBinderRoundTripsAssociationIdsForSeparateParameterMaps(boolean supplyMapper) {
+        ObjectMapper mapper = new ObjectMapper();
+        var modules = Set.copyOf(mapper.getRegisteredModuleIds());
+        var serializationConfig = mapper.getSerializationConfig();
+        var deserializationConfig = mapper.getDeserializationConfig();
+        var builder = RedisHashBinder.<Long, List<Long>> forProp(ImmutableType.get(BookStore.class).getProp("books"))
+                .duration(Duration.ofMinutes(1))
+                .randomPercent(10)
+                .keyPrefixProvider(isolatedKeys())
+                .redis(redisDataSource);
+        if (supplyMapper) {
+            builder.objectMapper(mapper);
+        }
+        RedisHashBinder<Long, List<Long>> binder = builder.build();
+        long id = 1L;
+        var tenantA = new TreeMap<String, Object>(Map.of("tenant", "a"));
+        var tenantB = new TreeMap<String, Object>(Map.of("tenant", "b"));
+        Map<Long, List<Long>> first = Map.of(id, List.of(11L, 12L));
+        Map<Long, List<Long>> second = Map.of(id, List.of(13L));
+        try {
+            binder.setAll(first, tenantA);
+            binder.setAll(second, tenantB);
+            assertEquals(first, binder.getAll(List.of(id), tenantA));
+            assertEquals(second, binder.getAll(List.of(id), tenantB));
+            assertTrue(binder.getAll(List.of(id)).isEmpty());
+            assertEquals(modules, mapper.getRegisteredModuleIds());
+            assertSame(serializationConfig, mapper.getSerializationConfig());
+            assertSame(deserializationConfig, mapper.getDeserializationConfig());
+        } finally {
+            binder.deleteAll(List.of(id), "redis");
+        }
+        assertTrue(binder.getAll(List.of(id), tenantA).isEmpty());
+        assertTrue(binder.getAll(List.of(id), tenantB).isEmpty());
+    }
 
-        assertEquals(book, loaded.get(id));
+    private static RemoteKeyPrefixProvider isolatedKeys() {
+        String prefix = "quarkus-jimmer-test:" + UUID.randomUUID() + ':';
+        return new RemoteKeyPrefixProvider() {
+            @Override
+            public String typeKeyPrefix(ImmutableType type) {
+                return prefix + type.getJavaClass().getSimpleName() + ':';
+            }
+
+            @Override
+            public String propKeyPrefix(ImmutableProp prop) {
+                return prefix + prop.getDeclaringType().getJavaClass().getSimpleName() + '.' + prop.getName() + ':';
+            }
+        };
     }
 }

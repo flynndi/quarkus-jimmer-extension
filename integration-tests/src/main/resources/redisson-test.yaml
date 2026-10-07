@@ -1,0 +1,10 @@
+# Selected only by the test configuration profile; packaged so the same HTTP tests also run against native images.
+singleServerConfig:
+  address: "${JIMMER_TEST_REDIS_URL:-redis://127.0.0.1:6379}"
+  database: 15
+  connectionMinimumIdleSize: 1
+  connectionPoolSize: 4
+  subscriptionConnectionMinimumIdleSize: 1
+  subscriptionConnectionPoolSize: 2
+threads: 2
+nettyThreads: 2

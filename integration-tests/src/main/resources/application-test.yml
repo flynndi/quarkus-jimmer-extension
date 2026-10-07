@@ -1,0 +1,34 @@
+# Shared by @QuarkusTest and the packaged-tests/native build profiles.
+quarkus:
+  datasource:
+    devservices:
+      enabled: false
+    db-kind: h2
+    username: sa
+    password: ""
+    jdbc:
+      url: "jdbc:h2:mem:jimmer-tests;DB_CLOSE_DELAY=-1"
+    DB2:
+      devservices:
+        enabled: false
+      db-kind: h2
+      username: sa
+      password: ""
+      jdbc:
+        url: "jdbc:h2:mem:jimmer-tests-db2;DB_CLOSE_DELAY=-1"
+  redis:
+    devservices:
+      enabled: false
+    hosts: "${JIMMER_TEST_REDIS_URL:redis://127.0.0.1:6379}/15"
+    password: ""
+  redisson:
+    file: redisson-test.yaml
+  jimmer:
+    show-sql: false
+    trigger-type: TRANSACTION_ONLY
+    DB2:
+      trigger-type: TRANSACTION_ONLY
+    transaction-cache-operator-fixed-delay: "off"
+    error-translator:
+      disabled: false
+      http-status: 500

@@ -1,30 +1,32 @@
 name: Build
 
 on:
+  workflow_dispatch:
+  release:
+    types: [published]
   push:
     branches:
       - "main"
     paths-ignore:
       - '.gitignore'
-      - 'CODEOWNERS'
       - 'LICENSE'
       - '*.md'
       - '*.adoc'
       - '*.txt'
-      - '.all-contributorsrc'
   pull_request:
     paths-ignore:
       - '.gitignore'
-      - 'CODEOWNERS'
       - 'LICENSE'
       - '*.md'
       - '*.adoc'
       - '*.txt'
-      - '.all-contributorsrc'
+
+permissions:
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'release' }}
 
 defaults:
   run:
@@ -32,13 +34,9 @@ defaults:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-#        os: [windows-latest, macos-latest, ubuntu-latest]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    name: Build on ubuntu-latest
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
     services:
       redis:
         image: redis
@@ -50,24 +48,111 @@ jobs:
         ports:
           - 6379:6379
     steps:
-      - name: Prepare git
-        run: git config --global core.autocrlf false
-        if: startsWith(matrix.os, 'windows')
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
-      - uses: actions/checkout@v3
+      - name: Validate release version
+        if: github.event_name == 'release'
+        id: release
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          import xml.etree.ElementTree as ET
+
+          ns = {"m": "http://maven.apache.org/POM/4.0.0"}
+          version = ET.parse("pom.xml").findtext("m:version", namespaces=ns)
+          tag = os.environ["RELEASE_TAG"]
+          if not version or not re.fullmatch(r"[0-9][0-9A-Za-z.-]*", version) or "SNAPSHOT" in version.upper():
+              raise SystemExit("Release requires a non-SNAPSHOT Maven version")
+          if tag != version:
+              raise SystemExit(f"Release tag {tag!r} must exactly match Maven version {version!r}")
+          for module in ("runtime", "deployment"):
+              parent_version = ET.parse(f"{module}/pom.xml").findtext("m:parent/m:version", namespaces=ns)
+              if parent_version != version:
+                  raise SystemExit(f"{module} parent version must match {version}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"version={version}\n")
+          PY
+
+      - name: Check that release coordinates are unpublished
+        if: github.event_name == 'release'
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          for artifact in quarkus-jimmer-parent quarkus-jimmer quarkus-jimmer-deployment; do
+            url="https://repo.maven.apache.org/maven2/io/github/flynndi/${artifact}/${RELEASE_VERSION}/${artifact}-${RELEASE_VERSION}.pom"
+            status=$(curl --silent --show-error --location --retry 3 --max-time 30 --output /dev/null --write-out '%{http_code}' "$url")
+            case "$status" in
+              404) ;;
+              200) echo "::error::${artifact}:${RELEASE_VERSION} is already published; Maven Central versions cannot be replaced."; exit 1 ;;
+              *) echo "::error::Cannot check Maven Central availability (HTTP ${status})."; exit 1 ;;
+            esac
+          done
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: 17
-#          cache: 'maven'
 
       - name: Install parent POM
         run: mvn -N -B install -Dgpg.skip=true
 
-      - name: Build with Maven
-        run: mvn -B clean install -Dno-format -Dgpg.skip=true
+      - name: Build and test with Maven (JVM)
+        run: mvn -B clean install -Ppackaged-tests -Dno-format -Dgpg.skip=true
 
       - name: Build with Maven (Native)
-        run: mvn -B install -Dnative -Dquarkus.native.container-build -Dnative.surefire.skip -Dgpg.skip=true
+        run: mvn -B install -Dnative -Dquarkus.native.container-build=true -Dnative.surefire.skip=true -Dgpg.skip=true
+
+  publish:
+    name: Publish to Maven Central
+    if: github.event_name == 'release' && github.repository == 'flynndi/quarkus-jimmer-extension'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: deploy-setting.xml
+    concurrency:
+      group: maven-central-${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Java and Central authentication
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: 17
+          server-id: central
+          server-username-env-var: SERVER_CENTRAL_USERNAME
+          server-password-env-var: SERVER_CENTRAL_PASSWORD
+
+      - name: Publish signed release artifacts
+        env:
+          SERVER_CENTRAL_USERNAME: ${{ vars.SERVER_CENTRAL_USERNAME }}
+          SERVER_CENTRAL_PASSWORD: ${{ secrets.SERVER_CENTRAL_PASSWORD }}
+          MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          for name in SERVER_CENTRAL_USERNAME SERVER_CENTRAL_PASSWORD MAVEN_GPG_KEY MAVEN_GPG_PASSPHRASE; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing ${name}; check the deploy-setting.xml environment configuration."
+              exit 1
+            fi
+          done
+          mvn -B -ntp clean deploy \
+            -DperformRelease=true \
+            -DskipTests \
+            -Dno-format \
+            -Dgpg.signer=bc \
+            -Dgpg.bestPractices=true \
+            -Dgpg.useagent=false \
+            -DautoPublish=true \
+            -DwaitUntil=published

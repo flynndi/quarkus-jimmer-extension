@@ -1,13 +1,13 @@
-package io.quarkiverse.jimmer.it.parser;
+package io.quarkiverse.jimmer.test.repository.parser;
 
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.runtime.repository.parser.Context;
 import io.quarkiverse.jimmer.runtime.repository.parser.PropPredicate;
 import io.quarkiverse.jimmer.runtime.repository.parser.Source;
+import io.quarkiverse.jimmer.test.repository.model.Book;
 
 public class PropPredicateParserTest {
 

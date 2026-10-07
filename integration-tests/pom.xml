@@ -13,6 +13,7 @@
     <skipITs>true</skipITs>
     <redisson.version>3.45.0</redisson.version>
     <native.surefire.skip>${skipITs}</native.surefire.skip>
+    <quarkus.native.resources.includes>h2-database*.sql,redisson-test.yaml</quarkus.native.resources.includes>
   </properties>
   <dependencies>
     <dependency>
@@ -127,6 +128,7 @@
             <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <maven.home>${maven.home}</maven.home>
+            <quarkus.test.integration-test-profile>test</quarkus.test.integration-test-profile>
           </systemPropertyVariables>
         </configuration>
       </plugin>
@@ -151,6 +153,13 @@
   </build>
   <profiles>
     <profile>
+      <id>packaged-tests</id>
+      <properties>
+        <quarkus.profile>test</quarkus.profile>
+        <skipITs>false</skipITs>
+      </properties>
+    </profile>
+    <profile>
       <id>native-image</id>
       <activation>
         <property>
@@ -169,6 +178,7 @@
       </build>
       <properties>
         <skipITs>false</skipITs>
+        <quarkus.profile>test</quarkus.profile>
         <quarkus.native.enabled>true</quarkus.native.enabled>
       </properties>
     </profile>

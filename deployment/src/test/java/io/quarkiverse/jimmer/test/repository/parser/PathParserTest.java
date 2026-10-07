@@ -1,13 +1,13 @@
-package io.quarkiverse.jimmer.it.parser;
+package io.quarkiverse.jimmer.test.repository.parser;
 
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.runtime.repository.parser.Context;
 import io.quarkiverse.jimmer.runtime.repository.parser.Path;
 import io.quarkiverse.jimmer.runtime.repository.parser.Source;
+import io.quarkiverse.jimmer.test.repository.model.Book;
 
 public class PathParserTest {
 
@@ -32,7 +32,7 @@ public class PathParserTest {
                 ImmutableType.get(Book.class)));
         Assertions.assertEquals(
                 "Cannot resolve the property name \"[Name2]\" by " +
-                        "\"io.quarkiverse.jimmer.it.entity.Book\"",
+                        "\"io.quarkiverse.jimmer.test.repository.model.Book\"",
                 ex.getMessage());
     }
 
@@ -45,7 +45,7 @@ public class PathParserTest {
                 ImmutableType.get(Book.class)));
         Assertions.assertEquals(
                 "Cannot resolve the property name \"[Nam]\" by " +
-                        "\"io.quarkiverse.jimmer.it.entity.Book\"",
+                        "\"io.quarkiverse.jimmer.test.repository.model.Book\"",
                 ex.getMessage());
     }
 
@@ -70,7 +70,7 @@ public class PathParserTest {
                 ImmutableType.get(Book.class)));
         Assertions.assertEquals(
                 "Cannot resolve the property name \"Store[Name2]\" by " +
-                        "\"io.quarkiverse.jimmer.it.entity.BookStore\"",
+                        "\"io.quarkiverse.jimmer.test.repository.model.BookStore\"",
                 ex.getMessage());
     }
 
@@ -83,7 +83,7 @@ public class PathParserTest {
                 ImmutableType.get(Book.class)));
         Assertions.assertEquals(
                 "Cannot resolve the property name \"[StoreNam]\" by " +
-                        "\"io.quarkiverse.jimmer.it.entity.Book\"",
+                        "\"io.quarkiverse.jimmer.test.repository.model.Book\"",
                 ex.getMessage());
     }
 }
