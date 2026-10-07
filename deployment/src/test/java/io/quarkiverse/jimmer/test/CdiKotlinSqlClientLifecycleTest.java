@@ -78,6 +78,8 @@ class CdiKotlinSqlClientLifecycleTest {
         CdiBook book = CdiBookDraft.$.produce(draft -> draft.setId(2L).setName("Beta"));
         javaClient.getTriggers().fireEntityTableChange(null, book, null);
         assertEquals(1, probe.events);
+        assertEquals(1, probe.typedEvents);
+        assertSame(probe.lastEvent, probe.lastTypedEvent);
         assertEquals(2L, probe.lastEvent.getId());
         assertSame(book, probe.lastEvent.getNewEntity());
     }
@@ -87,14 +89,21 @@ class CdiKotlinSqlClientLifecycleTest {
         int customizations;
         int initializations;
         int events;
+        int typedEvents;
         KSqlClient customizerClient;
         KSqlClient initializerClient;
         JSqlClientImplementor initializedClient;
         EntityEvent<?> lastEvent;
+        EntityEvent<CdiBook> lastTypedEvent;
 
         void onEntityChange(@Observes EntityEvent<?> event) {
             events++;
             lastEvent = event;
+        }
+
+        void onBookChange(@Observes EntityEvent<CdiBook> event) {
+            typedEvents++;
+            lastTypedEvent = event;
         }
     }
 

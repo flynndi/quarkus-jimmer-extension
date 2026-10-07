@@ -227,6 +227,14 @@ queries business data or exposes connection URLs and credentials. Manually assem
 cannot be inferred from these views; see
 [Dev UI](docs/modules/ROOT/pages/index.adoc#_dev_ui) for its scope.
 
+### Entity events
+
+Use `@Observes EntityEvent<Book>` for a specific entity or `@Observes EntityEvent<?>` for all entities.
+The extension preserves datasource qualifiers, so `@Observes @DataSource("inventory") EntityEvent<Book>`
+receives only that client's Book events. Concrete and wildcard observers receive the same event once per
+Jimmer trigger callback, including eviction events. See [CDI entity events](docs/modules/ROOT/pages/index.adoc#entity-events)
+for indexing, inheritance and transaction semantics.
+
 ### Cache
 
 Transaction cache invalidation is associated with the JTA transaction, including suspended transactions and transactions resumed on another thread. A transaction that emits Jimmer database events schedules one flush after successful commit; rollback does not trigger it. Only operators for the datasources involved are flushed, each in its own new transaction after Agroal releases the completed transaction's connection.
