@@ -1,26 +1,26 @@
 name: Build
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "main"
     paths-ignore:
       - '.gitignore'
-      - 'CODEOWNERS'
       - 'LICENSE'
       - '*.md'
       - '*.adoc'
       - '*.txt'
-      - '.all-contributorsrc'
   pull_request:
     paths-ignore:
       - '.gitignore'
-      - 'CODEOWNERS'
       - 'LICENSE'
       - '*.md'
       - '*.adoc'
       - '*.txt'
-      - '.all-contributorsrc'
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -32,13 +32,8 @@ defaults:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-#        os: [windows-latest, macos-latest, ubuntu-latest]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    name: Build on ubuntu-latest
+    runs-on: ubuntu-latest
     services:
       redis:
         image: redis
@@ -50,10 +45,6 @@ jobs:
         ports:
           - 6379:6379
     steps:
-      - name: Prepare git
-        run: git config --global core.autocrlf false
-        if: startsWith(matrix.os, 'windows')
-
       - uses: actions/checkout@v3
 
       - name: Set up JDK 17
@@ -61,13 +52,12 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-#          cache: 'maven'
 
       - name: Install parent POM
         run: mvn -N -B install -Dgpg.skip=true
 
-      - name: Build with Maven
-        run: mvn -B clean install -Dno-format -Dgpg.skip=true
+      - name: Build and test with Maven (JVM)
+        run: mvn -B clean install -Ppackaged-tests -Dno-format -Dgpg.skip=true
 
       - name: Build with Maven (Native)
-        run: mvn -B install -Dnative -Dquarkus.native.container-build -Dnative.surefire.skip -Dgpg.skip=true
+        run: mvn -B install -Dnative -Dquarkus.native.container-build=true -Dnative.surefire.skip=true -Dgpg.skip=true
