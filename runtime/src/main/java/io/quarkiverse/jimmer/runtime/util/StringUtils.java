@@ -49,7 +49,7 @@ public abstract class StringUtils {
      * @param str the candidate object (possibly a {@code String})
      * @since 3.2.1
      * @deprecated as of 5.3, in favor of {@link #hasLength(String)} and
-     *             {@link #hasText(String)} (or {@link ObjectUtils#isEmpty(Object)})
+     *             {@link #hasText(String)}
      */
     @Deprecated
     public static boolean isEmpty(@Nullable Object str) {

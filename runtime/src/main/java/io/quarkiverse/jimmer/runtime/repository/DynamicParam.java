@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * This method should only be used to decorate
  * the parameters of abstract methods in derived
- * interfaces of {@link JRepository} or {@link KRepository}.
+ * interfaces of {@link JRepository} or {@code KRepository}.
  *
  * <p>
  * When a parameter is null

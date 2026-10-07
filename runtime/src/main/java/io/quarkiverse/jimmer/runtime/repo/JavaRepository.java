@@ -517,8 +517,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insert(Object)},
-     * please view that method to know more
+     * Saves the root with {@link SaveMode#INSERT_ONLY} and associations with {@link AssociatedSaveMode#APPEND}.
+     *
+     * @deprecated Use {@code save(entity, SaveMode.INSERT_ONLY, AssociatedSaveMode.APPEND)}.
      */
     @Deprecated
     default SimpleSaveResult<E> insert(E entity) {
@@ -526,8 +527,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insert(Object, AssociatedSaveMode)},
-     * please view that method to know more
+     * Saves the root with {@link SaveMode#INSERT_ONLY} and associations with the supplied mode.
+     *
+     * @deprecated Use {@code save(entity, SaveMode.INSERT_ONLY, associatedSaveMode)}.
      */
     @Deprecated
     default SimpleSaveResult<E> insert(E entity, AssociatedSaveMode associatedSaveMode) {
@@ -535,8 +537,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insert(Input)},
-     * please view that method to know more
+     * Saves the input entity with {@link SaveMode#INSERT_ONLY} and associations with {@link AssociatedSaveMode#APPEND}.
+     *
+     * @deprecated Use {@code save(input, SaveMode.INSERT_ONLY, AssociatedSaveMode.APPEND)}.
      */
     @Deprecated
     default SimpleSaveResult<E> insert(Input<E> input) {
@@ -544,8 +547,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insert(Input, AssociatedSaveMode)},
-     * please view that method to know more
+     * Saves the input entity with {@link SaveMode#INSERT_ONLY} and associations with the supplied mode.
+     *
+     * @deprecated Use {@code save(input, SaveMode.INSERT_ONLY, associatedSaveMode)}.
      */
     @Deprecated
     default SimpleSaveResult<E> insert(Input<E> input, AssociatedSaveMode associatedSaveMode) {
@@ -553,8 +557,10 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insertIfAbsent(Object)},
-     * please view that method to know more
+     * Saves the root with {@link SaveMode#INSERT_IF_ABSENT} and associations with
+     * {@link AssociatedSaveMode#APPEND_IF_ABSENT}.
+     *
+     * @deprecated Use {@code save(entity, SaveMode.INSERT_IF_ABSENT, AssociatedSaveMode.APPEND_IF_ABSENT)}.
      */
     @Deprecated
     default SimpleSaveResult<E> insertIfAbsent(E entity) {
@@ -562,8 +568,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insertIfAbsent(Object, AssociatedSaveMode)},
-     * please view that method to know more
+     * Saves the root with {@link SaveMode#INSERT_IF_ABSENT} and associations with the supplied mode.
+     *
+     * @deprecated Use {@code save(entity, SaveMode.INSERT_IF_ABSENT, associatedSaveMode)}.
      */
     @Deprecated
     default SimpleSaveResult<E> insertIfAbsent(E entity, AssociatedSaveMode associatedSaveMode) {
@@ -571,8 +578,10 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insertIfAbsent(Input)},
-     * please view that method to know more
+     * Saves the input entity with {@link SaveMode#INSERT_IF_ABSENT} and associations with
+     * {@link AssociatedSaveMode#APPEND_IF_ABSENT}.
+     *
+     * @deprecated Use {@code save(input, SaveMode.INSERT_IF_ABSENT, AssociatedSaveMode.APPEND_IF_ABSENT)}.
      */
     @Deprecated
     default SimpleSaveResult<E> insertIfAbsent(Input<E> input) {
@@ -580,8 +589,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#insertIfAbsent(Input, AssociatedSaveMode)},
-     * please view that method to know more
+     * Saves the input entity with {@link SaveMode#INSERT_IF_ABSENT} and associations with the supplied mode.
+     *
+     * @deprecated Use {@code save(input, SaveMode.INSERT_IF_ABSENT, associatedSaveMode)}.
      */
     @Deprecated
     default SimpleSaveResult<E> insertIfAbsent(Input<E> input, AssociatedSaveMode associatedSaveMode) {
@@ -589,8 +599,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#update(Object)},
-     * please view that method to know more
+     * Saves the root with {@link SaveMode#UPDATE_ONLY} and associations with {@link AssociatedSaveMode#UPDATE}.
+     *
+     * @deprecated Use {@code save(entity, SaveMode.UPDATE_ONLY, AssociatedSaveMode.UPDATE)}.
      */
     @Deprecated
     default SimpleSaveResult<E> update(E entity) {
@@ -598,8 +609,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#update(Object, AssociatedSaveMode)},
-     * please view that method to know more
+     * Saves the root with {@link SaveMode#UPDATE_ONLY} and associations with the supplied mode.
+     *
+     * @deprecated Use {@code save(entity, SaveMode.UPDATE_ONLY, associatedSaveMode)}.
      */
     @Deprecated
     default SimpleSaveResult<E> update(E entity, AssociatedSaveMode associatedSaveMode) {
@@ -607,8 +619,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#update(Input)},
-     * please view that method to know more
+     * Saves the input entity with {@link SaveMode#UPDATE_ONLY} and associations with {@link AssociatedSaveMode#UPDATE}.
+     *
+     * @deprecated Use {@code save(input, SaveMode.UPDATE_ONLY, AssociatedSaveMode.UPDATE)}.
      */
     @Deprecated
     default SimpleSaveResult<E> update(Input<E> input) {
@@ -616,8 +629,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#update(Input, AssociatedSaveMode)},
-     * please view that method to know more
+     * Saves the input entity with {@link SaveMode#UPDATE_ONLY} and associations with the supplied mode.
+     *
+     * @deprecated Use {@code save(input, SaveMode.UPDATE_ONLY, associatedSaveMode)}.
      */
     @Deprecated
     default SimpleSaveResult<E> update(Input<E> input, AssociatedSaveMode associatedSaveMode) {
@@ -625,8 +639,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Object)},
-     * please view that method to know more
+     * Saves the root with {@link SaveMode#UPSERT} and associations with {@link AssociatedSaveMode#MERGE}.
+     *
+     * @deprecated Use {@code save(entity, SaveMode.UPSERT, AssociatedSaveMode.MERGE)}.
      */
     @Deprecated
     default SimpleSaveResult<E> merge(E entity) {
@@ -634,8 +649,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Object)},
-     * please view that method to know more
+     * Saves the root with {@link SaveMode#UPSERT} and associations with the supplied mode.
+     *
+     * @deprecated Use {@code save(entity, SaveMode.UPSERT, associatedSaveMode)}.
      */
     @Deprecated
     default SimpleSaveResult<E> merge(E entity, AssociatedSaveMode associatedSaveMode) {
@@ -643,8 +659,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Input)},
-     * please view that method to know more
+     * Saves the input entity with {@link SaveMode#UPSERT} and associations with {@link AssociatedSaveMode#MERGE}.
+     *
+     * @deprecated Use {@code save(input, SaveMode.UPSERT, AssociatedSaveMode.MERGE)}.
      */
     @Deprecated
     default SimpleSaveResult<E> merge(Input<E> input) {
@@ -652,8 +669,9 @@ public interface JavaRepository<E, ID> {
     }
 
     /**
-     * Shortcut for {@link org.babyfish.jimmer.sql.JSqlClient#merge(Input)},
-     * please view that method to know more
+     * Saves the input entity with {@link SaveMode#UPSERT} and associations with the supplied mode.
+     *
+     * @deprecated Use {@code save(input, SaveMode.UPSERT, associatedSaveMode)}.
      */
     @Deprecated
     default SimpleSaveResult<E> merge(Input<E> input, AssociatedSaveMode associatedSaveMode) {
