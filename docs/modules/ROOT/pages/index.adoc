@@ -331,6 +331,8 @@ CDI-managed clients are application-scoped: ArC creates the underlying client la
 Each datasource has one managed client.
 Injecting a proxy alone does not initialize the client or validate its active state; invoking an inactive client fails on first use.
 Construction failures are reported as CDI creation errors with the underlying cause preserved.
+Constructing a legacy or current repository also leaves its SQL client uninitialized.
+Database validation runs when the client is first used; application-managed schema initialization must finish before the first repository operation.
 
 Named Jimmer clients use the corresponding Quarkus `@DataSource("name")` qualifier and do not require a default datasource.
 SQL client beans have no CDI bean name or `@Named` alias.

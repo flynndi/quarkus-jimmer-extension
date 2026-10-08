@@ -20,12 +20,9 @@ import kotlin.reflect.KClass
  * Implementation base used by generated legacy repositories.
  * Existing constructors are retained for compatibility; new application repositories should extend
  * [io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository].
+ * Construction retains the injected client proxy without accessing its Java client or initializing the database.
  */
 open class KRepositoryImpl<E: Any, ID: Any> (override val sql: KSqlClient, entityType: Class<E>? = null): KRepository<E, ID> {
-
-    init {
-        Utils.validateSqlClient(sql.javaClient)
-    }
 
     @Suppress("UNCHECKED_CAST")
     final override val entityType: KClass<E> = entityType?.kotlin ?: throw IllegalArgumentException("Entity type cannot be null")
