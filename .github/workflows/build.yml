@@ -35,6 +35,13 @@ defaults:
 jobs:
   build:
     name: Build on ubuntu-latest
+    # actor stays unchanged on reruns; triggering_actor identifies who requested the rerun.
+    if: >-
+      github.event_name != 'release' ||
+      (github.repository == 'flynndi/quarkus-jimmer-extension' &&
+       github.event.release.author.login == 'flynndi' &&
+       github.actor == 'flynndi' &&
+       github.triggering_actor == 'flynndi')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     services:
@@ -111,7 +118,12 @@ jobs:
 
   publish:
     name: Publish to Maven Central
-    if: github.event_name == 'release' && github.repository == 'flynndi/quarkus-jimmer-extension'
+    if: >-
+      github.event_name == 'release' &&
+      github.repository == 'flynndi/quarkus-jimmer-extension' &&
+      github.event.release.author.login == 'flynndi' &&
+      github.actor == 'flynndi' &&
+      github.triggering_actor == 'flynndi'
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 60
