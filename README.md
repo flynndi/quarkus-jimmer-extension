@@ -152,6 +152,8 @@ New `JavaRepository` / `KotlinRepository` interfaces do not trigger implementati
 
 Inject `JSqlClient` or `KSqlClient` directly, with `@DataSource("name")` for a named datasource. CDI-managed clients are application-scoped: ArC creates the underlying client lazily when its proxy is first used. Each datasource has one managed client.
 
+SQL client beans have no CDI bean name or `@Named` alias. Replace `@Named("jimmer_name")` with `@DataSource("name")` for both Java and Kotlin clients.
+
 For programmatic lookup, use `Jimmer.getDefaultJSqlClient()` / `Jimmer.getDefaultKSqlClient()` for the default datasource or `Jimmer.getJSqlClient("name")` / `Jimmer.getKSqlClient("name")` for a named datasource. These methods resolve the same CDI-managed clients.
 
 The `QuarkusJSqlClientContainer` / `QuarkusKSqlClientContainer` types, their `UnConfigured` subclasses, `get*Container()` methods, and `jimmer_container_*` named beans have been removed. Replace container injection with direct client injection and container lookups with the corresponding `Jimmer` client lookup method. Replace `@Named("jimmer_container_name")` with `@DataSource("name")`; the default client needs no datasource qualifier.
