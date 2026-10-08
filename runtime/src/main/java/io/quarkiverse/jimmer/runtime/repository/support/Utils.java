@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.sql.JSqlClient;
@@ -16,11 +17,8 @@ import org.babyfish.jimmer.sql.ast.table.spi.PropExpressionImplementor;
 import org.babyfish.jimmer.sql.ast.table.spi.TableProxy;
 import org.babyfish.jimmer.sql.meta.EmbeddedColumns;
 import org.babyfish.jimmer.sql.meta.MetadataStrategy;
-import org.babyfish.jimmer.sql.runtime.ConnectionManager;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
-import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
-import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 
 /**
@@ -47,21 +45,13 @@ public class Utils {
     }
 
     public static JSqlClientImplementor validateSqlClient(JSqlClient sqlClient) {
-        JSqlClientImplementor implementor = (JSqlClientImplementor) sqlClient;
-        if (!(implementor.getTransientResolverProvider() instanceof QuarkusTransientResolverProvider)) {
-            throw new IllegalArgumentException(
-                    "The transient resolver provider of sql client must be instance of \"" +
-                            QuarkusTransientResolverProvider.class.getName() +
-                            "\"");
+        Objects.requireNonNull(sqlClient, "sqlClient is required");
+        // Calling the CDI proxy here initializes and validates the client before application schema setup can run.
+        // Repositories require this interface, but do not require specific connection or resolver providers.
+        if (sqlClient instanceof JSqlClientImplementor implementor) {
+            return implementor;
         }
-        ConnectionManager slaveConnectionManager = implementor.getSlaveConnectionManager(false);
-        if (slaveConnectionManager != null && !(slaveConnectionManager instanceof QuarkusConnectionManager)) {
-            throw new IllegalArgumentException(
-                    "The slave connection manager of sql client must be null or instance of \"" +
-                            QuarkusConnectionManager.class.getName() +
-                            "\"");
-        }
-        return implementor;
+        throw new IllegalArgumentException("The sql client must implement \"" + JSqlClientImplementor.class.getName() + "\"");
     }
 
     public static Sort toSort(List<Order> orders, MetadataStrategy strategy) {

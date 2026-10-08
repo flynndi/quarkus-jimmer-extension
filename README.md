@@ -160,6 +160,8 @@ The `QuarkusJSqlClientContainer` / `QuarkusKSqlClientContainer` types, their `Un
 
 Injecting a client proxy alone does not initialize it or validate its active state; calling an inactive client fails on first use. Construction failures are reported as CDI creation errors with the underlying cause preserved.
 
+Constructing a legacy or current repository also leaves its SQL client uninitialized. Database validation runs when the client is first used, so application-managed schema initialization must finish before the first repository operation.
+
 A Jimmer client uses its matching Quarkus Agroal datasource. Named datasources do not require a default datasource. `quarkus.jimmer.active=false` (or `quarkus.jimmer.<datasource-name>.active=false`) deactivates that client; an inactive datasource also deactivates its client and transaction cache operator. Use `InjectableInstance` and check the bean's active state when choosing between clients that may be inactive.
 
 For single-valued CDI extension points such as `Dialect`, `ConnectionManager`, and `Consumer<JSqlClient.Builder>`, an explicit `@DataSource(name)` bean takes precedence over an ordinary `@Default` bean. This includes `@DataSource("<default>")` for the default datasource. If no datasource-qualified bean matches, the ordinary default bean is used. Ambiguous beans at the selected level fail resolution instead of silently selecting one or falling back. Collection extension points, such as filters and customizers, include global beans and beans for the matching datasource. Supported Jimmer extension-point beans are retained automatically; they do not need `@Unremovable`.
