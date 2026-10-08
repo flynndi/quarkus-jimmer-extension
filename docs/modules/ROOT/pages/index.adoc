@@ -333,6 +333,8 @@ Injecting a proxy alone does not initialize the client or validate its active st
 Construction failures are reported as CDI creation errors with the underlying cause preserved.
 
 Named Jimmer clients use the corresponding Quarkus `@DataSource("name")` qualifier and do not require a default datasource.
+SQL client beans have no CDI bean name or `@Named` alias.
+Replace `@Named("jimmer_name")` with `@DataSource("name")` for both Java and Kotlin clients.
 For programmatic lookup, use `Jimmer.getDefaultJSqlClient()` or `Jimmer.getDefaultKSqlClient()` for the default datasource,
 and `Jimmer.getJSqlClient("name")` or `Jimmer.getKSqlClient("name")` for a named datasource.
 These methods resolve the same CDI-managed clients.

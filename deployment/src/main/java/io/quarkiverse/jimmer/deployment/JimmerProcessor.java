@@ -241,8 +241,6 @@ final class JimmerProcessor {
                 configurator.addQualifier(Default.class);
                 configurator.priority(10);
             } else {
-                String beanName = FEATURE + "_" + dataSourceName;
-                configurator.named(beanName);
                 configurator.priority(5);
 
                 configurator.addQualifier().annotation(DataSource.class).addValue("value", dataSourceName).done();
@@ -292,8 +290,6 @@ final class JimmerProcessor {
                 configurator.addQualifier(Default.class);
                 configurator.priority(10);
             } else {
-                String beanName = FEATURE + "_" + dataSourceName;
-                configurator.named(beanName);
                 configurator.priority(5);
 
                 configurator.addQualifier().annotation(DataSource.class).addValue("value", dataSourceName).done();
