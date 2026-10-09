@@ -3,34 +3,23 @@ package io.quarkiverse.jimmer.runtime.cfg.support;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import jakarta.enterprise.inject.AmbiguousResolutionException;
 import jakarta.enterprise.inject.Default;
+import jakarta.enterprise.inject.spi.Bean;
 
 import org.babyfish.jimmer.sql.cache.CacheOperator;
 
-import io.quarkiverse.jimmer.runtime.JimmerTransactionCacheOperatorRecorder;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.ArcContainer;
-import io.quarkus.arc.InjectableBean;
 import io.quarkus.arc.InstanceHandle;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 
-/** Keeps the extension's datasource-scoped default operator exclusive to its managed SQL client. */
+/** Resolves the operator for a CDI-managed SQL client using ArC's bean selection rules. */
 public final class QuarkusCacheOperatorProvider {
     private QuarkusCacheOperatorProvider() {
     }
 
-    public static CacheOperator findUserOperator(ArcContainer container, String dataSourceName) {
-        return find(container, dataSourceName, false);
-    }
-
-    public static CacheOperator findManagedOperator(ArcContainer container, String dataSourceName) {
-        return find(container, dataSourceName, true);
-    }
-
-    private static CacheOperator find(ArcContainer container, String dataSourceName, boolean includeExtensionDefault) {
-        Map<String, InstanceHandle<CacheOperator>> users = new LinkedHashMap<>();
-        InstanceHandle<CacheOperator> extensionDefault = null;
+    public static CacheOperator find(ArcContainer container, String dataSourceName) {
+        Map<Bean<? extends CacheOperator>, InstanceHandle<CacheOperator>> candidates = new LinkedHashMap<>();
         var handles = new java.util.ArrayList<>(
                 container.listAll(CacheOperator.class, new DataSource.DataSourceLiteral(dataSourceName)));
         if (DataSourceUtil.isDefault(dataSourceName)) {
@@ -38,20 +27,11 @@ public final class QuarkusCacheOperatorProvider {
             handles.addAll(container.listAll(CacheOperator.class, Default.Literal.INSTANCE));
         }
         for (var handle : handles) {
-            var bean = handle.getBean();
-            if (bean.getKind() == InjectableBean.Kind.SYNTHETIC
-                    && bean.getImplementationClass() == JimmerTransactionCacheOperatorRecorder.LazyTransactionCacheOperator.class) {
-                extensionDefault = handle;
-            } else {
-                users.put(bean.getIdentifier(), handle);
-            }
+            candidates.put(handle.getBean(), handle);
         }
-        if (users.size() > 1) {
-            throw new AmbiguousResolutionException("Multiple CacheOperator beans match datasource '" + dataSourceName + "'");
-        }
-        if (!users.isEmpty()) {
-            return users.values().iterator().next().get();
-        }
-        return includeExtensionDefault && extensionDefault != null ? extensionDefault.get() : null;
+        // Resolve the combined qualifier sets through ArC, including DefaultBean and alternative priorities.
+        // Obtain only the selected handle so unselected operators remain uninitialized.
+        var selected = container.beanManager().resolve(candidates.keySet());
+        return selected != null ? candidates.get(selected).get() : null;
     }
 }
