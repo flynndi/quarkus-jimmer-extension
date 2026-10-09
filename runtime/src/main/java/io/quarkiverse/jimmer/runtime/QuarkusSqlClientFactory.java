@@ -94,12 +94,8 @@ final class QuarkusSqlClientFactory {
                 runtimeConfig.dataSources().get(this.dataSourceName));
     }
 
-    JSqlClientImplementor create() {
-        // Independent clients must explicitly configure their own operator through the builder.
-        return create(null);
-    }
-
-    JSqlClientImplementor create(CacheOperator cacheOperator) {
+    /** The caller supplies the operator; null leaves it unset unless configured through the builder. */
+    JSqlClientImplementor create(@Nullable CacheOperator cacheOperator) {
         JimmerDataSourceRuntimeConfig config = runtimeConfig.dataSources().get(dataSourceName);
         UserIdGeneratorProvider userIdGeneratorProvider = getOptionalBean(UserIdGeneratorProvider.class);
         LogicalDeletedValueGeneratorProvider logicalDeletedValueGeneratorProvider = getOptionalBean(
