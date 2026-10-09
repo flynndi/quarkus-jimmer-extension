@@ -1,6 +1,7 @@
 package io.quarkiverse.jimmer.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import java.util.Set;
@@ -70,46 +71,56 @@ class ManualClientCacheLifecycleTest {
     }
 
     @Test
-    void manualClientEventsRemainObservableWhileManagedTriggersAndExplicitNotificationsFlush() throws Exception {
+    void allDatasourceEventsShareCompletionFlushingWithoutBindingManualClientOperators() throws Exception {
         JSqlClient manualJava = SqlClients.java(Arc.container());
         JSqlClient manualKotlin = SqlClients.kotlin(Arc.container()).getJavaClient();
+        assertNull(((JSqlClientImplementor) manualJava).getCacheOperator());
+        assertNull(((JSqlClientImplementor) manualKotlin).getCacheOperator());
         assertEquals(0, probe.operatorCreations);
 
+        int committed = 0;
         for (JSqlClient client : List.of(manualJava, manualKotlin)) {
             transactions.begin();
             client.getTriggers(true).fireEntityEvict(ImmutableType.get(CdiBook.class), 1L, null, "manual-client");
             client.getTriggers(true).fireAssociationEvict(ImmutableType.get(LegacySortBook.class).getProp("parent"), 1L,
                     null, "manual-client");
+            assertEquals(committed, probe.flushes);
             transactions.commit();
+            assertEquals(++committed, probe.flushes, "Entity and association events share one completion flush");
         }
         assertEquals(2, probe.bookEvents);
         assertEquals(2, probe.associationEvents);
-        assertEquals(0, probe.operatorCreations, "Manual events must not initialize the CDI client or its operator");
-        assertEquals(0, probe.flushes);
+        assertEquals(1, probe.operatorCreations, "Datasource events select the managed operator after commit");
 
         transactions.begin();
         events.select(new DataSourceLiteral("<default>"))
                 .fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 1L, null, "application-event"));
-        assertEquals(0, probe.flushes);
+        assertEquals(committed, probe.flushes);
         transactions.commit();
         assertEquals(3, probe.bookEvents);
         assertEquals(1, probe.operatorCreations, "An explicit datasource-qualified notification selects its operator");
-        assertEquals(1, probe.flushes);
+        assertEquals(++committed, probe.flushes);
 
         Triggers binlog = managedClient.getTriggers();
         Triggers transaction = managedClient.getTriggers(true);
         assertEquals(1, probe.operatorCreations);
         assertEquals(1, probe.operatorInitializations);
-        int committed = 1;
         for (Triggers channel : List.of(binlog, transaction)) {
             transactions.begin();
             channel.fireEntityEvict(ImmutableType.get(CdiBook.class), 1L, null, "managed-client");
-            channel.fireEntityEvict(ImmutableType.get(CdiBook.class), 2L, null, "managed-client");
+            manualJava.getTriggers(true).fireEntityEvict(ImmutableType.get(CdiBook.class), 2L, null, "manual-client");
+            manualKotlin.getTriggers(true).fireAssociationEvict(ImmutableType.get(LegacySortBook.class).getProp("parent"),
+                    1L, null, "manual-client");
+            events.select(new DataSourceLiteral("<default>"))
+                    .fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 3L, null, "application-event"));
             assertEquals(committed, probe.flushes);
             transactions.commit();
-            assertEquals(++committed, probe.flushes, "Each channel flushes once per committed transaction");
+            assertEquals(++committed, probe.flushes, "Mixed event sources flush once per committed transaction");
         }
-        assertEquals(7, probe.bookEvents);
+        assertEquals(9, probe.bookEvents);
+        assertEquals(4, probe.associationEvents);
+        assertNull(((JSqlClientImplementor) manualJava).getCacheOperator());
+        assertNull(((JSqlClientImplementor) manualKotlin).getCacheOperator());
     }
 
     @Singleton

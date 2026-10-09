@@ -28,6 +28,7 @@ import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.event.EntityEvent;
+import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.babyfish.jimmer.sql.transaction.Propagation;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.junit.jupiter.api.AfterEach;
@@ -35,10 +36,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import io.quarkiverse.jimmer.runtime.SqlClients;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkus.agroal.DataSource.DataSourceLiteral;
+import io.quarkus.arc.Arc;
 import io.quarkus.test.QuarkusUnitTest;
 
 class CacheMultiDataSourceCompletionTest {
@@ -119,12 +122,17 @@ class CacheMultiDataSourceCompletionTest {
 
     @Test
     void innerCommitFlushesOnlyItsDatasourceWhileTheOuterConnectionRemainsEnlisted() throws Exception {
+        JSqlClient manualBooks = SqlClients.java(Arc.container(), books, "books");
+        assertNull(((JSqlClientImplementor) manualBooks).getCacheOperator());
         transactionManager.begin();
         Transaction outer = transactionManager.getTransaction();
         try (var connection = defaults.getConnection()) {
             insert(connection, "default-row");
         }
-        fireEvent("<default>");
+        defaultClient.getTriggers(true).fireEntityEvict(ImmutableType.get(CdiBook.class), 1L, null,
+                "datasource-completion-test");
+        events.select(new DataSourceLiteral("<default>"))
+                .fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 1L, null, "application-event"));
         AtomicReference<Transaction> inner = new AtomicReference<>();
 
         new QuarkusConnectionManager(books).executeTransaction(Propagation.REQUIRES_NEW, connection -> {
@@ -134,9 +142,8 @@ class CacheMultiDataSourceCompletionTest {
                 throw new AssertionError(e);
             }
             insert(connection, "books-row");
-            fireEvent("books");
-            events.select(new DataSourceLiteral("books"))
-                    .fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 1L, null, "application-event"));
+            manualBooks.getTriggers(true).fireEntityEvict(ImmutableType.get(CdiBook.class), 1L, null, "manual-client");
+            manualBooks.getTriggers(true).fireEntityEvict(ImmutableType.get(CdiBook.class), 2L, null, "manual-client");
             return null;
         });
 
@@ -180,11 +187,6 @@ class CacheMultiDataSourceCompletionTest {
         assertNotSame(booksFlush.transaction(), booksRetry.transaction());
         assertNotSame(defaultRetry.transaction(), booksRetry.transaction());
         assertNull(transactionManager.getTransaction());
-    }
-
-    private void fireEvent(String dataSourceName) {
-        JSqlClient client = "<default>".equals(dataSourceName) ? defaultClient : booksClient;
-        client.getTriggers(true).fireEntityEvict(ImmutableType.get(CdiBook.class), 1L, null, "datasource-completion-test");
     }
 
     private static void insert(Connection connection, String id) {

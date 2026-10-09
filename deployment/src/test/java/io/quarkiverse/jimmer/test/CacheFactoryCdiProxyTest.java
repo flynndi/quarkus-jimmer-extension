@@ -56,16 +56,20 @@ class CacheFactoryCdiProxyTest {
         ClientProxy proxy = assertInstanceOf(ClientProxy.class, factory);
         CacheFactory adapted = QuarkusCacheFactory.adapt(factory);
         assertNull(beans.factory, "Inspecting the proxy must not initialize an unselected factory");
-        SqlClients.java(Arc.container(), builder -> {
-            builder.setCacheFactory(adapted);
-            builder.addCustomizers(customized -> customized.setCacheFactory(new CacheFactory() {
-            }));
-        });
+        SqlClients.java(Arc.container(), builder -> builder.addCustomizers(customized -> customized.setCacheFactory(
+                new CacheFactory() {
+                })));
         assertNull(beans.factory, "A factory replaced by a customizer must remain uninitialized");
 
         client.getCaches();
         assertTrue(beans.factory.objectCacheCalls > 0);
         assertNotNull(beans.factory.filterState());
+
+        FilterState managedState = beans.factory.filterState();
+        int managedCalls = beans.factory.objectCacheCalls;
+        SqlClients.java(Arc.container());
+        assertNotSame(managedState, beans.factory.filterState());
+        assertEquals(managedCalls + 1, beans.factory.objectCacheCalls);
 
         RecordingCacheFactory original = beans.factory;
         Arc.container().getActiveContext(ApplicationScoped.class).destroy(proxy.arc_bean());

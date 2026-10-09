@@ -50,39 +50,49 @@ class CacheFactoryOwnershipTest {
     }
 
     @Test
-    void manualJavaClientsLeaveTheManagedFactoryUntouchedAndAcceptAnExplicitFactory() {
+    void manualJavaClientsInheritTheCdiFactoryAndCanOverrideIt() {
         managedClient.getCaches();
         FilterState managedState = sharedFactory.filterState();
         int managedCalls = sharedFactory.objectCacheCalls;
 
         SqlClients.java(Arc.container());
+        FilterState manualState = sharedFactory.filterState();
+        int sharedCalls = sharedFactory.objectCacheCalls;
+        assertNotSame(managedState, manualState);
+        assertTrue(sharedCalls > managedCalls);
+
         RecordingCacheFactory dedicatedFactory = new RecordingCacheFactory();
         SqlClients.java(Arc.container(), builder -> builder.setCacheFactory(dedicatedFactory));
 
-        assertSame(managedState, sharedFactory.filterState());
-        assertEquals(managedCalls, sharedFactory.objectCacheCalls);
+        assertSame(manualState, sharedFactory.filterState());
+        assertEquals(sharedCalls, sharedFactory.objectCacheCalls);
         assertNotNull(dedicatedFactory.filterState());
-        assertNotSame(managedState, dedicatedFactory.filterState());
+        assertNotSame(manualState, dedicatedFactory.filterState());
         assertTrue(dedicatedFactory.objectCacheCalls > 0);
     }
 
     @Test
-    void manualKotlinClientsLeaveTheManagedFactoryUntouchedAndAcceptAnExplicitFactory() {
+    void manualKotlinClientsInheritTheCdiFactoryAndCanOverrideIt() {
         managedClient.getCaches();
         FilterState managedState = sharedFactory.filterState();
         int managedCalls = sharedFactory.objectCacheCalls;
 
         SqlClients.kotlin(Arc.container());
+        FilterState manualState = sharedFactory.filterState();
+        int sharedCalls = sharedFactory.objectCacheCalls;
+        assertNotSame(managedState, manualState);
+        assertTrue(sharedCalls > managedCalls);
+
         RecordingCacheFactory dedicatedFactory = new RecordingCacheFactory();
         SqlClients.kotlin(Arc.container(), dsl -> {
             dsl.setCacheFactory(dedicatedFactory);
             return Unit.INSTANCE;
         });
 
-        assertSame(managedState, sharedFactory.filterState());
-        assertEquals(managedCalls, sharedFactory.objectCacheCalls);
+        assertSame(manualState, sharedFactory.filterState());
+        assertEquals(sharedCalls, sharedFactory.objectCacheCalls);
         assertNotNull(dedicatedFactory.filterState());
-        assertNotSame(managedState, dedicatedFactory.filterState());
+        assertNotSame(manualState, dedicatedFactory.filterState());
         assertTrue(dedicatedFactory.objectCacheCalls > 0);
     }
 
