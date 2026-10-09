@@ -25,9 +25,11 @@ import jakarta.transaction.Transaction;
 import jakarta.transaction.TransactionManager;
 
 import org.babyfish.jimmer.meta.ImmutableType;
+import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.event.EntityEvent;
 import org.babyfish.jimmer.sql.transaction.Propagation;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +46,8 @@ class CacheMultiDataSourceCompletionTest {
     @RegisterExtension
     static final QuarkusUnitTest APP = new QuarkusUnitTest()
             .withApplicationRoot(archive -> archive.addPackage(CdiBook.class.getPackage())
-                    .addClasses(RecordingOperator.class, DefaultOperator.class, BooksOperator.class, Observation.class))
+                    .addClasses(RecordingOperator.class, DefaultOperator.class, BooksOperator.class, Observation.class)
+                    .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.scheduler.enabled", "false")
@@ -80,6 +83,13 @@ class CacheMultiDataSourceCompletionTest {
     Event<EntityEvent<?>> events;
 
     @Inject
+    JSqlClient defaultClient;
+
+    @Inject
+    @io.quarkus.agroal.DataSource("books")
+    JSqlClient booksClient;
+
+    @Inject
     TransactionCacheOperatorFlusher flusher;
 
     @BeforeEach
@@ -91,6 +101,9 @@ class CacheMultiDataSourceCompletionTest {
                 statement.executeUpdate("delete from CACHE_SOURCE_WORK");
             }
         }
+        // Initialize clients before either size-one datasource pool is enlisted in a transaction.
+        defaultClient.getCaches();
+        booksClient.getCaches();
         defaultOperator.attempts.set(0);
         defaultOperator.observations.clear();
         booksOperator.attempts.set(0);
@@ -122,7 +135,8 @@ class CacheMultiDataSourceCompletionTest {
             }
             insert(connection, "books-row");
             fireEvent("books");
-            fireEvent("books");
+            events.select(new DataSourceLiteral("books"))
+                    .fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 1L, null, "application-event"));
             return null;
         });
 
@@ -169,8 +183,8 @@ class CacheMultiDataSourceCompletionTest {
     }
 
     private void fireEvent(String dataSourceName) {
-        events.select(new DataSourceLiteral(dataSourceName))
-                .fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 1L, null, "datasource-completion-test"));
+        JSqlClient client = "<default>".equals(dataSourceName) ? defaultClient : booksClient;
+        client.getTriggers(true).fireEntityEvict(ImmutableType.get(CdiBook.class), 1L, null, "datasource-completion-test");
     }
 
     private static void insert(Connection connection, String id) {

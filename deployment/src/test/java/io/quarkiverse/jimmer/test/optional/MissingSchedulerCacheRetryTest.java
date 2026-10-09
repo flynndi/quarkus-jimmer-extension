@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javax.sql.DataSource;
 
-import jakarta.enterprise.event.Event;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Inject;
@@ -17,14 +16,14 @@ import jakarta.transaction.Transaction;
 import jakarta.transaction.TransactionManager;
 
 import org.babyfish.jimmer.meta.ImmutableType;
+import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
-import org.babyfish.jimmer.sql.event.EntityEvent;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.test.model.CdiBook;
-import io.quarkus.agroal.DataSource.DataSourceLiteral;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.QuarkusUnitTest;
 
@@ -34,7 +33,8 @@ class MissingSchedulerCacheRetryTest {
     static final QuarkusUnitTest APP = OptionalIntegrationTestSupport.isolateExcludedDependencies(new QuarkusUnitTest(),
             OptionalIntegrationTestSupport.withoutScheduler())
             .withApplicationRoot(archive -> archive.addPackage(CdiBook.class.getPackage())
-                    .addClasses(OptionalIntegrationTestSupport.class, RecordingOperator.class))
+                    .addClasses(OptionalIntegrationTestSupport.class, RecordingOperator.class)
+                    .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
@@ -47,7 +47,7 @@ class MissingSchedulerCacheRetryTest {
     TransactionManager transactions;
 
     @Inject
-    Event<EntityEvent<?>> events;
+    JSqlClient sqlClient;
 
     @Inject
     RecordingOperator operator;
@@ -63,11 +63,11 @@ class MissingSchedulerCacheRetryTest {
         assertTrue(Arc.container().beanManager().getBeans(Object.class, Any.Literal.INSTANCE).stream()
                 .noneMatch(bean -> bean.getBeanClass().getName().endsWith("TransactionCacheOperatorRetryJob")));
 
+        sqlClient.getCaches();
         transactions.begin();
         Transaction business = transactions.getTransaction();
         try {
-            events.select(new DataSourceLiteral("<default>"))
-                    .fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 1L, null, "without-scheduler"));
+            sqlClient.getTriggers(true).fireEntityEvict(ImmutableType.get(CdiBook.class), 1L, null, "without-scheduler");
             assertEquals(0, operator.calls);
             transactions.commit();
         } finally {
@@ -82,8 +82,8 @@ class MissingSchedulerCacheRetryTest {
 
         transactions.begin();
         try {
-            events.select(new DataSourceLiteral("<default>"))
-                    .fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 2L, null, "rollback-without-scheduler"));
+            sqlClient.getTriggers(true).fireEntityEvict(ImmutableType.get(CdiBook.class), 2L, null,
+                    "rollback-without-scheduler");
         } finally {
             transactions.rollback();
         }
