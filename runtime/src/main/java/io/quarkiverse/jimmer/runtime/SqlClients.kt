@@ -11,7 +11,8 @@ import javax.sql.DataSource
 /**
  * Creates independent clients immediately, using the supplied Arc container's configuration and SPI beans.
  * These clients are not CDI beans; inject JSqlClient or KSqlClient for the managed datasource client.
- * CacheFactory and CacheOperator beans are not inherited: configure independent caching through the builder when needed.
+ * CacheFactory beans follow datasource selection and can be overridden through the builder.
+ * CacheOperator beans are not inherited: configure a dedicated operator through the builder when needed.
  */
 object SqlClients {
 

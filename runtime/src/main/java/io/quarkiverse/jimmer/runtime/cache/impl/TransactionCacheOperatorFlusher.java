@@ -19,16 +19,11 @@ import jakarta.transaction.TransactionManager;
 import jakarta.transaction.TransactionSynchronizationRegistry;
 import jakarta.transaction.Transactional;
 
-import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
 import org.babyfish.jimmer.sql.event.DatabaseEvent;
-import org.babyfish.jimmer.sql.event.TriggerType;
-import org.babyfish.jimmer.sql.event.Triggers;
-import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.quarkiverse.jimmer.runtime.event.QuarkusEventDispatcher;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.All;
 import io.quarkus.arc.InstanceHandle;
@@ -55,43 +50,20 @@ public class TransactionCacheOperatorFlusher {
         this.operatorHandles = operatorHandles;
     }
 
-    /** Retains application-published datasource notifications as an explicit completion-flush request. */
+    /** Schedules a datasource's cache flushing after successful commit, regardless of the event publisher. */
     public void onDatabaseEvent(@Observes DatabaseEvent event, EventMetadata metadata) {
-        // Event.select() retains the original injection point, including the generated dispatcher's typed events.
-        // Its notifications are public events; managed clients schedule their own flushing through register().
-        var injectionPoint = metadata.getInjectionPoint();
-        if (injectionPoint != null && injectionPoint.getBean() != null
-                && QuarkusEventDispatcher.class.isAssignableFrom(injectionPoint.getBean().getBeanClass())) {
-            return;
-        }
-        metadata.getQualifiers().stream()
-                .filter(DataSource.class::isInstance)
-                .map(DataSource.class::cast)
-                .map(DataSource::value)
-                .findFirst()
-                .ifPresent(this::scheduleFlush);
-    }
-
-    /** Attaches completion flushing only to a client created by the extension's CDI producer. */
-    public void register(JSqlClient sqlClient, String dataSourceName) {
-        TriggerType triggerType = ((JSqlClientImplementor) sqlClient).getTriggerType();
-        if (triggerType == TriggerType.BINLOG_ONLY) {
-            return;
-        }
-        // In BOTH mode Jimmer's caches use the binlog channel, while application mutations use the transaction channel.
-        Triggers[] triggers = triggerType == TriggerType.BOTH
-                ? new Triggers[] { sqlClient.getTriggers(), sqlClient.getTriggers(true) }
-                : new Triggers[] { sqlClient.getTriggers() };
-        for (Triggers channel : triggers) {
-            channel.addEntityListener(event -> scheduleFlush(dataSourceName));
-            channel.addAssociationListener(event -> scheduleFlush(dataSourceName));
-        }
-    }
-
-    private void scheduleFlush(String dataSourceName) {
         // Without a JTA transaction, later Jimmer listeners may not have written the invalidation record yet.
         // Such records need a later retry; a rollback-only transaction cannot schedule a successful commit.
         if (synchronizationRegistry.getTransactionStatus() != Status.STATUS_ACTIVE) {
+            return;
+        }
+        String dataSourceName = metadata.getQualifiers().stream()
+                .filter(DataSource.class::isInstance)
+                .map(DataSource.class::cast)
+                .map(DataSource::value)
+                .findFirst().orElse(null);
+        // Unqualified events cannot identify which datasource's operators to flush.
+        if (dataSourceName == null) {
             return;
         }
         registrationLock.lock();

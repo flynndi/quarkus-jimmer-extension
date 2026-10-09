@@ -18,6 +18,7 @@ import jakarta.enterprise.util.TypeLiteral;
 import org.babyfish.jimmer.sql.DraftInterceptor;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.CacheAbandonedCallback;
+import org.babyfish.jimmer.sql.cache.CacheFactory;
 import org.babyfish.jimmer.sql.di.*;
 import org.babyfish.jimmer.sql.dialect.DefaultDialect;
 import org.babyfish.jimmer.sql.dialect.Dialect;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.quarkiverse.jimmer.runtime.cache.QuarkusCacheFactory;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerConfigValidator;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceRuntimeConfig;
@@ -106,6 +108,7 @@ final class QuarkusSqlClientFactory {
         Executor executor = getOptionalBean(Executor.class);
         SqlFormatter sqlFormatter = getOptionalBean(SqlFormatter.class);
         ObjectMapper objectMapper = getOptionalBean(ObjectMapper.class);
+        CacheFactory cacheFactory = getOptionalBean(CacheFactory.class);
         Collection<CacheAbandonedCallback> callbacks = getMatchingBeans(CacheAbandonedCallback.class);
         Collection<ScalarProvider<?, ?>> providers = getMatchingBeans(Constant.SCALAR_PROVIDER_TYPE_LITERAL.getType());
         Collection<DraftInterceptor<?, ?>> interceptors = getMatchingBeans(Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL.getType());
@@ -182,6 +185,7 @@ final class QuarkusSqlClientFactory {
                 .setDatabaseValidationMode(runtimeConfig.databaseValidationMode())
                 .setDefaultSerializedTypeJsonCodec(
                         objectMapper != null ? JimmerJsonCodecs.toJsonCodecV2(objectMapper) : null)
+                .setCacheFactory(cacheFactory != null ? QuarkusCacheFactory.adapt(cacheFactory) : null)
                 .addCacheAbandonedCallbacks(callbacks);
 
         for (ScalarProvider<?, ?> provider : providers) {
@@ -192,8 +196,7 @@ final class QuarkusSqlClientFactory {
         builder.addExceptionTranslators(exceptionTranslators);
         configureLanguageExtensions(builder);
         var dispatchers = container.select(QuarkusEventDispatcher.class);
-        // Enabled integration requires the generated bean's event injection points to preserve notification provenance.
-        QuarkusEventDispatcher dispatcher = dispatchers.isUnsatisfied() && !buildTimeConfig.enable()
+        QuarkusEventDispatcher dispatcher = dispatchers.isUnsatisfied()
                 ? new QuarkusEventDispatcher(container.beanManager().getEvent())
                 : dispatchers.get();
         builder.addInitializers(dispatcher.initializer(dataSourceName));

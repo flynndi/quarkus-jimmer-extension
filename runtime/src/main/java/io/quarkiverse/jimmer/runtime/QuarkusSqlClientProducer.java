@@ -3,17 +3,13 @@ package io.quarkiverse.jimmer.runtime;
 import javax.sql.DataSource;
 
 import org.babyfish.jimmer.sql.JSqlClient;
-import org.babyfish.jimmer.sql.cache.CacheFactory;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.babyfish.jimmer.sql.kt.KSqlClientKt;
 
-import io.quarkiverse.jimmer.runtime.cache.QuarkusCacheFactory;
-import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusCacheOperatorProvider;
 import io.quarkus.arc.Arc;
-import io.quarkus.arc.ArcContainer;
 
 /**
  * Runtime factory used by the synthetic SQL client beans.
@@ -35,32 +31,16 @@ public class QuarkusSqlClientProducer {
     public JSqlClient createJSqlClient(DataSource dataSource, String dataSourceName) {
         var container = Arc.container();
         return new QuarkusSqlClientFactory(container, jimmerRuntimeConfig, jimmerBuildTimeConfig,
-                dataSource, dataSourceName, builder -> configureManagedCaching(builder, container, dataSourceName), false)
+                dataSource, dataSourceName,
+                builder -> builder.setCacheOperator(QuarkusCacheOperatorProvider.find(container, dataSourceName)), false)
                 .create();
     }
 
     public KSqlClient createKSqlClient(DataSource dataSource, String dataSourceName) {
         var container = Arc.container();
         return KSqlClientKt.toKSqlClient(new QuarkusSqlClientFactory(container, jimmerRuntimeConfig, jimmerBuildTimeConfig,
-                dataSource, dataSourceName, builder -> configureManagedCaching(builder, container, dataSourceName), true)
+                dataSource, dataSourceName,
+                builder -> builder.setCacheOperator(QuarkusCacheOperatorProvider.find(container, dataSourceName)), true)
                 .create());
-    }
-
-    private void configureManagedCaching(JSqlClient.Builder builder, ArcContainer container, String dataSourceName) {
-        var factories = container.select(CacheFactory.class,
-                new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName));
-        if (factories.isUnsatisfied()) {
-            factories = container.select(CacheFactory.class);
-        }
-        if (!factories.isUnsatisfied()) {
-            builder.setCacheFactory(QuarkusCacheFactory.adapt(factories.get()));
-        }
-        builder.setCacheOperator(QuarkusCacheOperatorProvider.find(container, dataSourceName));
-
-        var flushers = container.select(TransactionCacheOperatorFlusher.class);
-        if (!flushers.isUnsatisfied()) {
-            // Only managed clients register automatic completion flushing; public CDI events remain independent.
-            builder.addInitializers(client -> flushers.get().register(client, dataSourceName));
-        }
     }
 }
