@@ -18,8 +18,6 @@ import jakarta.enterprise.util.TypeLiteral;
 import org.babyfish.jimmer.sql.DraftInterceptor;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.CacheAbandonedCallback;
-import org.babyfish.jimmer.sql.cache.CacheFactory;
-import org.babyfish.jimmer.sql.cache.CacheOperator;
 import org.babyfish.jimmer.sql.di.*;
 import org.babyfish.jimmer.sql.dialect.DefaultDialect;
 import org.babyfish.jimmer.sql.dialect.Dialect;
@@ -94,8 +92,7 @@ final class QuarkusSqlClientFactory {
                 runtimeConfig.dataSources().get(this.dataSourceName));
     }
 
-    /** The caller supplies the operator; null leaves it unset unless configured through the builder. */
-    JSqlClientImplementor create(@Nullable CacheOperator cacheOperator) {
+    JSqlClientImplementor create() {
         JimmerDataSourceRuntimeConfig config = runtimeConfig.dataSources().get(dataSourceName);
         UserIdGeneratorProvider userIdGeneratorProvider = getOptionalBean(UserIdGeneratorProvider.class);
         LogicalDeletedValueGeneratorProvider logicalDeletedValueGeneratorProvider = getOptionalBean(
@@ -109,7 +106,6 @@ final class QuarkusSqlClientFactory {
         Executor executor = getOptionalBean(Executor.class);
         SqlFormatter sqlFormatter = getOptionalBean(SqlFormatter.class);
         ObjectMapper objectMapper = getOptionalBean(ObjectMapper.class);
-        CacheFactory cacheFactory = getOptionalBean(CacheFactory.class);
         Collection<CacheAbandonedCallback> callbacks = getMatchingBeans(CacheAbandonedCallback.class);
         Collection<ScalarProvider<?, ?>> providers = getMatchingBeans(Constant.SCALAR_PROVIDER_TYPE_LITERAL.getType());
         Collection<DraftInterceptor<?, ?>> interceptors = getMatchingBeans(Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL.getType());
@@ -186,8 +182,6 @@ final class QuarkusSqlClientFactory {
                 .setDatabaseValidationMode(runtimeConfig.databaseValidationMode())
                 .setDefaultSerializedTypeJsonCodec(
                         objectMapper != null ? JimmerJsonCodecs.toJsonCodecV2(objectMapper) : null)
-                .setCacheFactory(cacheFactory)
-                .setCacheOperator(cacheOperator)
                 .addCacheAbandonedCallbacks(callbacks);
 
         for (ScalarProvider<?, ?> provider : providers) {
@@ -198,7 +192,8 @@ final class QuarkusSqlClientFactory {
         builder.addExceptionTranslators(exceptionTranslators);
         configureLanguageExtensions(builder);
         var dispatchers = container.select(QuarkusEventDispatcher.class);
-        QuarkusEventDispatcher dispatcher = dispatchers.isUnsatisfied()
+        // Enabled integration requires the generated bean's event injection points to preserve notification provenance.
+        QuarkusEventDispatcher dispatcher = dispatchers.isUnsatisfied() && !buildTimeConfig.enable()
                 ? new QuarkusEventDispatcher(container.beanManager().getEvent())
                 : dispatchers.get();
         builder.addInitializers(dispatcher.initializer(dataSourceName));

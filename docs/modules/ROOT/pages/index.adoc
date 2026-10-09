@@ -364,10 +364,11 @@ The default datasource accepts ordinary `@Default` and the legacy `@DataSource("
 Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator.
 
 `SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately and report construction failures at the factory call.
-They no longer inherit any `CacheOperator` bean, including user-provided beans.
-Configure a dedicated operator through the builder if needed: a `TransactionCacheOperator` instance cannot be shared by multiple SQL clients.
+They do not automatically select `CacheFactory` or `CacheOperator` beans.
+Configure independent caching through the builder when needed: a `TransactionCacheOperator` instance cannot be shared by multiple SQL clients.
 A manually supplied `TransactionCacheOperator` outside CDI also requires application-managed flushing;
 the extension's completion and scheduled retry handlers discover only CDI operator beans.
+Manual clients still publish CDI database events, but their events do not schedule the managed clients' automatic completion flushes.
 
 `quarkus.jimmer.database-validation-mode` takes precedence over the deprecated `quarkus.jimmer.database-validation.mode` key.
 
@@ -451,11 +452,14 @@ require the extension's build-time event integration to be enabled.
 
 The transaction cache operator writes delayed cache deletion records through the client's connection manager.
 With an Agroal datasource participating in JTA, these records commit or roll back with the business changes.
-The first Jimmer database event observed in an active transaction registers one completion callback.
-The factory publishes events with the client's `@DataSource` qualifier, and the callback collects their datasource names.
+The first database trigger callback from a CDI-managed client in an active transaction registers one completion callback.
+The extension attaches flush listeners to managed clients and collects their datasource names directly.
+Applications may also request a completion flush by publishing a CDI `DatabaseEvent` with `@DataSource(name)`.
+Both paths use the same transaction-level marker, so repeated or mixed notifications do not schedule duplicate flushes.
+The factory also publishes CDI notifications with the client's `@DataSource` qualifier.
 The existing `@Default` event qualifier is retained. Observers without a qualifier or with `@Default` continue
 to receive events from all clients; observers may select a specific datasource.
-Its registration marker belongs to the JTA transaction through `TransactionSynchronizationRegistry`, so
+The flush registration marker belongs to the JTA transaction through `TransactionSynchronizationRegistry`, so
 suspension, `REQUIRES_NEW`, and completion on another thread do not share or lose the marker.
 
 Only `STATUS_COMMITTED` triggers a completion flush. Rollback, rollback-only transactions, and transactions
@@ -473,9 +477,13 @@ cache operation or a failed flush commit, so cache implementations must support 
 Jimmer's own batching and internal SQL error handling still apply; the extension does not turn failures
 that Jimmer handles internally into exceptions or guarantee an immediate empty queue after every commit.
 
-Application-published events without a `@DataSource` qualifier cannot identify an operator and need a later flush.
-Events outside an active JTA transaction do not flush immediately: Jimmer's cache listeners may write the
-delayed deletion records after the CDI event observer returns. An optional scheduled job processes those records,
+Application-published CDI events with a `@DataSource` qualifier retain their completion-flush behavior in an active transaction.
+An unqualified event cannot identify which datasource to flush. A CDI notification alone does not create Jimmer
+cache invalidation records; it requests processing of records already written by the operator.
+Automatic CDI notifications forwarded by independently created `SqlClients.java(...)` or `SqlClients.kotlin(...)`
+clients do not schedule managed completion flushes. Public typed and datasource-qualified observers still receive them.
+Trigger callbacks outside an active JTA transaction do not flush immediately: other cache listeners may still write
+delayed deletion records during event delivery. An optional scheduled job processes those records,
 using `quarkus.jimmer.transaction-cache-operator-fixed-delay` as its interval.
 Add `quarkus-scheduler` or `quarkus-quartz` to register the job. Without either extension, successful commit
 callbacks still run and no periodic job is registered. The default interval is `5s`; `off` or `disabled`
@@ -484,6 +492,16 @@ Without periodic retry, failures, nontransactional events, and records left by a
 an application-arranged retry or a later flush; they are not guaranteed to recover automatically.
 The lightweight scheduler checks triggers once per second; applications relying on Quartz-specific
 scheduling precision or clustering must add Quartz explicitly.
+
+Cache factories and storage have separate ownership rules.
+A global `CacheFactory` may be shared by managed clients when its implementation supports that use.
+`AbstractCacheFactory` stores mutable filter state; provide a separate factory for each datasource when that state must be isolated.
+For automatically selected CDI cache factories, the extension preserves `FilterStateAware` support even when
+an interface-typed producer hides it behind an ArC proxy. Cache creation still goes through the original CDI reference.
+Create independent cache chains and loading binders for independently configured caches.
+Redis clients and connection pools may remain application-scoped.
+When different databases share Redis, configure distinct key namespaces or Redis databases;
+entity names and IDs alone do not isolate their data. The extension does not rewrite existing cache keys.
 
 == HTTP handler lifecycle
 

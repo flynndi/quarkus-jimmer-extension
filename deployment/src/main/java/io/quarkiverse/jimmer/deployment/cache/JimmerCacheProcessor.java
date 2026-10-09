@@ -96,7 +96,7 @@ final class JimmerCacheProcessor {
         if (transactionCache) {
             beans.produce(AdditionalBeanBuildItem.unremovableOf(TransactionCacheOperatorFlusher.class));
         } else {
-            // The scoped observer would otherwise be discovered even when no datasource uses transaction caches.
+            // The scoped bean would otherwise be discovered even when no datasource uses transaction caches.
             excluded.produce(new ExcludedTypeBuildItem(TransactionCacheOperatorFlusher.class.getName()));
         }
         boolean schedulerAvailable = capabilities.isPresent(Capability.SCHEDULER);

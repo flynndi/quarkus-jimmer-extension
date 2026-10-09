@@ -172,7 +172,7 @@ Only the selected Java or Kotlin filters, customizers, and initializers are inst
 
 CDI-managed clients select their `CacheOperator` through ArC, including `@DefaultBean` and alternative priorities. The default datasource accepts both ordinary `@Default` and the legacy `@DataSource("<default>")` form; unresolved ambiguity fails client creation. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator.
 
-`SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately; construction failures are reported by the factory call. They no longer inherit any `CacheOperator` bean, including user-provided beans. Configure a dedicated operator through the builder if needed: a `TransactionCacheOperator` instance cannot be shared by multiple SQL clients. A manually supplied `TransactionCacheOperator` outside CDI also requires application-managed flushing; the extension's completion and scheduled retry handlers discover only CDI operator beans.
+`SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately; construction failures are reported by the factory call. They do not automatically select `CacheFactory` or `CacheOperator` beans. Configure independent caching through the builder when needed. A `TransactionCacheOperator` instance cannot be shared by multiple SQL clients, and a manually supplied instance outside CDI requires application-managed flushing and retry. Manual clients still publish CDI database events, but their events do not schedule the managed clients' automatic completion flushes.
 
 ### Transactions
 
@@ -245,13 +245,17 @@ for indexing, inheritance and transaction semantics.
 
 ### Cache
 
-Transaction cache invalidation is associated with the JTA transaction, including suspended transactions and transactions resumed on another thread. A transaction that emits Jimmer database events schedules one flush after successful commit; rollback does not trigger it. Only operators for the datasources involved are flushed, each in its own new transaction after Agroal releases the completed transaction's connection.
+Transaction cache invalidation is associated with the JTA transaction, including suspended transactions and transactions resumed on another thread. Triggers on CDI-managed clients schedule one flush after successful commit; rollback does not trigger it. Applications can also explicitly request a completion flush by publishing a CDI `DatabaseEvent` with `@DataSource(name)` during an active transaction. Both paths share transaction-level deduplication. Only operators for the datasources involved are flushed, each in its own new transaction after Agroal releases the completed transaction's connection. Publishing a CDI notification does not itself create Jimmer cache invalidation records.
 
 A cache failure cannot undo an already committed business transaction. If cache deletion throws, its flush transaction rolls back and the durable invalidation records remain for a later flush. Cache deletion must be idempotent because retries can repeat it. Events outside a JTA transaction need a later flush as well. See [cache completion behavior](docs/modules/ROOT/pages/index.adoc#transaction-cache) for the full contract.
 
 Periodic retry is optional: add `io.quarkus:quarkus-scheduler` or `io.quarkus:quarkus-quartz` to enable it. Quarkus selects the scheduler implementation. The retry interval defaults to `5s`. Setting `quarkus.jimmer.transaction-cache-operator-fixed-delay=off` disables this retry job while preserving commit callbacks. Without a scheduler, or with retry disabled, failed and nontransactional invalidations have no periodic recovery; the application must arrange any required retry. This does not disable the application's other scheduled jobs.
 
 The extension does not transitively install Redis or Caffeine. Add the native extensions used by your cache factory or binders; merely adding Redis does not enable Jimmer caching.
+
+A global `CacheFactory` may be shared by managed clients when its implementation supports that use. `AbstractCacheFactory` stores mutable filter state; provide a separate factory for each datasource when that state must be isolated. A factory that creates independent cache chains can reuse an application-scoped Redis connection pool. Do not reuse a loading binder across independently built chains. When different databases share Redis, configure distinct key namespaces or Redis databases; entity names and IDs alone do not isolate their data.
+
+For automatically selected CDI cache factories, the extension preserves `FilterStateAware` support even when a producer's declared `CacheFactory` return type hides that interface behind an ArC proxy. Cache creation still goes through the original CDI reference.
 
 example: [CacheConfig.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fconfig%2FCacheConfig.java)   
 use blocking RedisDataSource 

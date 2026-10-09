@@ -26,6 +26,7 @@ import javax.sql.DataSource;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Default;
+import jakarta.enterprise.util.TypeLiteral;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.transaction.RollbackException;
@@ -40,6 +41,7 @@ import org.babyfish.jimmer.sql.cache.Cache;
 import org.babyfish.jimmer.sql.cache.CacheEnvironment;
 import org.babyfish.jimmer.sql.cache.CacheFactory;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
+import org.babyfish.jimmer.sql.event.AssociationEvent;
 import org.babyfish.jimmer.sql.event.DatabaseEvent;
 import org.babyfish.jimmer.sql.event.EntityEvent;
 import org.babyfish.jimmer.sql.transaction.Propagation;
@@ -51,13 +53,16 @@ import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkiverse.jimmer.test.model.CdiBookDraft;
+import io.quarkiverse.jimmer.test.model.sort.LegacySortBook;
 import io.quarkus.agroal.DataSource.DataSourceLiteral;
+import io.quarkus.arc.Arc;
 import io.quarkus.test.QuarkusUnitTest;
 
 class CacheTransactionCompletionTest {
@@ -65,6 +70,7 @@ class CacheTransactionCompletionTest {
     @RegisterExtension
     static final QuarkusUnitTest APP = new QuarkusUnitTest()
             .withApplicationRoot(archive -> archive.addPackage(CdiBook.class.getPackage())
+                    .addPackage(LegacySortBook.class.getPackage())
                     .addClasses(RecordingOperator.class, RecordingCacheFactory.class, TrackingCache.class, Observation.class,
                             DefaultEventObserver.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))
@@ -84,7 +90,10 @@ class CacheTransactionCompletionTest {
     TransactionManager transactionManager;
 
     @Inject
-    Event<EntityEvent<?>> events;
+    Event<EntityEvent<CdiBook>> events;
+
+    @Inject
+    Event<AssociationEvent> associationEvents;
 
     @Inject
     JSqlClient sqlClient;
@@ -126,13 +135,13 @@ class CacheTransactionCompletionTest {
     }
 
     @Test
-    void repeatedEventsFlushOnceAfterCommitWithASizeOneConnectionPool() throws Exception {
+    void mixedTriggersAndExplicitNotificationsFlushOnceAfterCommitWithASizeOneConnectionPool() throws Exception {
         transactionManager.begin();
         Transaction business = transactionManager.getTransaction();
         insertWork("committed");
         fireEvent();
-        fireEvent();
-        fireEvent();
+        fireApplicationEvent(true, false);
+        fireApplicationEvent(true, true);
         assertEquals(0, operator.observations.size());
 
         transactionManager.commit();
@@ -152,10 +161,12 @@ class CacheTransactionCompletionTest {
         transactionManager.begin();
         insertWork("rolled-back");
         fireEvent();
+        fireApplicationEvent(true, false);
         if (rollbackOnly) {
             transactionManager.setRollbackOnly();
             // An event first encountered in a doomed transaction must not schedule another callback.
             fireEvent();
+            fireApplicationEvent(true, true);
             assertThrows(RollbackException.class, transactionManager::commit);
         } else {
             transactionManager.rollback();
@@ -171,7 +182,8 @@ class CacheTransactionCompletionTest {
     @Test
     void noTransactionAndNoEventDoNotLeaveStateForALaterTransaction() throws Exception {
         fireEvent();
-        fireEvent();
+        fireApplicationEvent(true, false);
+        fireApplicationEvent(true, true, true);
         assertEquals(0, operator.observations.size());
 
         transactionManager.begin();
@@ -186,17 +198,24 @@ class CacheTransactionCompletionTest {
         assertEquals(Set.of("no-event"), operator.observations.get(0).visibleRows());
     }
 
-    @Test
-    void unqualifiedEventsDoNotGuessWhichDatasourceShouldFlush() throws Exception {
+    @ParameterizedTest
+    @CsvSource({ "false, false, false", "false, true, false", "true, false, false", "true, true, false",
+            "false, false, true", "false, true, true", "true, false, true", "true, true, true" })
+    void applicationCdiEventsScheduleFlushingOnlyWhenDatasourceQualified(boolean qualified, boolean association,
+            boolean programmatic)
+            throws Exception {
         transactionManager.begin();
-        insertWork("unqualified");
-        events.fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 1L, null, "unqualified-event"));
+        insertWork("application-event");
+        fireApplicationEvent(qualified, association, programmatic);
+        assertEquals(0, operator.observations.size());
         transactionManager.commit();
 
-        assertEquals(0, operator.observations.size());
-        flusher.retry();
+        assertEquals(qualified ? 1 : 0, operator.observations.size());
+        if (!qualified) {
+            flusher.retry();
+        }
         assertEquals(1, operator.successes.get());
-        assertEquals(Set.of("unqualified"), operator.observations.get(0).visibleRows());
+        assertEquals(Set.of("application-event"), operator.observations.get(0).visibleRows());
     }
 
     @Test
@@ -293,8 +312,29 @@ class CacheTransactionCompletionTest {
     }
 
     private void fireEvent() {
-        events.select(new DataSourceLiteral("<default>"))
-                .fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 1L, null, "completion-test"));
+        sqlClient.getTriggers(true).fireEntityEvict(ImmutableType.get(CdiBook.class), 1L, null, "completion-test");
+    }
+
+    private void fireApplicationEvent(boolean qualified, boolean association) {
+        fireApplicationEvent(qualified, association, false);
+    }
+
+    private void fireApplicationEvent(boolean qualified, boolean association, boolean programmatic) {
+        if (association) {
+            var source = programmatic
+                    ? Arc.container().beanManager().getEvent().select(AssociationEvent.class, Default.Literal.INSTANCE)
+                    : associationEvents;
+            var publisher = qualified ? source.select(new DataSourceLiteral("<default>")) : source;
+            publisher.fire(new AssociationEvent(ImmutableType.get(LegacySortBook.class).getProp("parent"), 1L, null,
+                    "application-event"));
+        } else {
+            var source = programmatic
+                    ? Arc.container().beanManager().getEvent().select(new TypeLiteral<EntityEvent<CdiBook>>() {
+                    }, Default.Literal.INSTANCE)
+                    : events;
+            var publisher = qualified ? source.select(new DataSourceLiteral("<default>")) : source;
+            publisher.fire(EntityEvent.evict(ImmutableType.get(CdiBook.class), 1L, null, "application-event"));
+        }
     }
 
     private void insertWork(String id) throws SQLException {
