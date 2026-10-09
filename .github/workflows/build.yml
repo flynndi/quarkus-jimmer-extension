@@ -24,6 +24,11 @@ on:
 permissions:
   contents: read
 
+env:
+  # Maven 3.10 adds local metadata that central-publishing 0.11.0 leaves in release bundles.
+  MAVEN_VERSION: '3.9.16'
+  MAVEN_SHA512: '831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6'
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name != 'release' }}
@@ -107,6 +112,19 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Set up pinned Maven
+        run: |
+          archive="${RUNNER_TEMP}/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 --max-time 120 \
+            "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
+            --output "$archive"
+          printf '%s  %s\n' "$MAVEN_SHA512" "$archive" | sha512sum -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP"
+          export MAVEN_HOME="${RUNNER_TEMP}/apache-maven-${MAVEN_VERSION}"
+          echo "MAVEN_HOME=$MAVEN_HOME" >> "$GITHUB_ENV"
+          echo "$MAVEN_HOME/bin" >> "$GITHUB_PATH"
+          "$MAVEN_HOME/bin/mvn" --version
+
       - name: Install parent POM
         run: mvn -N -B install -Dgpg.skip=true
 
@@ -146,6 +164,19 @@ jobs:
           server-username-env-var: SERVER_CENTRAL_USERNAME
           server-password-env-var: SERVER_CENTRAL_PASSWORD
 
+      - name: Set up pinned Maven
+        run: |
+          archive="${RUNNER_TEMP}/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 --max-time 120 \
+            "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
+            --output "$archive"
+          printf '%s  %s\n' "$MAVEN_SHA512" "$archive" | sha512sum -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP"
+          export MAVEN_HOME="${RUNNER_TEMP}/apache-maven-${MAVEN_VERSION}"
+          echo "MAVEN_HOME=$MAVEN_HOME" >> "$GITHUB_ENV"
+          echo "$MAVEN_HOME/bin" >> "$GITHUB_PATH"
+          "$MAVEN_HOME/bin/mvn" --version
+
       - name: Publish signed release artifacts
         env:
           SERVER_CENTRAL_USERNAME: ${{ vars.SERVER_CENTRAL_USERNAME }}
@@ -168,3 +199,13 @@ jobs:
             -Dgpg.useagent=false \
             -DautoPublish=true \
             -DwaitUntil=published
+
+      - name: List Central bundle contents on failure
+        if: failure()
+        run: |
+          bundle="target/central-publishing/central-bundle.zip"
+          if [[ -f "$bundle" ]]; then
+            unzip -l "$bundle"
+          else
+            echo "No Central bundle was generated."
+          fi
