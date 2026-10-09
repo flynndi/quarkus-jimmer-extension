@@ -359,9 +359,15 @@ Only the selected language's filters, customizers, and initializers are instanti
 Connection and dialect defaults are completed after user customizers run.
 An explicit dialect skips JDBC probing; replacing the connection manager makes detection use that connection manager.
 
+CDI-managed clients select their `CacheOperator` through ArC, including `@DefaultBean` and alternative priorities.
+The default datasource accepts ordinary `@Default` and the legacy `@DataSource("<default>")` form; unresolved ambiguity fails client creation.
+Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator.
+
 `SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately and report construction failures at the factory call.
-The automatic `TransactionCacheOperator` belongs only to the CDI-managed client.
-For a manual client that needs transaction-aware cache invalidation, configure a dedicated operator through its builder.
+They no longer inherit any `CacheOperator` bean, including user-provided beans.
+Configure a dedicated operator through the builder if needed: a `TransactionCacheOperator` instance cannot be shared by multiple SQL clients.
+A manually supplied `TransactionCacheOperator` outside CDI also requires application-managed flushing;
+the extension's completion and scheduled retry handlers discover only CDI operator beans.
 
 `quarkus.jimmer.database-validation-mode` takes precedence over the deprecated `quarkus.jimmer.database-validation.mode` key.
 

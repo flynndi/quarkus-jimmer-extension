@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.Collection;
 
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -17,12 +18,13 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.DefaultBean;
 import io.quarkus.test.QuarkusUnitTest;
 
 class DataSourceLegacyDefaultCacheOverrideTest {
     @RegisterExtension
     static final QuarkusUnitTest APP = new QuarkusUnitTest()
-            .withApplicationRoot(archive -> archive.addClass(UserOperator.class))
+            .withApplicationRoot(archive -> archive.addClasses(UserOperator.class, FallbackOperators.class))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
@@ -34,11 +36,21 @@ class DataSourceLegacyDefaultCacheOverrideTest {
     JSqlClient client;
 
     @Test
-    void honorsUserOperatorForTheDefaultDataSource() {
+    void legacyQualifierOverridesAnOrdinaryDefaultBeanWithoutInitializingIt() {
         UserOperator expected = Arc.container().instance(UserOperator.class, new DataSource.DataSourceLiteral("<default>"))
                 .get();
         assertSame(expected, ((JSqlClientImplementor) client).getCacheOperator());
         assertNotNull(expected.initializedWith);
+    }
+
+    @Singleton
+    public static class FallbackOperators {
+        @Produces
+        @Singleton
+        @DefaultBean
+        CacheOperator fallbackOperator() {
+            throw new AssertionError("An unselected default operator must not be instantiated");
+        }
     }
 
     @Singleton

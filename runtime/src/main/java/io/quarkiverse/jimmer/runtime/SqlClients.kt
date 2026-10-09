@@ -11,6 +11,7 @@ import javax.sql.DataSource
 /**
  * Creates independent clients immediately, using the supplied Arc container's configuration and SPI beans.
  * These clients are not CDI beans; inject JSqlClient or KSqlClient for the managed datasource client.
+ * CacheOperator beans are not inherited: configure a dedicated operator through the builder when needed.
  */
 object SqlClients {
 

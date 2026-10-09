@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.Collection;
 
+import jakarta.enterprise.inject.Default;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -15,6 +16,7 @@ import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.test.QuarkusUnitTest;
@@ -34,14 +36,18 @@ class DataSourceDefaultCacheOverrideTest {
     JSqlClient client;
 
     @Test
-    void honorsUserOperatorForTheDefaultDataSource() {
+    void resolvesADefaultBeanWithBothDefaultQualifiersOnlyOnce() {
         UserOperator expected = Arc.container().instance(UserOperator.class).get();
         assertSame(expected, ((JSqlClientImplementor) client).getCacheOperator());
+        assertSame(expected, Arc.container().instance(UserOperator.class, new DataSource.DataSourceLiteral("<default>"))
+                .get());
         assertNotNull(expected.initializedWith);
     }
 
     @Singleton
     @DefaultBean
+    @Default
+    @DataSource("<default>")
     public static class UserOperator implements CacheOperator {
         JSqlClient initializedWith;
 

@@ -32,13 +32,13 @@ public class QuarkusSqlClientProducer {
         var container = Arc.container();
         return new QuarkusSqlClientFactory(container, jimmerRuntimeConfig, jimmerBuildTimeConfig,
                 dataSource, dataSourceName, null, false)
-                .create(QuarkusCacheOperatorProvider.findManagedOperator(container, dataSourceName));
+                .create(QuarkusCacheOperatorProvider.find(container, dataSourceName));
     }
 
     public KSqlClient createKSqlClient(DataSource dataSource, String dataSourceName) {
         var container = Arc.container();
         return KSqlClientKt.toKSqlClient(new QuarkusSqlClientFactory(container, jimmerRuntimeConfig, jimmerBuildTimeConfig,
                 dataSource, dataSourceName, null, true)
-                .create(QuarkusCacheOperatorProvider.findManagedOperator(container, dataSourceName)));
+                .create(QuarkusCacheOperatorProvider.find(container, dataSourceName)));
     }
 }

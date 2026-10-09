@@ -170,7 +170,9 @@ SPI beans may inject the matching client for later use. During construction, `@P
 
 Only the selected Java or Kotlin filters, customizers, and initializers are instantiated. Connection and dialect defaults are completed after Jimmer executes the user customizers. A customizer's explicit dialect avoids JDBC dialect probing; if it replaces the connection manager, dialect detection uses the replacement.
 
-`SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately; construction failures are reported by the factory call. The extension's automatic `TransactionCacheOperator` belongs only to its CDI-managed client. Manual clients do not reuse that operator; configure a dedicated operator through the builder if the manually created client needs transaction-aware cache invalidation. User-provided operators remain supported, including ordinary `@Default` and the legacy `@DataSource("<default>")` form for the default datasource; multiple matching user operators are rejected. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator, because an operator cannot be shared by multiple SQL clients.
+CDI-managed clients select their `CacheOperator` through ArC, including `@DefaultBean` and alternative priorities. The default datasource accepts both ordinary `@Default` and the legacy `@DataSource("<default>")` form; unresolved ambiguity fails client creation. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator.
+
+`SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately; construction failures are reported by the factory call. They no longer inherit any `CacheOperator` bean, including user-provided beans. Configure a dedicated operator through the builder if needed: a `TransactionCacheOperator` instance cannot be shared by multiple SQL clients. A manually supplied `TransactionCacheOperator` outside CDI also requires application-managed flushing; the extension's completion and scheduled retry handlers discover only CDI operator beans.
 
 ### Transactions
 

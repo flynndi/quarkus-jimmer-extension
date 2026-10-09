@@ -44,7 +44,6 @@ import io.quarkiverse.jimmer.runtime.cfg.JimmerConfigValidator;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerDataSourceRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusAopProxyProvider;
-import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusCacheOperatorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
@@ -96,7 +95,8 @@ final class QuarkusSqlClientFactory {
     }
 
     JSqlClientImplementor create() {
-        return create(QuarkusCacheOperatorProvider.findUserOperator(container, dataSourceName));
+        // Independent clients must explicitly configure their own operator through the builder.
+        return create(null);
     }
 
     JSqlClientImplementor create(CacheOperator cacheOperator) {
