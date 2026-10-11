@@ -25,13 +25,14 @@ public interface JimmerBuildTimeConfig {
     boolean enable();
 
     /**
-     * jimmer.language
+     * Language of the managed SQL clients. Kotlin requires the optional jimmer-sql-kotlin dependency.
      */
     @WithDefault("java")
     String language();
 
     /**
      * The Jimmer microservice identity, independent of the transport used to communicate with other services.
+     * With HTTP and Jackson available, this also enables the inbound exporter and requires antlr4-runtime.
      */
     Optional<String> microServiceName();
 

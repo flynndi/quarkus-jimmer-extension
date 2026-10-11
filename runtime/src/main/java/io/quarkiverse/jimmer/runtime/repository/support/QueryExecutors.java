@@ -28,6 +28,7 @@ import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import io.quarkiverse.jimmer.runtime.repository.QuarkusOrders;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.parser.*;
+import io.quarkiverse.jimmer.runtime.util.Constant;
 
 /**
  * Internal execution support for generated legacy repositories.
@@ -60,12 +61,13 @@ public class QueryExecutors {
                     .createQuery(sqlClient, type, ExecutionPurpose.QUERY, FilterLevel.DEFAULT, (q, table) -> {
                         q.where(astPredicate(table, queryData.getPredicate(), args, queryMethod));
                         if (specification != null) {
-                            if (specification instanceof KSpecification<?>) {
-                                JSpecification<?, Table<?>> spec = (JSpecification<?, Table<?>>) (JSpecification<?, ?>) KSpecificationKt
-                                        .toJavaSpecification(((KSpecification<Object>) specification));
-                                q.where(spec);
-                            } else {
+                            if (specification instanceof JSpecification<?, ?>) {
                                 q.where((JSpecification<?, Table<?>>) specification);
+                            } else if (Constant.KOTLIN_SQL_AVAILABLE) {
+                                q.where((JSpecification<?, Table<?>>) KotlinSpecifications.toJava(specification));
+                            } else {
+                                throw new IllegalArgumentException(
+                                        "Non-Java specifications require org.babyfish.jimmer:jimmer-sql-kotlin");
                             }
                         }
                         for (Query.Order order : queryData.getOrders()) {
@@ -123,6 +125,15 @@ public class QueryExecutors {
             }
         }
         return null;
+    }
+
+    // Native-image must not parse Kotlin casts or calls when only Java SQL is available.
+    private static final class KotlinSpecifications {
+
+        @SuppressWarnings("unchecked")
+        private static JSpecification<?, ?> toJava(Specification<?> specification) {
+            return KSpecificationKt.toJavaSpecification((KSpecification<Object>) specification);
+        }
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

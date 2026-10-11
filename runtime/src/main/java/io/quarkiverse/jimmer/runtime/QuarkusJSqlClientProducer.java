@@ -3,8 +3,6 @@ package io.quarkiverse.jimmer.runtime;
 import javax.sql.DataSource;
 
 import org.babyfish.jimmer.sql.JSqlClient;
-import org.babyfish.jimmer.sql.kt.KSqlClient;
-import org.babyfish.jimmer.sql.kt.KSqlClientKt;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
@@ -17,13 +15,13 @@ import io.quarkus.arc.Arc;
  *
  * @author <a href="mailto:lixuan0520@gmail.com">flynndi</a>
  */
-public class QuarkusSqlClientProducer {
+public class QuarkusJSqlClientProducer {
 
     private final JimmerRuntimeConfig jimmerRuntimeConfig;
 
     private final JimmerBuildTimeConfig jimmerBuildTimeConfig;
 
-    public QuarkusSqlClientProducer(JimmerRuntimeConfig jimmerRuntimeConfig, JimmerBuildTimeConfig jimmerBuildTimeConfig) {
+    public QuarkusJSqlClientProducer(JimmerRuntimeConfig jimmerRuntimeConfig, JimmerBuildTimeConfig jimmerBuildTimeConfig) {
         this.jimmerRuntimeConfig = jimmerRuntimeConfig;
         this.jimmerBuildTimeConfig = jimmerBuildTimeConfig;
     }
@@ -34,13 +32,5 @@ public class QuarkusSqlClientProducer {
                 dataSource, dataSourceName,
                 builder -> builder.setCacheOperator(QuarkusCacheOperatorProvider.find(container, dataSourceName)), false)
                 .create();
-    }
-
-    public KSqlClient createKSqlClient(DataSource dataSource, String dataSourceName) {
-        var container = Arc.container();
-        return KSqlClientKt.toKSqlClient(new QuarkusSqlClientFactory(container, jimmerRuntimeConfig, jimmerBuildTimeConfig,
-                dataSource, dataSourceName,
-                builder -> builder.setCacheOperator(QuarkusCacheOperatorProvider.find(container, dataSourceName)), true)
-                .create());
     }
 }

@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import jakarta.inject.Inject;
 
 import org.babyfish.jimmer.sql.JSqlClient;
@@ -18,7 +21,8 @@ class HeadlessMicroserviceTest {
 
     @RegisterExtension
     static final QuarkusUnitTest APP = OptionalIntegrationTestSupport.isolateExcludedDependencies(new QuarkusUnitTest(),
-            OptionalIntegrationTestSupport.withoutHttp())
+            Stream.concat(OptionalIntegrationTestSupport.withoutHttp().stream(),
+                    OptionalIntegrationTestSupport.withoutAntlr().stream()).collect(Collectors.toSet()))
             .withApplicationRoot(archive -> archive.addClasses(OptionalIntegrationTestSupport.class,
                     MicroserviceTestSupport.DefaultExchange.class,
                     MicroserviceTestSupport.NamedExchange.class))
@@ -38,6 +42,8 @@ class HeadlessMicroserviceTest {
                 () -> Class.forName("io.quarkus.rest.client.reactive.QuarkusRestClientBuilder", false, loader));
         assertThrows(ClassNotFoundException.class,
                 () -> Class.forName("io.quarkus.vertx.http.runtime.VertxHttpRecorder", false, loader));
+        assertThrows(ClassNotFoundException.class,
+                () -> Class.forName("org.antlr.v4.runtime.CharStream", false, loader));
         JSqlClientImplementor sqlClient = (JSqlClientImplementor) client;
         assertEquals("inventory", sqlClient.getMicroServiceName());
         assertInstanceOf(MicroserviceTestSupport.NamedExchange.class, sqlClient.getMicroServiceExchange());

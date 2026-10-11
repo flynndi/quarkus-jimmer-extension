@@ -1,5 +1,6 @@
 package io.quarkiverse.jimmer.test
 
+import io.quarkiverse.jimmer.runtime.SqlClients
 import io.quarkiverse.jimmer.runtime.repo.PageParam
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractKotlinRepository
 import io.quarkiverse.jimmer.runtime.repository.KRepository
@@ -7,18 +8,25 @@ import io.quarkiverse.jimmer.runtime.repo.support.orderBy as repositoryOrderBy
 import io.quarkiverse.jimmer.runtime.repository.orderBy as legacyOrderBy
 import io.quarkiverse.jimmer.test.model.CdiBook
 import io.quarkiverse.jimmer.test.model.CdiBookView
+import io.quarkus.arc.Arc
 import io.quarkus.test.QuarkusUnitTest
 import io.quarkus.narayana.jta.QuarkusTransaction
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import jakarta.transaction.Transactional
+import org.babyfish.jimmer.Specification
 import org.babyfish.jimmer.meta.ImmutableType
 import org.babyfish.jimmer.meta.NullOrderMode
 import org.babyfish.jimmer.sql.ast.query.OrderMode
 import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.babyfish.jimmer.sql.kt.ast.expression.KNonNullPropExpression
 import org.babyfish.jimmer.sql.kt.ast.expression.eq
+import org.babyfish.jimmer.sql.kt.ast.expression.ne
 import org.babyfish.jimmer.sql.kt.ast.query.SortDsl
+import org.babyfish.jimmer.sql.kt.ast.query.specification.KSpecification
+import org.babyfish.jimmer.sql.kt.ast.query.specification.KSpecificationArgs
+import org.babyfish.jimmer.sql.kt.filter.KFilter
+import org.babyfish.jimmer.sql.kt.filter.KFilterArgs
 import org.jboss.shrinkwrap.api.ShrinkWrap
 import org.jboss.shrinkwrap.api.asset.StringAsset
 import org.jboss.shrinkwrap.api.spec.JavaArchive
@@ -48,7 +56,8 @@ class RepositoryKotlinTest {
                                 it.get().endsWith("/Tables.class") || it.get().endsWith("/TableExes.class")
                         }.forEach { delete(it) }
                     }
-                    .addClasses(BookRepository::class.java, LegacyBooks::class.java)
+                    .addClasses(BookRepository::class.java, LegacyBooks::class.java,
+                        VisibleBooksFilter::class.java, NameSpecification::class.java)
                     .addAsResource(StringAsset(CdiBook::class.java.name + "\n"), "META-INF/jimmer/entities")
             }
             .overrideConfigKey("quarkus.jimmer.language", "kotlin")
@@ -118,6 +127,24 @@ class RepositoryKotlinTest {
         assertEquals("Alpha", legacy.findById(1L).orElseThrow().name())
         assertTrue(legacy.findById(999L).isEmpty)
         assertEquals(listOf(1L, 2L, 3L), legacy.findByNameLikeOrderById("a").map { it.id() })
+        assertEquals(listOf(2L), legacy.findByIdGreaterThan(0L, NameSpecification("Beta")).map { it.id() })
+        assertTrue(legacy.findByIdGreaterThan(2L, NameSpecification("Beta")).isEmpty())
+    }
+
+    @Test
+    fun kotlinFiltersApplyToManagedAndManuallyCreatedClients() {
+        dataSource.connection.use { connection ->
+            connection.createStatement().use { statement ->
+                statement.executeUpdate("insert into CDI_BOOK(ID, NAME) values (4, 'Hidden')")
+            }
+        }
+
+        assertEquals(listOf(3L, 2L, 1L), repository.findAll(descending()).map { it.id() })
+        assertTrue(legacy.findByNameLikeOrderById("Hidden").isEmpty())
+        val manual = SqlClients.kotlin(Arc.container())
+        assertEquals(setOf(1L, 2L, 3L), manual.createQuery(CdiBook::class) {
+            select(table)
+        }.execute().map { it.id() }.toSet())
     }
 
     @Test
@@ -152,6 +179,22 @@ class RepositoryKotlinTest {
 
     interface LegacyBooks : KRepository<CdiBook, Long> {
         fun findByNameLikeOrderById(name: String): List<CdiBook>
+        fun findByIdGreaterThan(id: Long, specification: Specification<CdiBook>): List<CdiBook>
+    }
+
+    class NameSpecification(private val name: String) : KSpecification<CdiBook> {
+        override fun entityType(): Class<CdiBook> = CdiBook::class.java
+
+        override fun applyTo(args: KSpecificationArgs<CdiBook>) {
+            args.where(args.table.get<String>("name") eq name)
+        }
+    }
+
+    @Singleton
+    class VisibleBooksFilter : KFilter<CdiBook> {
+        override fun filter(args: KFilterArgs<CdiBook>) {
+            args.where(args.table.get<String>("name") ne "Hidden")
+        }
     }
 
     @Singleton

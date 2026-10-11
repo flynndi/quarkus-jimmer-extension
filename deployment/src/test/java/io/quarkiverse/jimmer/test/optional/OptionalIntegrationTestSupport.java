@@ -51,11 +51,15 @@ final class OptionalIntegrationTestSupport {
         Set<Path> paths = new LinkedHashSet<>();
         try {
             for (ArtifactKey artifact : artifacts) {
-                // Jimmer publishes Gradle-built jars without Maven pom.properties. Use a class
-                // resource to locate its jar without loading a type that the test must exclude.
-                String resourceName = artifact.equals(ArtifactKey.of("org.babyfish.jimmer", "jimmer-client"))
-                        ? "org/babyfish/jimmer/client/runtime/Metadata.class"
-                        : "META-INF/maven/" + artifact.getGroupId() + "/" + artifact.getArtifactId() + "/pom.properties";
+                // Some jars have no Maven pom.properties. Locate them by a stable class resource
+                // without loading a type that the test must exclude.
+                String resourceName = switch (artifact.getGroupId() + ":" + artifact.getArtifactId()) {
+                    case "org.babyfish.jimmer:jimmer-client" -> "org/babyfish/jimmer/client/runtime/Metadata.class";
+                    case "org.babyfish.jimmer:jimmer-sql-kotlin" -> "org/babyfish/jimmer/sql/kt/KSqlClient.class";
+                    case "org.babyfish.jimmer:jimmer-core-kotlin" -> "org/babyfish/jimmer/kt/DslScope.class";
+                    case "org.antlr:antlr4-runtime" -> "org/antlr/v4/runtime/Token.class";
+                    default -> "META-INF/maven/" + artifact.getGroupId() + "/" + artifact.getArtifactId() + "/pom.properties";
+                };
                 var resources = parent.getResources(resourceName);
                 while (resources.hasMoreElements()) {
                     URL resource = resources.nextElement();
@@ -113,6 +117,15 @@ final class OptionalIntegrationTestSupport {
 
     static Set<ArtifactKey> withoutClientGeneration() {
         return Set.of(ArtifactKey.of("org.babyfish.jimmer", "jimmer-client"));
+    }
+
+    static Set<ArtifactKey> withoutKotlinSql() {
+        return Set.of(ArtifactKey.of("org.babyfish.jimmer", "jimmer-sql-kotlin"),
+                ArtifactKey.of("org.babyfish.jimmer", "jimmer-core-kotlin"));
+    }
+
+    static Set<ArtifactKey> withoutAntlr() {
+        return Set.of(ArtifactKey.of("org.antlr", "antlr4-runtime"));
     }
 
     static String messages(Throwable failure) {

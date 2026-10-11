@@ -14,9 +14,7 @@ import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.JavaEnabled;
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.KotlinEnabled;
 import io.quarkiverse.jimmer.deployment.repository.bytecode.JimmerRepositoryFactory;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
-import io.quarkiverse.jimmer.runtime.repository.KRepository;
 import io.quarkiverse.jimmer.runtime.repository.support.JRepositoryImpl;
-import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.deployment.GeneratedBeanBuildItem;
 import io.quarkus.arc.deployment.GeneratedBeanGizmoAdaptor;
@@ -41,7 +39,8 @@ final class JimmerRepositoryProcessor {
     @BuildStep(onlyIf = KotlinEnabled.class)
     void contributeKRepositoryToIndex(BuildProducer<AdditionalIndexedClassesBuildItem> additionalIndexedClasses) {
         additionalIndexedClasses
-                .produce(new AdditionalIndexedClassesBuildItem(KRepository.class.getName(), KRepositoryImpl.class.getName()));
+                .produce(new AdditionalIndexedClassesBuildItem("io.quarkiverse.jimmer.runtime.repository.KRepository",
+                        "io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl"));
     }
 
     // Only legacy JRepository/KRepository interfaces participate in derived-query generation.
@@ -58,12 +57,13 @@ final class JimmerRepositoryProcessor {
                     .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
                             JandexReflection.loadClass(repositoryInterface), dataSourceName));
         }
-        Collection<ClassInfo> kRepositoryInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(KRepository.class);
+        DotName kotlinRepository = DotName.createSimple("io.quarkiverse.jimmer.runtime.repository.KRepository");
+        Collection<ClassInfo> kRepositoryInterfaces = combinedIndex.getIndex().getAllKnownSubinterfaces(kotlinRepository);
         for (ClassInfo repositoryInterface : kRepositoryInterfaces) {
             AnnotationInstance dataSource = repositoryInterface.declaredAnnotation(DotName.createSimple(DataSource.class));
             String dataSourceName = dataSource != null ? dataSource.value().asString() : DataSourceUtil.DEFAULT_DATASOURCE_NAME;
             List<Type> typeParameters = JandexUtil.resolveTypeParameters(repositoryInterface.name(),
-                    DotName.createSimple(KRepository.class), combinedIndex.getIndex());
+                    kotlinRepository, combinedIndex.getIndex());
             repositoryMetadataBuildProducer
                     .produce(new RepositoryMetadata(JandexReflection.loadRawType(typeParameters.get(0)),
                             JandexReflection.loadClass(repositoryInterface), dataSourceName));

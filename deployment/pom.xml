@@ -61,6 +61,17 @@
     </dependency>
     <dependency>
       <groupId>org.babyfish.jimmer</groupId>
+      <artifactId>jimmer-sql-kotlin</artifactId>
+      <version>${jimmer.version}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4-runtime</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.babyfish.jimmer</groupId>
       <artifactId>jimmer-client</artifactId>
       <version>${jimmer.version}</version>
       <scope>test</scope>

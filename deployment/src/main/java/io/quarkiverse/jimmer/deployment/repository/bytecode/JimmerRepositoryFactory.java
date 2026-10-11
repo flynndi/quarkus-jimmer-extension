@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import io.quarkiverse.jimmer.deployment.repository.RepositoryMetadata;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.repository.KRepository;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 
 public class JimmerRepositoryFactory {
 
@@ -15,7 +16,8 @@ public class JimmerRepositoryFactory {
     public JimmerRepositoryFactory(RepositoryMetadata metadata) {
         Class<?> repositoryInterface = metadata.getRepositoryInterface();
         boolean jRepository = JRepository.class.isAssignableFrom(repositoryInterface);
-        boolean kRepository = KRepository.class.isAssignableFrom(repositoryInterface);
+        boolean kRepository = QuarkusClassLoader.isClassPresentAtRuntime("org.babyfish.jimmer.sql.kt.KSqlClient")
+                && KRepository.class.isAssignableFrom(repositoryInterface);
         if (jRepository && kRepository) {
             throw new IllegalStateException(
                     "Illegal repository interface \"" +

@@ -7,11 +7,11 @@ import jakarta.enterprise.inject.AmbiguousResolutionException;
 import jakarta.enterprise.inject.Default;
 
 import org.babyfish.jimmer.sql.JSqlClient;
-import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.babyfish.jimmer.sql.runtime.MicroServiceExchange;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.ClassType;
+import org.jboss.jandex.DotName;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsRecorder;
@@ -26,8 +26,10 @@ import io.quarkus.arc.deployment.ValidationPhaseBuildItem;
 import io.quarkus.arc.deployment.ValidationPhaseBuildItem.ValidationErrorBuildItem;
 import io.quarkus.arc.processor.BeanInfo;
 import io.quarkus.arc.processor.BeanResolver;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.deployment.Capabilities;
+import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -42,11 +44,20 @@ final class JimmerMicroserviceProcessor {
     private static final String EXCHANGE = "io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange";
     private static final String IDS = "io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsHandler";
     private static final String ASSOCIATED_IDS = "io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsHandler";
+    private static final DotName KOTLIN_SQL_CLIENT = DotName.createSimple("org.babyfish.jimmer.sql.kt.KSqlClient");
 
     @BuildStep
     void registerBeans(JimmerBuildTimeConfig config, Capabilities capabilities,
             BuildProducer<AdditionalBeanBuildItem> beans, BuildProducer<AdditionalIndexedClassesBuildItem> indexed,
             BuildProducer<ExcludedTypeBuildItem> excluded, BuildProducer<ReflectiveClassBuildItem> reflection) {
+        if (JimmerMicroserviceSupport.enabled(config) && capabilities.isPresent(Capability.VERTX_HTTP)
+                && capabilities.isPresent(Capability.JACKSON)
+                && !QuarkusClassLoader.isClassPresentAtRuntime("org.antlr.v4.runtime.CharStream")) {
+            throw new ConfigurationException(
+                    "quarkus.jimmer.micro-service-name with HTTP and Jackson enables the inbound microservice exporter, "
+                            + "which requires org.antlr:antlr4-runtime. Add this dependency; its version is managed by the Quarkus BOM.",
+                    Set.of("quarkus.jimmer.micro-service-name"));
+        }
         boolean exchangeEnabled = JimmerMicroserviceSupport.httpExchangeEnabled(config, capabilities);
         boolean exporterEnabled = JimmerMicroserviceSupport.exporterEnabled(config, capabilities);
         if (exchangeEnabled) {
@@ -132,13 +143,13 @@ final class JimmerMicroserviceProcessor {
         BeanInfo client;
         try {
             client = resolver.resolveAmbiguity(resolver.resolveBeans(
-                    ClassType.create(kotlin ? KSqlClient.class : JSqlClient.class), qualifier));
+                    ClassType.create(kotlin ? KOTLIN_SQL_CLIENT : DotName.createSimple(JSqlClient.class)), qualifier));
         } catch (AmbiguousResolutionException ex) {
             // SQL client selection is separate; do not impose our factory's requirements on custom clients.
             return false;
         }
         return client != null && client.isSynthetic()
                 && client.getBeanClass().toString()
-                        .equals(kotlin ? KSqlClient.class.getName() : JSqlClientImplementor.class.getName());
+                        .equals(kotlin ? KOTLIN_SQL_CLIENT.toString() : JSqlClientImplementor.class.getName());
     }
 }

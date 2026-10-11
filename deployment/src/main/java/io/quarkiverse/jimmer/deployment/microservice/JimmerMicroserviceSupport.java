@@ -1,6 +1,7 @@
 package io.quarkiverse.jimmer.deployment.microservice;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
 
@@ -19,7 +20,8 @@ public final class JimmerMicroserviceSupport {
     }
 
     public static boolean exporterAvailable(Capabilities capabilities) {
-        return capabilities.isPresent(Capability.VERTX_HTTP) && capabilities.isPresent(Capability.JACKSON);
+        return capabilities.isPresent(Capability.VERTX_HTTP) && capabilities.isPresent(Capability.JACKSON)
+                && QuarkusClassLoader.isClassPresentAtRuntime("org.antlr.v4.runtime.CharStream");
     }
 
     public static boolean httpExchangeEnabled(JimmerBuildTimeConfig config, Capabilities capabilities) {

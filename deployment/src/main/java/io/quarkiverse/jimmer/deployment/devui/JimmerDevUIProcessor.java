@@ -135,7 +135,7 @@ final class JimmerDevUIProcessor {
         features.add(feature("Microservice exporter", config.enable(),
                 JimmerMicroserviceSupport.exporterEnabled(config, capabilities),
                 JimmerMicroserviceSupport.exporterAvailable(capabilities),
-                "Inbound routes; requires an HTTP extension and Jackson. Independent of the outbound exchange."));
+                "Inbound routes; a microservice name with HTTP and Jackson requires org.antlr:antlr4-runtime. Independent of the outbound exchange."));
         features.add(Map.of("name", "Cache retry task", "status", !config.enable() ? "disabled"
                 : !cacheRetry.schedulerAvailable() ? "unavailable"
                         : cacheRetry.retryJobRegistered() ? "registered" : "disabled",

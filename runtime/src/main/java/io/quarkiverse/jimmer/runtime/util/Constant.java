@@ -12,6 +12,9 @@ import org.babyfish.jimmer.sql.runtime.ScalarProvider;
 
 public class Constant {
 
+    // A class-initialization constant lets native-image discard optional Kotlin implementation paths.
+    public static final boolean KOTLIN_SQL_AVAILABLE = isKotlinSqlAvailable();
+
     public static final TypeLiteral<Filter<?>> FILTER_TYPE_LITERAL = new TypeLiteral<>() {
     };
 
@@ -48,4 +51,13 @@ public class Constant {
     public static final String TARGET_IDS = "targetIds";
 
     public static final String FETCHER = "fetcher";
+
+    private static boolean isKotlinSqlAvailable() {
+        try {
+            Class.forName("org.babyfish.jimmer.sql.kt.KSqlClient", false, Constant.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException ex) {
+            return false;
+        }
+    }
 }

@@ -254,25 +254,36 @@ final class QuarkusSqlClientFactory {
 
     private void configureLanguageExtensions(JSqlClient.Builder builder) {
         if (isKotlin) {
-            builder.addFilters(
-                    this.<KFilter<?>> getMatchingBeans(Constant.K_FILTER_TYPE_LITERAL.getType())
-                            .stream()
-                            .map(JavaFiltersKt::toJavaFilter)
-                            .collect(Collectors.toList()));
-            builder.addCustomizers(
-                    this.<KCustomizer> getMatchingBeans(KCustomizer.class)
-                            .stream()
-                            .map(KCustomizerKt::toJavaCustomizer)
-                            .collect(Collectors.toList()));
-            builder.addInitializers(
-                    this.<KInitializer> getMatchingBeans(KInitializer.class)
-                            .stream()
-                            .map(KInitializerKt::toJavaInitializer)
-                            .collect(Collectors.toList()));
+            if (!Constant.KOTLIN_SQL_AVAILABLE) {
+                throw new IllegalStateException("Kotlin SQL clients require org.babyfish.jimmer:jimmer-sql-kotlin");
+            }
+            KotlinExtensions.configure(this, builder);
         } else {
             builder.addFilters(this.<Filter<?>> getMatchingBeans(Constant.FILTER_TYPE_LITERAL.getType()));
             builder.addCustomizers(this.<Customizer> getMatchingBeans(Customizer.class));
             builder.addInitializers(this.<Initializer> getMatchingBeans(Initializer.class));
+        }
+    }
+
+    // Keep Kotlin method references out of the shared method's bytecode, even behind an isKotlin check.
+    private static final class KotlinExtensions {
+
+        private static void configure(QuarkusSqlClientFactory factory, JSqlClient.Builder builder) {
+            builder.addFilters(
+                    factory.<KFilter<?>> getMatchingBeans(Constant.K_FILTER_TYPE_LITERAL.getType())
+                            .stream()
+                            .map(JavaFiltersKt::toJavaFilter)
+                            .collect(Collectors.toList()));
+            builder.addCustomizers(
+                    factory.<KCustomizer> getMatchingBeans(KCustomizer.class)
+                            .stream()
+                            .map(KCustomizerKt::toJavaCustomizer)
+                            .collect(Collectors.toList()));
+            builder.addInitializers(
+                    factory.<KInitializer> getMatchingBeans(KInitializer.class)
+                            .stream()
+                            .map(KInitializerKt::toJavaInitializer)
+                            .collect(Collectors.toList()));
         }
     }
 
