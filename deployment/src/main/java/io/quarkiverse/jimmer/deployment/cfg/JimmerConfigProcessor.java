@@ -1,6 +1,7 @@
 package io.quarkiverse.jimmer.deployment.cfg;
 
 import java.util.List;
+import java.util.Set;
 
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Enabled;
 import io.quarkiverse.jimmer.runtime.JimmerConfigRecorder;
@@ -9,6 +10,7 @@ import io.quarkiverse.jimmer.runtime.cfg.JimmerConfigValidator;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.arc.deployment.ValidationPhaseBuildItem.ValidationErrorBuildItem;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -21,6 +23,13 @@ final class JimmerConfigProcessor {
     ValidationErrorBuildItem validateBuildTime(JimmerBuildTimeConfig config) {
         try {
             JimmerConfigValidator.validateBuildTime(config);
+            if (config.enable() && "kotlin".equalsIgnoreCase(config.language())
+                    && !QuarkusClassLoader.isClassPresentAtRuntime("org.babyfish.jimmer.sql.kt.KSqlClient")) {
+                throw new ConfigurationException(
+                        "quarkus.jimmer.language=kotlin requires org.babyfish.jimmer:jimmer-sql-kotlin. "
+                                + "Add it using the same version as the extension's Jimmer dependencies.",
+                        Set.of("quarkus.jimmer.language"));
+            }
             return null;
         } catch (ConfigurationException ex) {
             return new ValidationErrorBuildItem(ex);

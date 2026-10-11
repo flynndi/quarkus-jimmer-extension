@@ -3,6 +3,7 @@ package io.quarkiverse.jimmer.deployment.cfg;
 import java.util.function.BooleanSupplier;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 
 /** Build-time conditions shared by Jimmer's feature processors. */
 public final class JimmerBuildConditions {
@@ -45,7 +46,8 @@ public final class JimmerBuildConditions {
 
         @Override
         public boolean getAsBoolean() {
-            return config.enable() && config.language().equalsIgnoreCase("kotlin");
+            return config.enable() && config.language().equalsIgnoreCase("kotlin")
+                    && QuarkusClassLoader.isClassPresentAtRuntime("org.babyfish.jimmer.sql.kt.KSqlClient");
         }
     }
 }

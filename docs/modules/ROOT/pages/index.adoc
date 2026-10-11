@@ -32,13 +32,15 @@ must be regenerated, including entities distributed in shared libraries.
 == Optional integrations
 
 Core data access uses CDI, Agroal, Narayana, and Jackson.
-Scheduler, Quartz, Redis, Caffeine, client generation, the HTTP server, and REST Client integrations are optional.
+Kotlin SQL, ANTLR, Scheduler, Quartz, Redis, Caffeine, client generation, the HTTP server, and REST Client integrations are optional.
 Add `io.quarkus:quarkus-scheduler` for periodic transaction-cache retry, or `io.quarkus:quarkus-quartz`
 when the application needs Quartz. Quarkus selects the scheduler implementation without registering a second copy of the job.
 
 [cols="1,2,2",options="header"]
 |===
 |Integration |Application dependency |Activation
+|Kotlin SQL |`org.babyfish.jimmer:jimmer-sql-kotlin:0.12.4` |Set `quarkus.jimmer.language=kotlin` for managed Kotlin clients; manual Kotlin clients are also available when the library is present
+|String Fetcher compilation |`org.antlr:antlr4-runtime` |Required when using Jimmer's `FetcherCompiler`; normal Java/Kotlin SQL and generated Fetchers do not need it
 |Transaction-cache periodic retry |`io.quarkus:quarkus-scheduler` or `io.quarkus:quarkus-quartz` |A managed datasource uses transaction triggers; interval defaults to `5s`, and `off` disables retry
 |Redis / Caffeine cache adapters |`io.quarkus:quarkus-redis-client` / `io.quarkus:quarkus-caffeine` as used by the application |Explicit application cache factory or binders; installing a dependency does not enable caching
 |REST exception translation |`io.quarkus:quarkus-rest-jackson` |Set `quarkus.jimmer.error-translator.disabled=false`
@@ -46,8 +48,21 @@ when the application needs Quartz. Quarkus selects the scheduler implementation 
 |OpenAPI and TypeScript endpoints |The generation library, HTTP support and JAX-RS/Quarkus REST metadata APIs, normally supplied by `io.quarkus:quarkus-rest` |Explicitly configure the endpoint paths
 |Swagger UI |`io.quarkus:quarkus-swagger-ui` |Configure `quarkus.swagger-ui.urls` to reference a document; production also requires `always-include=true`
 |Default outbound microservice HTTP exchange |`io.quarkus:quarkus-rest-client` |Configure `quarkus.jimmer.micro-service-name`; auto-enabled when the dependency is present, and replaceable by an application exchange
-|Inbound microservice HTTP exporter |`io.quarkus:quarkus-vertx-http` or an extension providing it |Configure `quarkus.jimmer.micro-service-name`; auto-enabled when HTTP is present
+|Inbound microservice HTTP exporter |`io.quarkus:quarkus-vertx-http` or an extension providing it, plus `org.antlr:antlr4-runtime` |Configure `quarkus.jimmer.micro-service-name` with HTTP available; missing ANTLR fails the build
 |===
+
+For Kotlin SQL, explicitly declare `org.babyfish.jimmer:jimmer-sql-kotlin` with the same version as the extension's Jimmer
+dependencies, then set `quarkus.jimmer.language=kotlin`. Configuring Kotlin without that library fails during the build
+with a dependency error. Adding the library alone does not change the managed clients' language.
+The existing `SqlClients.java/kotlin(...)`, `Jimmer` lookup methods and repository APIs remain available.
+This makes the Kotlin SQL DSL optional; Kotlin stdlib/reflect dependencies required by Jimmer core remain.
+
+For string Fetcher compilation or the inbound microservice exporter, add `org.antlr:antlr4-runtime`;
+its version is managed by the Quarkus BOM. Configuring `quarkus.jimmer.micro-service-name` with HTTP and Jackson
+enables the inbound exporter; missing ANTLR then fails the build with a dependency error.
+This also applies to applications using a custom or outbound-only exchange alongside an HTTP server.
+Applications without an HTTP server, and ordinary ORM or HTTP applications without a microservice name,
+do not require ANTLR unless they compile string Fetchers directly.
 
 Required extensions are checked when an integration is explicitly enabled. Disabled integrations do not register
 their routes or beans. Deployment SPI libraries used to contribute routes and exception mappers do not themselves

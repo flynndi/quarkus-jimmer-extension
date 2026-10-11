@@ -3,10 +3,19 @@ package io.quarkiverse.jimmer.deployment.repository.bytecode;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import io.quarkiverse.jimmer.runtime.repository.support.KRepositoryImpl;
+
 class KotlinMethodCodeWriter extends MethodCodeWriter {
+
+    private static final String K_SQL_CLIENT_INTERNAL_NAME = Type.getInternalName(KSqlClient.class);
+
+    private static final String K_SQL_CLIENT_DESCRIPTOR = Type.getDescriptor(KSqlClient.class);
+
+    private static final String K_REPOSITORY_IMPL = Type.getInternalName(KRepositoryImpl.class);
 
     protected KotlinMethodCodeWriter(ClassCodeWriter parent, Method method, String id) {
         super(parent, method, id);

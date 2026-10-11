@@ -60,12 +60,11 @@ public class QueryExecutors {
                     .createQuery(sqlClient, type, ExecutionPurpose.QUERY, FilterLevel.DEFAULT, (q, table) -> {
                         q.where(astPredicate(table, queryData.getPredicate(), args, queryMethod));
                         if (specification != null) {
-                            if (specification instanceof KSpecification<?>) {
-                                JSpecification<?, Table<?>> spec = (JSpecification<?, Table<?>>) (JSpecification<?, ?>) KSpecificationKt
-                                        .toJavaSpecification(((KSpecification<Object>) specification));
-                                q.where(spec);
-                            } else {
+                            if (specification instanceof JSpecification<?, ?>) {
                                 q.where((JSpecification<?, Table<?>>) specification);
+                            } else {
+                                q.where((JSpecification<?, Table<?>>) (JSpecification<?, ?>) KSpecificationKt
+                                        .toJavaSpecification((KSpecification<Object>) specification));
                             }
                         }
                         for (Query.Order order : queryData.getOrders()) {

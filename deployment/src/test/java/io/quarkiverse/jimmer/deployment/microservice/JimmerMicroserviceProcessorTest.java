@@ -4,16 +4,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.antlr.v4.runtime.CharStream;
 import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
+import io.quarkus.bootstrap.classloading.ClassPathElement;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
@@ -24,14 +28,22 @@ import io.smallrye.config.common.MapBackedConfigSource;
 class JimmerMicroserviceProcessorTest {
 
     @Test
-    void automaticTransportsFollowTheirOwnCapabilities() {
+    void automaticTransportsFollowTheirOwnCapabilities() throws Exception {
         var config = config(Map.of("quarkus.jimmer.micro-service-name", "inventory"));
         Capabilities outbound = new Capabilities(Set.of(Capability.REST_CLIENT_REACTIVE, Capability.JACKSON));
         assertTrue(JimmerMicroserviceSupport.httpExchangeEnabled(config, outbound));
         assertFalse(JimmerMicroserviceSupport.exporterEnabled(config, outbound));
         Capabilities inbound = new Capabilities(Set.of(Capability.VERTX_HTTP, Capability.JACKSON));
         assertFalse(JimmerMicroserviceSupport.httpExchangeEnabled(config, inbound));
-        assertTrue(JimmerMicroserviceSupport.exporterEnabled(config, inbound));
+        ClassLoader previous = Thread.currentThread().getContextClassLoader();
+        Path antlr = Path.of(CharStream.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        try (QuarkusClassLoader loader = QuarkusClassLoader.builder("Microservice runtime dependencies", previous, false)
+                .addNormalPriorityElement(ClassPathElement.fromPath(antlr, true)).build()) {
+            Thread.currentThread().setContextClassLoader(loader);
+            assertTrue(JimmerMicroserviceSupport.exporterEnabled(config, inbound));
+        } finally {
+            Thread.currentThread().setContextClassLoader(previous);
+        }
         assertFalse(JimmerMicroserviceSupport.httpExchangeEnabled(config, new Capabilities(Set.of())));
         assertFalse(JimmerMicroserviceSupport.exporterEnabled(config, new Capabilities(Set.of())));
     }
@@ -50,6 +62,24 @@ class JimmerMicroserviceProcessorTest {
         assertTrue(indexed.isEmpty());
         assertTrue(reflection.isEmpty());
         assertEquals(3, excluded.size());
+    }
+
+    @Test
+    void disabledMicroservicesDoNotRequireTheFetcherCompiler() {
+        var capabilities = new Capabilities(Set.of(Capability.VERTX_HTTP, Capability.JACKSON));
+        for (var config : List.of(config(Map.of()), config(Map.of(
+                "quarkus.jimmer.enable", "false", "quarkus.jimmer.micro-service-name", "inventory")))) {
+            List<AdditionalBeanBuildItem> beans = new ArrayList<>();
+            List<AdditionalIndexedClassesBuildItem> indexed = new ArrayList<>();
+            List<ExcludedTypeBuildItem> excluded = new ArrayList<>();
+            List<ReflectiveClassBuildItem> reflection = new ArrayList<>();
+            new JimmerMicroserviceProcessor().registerBeans(config, capabilities,
+                    beans::add, indexed::add, excluded::add, reflection::add);
+            assertTrue(beans.isEmpty());
+            assertTrue(indexed.isEmpty());
+            assertTrue(reflection.isEmpty());
+            assertEquals(3, excluded.size());
+        }
     }
 
     private JimmerBuildTimeConfig config(Map<String, String> values) {
