@@ -28,6 +28,7 @@ import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import io.quarkiverse.jimmer.runtime.repository.QuarkusOrders;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.parser.*;
+import io.quarkiverse.jimmer.runtime.util.Constant;
 
 /**
  * Internal execution support for generated legacy repositories.
@@ -62,9 +63,11 @@ public class QueryExecutors {
                         if (specification != null) {
                             if (specification instanceof JSpecification<?, ?>) {
                                 q.where((JSpecification<?, Table<?>>) specification);
+                            } else if (Constant.KOTLIN_SQL_AVAILABLE) {
+                                q.where((JSpecification<?, Table<?>>) KotlinSpecifications.toJava(specification));
                             } else {
-                                q.where((JSpecification<?, Table<?>>) (JSpecification<?, ?>) KSpecificationKt
-                                        .toJavaSpecification((KSpecification<Object>) specification));
+                                throw new IllegalArgumentException(
+                                        "Non-Java specifications require org.babyfish.jimmer:jimmer-sql-kotlin");
                             }
                         }
                         for (Query.Order order : queryData.getOrders()) {
@@ -122,6 +125,15 @@ public class QueryExecutors {
             }
         }
         return null;
+    }
+
+    // Native-image must not parse Kotlin casts or calls when only Java SQL is available.
+    private static final class KotlinSpecifications {
+
+        @SuppressWarnings("unchecked")
+        private static JSpecification<?, ?> toJava(Specification<?> specification) {
+            return KSpecificationKt.toJavaSpecification((KSpecification<Object>) specification);
+        }
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
