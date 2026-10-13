@@ -38,8 +38,8 @@ defaults:
     shell: bash
 
 jobs:
-  build:
-    name: Build on ubuntu-latest
+  jvm:
+    name: JVM (Java 17)
     # actor stays unchanged on reruns; triggering_actor identifies who requested the rerun.
     if: >-
       github.event_name != 'release' ||
@@ -129,10 +129,104 @@ jobs:
         run: mvn -N -B install -Dgpg.skip=true
 
       - name: Build and test with Maven (JVM)
+        id: build
         run: mvn -B clean install -Ppackaged-tests -Dno-format -Dgpg.skip=true
 
-      - name: Build with Maven (Native)
-        run: mvn -B install -Dnative -Dquarkus.native.container-build=true -Dnative.surefire.skip=true -Dgpg.skip=true
+      - name: Upload JVM test reports
+        id: reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: jvm-java-17-reports
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Summarize JVM tests
+        if: ${{ always() }}
+        env:
+          TEST_PHASE: JVM
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          JOB_STATUS: ${{ job.status }}
+          ARTIFACT_URL: ${{ steps.reports.outputs.artifact-url }}
+        run: python3 .github/scripts/summarize-tests.py
+
+  native:
+    name: Native (integration-tests)
+    # Keep the existing order: native checks run only after JVM checks pass.
+    needs: jvm
+    if: >-
+      github.event_name != 'release' ||
+      (github.repository == 'flynndi/quarkus-jimmer-extension' &&
+       github.event.release.author.login == 'flynndi' &&
+       github.actor == 'flynndi' &&
+       github.triggering_actor == 'flynndi')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up pinned Maven
+        run: |
+          archive="${RUNNER_TEMP}/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 --max-time 120 \
+            "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
+            --output "$archive"
+          printf '%s  %s\n' "$MAVEN_SHA512" "$archive" | sha512sum -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP"
+          export MAVEN_HOME="${RUNNER_TEMP}/apache-maven-${MAVEN_VERSION}"
+          echo "MAVEN_HOME=$MAVEN_HOME" >> "$GITHUB_ENV"
+          echo "$MAVEN_HOME/bin" >> "$GITHUB_PATH"
+          "$MAVEN_HOME/bin/mvn" --version
+
+      - name: Install parent POM
+        run: mvn -N -B install -Dgpg.skip=true
+
+      - name: Build and test with Maven (Native)
+        id: build
+        run: mvn -B clean install -Dnative -Dquarkus.native.container-build=true -Dnative.surefire.skip=true -Dno-format -Dgpg.skip=true
+
+      - name: Upload Native test reports
+        id: reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: native-integration-tests-reports
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Summarize Native tests
+        if: ${{ always() }}
+        env:
+          TEST_PHASE: Native
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          JOB_STATUS: ${{ job.status }}
+          ARTIFACT_URL: ${{ steps.reports.outputs.artifact-url }}
+        run: python3 .github/scripts/summarize-tests.py
 
   publish:
     name: Publish to Maven Central
@@ -142,7 +236,7 @@ jobs:
       github.event.release.author.login == 'flynndi' &&
       github.actor == 'flynndi' &&
       github.triggering_actor == 'flynndi'
-    needs: build
+    needs: [jvm, native]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: deploy-setting.xml
