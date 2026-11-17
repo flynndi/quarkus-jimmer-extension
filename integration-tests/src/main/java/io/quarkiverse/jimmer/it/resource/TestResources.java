@@ -3,6 +3,7 @@ package io.quarkiverse.jimmer.it.resource;
 import static io.quarkiverse.jimmer.it.entity.Fetchers.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import jakarta.inject.Inject;
@@ -14,11 +15,17 @@ import jakarta.ws.rs.core.Response;
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.Api;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.ast.Predicate;
+import org.babyfish.jimmer.sql.ast.impl.query.Queries;
+import org.babyfish.jimmer.sql.ast.impl.table.TableProxies;
 import org.babyfish.jimmer.sql.ast.mutation.AssociatedSaveMode;
 import org.babyfish.jimmer.sql.ast.mutation.DeleteMode;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
+import org.babyfish.jimmer.sql.ast.table.WeakJoin;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.jboss.resteasy.reactive.RestQuery;
+import org.jboss.resteasy.reactive.RestResponse;
 
 import io.quarkiverse.jimmer.it.config.Constant;
 import io.quarkiverse.jimmer.it.entity.*;
@@ -61,6 +68,31 @@ public class TestResources {
                 .select(Tables.BOOK_TABLE.fetch(BookFetcher.$.allTableFields()))
                 .execute();
         return Response.ok(books).build();
+    }
+
+    @GET
+    @Path("/testDynamicTableQueries")
+    public Response testDynamicTableQueries(@RestQuery long id) {
+        var sqlClient = (JSqlClientImplementor) Jimmer.getDefaultJSqlClient();
+        var type = TableProxies.tableType(BookTable.class);
+        BookTableEx root = TableProxies.fluent(type.getJavaClass());
+        boolean tableTypesMatch = type == TableProxies.tableType(BookTableEx.class)
+                && root.getImmutableType() == type;
+
+        // An entity-based query wraps its raw table through the generated TableEx(TableImplementor) constructor.
+        String bookName = Queries.createQuery(sqlClient, type, (query, table) -> {
+            BookTableEx book = (BookTableEx) table;
+            return query.where(book.id().eq(id)).select(book.name());
+        }).fetchOne();
+
+        BookTable book = BookTable.$;
+        // Class-based weak joins instantiate both the WeakJoin and the generated TableEx(DelayedOperation).
+        BookStoreTable store = book.asTableEx().weakJoin(BookToStoreWeakJoin.class);
+        String storeName = sqlClient.createQuery(book)
+                .where(book.id().eq(id))
+                .select(store.name())
+                .fetchOne();
+        return Response.ok(Map.of("tableTypesMatch", tableTypesMatch, "bookName", bookName, "storeName", storeName)).build();
     }
 
     @GET
@@ -145,8 +177,8 @@ public class TestResources {
     @GET
     @Path("/testBookRepositoryViewById")
     @Api
-    public Response testBookRepositoryViewById(@RestQuery long id) {
-        return Response.ok(bookRepository.viewer(BookDetailView.class).findNullable(id)).build();
+    public RestResponse<BookDetailView> testBookRepositoryViewById(@RestQuery long id) {
+        return RestResponse.ok(bookRepository.viewer(BookDetailView.class).findNullable(id));
     }
 
     @POST
@@ -493,6 +525,14 @@ public class TestResources {
                 .where(Tables.BOOK_TABLE.id().eq(7L))
                 .execute();
         return Response.ok().build();
+    }
+
+    public static class BookToStoreWeakJoin implements WeakJoin<BookTable, BookStoreTable> {
+
+        @Override
+        public Predicate on(BookTable source, BookStoreTable target) {
+            return source.storeId().eq(target.id());
+        }
     }
 
     private static final Fetcher<Book> COMPLEX_BOOK = BOOK_FETCHER.allScalarFields()

@@ -6,6 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +20,9 @@ import java.util.stream.Stream;
 import org.babyfish.jimmer.Draft;
 import org.babyfish.jimmer.Dto;
 import org.babyfish.jimmer.View;
+import org.babyfish.jimmer.internal.FixedInputField;
+import org.babyfish.jimmer.jackson.JsonConverter;
+import org.babyfish.jimmer.jackson.LongToStringConverter;
 import org.babyfish.jimmer.sql.fetcher.DtoMetadata;
 import org.jboss.jandex.Indexer;
 import org.junit.jupiter.api.Test;
@@ -105,6 +112,56 @@ class JimmerJacksonProcessorTest {
     }
 
     @Test
+    void registersOnlyEnumConstantsUsedByModelProperties() throws IOException {
+        Indexer indexer = new Indexer();
+        for (Class<?> type : List.of(Draft.class, BaseDraft.class, KotlinShape.class, EnumProperties.class,
+                KotlinShapeDraft.class, KotlinShapeDraft.Builder.class, KotlinShapeDraft.$.class,
+                PlainState.class, ListState.class, ArrayState.class, WildcardState.class, InheritedState.class,
+                UnusedState.class)) {
+            indexer.indexClass(type);
+        }
+        var index = indexer.complete();
+        List<ReflectiveClassBuildItem> items = new ArrayList<>();
+        List<ReflectiveFieldBuildItem> fields = new ArrayList<>();
+        new JimmerJacksonProcessor().registerImmutableModelReflection(new CombinedIndexBuildItem(index, index),
+                items::add, fields::add, ignored -> {
+                });
+        assertEquals(Set.of(KotlinShapeDraft.$.class.getName() + "#INSTANCE",
+                PlainState.class.getName() + "#FIRST", PlainState.class.getName() + "#SECOND",
+                ListState.class.getName() + "#VALUE", ArrayState.class.getName() + "#VALUE",
+                WildcardState.class.getName() + "#VALUE", InheritedState.class.getName() + "#VALUE"),
+                fields.stream().map(field -> field.getDeclaringClass() + "#" + field.getName()).collect(Collectors.toSet()));
+        assertTrue(items.stream().noneMatch(ReflectiveClassBuildItem::isFields),
+                "Neither model classes nor enum classes require broad field registration");
+    }
+
+    @Test
+    void registersOnlyReferencedJsonConverterPublicDefaultConstructors() throws IOException {
+        Indexer indexer = new Indexer();
+        for (Class<?> type : List.of(ConverterProperties.class, ComposedConverter.class)) {
+            indexer.indexClass(type);
+        }
+        var index = indexer.complete();
+        Indexer computingIndexer = new Indexer();
+        for (Class<?> type : List.of(LongToStringConverter.class, PropertyConverter.class,
+                PrivateConstructorConverter.class, UnusedConverter.class)) {
+            computingIndexer.indexClass(type);
+        }
+        var computingIndex = computingIndexer.complete();
+        List<ReflectiveMethodBuildItem> methods = new ArrayList<>();
+        new JimmerJacksonProcessor().registerJsonConverterConstructors(
+                new CombinedIndexBuildItem(index, computingIndex), methods::add);
+        assertEquals(Set.of(LongToStringConverter.class.getName(), PropertyConverter.class.getName()),
+                methods.stream().map(ReflectiveMethodBuildItem::getDeclaringClass).collect(Collectors.toSet()));
+        assertEquals(2, methods.size(), "A converter referenced more than once needs only one registration");
+        for (var method : methods) {
+            assertEquals("<init>", method.getName());
+            assertEquals(0, method.getParams().length);
+            assertFalse(method.isQueryOnly(), "ConverterMetadata invokes the constructor");
+        }
+    }
+
+    @Test
     void registersGeneratedDtoMetadataAndJsonPropertiesIncludingNestedProjections() throws IOException {
         Indexer indexer = new Indexer();
         for (Class<?> type : List.of(Dto.class, View.class, ViewShape.class, ViewShape.Nested.class,
@@ -118,12 +175,14 @@ class JimmerJacksonProcessorTest {
                 items::add, fields::add);
         Set<String> expected = Set.of(ViewShape.class.getName(), ViewShape.Nested.class.getName());
         assertEquals(expected, items.stream().flatMap(item -> item.getClassNames().stream()).collect(Collectors.toSet()));
-        assertEquals(expected.stream().map(name -> name + "#METADATA").collect(Collectors.toSet()),
+        Set<String> expectedFields = expected.stream().map(name -> name + "#METADATA").collect(Collectors.toSet());
+        expectedFields.add(ViewShape.class.getName() + "#requiredNullable");
+        assertEquals(expectedFields,
                 fields.stream().map(field -> field.getDeclaringClass() + "#" + field.getName()).collect(Collectors.toSet()));
         for (var item : items) {
             assertTrue(item.isConstructors());
             assertTrue(item.isMethods(), "Jackson discovers DTO getters and setters behind Response/Object return types");
-            assertFalse(item.isFields(), "Only the METADATA field needs explicit reflective access");
+            assertFalse(item.isFields(), "Register only METADATA and fields queried for @FixedInputField");
             assertFalse(item.isClasses());
         }
     }
@@ -131,6 +190,11 @@ class JimmerJacksonProcessorTest {
     // Match generated View DTOs without making the test depend on the integration application's DTO build.
     private static class ViewShape implements View<CdiBook> {
         public static final DtoMetadata<CdiBook, ViewShape> METADATA = null;
+
+        @FixedInputField
+        private String requiredNullable;
+
+        private String optionalNullable;
 
         @Override
         public CdiBook toEntity() {
@@ -155,6 +219,42 @@ class JimmerJacksonProcessorTest {
         }
     }
 
+    private interface ConverterProperties {
+        @JsonConverter(LongToStringConverter.class)
+        long id();
+
+        @JsonConverter(LongToStringConverter.class)
+        long parentId();
+
+        @ComposedConverter
+        long converted();
+
+        @JsonConverter(PrivateConstructorConverter.class)
+        long invalidConverter();
+    }
+
+    @JsonConverter(PropertyConverter.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    private @interface ComposedConverter {
+    }
+
+    public static class PropertyConverter extends LongToStringConverter {
+        public PropertyConverter() {
+        }
+
+        public PropertyConverter(String unused) {
+        }
+    }
+
+    public static class PrivateConstructorConverter extends LongToStringConverter {
+        private PrivateConstructorConverter() {
+        }
+    }
+
+    public static class UnusedConverter extends LongToStringConverter {
+    }
+
     private abstract static class NonGeneratedDto implements View<CdiBook> {
     }
 
@@ -165,8 +265,57 @@ class JimmerJacksonProcessorTest {
     private interface BaseDraft extends Draft {
     }
 
-    private interface KotlinShape {
+    private interface KotlinShape extends EnumProperties {
         String name();
+
+        PlainState state();
+
+        List<ListState> states();
+
+        ArrayState[][] arrayStates();
+
+        List<? extends WildcardState> wildcardStates();
+
+        UnusedState methodWithParameter(String input);
+
+        static UnusedState staticHelper() {
+            return UnusedState.VALUE;
+        }
+
+        default UnusedState defaultHelper() {
+            return UnusedState.VALUE;
+        }
+    }
+
+    private interface EnumProperties {
+        InheritedState inherited();
+    }
+
+    private enum PlainState {
+        FIRST,
+        SECOND;
+
+        public static final String LABEL = "not an enum constant";
+    }
+
+    private enum ListState {
+        VALUE
+    }
+
+    private enum ArrayState {
+        VALUE
+    }
+
+    private enum WildcardState {
+        VALUE
+    }
+
+    private enum InheritedState {
+        VALUE
+    }
+
+    private enum UnusedState {
+        VALUE
     }
 
     // Model the KSP-generated binary structure; this is not a Kotlin native-image integration test.

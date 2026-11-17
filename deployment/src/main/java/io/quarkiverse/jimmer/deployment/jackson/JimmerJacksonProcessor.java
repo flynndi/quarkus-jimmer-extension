@@ -1,13 +1,18 @@
 package io.quarkiverse.jimmer.deployment.jackson;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.babyfish.jimmer.Draft;
 import org.babyfish.jimmer.Dto;
+import org.babyfish.jimmer.internal.FixedInputField;
+import org.babyfish.jimmer.jackson.JsonConverter;
 import org.babyfish.jimmer.sql.fetcher.DtoMetadata;
 import org.jboss.jandex.DotName;
+import org.jboss.jandex.IndexView;
+import org.jboss.jandex.Type;
 
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Enabled;
 import io.quarkiverse.jimmer.runtime.util.Constant;
@@ -48,6 +53,7 @@ final class JimmerJacksonProcessor {
             BuildProducer<ReflectiveFieldBuildItem> fields,
             BuildProducer<ReflectiveMethodBuildItem> methods) {
         var index = combinedIndex.getIndex();
+        var models = new ArrayDeque<DotName>();
         for (var draft : index.getAllKnownSubinterfaces(DotName.createSimple(Draft.class))) {
             String draftName = draft.name().toString();
             String builderName = draftName + "$Builder";
@@ -67,6 +73,7 @@ final class JimmerJacksonProcessor {
             if (draftName.endsWith("Draft")) {
                 var model = index.getClassByName(DotName.createSimple(draftName.substring(0, draftName.length() - 5)));
                 if (model != null) {
+                    models.add(model.name());
                     // ImmutableProp resolves the model's getters, including for models with no REST endpoint.
                     reflection.produce(ReflectiveClassBuildItem.builder(model.name().toString())
                             .constructors(false).methods().reason("Jimmer immutable property metadata").build());
@@ -85,6 +92,75 @@ final class JimmerJacksonProcessor {
                 }
             }
         }
+        var inspectedModels = new HashSet<DotName>();
+        var registeredEnums = new HashSet<DotName>();
+        while (!models.isEmpty()) {
+            var modelName = models.removeFirst();
+            if (!inspectedModels.add(modelName)) {
+                continue;
+            }
+            var model = combinedIndex.getComputingIndex().getClassByName(modelName);
+            if (model == null) {
+                continue;
+            }
+            models.addAll(model.interfaceNames());
+            for (var method : model.methods()) {
+                if (Modifier.isPublic(method.flags()) && !Modifier.isStatic(method.flags())
+                        && method.parametersCount() == 0 && (method.isAbstract()
+                                || method.hasDeclaredAnnotation(DotName.createSimple("org.babyfish.jimmer.Formula")))) {
+                    registerEnumFields(method.returnType(), combinedIndex.getComputingIndex(), registeredEnums, fields);
+                }
+            }
+        }
+    }
+
+    private static void registerEnumFields(Type type, IndexView index, Set<DotName> registeredEnums,
+            BuildProducer<ReflectiveFieldBuildItem> fields) {
+        switch (type.kind()) {
+            case ARRAY -> registerEnumFields(type.asArrayType().component(), index, registeredEnums, fields);
+            case PARAMETERIZED_TYPE -> type.asParameterizedType().arguments()
+                    .forEach(argument -> registerEnumFields(argument, index, registeredEnums, fields));
+            case WILDCARD_TYPE -> {
+                var bound = type.asWildcardType().extendsBound();
+                if (bound != null) {
+                    registerEnumFields(bound, index, registeredEnums, fields);
+                }
+            }
+            case CLASS -> {
+                var enumType = index.getClassByName(type.name());
+                if (enumType != null && enumType.isEnum() && registeredEnums.add(enumType.name())) {
+                    // ScalarProviderManager reads every constant to resolve @EnumItem, even with no annotations.
+                    for (var field : enumType.fields()) {
+                        if (field.isEnumConstant()) {
+                            fields.produce(new ReflectiveFieldBuildItem(field));
+                        }
+                    }
+                }
+            }
+            default -> {
+            }
+        }
+    }
+
+    @BuildStep
+    void registerJsonConverterConstructors(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveMethodBuildItem> methods) {
+        var converterNames = new HashSet<DotName>();
+        // Include composed annotations: Jimmer also resolves @JsonConverter on annotation types.
+        for (var annotation : combinedIndex.getIndex().getAnnotations(DotName.createSimple(JsonConverter.class))) {
+            converterNames.add(annotation.value().asClass().name());
+        }
+        for (var converterName : converterNames) {
+            var converter = combinedIndex.getComputingIndex().getClassByName(converterName);
+            if (converter == null || Modifier.isAbstract(converter.flags())) {
+                continue;
+            }
+            var constructor = converter.method("<init>");
+            // ConverterMetadata constructs converters directly, independently of CDI or Jackson serializers.
+            if (constructor != null && Modifier.isPublic(constructor.flags())) {
+                methods.produce(new ReflectiveMethodBuildItem(constructor));
+            }
+        }
     }
 
     @BuildStep
@@ -99,6 +175,12 @@ final class JimmerJacksonProcessor {
             }
             // Repository/view queries discover this field even when the DTO is hidden behind a REST Response.
             fields.produce(new ReflectiveFieldBuildItem(metadata));
+            // TypeScript generation queries this annotation to distinguish required nullable input fields.
+            for (var field : dto.fields()) {
+                if (field.hasAnnotation(DotName.createSimple(FixedInputField.class))) {
+                    fields.produce(new ReflectiveFieldBuildItem(field));
+                }
+            }
             // Generated DTOs expose getters/setters; nested projections are also Dto implementations.
             // Jackson's @JsonDeserialize processing handles input DTO builders separately.
             reflection.produce(ReflectiveClassBuildItem.builder(dto.name().toString())

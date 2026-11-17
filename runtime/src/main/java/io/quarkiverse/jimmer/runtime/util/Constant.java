@@ -32,6 +32,8 @@ public class Constant {
 
     public static final String CLIENT_RESOURCE = "META-INF/jimmer/client";
 
+    public static final String CLIENT_SCHEMA_INDEX = "META-INF/quarkus-jimmer/client.index";
+
     public static final String ENTITIES_RESOURCE = "META-INF/jimmer/entities";
 
     public static final String IMMUTABLES_RESOURCE = "META-INF/jimmer/immutables";

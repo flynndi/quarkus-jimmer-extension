@@ -20,6 +20,13 @@ import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.GenerationType;
 import org.babyfish.jimmer.sql.JoinTable;
 import org.babyfish.jimmer.sql.LogicalDeleted;
+import org.babyfish.jimmer.sql.ast.Predicate;
+import org.babyfish.jimmer.sql.ast.table.WeakJoin;
+import org.babyfish.jimmer.sql.ast.table.spi.UsingWeakJoinMetadataParser;
+import org.babyfish.jimmer.sql.ast.table.spi.WeakJoinMetadata;
+import org.babyfish.jimmer.sql.ast.table.spi.WeakJoinMetadataParser;
+import org.babyfish.jimmer.sql.dialect.DefaultDialect;
+import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.meta.LogicalDeletedLongGenerator;
 import org.babyfish.jimmer.sql.meta.LogicalDeletedUUIDGenerator;
 import org.babyfish.jimmer.sql.meta.LogicalDeletedValueGenerator;
@@ -28,17 +35,127 @@ import org.jboss.jandex.Indexer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import io.quarkiverse.jimmer.test.model.CdiBook;
+import io.quarkiverse.jimmer.test.model.CdiBookTable;
+import io.quarkiverse.jimmer.test.model.CdiBookTableEx;
 import io.quarkus.bootstrap.classloading.ClassPathElement;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassConditionBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveFieldBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 
 class JimmerProcessorTest {
 
     @TempDir
     Path optionalClasses;
+
+    @Test
+    void registersGeneratedTablesFromDependenciesWithoutRegisteringAbsentTables() throws IOException {
+        Indexer entities = new Indexer();
+        entities.indexClass(CdiBook.class);
+        var applicationIndex = entities.complete();
+        Indexer tables = new Indexer();
+        tables.indexClass(CdiBookTable.class);
+        tables.indexClass(CdiBookTableEx.class);
+        var dependencyIndex = tables.complete();
+        for (var computingIndex : List.of(dependencyIndex, applicationIndex)) {
+            List<ReflectiveClassBuildItem> reflection = new ArrayList<>();
+            List<ReflectiveFieldBuildItem> fields = new ArrayList<>();
+            new JimmerProcessor().registerGeneratedTableReflection(
+                    new CombinedIndexBuildItem(applicationIndex, computingIndex), reflection::add, fields::add);
+            Set<String> expected = computingIndex == dependencyIndex
+                    ? Set.of(CdiBookTable.class.getName(), CdiBookTableEx.class.getName())
+                    : Set.of();
+            assertEquals(expected, reflection.stream().flatMap(item -> item.getClassNames().stream())
+                    .collect(Collectors.toSet()));
+            assertEquals(expected.stream().map(name -> name + "#$").collect(Collectors.toSet()),
+                    fields.stream().map(field -> field.getDeclaringClass() + "#" + field.getName())
+                            .collect(Collectors.toSet()));
+            for (var item : reflection) {
+                assertTrue(item.isConstructors(), "TableProxies invokes wrapper and delayed-operation constructors");
+                assertFalse(item.isMethods());
+                assertFalse(item.isFields(), "Only the static $ field needs reflective access");
+                assertFalse(item.isClasses());
+            }
+        }
+    }
+
+    @Test
+    void registersWeakJoinNoArgConstructorsIncludingPrivateOnesAndReferencedParsers() throws IOException {
+        Indexer indexer = new Indexer();
+        for (Class<?> type : List.of(WeakJoin.class, AbstractJoin.class, PrivateJoin.class, ParameterizedJoin.class,
+                ParsedJoin.class)) {
+            indexer.indexClass(type);
+        }
+        var index = indexer.complete();
+        Indexer dependencies = new Indexer();
+        dependencies.indexClass(JoinParser.class);
+        List<ReflectiveMethodBuildItem> constructors = new ArrayList<>();
+        new JimmerProcessor().registerWeakJoinConstructors(new CombinedIndexBuildItem(index, dependencies.complete()),
+                constructors::add);
+        assertEquals(Set.of(PrivateJoin.class.getName(), ParsedJoin.class.getName(), JoinParser.class.getName()),
+                constructors.stream().map(ReflectiveMethodBuildItem::getDeclaringClass).collect(Collectors.toSet()));
+        for (var constructor : constructors) {
+            assertEquals("<init>", constructor.getName());
+            assertEquals(0, constructor.getParams().length);
+            assertFalse(constructor.isQueryOnly());
+        }
+    }
+
+    @Test
+    void registersConfiguredCustomDialectPublicNoArgConstructors() throws IOException {
+        Indexer indexer = new Indexer();
+        for (Class<?> type : List.of(Dialect.class, DefaultDialect.class, AbstractDialect.class, CustomDialect.class,
+                ParameterizedDialect.class)) {
+            indexer.indexClass(type);
+        }
+        var index = indexer.complete();
+        List<ReflectiveMethodBuildItem> constructors = new ArrayList<>();
+        List<ReflectiveClassConditionBuildItem> conditions = new ArrayList<>();
+        new JimmerProcessor().registerCustomDialectConstructors(new CombinedIndexBuildItem(index, index), constructors::add,
+                conditions::add);
+        assertTrue(conditions.isEmpty());
+        assertEquals(1, constructors.size());
+        assertEquals(CustomDialect.class.getName(), constructors.get(0).getDeclaringClass());
+        assertEquals(0, constructors.get(0).getParams().length);
+        assertFalse(constructors.get(0).isQueryOnly());
+    }
+
+    @Test
+    void customDialectSubclassesRetainOptionalDriverGuards() throws Exception {
+        var optional = Map.of(CustomPostgresDialect.class, "org.postgresql.util.PGobject",
+                CustomH2Dialect.class, "org.h2.value.ValueJson");
+        ClassLoader previous = Thread.currentThread().getContextClassLoader();
+        for (var entry : optional.entrySet()) {
+            Indexer indexer = new Indexer();
+            for (Class<?> type : List.of(Dialect.class, DefaultDialect.class, entry.getKey().getSuperclass(), entry.getKey())) {
+                indexer.indexClass(type);
+            }
+            var index = indexer.complete();
+            Path directory = optionalClasses.resolve(entry.getKey().getSimpleName());
+            Path marker = directory.resolve(entry.getValue().replace('.', '/') + ".class");
+            Files.createDirectories(marker.getParent());
+            Files.write(marker, new byte[0]);
+            for (boolean runtime : List.of(false, true)) {
+                List<ReflectiveMethodBuildItem> constructors = new ArrayList<>();
+                List<ReflectiveClassConditionBuildItem> conditions = new ArrayList<>();
+                try (QuarkusClassLoader loader = QuarkusClassLoader.builder("Custom optional dialect", previous, false)
+                        .addNormalPriorityElement(ClassPathElement.fromPath(directory, runtime)).build()) {
+                    Thread.currentThread().setContextClassLoader(loader);
+                    new JimmerProcessor().registerCustomDialectConstructors(new CombinedIndexBuildItem(index, index),
+                            constructors::add, conditions::add);
+                } finally {
+                    Thread.currentThread().setContextClassLoader(previous);
+                }
+                assertEquals(runtime ? 1 : 0, constructors.size());
+                assertEquals(runtime ? Map.of() : Map.of(entry.getKey().getName(), entry.getValue()),
+                        conditions.stream().collect(Collectors.toMap(ReflectiveClassConditionBuildItem::getClassName,
+                                ReflectiveClassConditionBuildItem::getTypeReachable)));
+            }
+        }
+    }
 
     @Test
     void optionalDialectReflectionUsesRuntimeResourcesRatherThanDeploymentResources() throws Exception {
@@ -181,5 +298,50 @@ class JimmerProcessorTest {
         public Long generate(Class<?> entityType) {
             return 1L;
         }
+    }
+
+    private abstract static class AbstractJoin implements WeakJoin<CdiBookTable, CdiBookTable> {
+        @Override
+        public Predicate on(CdiBookTable source, CdiBookTable target) {
+            return null;
+        }
+    }
+
+    private static class PrivateJoin extends AbstractJoin {
+        private PrivateJoin() {
+        }
+    }
+
+    private static class ParameterizedJoin extends AbstractJoin {
+        ParameterizedJoin(String value) {
+        }
+    }
+
+    @UsingWeakJoinMetadataParser(JoinParser.class)
+    private static class ParsedJoin extends AbstractJoin {
+    }
+
+    public static class JoinParser implements WeakJoinMetadataParser {
+        @Override
+        public WeakJoinMetadata parse(Class<?> weakJoinType) {
+            return new WeakJoinMetadata(false, false, CdiBook.class, CdiBook.class);
+        }
+    }
+
+    public abstract static class AbstractDialect extends DefaultDialect {
+    }
+
+    public static class CustomDialect extends AbstractDialect {
+    }
+
+    public static class ParameterizedDialect extends DefaultDialect {
+        public ParameterizedDialect(String value) {
+        }
+    }
+
+    public static class CustomPostgresDialect extends org.babyfish.jimmer.sql.dialect.PostgresDialect {
+    }
+
+    public static class CustomH2Dialect extends org.babyfish.jimmer.sql.dialect.H2Dialect {
     }
 }
