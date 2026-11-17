@@ -6,7 +6,7 @@ Use Jimmer's data access APIs with Quarkus CDI, datasources, and transaction man
 
 == Installation
 
-This source branch currently uses coordinates `io.github.flynndi:quarkus-jimmer:0.0.1.CR64` and Jimmer `0.12.4`.
+This source branch currently uses coordinates `io.github.flynndi:quarkus-jimmer:0.0.1.CR65` and Jimmer `0.12.5`.
 Build and install the branch artifacts locally; the already published CR60 artifact does not include this upgrade.
 Use the same Jimmer version for the entity APT/KSP processor and runtime; older published extension versions retain their own dependency versions.
 
@@ -17,12 +17,12 @@ For instance, with Maven, add the following dependency to your POM file:
 <dependency>
     <groupId>io.github.flynndi</groupId>
     <artifactId>quarkus-jimmer</artifactId>
-    <version>0.0.1.CR64</version>
+    <version>0.0.1.CR65</version>
 </dependency>
 ----
 
-For Java entities, configure `org.babyfish.jimmer:jimmer-apt:0.12.4` as the annotation processor.
-For Kotlin entities, configure `org.babyfish.jimmer:jimmer-ksp:0.12.4` with your Kotlin/KSP build setup.
+For Java entities, configure `org.babyfish.jimmer:jimmer-apt:0.12.5` as the annotation processor.
+For Kotlin entities, configure `org.babyfish.jimmer:jimmer-ksp:0.12.5` with your Kotlin/KSP build setup.
 
 When upgrading to Jimmer `0.12.4`, update the processor in every entity module and run a clean build.
 The generated Draft implementation contract has changed: entity code generated before `0.12.4`
@@ -39,12 +39,12 @@ when the application needs Quartz. Quarkus selects the scheduler implementation 
 [cols="1,2,2",options="header"]
 |===
 |Integration |Application dependency |Activation
-|Kotlin SQL |`org.babyfish.jimmer:jimmer-sql-kotlin:0.12.4` |Set `quarkus.jimmer.language=kotlin` for managed Kotlin clients; manual Kotlin clients are also available when the library is present
+|Kotlin SQL |`org.babyfish.jimmer:jimmer-sql-kotlin:0.12.5` |Set `quarkus.jimmer.language=kotlin` for managed Kotlin clients; manual Kotlin clients are also available when the library is present
 |String Fetcher compilation |`org.antlr:antlr4-runtime` |Required when using Jimmer's `FetcherCompiler`; normal Java/Kotlin SQL and generated Fetchers do not need it
 |Transaction-cache periodic retry |`io.quarkus:quarkus-scheduler` or `io.quarkus:quarkus-quartz` |A managed datasource uses transaction triggers; interval defaults to `5s`, and `off` disables retry
 |Redis / Caffeine cache adapters |`io.quarkus:quarkus-redis-client` / `io.quarkus:quarkus-caffeine` as used by the application |Explicit application cache factory or binders; installing a dependency does not enable caching
 |REST exception translation |`io.quarkus:quarkus-rest-jackson` |Set `quarkus.jimmer.error-translator.disabled=false`
-|OpenAPI and TypeScript generation |`org.babyfish.jimmer:jimmer-client:0.12.4` |Call the generators with resolved metadata; no HTTP dependency or endpoint path is required
+|OpenAPI and TypeScript generation |`org.babyfish.jimmer:jimmer-client:0.12.5` |Call the generators with resolved metadata; no HTTP dependency or endpoint path is required
 |OpenAPI and TypeScript endpoints |The generation library, HTTP support and JAX-RS/Quarkus REST metadata APIs, normally supplied by `io.quarkus:quarkus-rest` |Explicitly configure the endpoint paths
 |Swagger UI |`io.quarkus:quarkus-swagger-ui` |Configure `quarkus.swagger-ui.urls` to reference a document; production also requires `always-include=true`
 |Default outbound microservice HTTP exchange |`io.quarkus:quarkus-rest-client` |Configure `quarkus.jimmer.micro-service-name`; auto-enabled when the dependency is present, and replaceable by an application exchange
@@ -93,7 +93,7 @@ also requires an explicit dependency on the ordinary Jimmer library; no addition
 <dependency>
     <groupId>org.babyfish.jimmer</groupId>
     <artifactId>jimmer-client</artifactId>
-    <version>0.12.4</version>
+    <version>0.12.5</version>
 </dependency>
 ----
 
