@@ -1,9 +1,18 @@
 package io.quarkiverse.jimmer.runtime.client;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
@@ -28,6 +37,7 @@ import org.jboss.resteasy.reactive.multipart.FilePart;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.jetbrains.annotations.Nullable;
 
+import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.runtime.util.StringUtil;
 import io.smallrye.mutiny.Multi;
 
@@ -39,6 +49,52 @@ public class Metadatas {
     }
 
     public static Metadata create(boolean isGenericSupported,
+            @Nullable String groups,
+            @Nullable String uriPrefix) {
+        ClassLoader original = Thread.currentThread().getContextClassLoader();
+        ClassLoader resources = clientSchemaResources(original);
+        try {
+            if (resources != original) {
+                Thread.currentThread().setContextClassLoader(resources);
+            }
+            return createMetadata(isGenericSupported, groups, uriPrefix);
+        } finally {
+            if (resources != original) {
+                Thread.currentThread().setContextClassLoader(original);
+            }
+        }
+    }
+
+    private static ClassLoader clientSchemaResources(ClassLoader original) {
+        try (var input = original.getResourceAsStream(Constant.CLIENT_SCHEMA_INDEX)) {
+            if (input == null) {
+                return original;
+            }
+            var schemas = new ArrayList<URL>();
+            try (var reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
+                for (String path; (path = reader.readLine()) != null;) {
+                    URL schema = original.getResource(path);
+                    if (schema == null) {
+                        throw new IOException("Missing generated Jimmer client metadata: " + path);
+                    }
+                    schemas.add(schema);
+                }
+            }
+            // Jimmer 0.12 has no schema-transform SPI. Only redirect its metadata resources;
+            // delegate every class and other resource lookup to the application's class loader.
+            return new ClassLoader(original) {
+                @Override
+                public Enumeration<URL> getResources(String name) throws IOException {
+                    return Constant.CLIENT_RESOURCE.equals(name) ? Collections.enumeration(schemas)
+                            : super.getResources(name);
+                }
+            };
+        } catch (IOException ex) {
+            throw new UncheckedIOException("Cannot load generated Jimmer client metadata", ex);
+        }
+    }
+
+    private static Metadata createMetadata(boolean isGenericSupported,
             @Nullable String groups,
             @Nullable String uriPrefix) {
         return Metadata

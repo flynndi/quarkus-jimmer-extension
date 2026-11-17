@@ -24,6 +24,11 @@ quarkus:
   redisson:
     file: redisson-test.yaml
   jimmer:
+    client:
+      openapi:
+        path: /jimmer-test/openapi.yml
+      ts:
+        path: /jimmer-test/typescript.zip
     show-sql: false
     trigger-type: TRANSACTION_ONLY
     DB2:

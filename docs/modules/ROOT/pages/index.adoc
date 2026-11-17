@@ -537,6 +537,10 @@ proxies and managing the lifetime of dependent instances.
 
 == REST client metadata
 
+OpenAPI and TypeScript describe `RestResponse<T>` return values using the response body type `T`,
+including DTOs and collections. `RestResponse<Void>` has no response body.
+API groups and client metadata supplied by dependency JARs retain their existing selection rules.
+
 Jimmer's generated clients recognize JAX-RS `@QueryParam`, `@PathParam`, and `@HeaderParam`,
 and Quarkus REST's `@RestQuery`, `@RestPath`, and `@RestHeader`.
 An unnamed Quarkus query or path parameter uses the parameter name recorded by Jimmer.

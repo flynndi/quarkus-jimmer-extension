@@ -10,11 +10,15 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Named;
 
+import org.babyfish.jimmer.sql.Entity;
 import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.JoinTable;
 import org.babyfish.jimmer.sql.LogicalDeleted;
 import org.babyfish.jimmer.sql.TransientResolver;
+import org.babyfish.jimmer.sql.ast.table.WeakJoin;
+import org.babyfish.jimmer.sql.ast.table.spi.UsingWeakJoinMetadataParser;
+import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.babyfish.jimmer.sql.meta.LogicalDeletedLongGenerator;
 import org.babyfish.jimmer.sql.meta.LogicalDeletedUUIDGenerator;
@@ -64,6 +68,7 @@ import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassConditionBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveFieldBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 
@@ -117,6 +122,92 @@ final class JimmerProcessor {
     void indexJimmerForKotlin(BuildProducer<IndexDependencyBuildItem> indexDependency) {
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-core-kotlin"));
         indexDependency.produce(new IndexDependencyBuildItem("org.babyfish.jimmer", "jimmer-sql-kotlin"));
+    }
+
+    @BuildStep
+    void registerGeneratedTableReflection(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveClassBuildItem> reflection,
+            BuildProducer<ReflectiveFieldBuildItem> fields) {
+        for (var entity : combinedIndex.getIndex().getAnnotations(DotName.createSimple(Entity.class))) {
+            String entityName = entity.target().asClass().name().toString();
+            for (String suffix : List.of("Table", "TableEx")) {
+                var table = combinedIndex.getComputingIndex().getClassByName(DotName.createSimple(entityName + suffix));
+                // Kotlin entities and models generated without Java tables do not have these classes.
+                if (table == null) {
+                    continue;
+                }
+                // TableProxies dynamically constructs wrappers and delayed joins, and reads the root table singleton.
+                reflection.produce(ReflectiveClassBuildItem.builder(table.name().toString())
+                        .constructors().reason("Jimmer generated table construction").build());
+                var root = table.field("$");
+                if (root != null && Modifier.isStatic(root.flags())) {
+                    fields.produce(new ReflectiveFieldBuildItem(root));
+                }
+            }
+        }
+    }
+
+    @BuildStep
+    void registerWeakJoinConstructors(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveMethodBuildItem> reflection) {
+        var index = combinedIndex.getIndex();
+        for (var join : index.getAllKnownImplementors(DotName.createSimple(WeakJoin.class))) {
+            if (!Modifier.isAbstract(join.flags())) {
+                var constructor = join.method("<init>");
+                // WeakJoinHandle accepts non-public no-arg constructors and makes them accessible.
+                if (constructor != null) {
+                    reflection.produce(new ReflectiveMethodBuildItem(constructor));
+                }
+            }
+        }
+        var parserNames = new HashSet<DotName>();
+        for (var using : index.getAnnotations(DotName.createSimple(UsingWeakJoinMetadataParser.class))) {
+            parserNames.add(using.value().asClass().name());
+        }
+        for (var parserName : parserNames) {
+            var parser = combinedIndex.getComputingIndex().getClassByName(parserName);
+            if (parser != null && !Modifier.isAbstract(parser.flags())) {
+                var constructor = parser.method("<init>");
+                if (constructor != null && Modifier.isPublic(constructor.flags())) {
+                    reflection.produce(new ReflectiveMethodBuildItem(constructor));
+                }
+            }
+        }
+    }
+
+    @BuildStep
+    void registerCustomDialectConstructors(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveMethodBuildItem> reflection,
+            BuildProducer<ReflectiveClassConditionBuildItem> conditions) {
+        for (var dialect : combinedIndex.getIndex().getAllKnownImplementors(DotName.createSimple(Dialect.class))) {
+            // Built-in dialects have separate availability guards for optional JDBC driver types.
+            if (dialect.name().toString().startsWith("org.babyfish.jimmer.sql.dialect.")
+                    || Modifier.isAbstract(dialect.flags())) {
+                continue;
+            }
+            var constructor = dialect.method("<init>");
+            if (constructor != null && Modifier.isPublic(constructor.flags())) {
+                String requiredType = null;
+                var parentName = dialect.superName();
+                while (parentName != null) {
+                    requiredType = switch (parentName.toString()) {
+                        case "org.babyfish.jimmer.sql.dialect.PostgresDialect" -> "org.postgresql.util.PGobject";
+                        case "org.babyfish.jimmer.sql.dialect.H2Dialect" -> "org.h2.value.ValueJson";
+                        default -> null;
+                    };
+                    if (requiredType != null) {
+                        break;
+                    }
+                    var parent = combinedIndex.getComputingIndex().getClassByName(parentName);
+                    parentName = parent != null ? parent.superName() : null;
+                }
+                if (requiredType != null && !QuarkusClassLoader.isClassPresentAtRuntime(requiredType)) {
+                    conditions.produce(new ReflectiveClassConditionBuildItem(dialect.name().toString(), requiredType));
+                    continue;
+                }
+                reflection.produce(new ReflectiveMethodBuildItem(constructor));
+            }
+        }
     }
 
     @BuildStep

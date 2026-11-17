@@ -1,11 +1,19 @@
 package io.quarkiverse.jimmer.deployment.client;
 
+import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.babyfish.jimmer.ClientException;
+import org.babyfish.jimmer.impl.util.StringUtil;
 import org.jboss.jandex.DotName;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Enabled;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
@@ -20,9 +28,13 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
+import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveFieldBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 import io.quarkus.jackson.deployment.IgnoreJsonDeserializeClassBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.spi.RouteBuildItem;
@@ -136,6 +148,130 @@ final class JimmerClientProcessor {
         reflectiveClasses.produce(ReflectiveClassBuildItem.builder(classes.toArray(new String[0]))
                 .constructors()
                 .build());
+    }
+
+    @BuildStep(onlyIf = Enabled.class)
+    void unwrapClientResponseTypes(JimmerClientAvailabilityBuildItem availability,
+            BuildProducer<GeneratedResourceBuildItem> resources,
+            BuildProducer<NativeImageResourceBuildItem> nativeResources) throws java.io.IOException {
+        if (!availability.generatorAvailable()) {
+            return;
+        }
+        var schemas = JimmerClientMetadata.read(Thread.currentThread().getContextClassLoader());
+        boolean changed = false;
+        for (var schema : schemas) {
+            changed |= JimmerClientMetadata.unwrapRestResponses(schema);
+        }
+        if (!changed) {
+            return;
+        }
+        // Keep schemas separate and in their original order: Jimmer filters by groups before resolving
+        // duplicate services and definitions. Merging here would change that runtime selection.
+        List<String> paths = new ArrayList<>();
+        for (int index = 0; index < schemas.size(); index++) {
+            String path = "META-INF/quarkus-jimmer/client/" + index + ".json";
+            paths.add(path);
+            resources.produce(new GeneratedResourceBuildItem(path, JimmerClientMetadata.write(schemas.get(index))));
+        }
+        resources.produce(new GeneratedResourceBuildItem(Constant.CLIENT_SCHEMA_INDEX,
+                String.join("\n", paths).getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        paths.add(Constant.CLIENT_SCHEMA_INDEX);
+        nativeResources.produce(new NativeImageResourceBuildItem(paths));
+    }
+
+    @BuildStep(onlyIf = Enabled.class)
+    void registerClientApiReflection(JimmerClientAvailabilityBuildItem availability,
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveClassBuildItem> reflection,
+            BuildProducer<ReflectiveFieldBuildItem> fields) throws IOException {
+        if (!availability.generatorAvailable()) {
+            return;
+        }
+        var schemas = JimmerClientMetadata.read(Thread.currentThread().getContextClassLoader());
+        var index = combinedIndex.getComputingIndex();
+        var pending = new ArrayDeque<DotName>();
+        var fetcherTypes = new ArrayList<JsonNode>();
+        for (var schema : schemas) {
+            for (JsonNode service : schema.path("services")) {
+                pending.add(DotName.createSimple(service.path("typeName").asText()));
+            }
+            fetcherTypes.addAll(schema.findParents("fetchBy"));
+        }
+        var registered = new HashSet<DotName>();
+        while (!pending.isEmpty()) {
+            var name = pending.removeFirst();
+            if (name.equals(DotName.OBJECT_NAME) || !registered.add(name)) {
+                continue;
+            }
+            var service = index.getClassByName(name);
+            if (service == null) {
+                continue;
+            }
+            // MetadataBuilder enumerates public methods, including inherited API declarations, without invoking them.
+            reflection.produce(ReflectiveClassBuildItem.builder(name.toString())
+                    .constructors(false).queryMethods().reason("Jimmer client API method discovery").build());
+            if (service.superName() != null) {
+                pending.add(service.superName());
+            }
+            pending.addAll(service.interfaceNames());
+        }
+        var registeredFields = new HashSet<String>();
+        for (JsonNode type : fetcherTypes) {
+            var owner = index.getClassByName(DotName.createSimple(type.path("fetcherOwner").asText()));
+            if (owner == null) {
+                continue;
+            }
+            String fieldName = type.path("fetchBy").asText();
+            var field = owner.field(fieldName);
+            if (field != null && registeredFields.add(owner.name() + "#" + fieldName)) {
+                fields.produce(new ReflectiveFieldBuildItem(field));
+            }
+            // Kotlin fetchers can instead live on the owner's Companion instance.
+            var companion = owner.field("Companion");
+            if (companion != null) {
+                var companionType = index.getClassByName(companion.type().name());
+                var companionFetcher = companionType != null ? companionType.field(fieldName) : null;
+                if (companionFetcher != null) {
+                    if (registeredFields.add(owner.name() + "#Companion")) {
+                        fields.produce(new ReflectiveFieldBuildItem(companion));
+                    }
+                    if (registeredFields.add(companionType.name() + "#" + fieldName)) {
+                        fields.produce(new ReflectiveFieldBuildItem(companionFetcher));
+                    }
+                }
+            }
+        }
+    }
+
+    @BuildStep(onlyIf = Enabled.class)
+    void registerClientExceptionGetters(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveClassBuildItem> reflection,
+            BuildProducer<ReflectiveMethodBuildItem> methods) {
+        var index = combinedIndex.getIndex();
+        for (String base : List.of("org.babyfish.jimmer.error.CodeBasedException",
+                "org.babyfish.jimmer.error.CodeBasedRuntimeException")) {
+            for (var exception : index.getAllKnownSubclasses(DotName.createSimple(base))) {
+                if (exception.declaredAnnotation(DotName.createSimple(ClientException.class)) == null) {
+                    continue;
+                }
+                // Exception construction discovers getters even without the optional client generator.
+                reflection.produce(ReflectiveClassBuildItem.builder(exception.name().toString())
+                        .constructors(false).queryMethods().reason("Jimmer coded exception getter discovery").build());
+                for (var method : exception.methods()) {
+                    if (!Modifier.isPublic(method.flags()) || Modifier.isStatic(method.flags())
+                            || method.parametersCount() != 0 || !method.typeParameters().isEmpty()
+                            || !method.exceptions().isEmpty() || method.returnType().name().toString().equals("void")
+                            || method.name().equals("getFamily") || method.name().equals("getCode")
+                            || method.hasAnnotation(DotName.createSimple("com.fasterxml.jackson.annotation.JsonIgnore"))
+                            || method.hasAnnotation(DotName.createSimple("org.babyfish.jimmer.client.ApiIgnore"))
+                            || StringUtil.propName(method.name(),
+                                    method.returnType().name().toString().equals("boolean")) == null) {
+                        continue;
+                    }
+                    methods.produce(new ReflectiveMethodBuildItem("Jimmer coded exception field access", false, method));
+                }
+            }
+        }
     }
 
     @BuildStep(onlyIf = Enabled.class)

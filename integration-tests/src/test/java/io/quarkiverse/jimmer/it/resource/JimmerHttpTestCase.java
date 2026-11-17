@@ -3,12 +3,20 @@ package io.quarkiverse.jimmer.it.resource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.ZipInputStream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,6 +28,36 @@ import io.restassured.specification.RequestSpecification;
 
 @QuarkusTest
 public class JimmerHttpTestCase {
+
+    @Test
+    void generatesDocumentsForRestResponseBodiesAndPrivateFetchers() throws IOException {
+        given().get("/jimmer-test/openapi.yml").then().statusCode(200)
+                .body(containsString("/testResources/testBookRepositoryViewById"))
+                .body(containsString("BookDetailView"))
+                .body(containsString("/bookResource/book/{id}"))
+                .body(not(containsString("RestResponse")));
+
+        byte[] archive = given().get("/jimmer-test/typescript.zip").then().statusCode(200)
+                .contentType("application/zip").extract().asByteArray();
+        StringBuilder sources = new StringBuilder();
+        try (var zip = new ZipInputStream(new ByteArrayInputStream(archive))) {
+            while (zip.getNextEntry() != null) {
+                sources.append(new String(zip.readAllBytes(), StandardCharsets.UTF_8));
+            }
+        }
+        assertTrue(sources.toString().contains("BookDetailView"), sources.toString());
+        assertFalse(sources.toString().contains("RestResponse<"), sources.toString());
+    }
+
+    @Test
+    void resolvesGeneratedTablesForDynamicQueries() {
+        request().queryParam("id", 1)
+                .get("/testResources/testDynamicTableQueries")
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("tableTypesMatch", equalTo(true))
+                .body("bookName", equalTo("Learning GraphQL"))
+                .body("storeName", equalTo("O'REILLY"));
+    }
 
     @Test
     void paginatesAndSortsImmutableEntities() {
