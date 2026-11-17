@@ -2,10 +2,14 @@ package io.quarkiverse.jimmer.deployment;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,11 +26,62 @@ import org.babyfish.jimmer.sql.meta.LogicalDeletedValueGenerator;
 import org.babyfish.jimmer.sql.meta.UserIdGenerator;
 import org.jboss.jandex.Indexer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import io.quarkus.bootstrap.classloading.ClassPathElement;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassConditionBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 
 class JimmerProcessorTest {
+
+    @TempDir
+    Path optionalClasses;
+
+    @Test
+    void optionalDialectReflectionUsesRuntimeResourcesRatherThanDeploymentResources() throws Exception {
+        var optional = Map.of(
+                "org.babyfish.jimmer.sql.dialect.PostgresDialect", "org.postgresql.util.PGobject",
+                "org.babyfish.jimmer.sql.dialect.H2Dialect", "org.h2.value.ValueJson");
+        ClassLoader previous = Thread.currentThread().getContextClassLoader();
+        for (var entry : optional.entrySet()) {
+            Path directory = optionalClasses.resolve(entry.getKey());
+            Path marker = directory.resolve(entry.getValue().replace('.', '/') + ".class");
+            Files.createDirectories(marker.getParent());
+            // Presence detection reads resources, not driver classes or their static initializers.
+            Files.write(marker, new byte[0]);
+            for (boolean runtime : List.of(false, true)) {
+                List<ReflectiveClassBuildItem> reflection = new ArrayList<>();
+                List<ReflectiveClassConditionBuildItem> conditions = new ArrayList<>();
+                try (QuarkusClassLoader loader = QuarkusClassLoader.builder("Optional dialect dependencies", previous, false)
+                        .addNormalPriorityElement(ClassPathElement.fromPath(directory, runtime)).build()) {
+                    Thread.currentThread().setContextClassLoader(loader);
+                    new JimmerProcessor().registerDialectsForReflection(reflection::add, conditions::add);
+                } finally {
+                    Thread.currentThread().setContextClassLoader(previous);
+                }
+                var guards = conditions.stream().collect(Collectors.toMap(
+                        ReflectiveClassConditionBuildItem::getClassName, ReflectiveClassConditionBuildItem::getTypeReachable));
+                var expected = new java.util.HashMap<>(optional);
+                if (runtime) {
+                    expected.remove(entry.getKey());
+                }
+                assertEquals(expected, guards);
+                assertEquals(runtime ? 9 : 8, reflection.size());
+                assertEquals(runtime, reflection.stream().anyMatch(item -> item.getClassNames().contains(entry.getKey())));
+                assertTrue(reflection.stream().anyMatch(item -> item.getClassNames()
+                        .contains("org.babyfish.jimmer.sql.dialect.MySqlDialect")));
+                for (var item : reflection) {
+                    assertTrue(item.isConstructors());
+                    assertFalse(item.isMethods());
+                    assertFalse(item.isFields());
+                    assertFalse(item.isClasses());
+                }
+            }
+        }
+    }
 
     @Test
     void registersDefaultAndExplicitGeneratorsWithOnlyPublicNoArgConstructors() throws IOException {

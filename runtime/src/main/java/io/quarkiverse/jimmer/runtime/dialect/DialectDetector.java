@@ -31,6 +31,10 @@ public interface DialectDetector {
                 String databaseProductName = metaData.getDatabaseProductName();
                 switch (databaseProductName) {
                     case "PostgreSQL":
+                        if (!DialectAvailability.POSTGRES) {
+                            throw new IllegalStateException(
+                                    "PostgresDialect requires org.postgresql:postgresql (org.postgresql.util.PGobject)");
+                        }
                         return new PostgresDialect();
                     case "Oracle":
                         return new OracleDialect();
@@ -39,6 +43,9 @@ public interface DialectDetector {
                     case "Microsoft SQL Server":
                         return new SqlServerDialect();
                     case "H2":
+                        if (!DialectAvailability.H2) {
+                            throw new IllegalStateException("H2Dialect requires com.h2database:h2 (org.h2.value.ValueJson)");
+                        }
                         return new H2Dialect();
                     case "SQLite":
                         return new SQLiteDialect();

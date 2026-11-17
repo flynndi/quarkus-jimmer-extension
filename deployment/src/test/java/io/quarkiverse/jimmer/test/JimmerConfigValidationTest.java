@@ -97,6 +97,18 @@ class JimmerConfigValidationTest {
         assertEquals(0, Probe.initializations);
     }
 
+    @Test
+    void missingPostgresDependencyReportsDefaultAndNamedDatasourceKeys() {
+        var config = config(JimmerRuntimeConfig.class, Map.of(
+                "quarkus.jimmer.dialect", "org.babyfish.jimmer.sql.dialect.PostgresDialect",
+                "quarkus.jimmer.books.dialect", "org.babyfish.jimmer.sql.dialect.PostgresDialect"));
+        ConfigurationException failure = assertThrows(ConfigurationException.class,
+                () -> JimmerConfigValidator.validateDataSources(config.dataSources()));
+        assertEquals(Set.of("quarkus.jimmer.dialect", "quarkus.jimmer.\"books\".dialect"), failure.getConfigKeys());
+        assertTrue(failure.getMessage().contains("org.postgresql:postgresql"));
+        assertTrue(failure.getMessage().contains("org.postgresql.util.PGobject"));
+    }
+
     private <T> T config(Class<T> type, Map<String, String> values) {
         return new SmallRyeConfigBuilder().addDefaultInterceptors().withMapping(type)
                 .withSources(new MapBackedConfigSource("test", values) {
