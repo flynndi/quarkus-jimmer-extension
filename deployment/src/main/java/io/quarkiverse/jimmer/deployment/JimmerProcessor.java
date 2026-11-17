@@ -49,6 +49,7 @@ import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
 import io.quarkus.arc.processor.DotNames;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -62,6 +63,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassConditionBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 
@@ -75,9 +77,11 @@ final class JimmerProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
+    /** Registers available dialect constructors and guards optional dialects reached by other reflection scans. */
     @BuildStep
-    void registerDialectsForReflection(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
-        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
+    void registerDialectsForReflection(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
+            BuildProducer<ReflectiveClassConditionBuildItem> conditions) {
+        for (String dialect : List.of(
                 "org.babyfish.jimmer.sql.dialect.DefaultDialect",
                 "org.babyfish.jimmer.sql.dialect.H2Dialect",
                 "org.babyfish.jimmer.sql.dialect.MySql5Dialect",
@@ -87,9 +91,20 @@ final class JimmerProcessor {
                 "org.babyfish.jimmer.sql.dialect.PostgresDialect",
                 "org.babyfish.jimmer.sql.dialect.SQLiteDialect",
                 "org.babyfish.jimmer.sql.dialect.SqlServerDialect",
-                "org.babyfish.jimmer.sql.dialect.TiDBDialect")
-                .constructors()
-                .build());
+                "org.babyfish.jimmer.sql.dialect.TiDBDialect")) {
+            String requiredType = switch (dialect) {
+                case "org.babyfish.jimmer.sql.dialect.PostgresDialect" -> "org.postgresql.util.PGobject";
+                case "org.babyfish.jimmer.sql.dialect.H2Dialect" -> "org.h2.value.ValueJson";
+                default -> null;
+            };
+            if (requiredType != null && !QuarkusClassLoader.isClassPresentAtRuntime(requiredType)) {
+                // Conditions are applied after merging reflection from REST/Jackson and other extensions.
+                conditions.produce(new ReflectiveClassConditionBuildItem(dialect, requiredType));
+                continue;
+            }
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(dialect)
+                    .constructors().reason("Jimmer configured dialect construction").build());
+        }
     }
 
     @BuildStep
