@@ -162,6 +162,30 @@ class RepositoryQueryTest {
     }
 
     @Test
+    void rejectsDerivedDeletesWhenAllConditionsAreOmitted() {
+        QuarkusTransaction.requiringNew().run(() -> {
+            var failure = assertThrows(IllegalArgumentException.class, () -> legacy.deleteByNameNotLike(""));
+            assertTrue(failure.getMessage().contains("deleteByNameNotLike"));
+            assertThrows(IllegalArgumentException.class, () -> legacy.deleteByName(null));
+            assertThrows(IllegalArgumentException.class, () -> legacy.deleteByNameNotLikeOrEdition("", null));
+        });
+        assertEquals(6, legacy.count());
+    }
+
+    @Test
+    void derivedDeleteUsesTheRemainingCondition() {
+        QuarkusTransaction.requiringNew().run(() -> assertEquals(1, legacy.deleteByNameNotLikeOrEdition("", 2)));
+        assertTrue(legacy.findById(2L).isEmpty());
+        assertEquals(5, legacy.count());
+    }
+
+    @Test
+    void allowsExplicitDeleteAll() {
+        QuarkusTransaction.requiringNew().run(legacy::deleteAll);
+        assertEquals(0, legacy.count());
+    }
+
+    @Test
     void applicationRepositoriesCanUseTheirProtectedSqlClient() {
         Book book = current.findWithSql(1L);
 
@@ -189,6 +213,12 @@ class RepositoryQueryTest {
     }
 
     public interface LegacyBooks extends JRepository<Book, Long> {
+        int deleteByNameNotLike(String name);
+
+        void deleteByName(@DynamicParam @Nullable String name);
+
+        int deleteByNameNotLikeOrEdition(String name, @DynamicParam @Nullable Integer edition);
+
         Book findByNameAndEditionAndPrice(String name, int edition, BigDecimal price, Fetcher<Book> fetcher);
 
         List<Book> findByNameLike(String name, Fetcher<Book> fetcher);

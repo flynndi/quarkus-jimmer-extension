@@ -53,7 +53,12 @@ public class QueryExecutors {
         Query queryData = queryMethod.getQuery();
         if (queryData.getAction() == Query.Action.DELETE) {
             int rowCount = Mutations.createDelete(sqlClient, type, (d, table) -> {
-                d.where(astPredicate(table, queryData.getPredicate(), args, queryMethod));
+                Predicate predicate = astPredicate(table, queryData.getPredicate(), args, queryMethod);
+                if (predicate == null) {
+                    throw new IllegalArgumentException("Cannot execute derived delete " + queryMethod.getJavaMethod()
+                            + " without an effective predicate");
+                }
+                d.where(predicate);
             }).execute();
             return queryMethod.getJavaMethod().getReturnType() == int.class ? rowCount : null;
         } else {
