@@ -112,7 +112,9 @@ final class QuarkusSqlClientFactory {
         Collection<CacheAbandonedCallback> callbacks = getMatchingBeans(CacheAbandonedCallback.class);
         Collection<ScalarProvider<?, ?>> providers = getMatchingBeans(Constant.SCALAR_PROVIDER_TYPE_LITERAL.getType());
         Collection<DraftInterceptor<?, ?>> interceptors = getMatchingBeans(Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL.getType());
+        // ArC matches raw producer return types and parameterized translator beans separately.
         Collection<ExceptionTranslator<?>> exceptionTranslators = getMatchingBeans(ExceptionTranslator.class);
+        exceptionTranslators.addAll(getMatchingBeans(Constant.EXCEPTION_TRANSLATOR_TYPE_LITERAL.getType()));
 
         JSqlClient.Builder builder = JSqlClient.newBuilder();
         builder.setUserIdGeneratorProvider(

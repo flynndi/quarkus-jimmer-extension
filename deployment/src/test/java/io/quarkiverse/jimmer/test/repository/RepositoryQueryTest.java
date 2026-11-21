@@ -2,6 +2,7 @@ package io.quarkiverse.jimmer.test.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,6 +14,8 @@ import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -20,7 +23,9 @@ import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.Page;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
+import org.babyfish.jimmer.sql.exception.SaveException;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.babyfish.jimmer.sql.runtime.ExceptionTranslator;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -49,7 +54,8 @@ class RepositoryQueryTest {
     static final QuarkusUnitTest APP = new QuarkusUnitTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(Book.class.getPackage())
-                    .addClasses(CurrentBooks.class, LegacyBooks.class)
+                    .addClasses(CurrentBooks.class, LegacyBooks.class, BookNameExceptionTranslator.class,
+                            DuplicateBookTranslator.class)
                     .addAsResource(new StringAsset(String.join("\n", Book.class.getName(), BookStore.class.getName(),
                             Author.class.getName()) + "\n"), "META-INF/jimmer/entities"))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
@@ -210,6 +216,52 @@ class RepositoryQueryTest {
         assertEquals("Legacy", legacy.findById(2L).orElseThrow().name());
         assertEquals(new BigDecimal("50.00"), current.findById(1L).price());
         assertEquals(2, legacy.findById(2L).orElseThrow().edition());
+    }
+
+    @Test
+    void translatesSqlExceptionFromFailedSave() {
+        Book book = BookDraft.$.produce(draft -> draft.setId(1L).setName("x".repeat(101)));
+        QuarkusTransaction.requiringNew().run(() -> {
+            var failure = assertThrows(IllegalArgumentException.class,
+                    () -> current.saveCommand(book).setMode(SaveMode.UPDATE_ONLY).execute());
+            assertEquals("Book name is too long", failure.getMessage());
+            assertEquals("22001", assertInstanceOf(SQLException.class, failure.getCause()).getSQLState());
+        });
+    }
+
+    @Test
+    void translatesDuplicateInsertWithRawProducer() {
+        Book book = current.findById(1L);
+        QuarkusTransaction.requiringNew().run(() -> {
+            var failure = assertThrows(IllegalStateException.class,
+                    () -> current.saveCommand(book).setMode(SaveMode.INSERT_ONLY).execute());
+            assertEquals("Book already exists", failure.getMessage());
+            assertInstanceOf(SaveException.NotUnique.class, failure.getCause());
+        });
+    }
+
+    @ApplicationScoped
+    public static class BookNameExceptionTranslator implements ExceptionTranslator<SQLException> {
+        @Produces
+        @SuppressWarnings("rawtypes")
+        static ExceptionTranslator duplicateBookTranslator() {
+            return new DuplicateBookTranslator();
+        }
+
+        @Override
+        public Exception translate(SQLException exception, Args args) {
+            if ("22001".equals(exception.getSQLState())) {
+                return new IllegalArgumentException("Book name is too long", exception);
+            }
+            return null;
+        }
+    }
+
+    public static class DuplicateBookTranslator implements ExceptionTranslator<SaveException.NotUnique> {
+        @Override
+        public Exception translate(SaveException.NotUnique exception, Args args) {
+            return new IllegalStateException("Book already exists", exception);
+        }
     }
 
     public interface LegacyBooks extends JRepository<Book, Long> {
