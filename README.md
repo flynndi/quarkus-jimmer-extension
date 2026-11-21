@@ -259,98 +259,10 @@ Clients using the same datasource name must refer to the same database and compa
 
 For automatically selected CDI cache factories, the extension preserves `FilterStateAware` support even when a producer's declared `CacheFactory` return type hides that interface behind an ArC proxy. Cache creation still goes through the original CDI reference.
 
-example: [CacheConfig.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fconfig%2FCacheConfig.java)   
-use blocking RedisDataSource 
-
-The difference with spring integration is need 
-
-ValueCommands and HashCommands 
-
-quarkus-jimmer-extension static methods are provided
-
-```java
-ValueCommands<String, byte[]> stringValueCommands = RedisCaches.cacheRedisValueCommands(redisDataSource);
-
-HashCommands<String, String, byte[]> stringHashCommands = RedisCaches.cacheRedisHashCommands(redisDataSource);
-```
-
-```java
-@ApplicationScoped
-public class CacheConfig {
-
-    @Singleton
-    @Unremovable
-    public CacheFactory cacheFactory(RedisDataSource redisDataSource, ObjectMapper objectMapper) {
-
-        ValueCommands<String, byte[]> stringValueCommands = RedisCaches.cacheRedisValueCommands(redisDataSource);
-
-        HashCommands<String, String, byte[]> stringHashCommands = RedisCaches.cacheRedisHashCommands(redisDataSource);
-
-        return new AbstractCacheFactory() {
-            @Override
-            public Cache<?, ?> createObjectCache(ImmutableType type) {
-                return new ChainCacheBuilder<>()
-                        .add(new CaffeineBinder<>(512, Duration.ofSeconds(1)))
-                        .add(new RedisValueBinder<>(stringValueCommands, objectMapper, type, Duration.ofMinutes(10)))
-                        .build();
-
-            }
-
-            @Override
-            public Cache<?, ?> createAssociatedIdCache(ImmutableProp prop) {
-                return createPropCache(
-                        getFilterState().isAffected(prop.getTargetType()),
-                        prop,
-                        stringValueCommands,
-                        stringHashCommands,
-                        objectMapper,
-                        Duration.ofMinutes(5));
-            }
-
-            @Override
-            public Cache<?, List<?>> createAssociatedIdListCache(ImmutableProp prop) {
-                return createPropCache(
-                        getFilterState().isAffected(prop.getTargetType()),
-                        prop,
-                        stringValueCommands,
-                        stringHashCommands,
-                        objectMapper,
-                        Duration.ofMinutes(5));
-            }
-
-            @Override
-            public Cache<?, ?> createResolverCache(ImmutableProp prop) {
-                return createPropCache(
-                        prop.equals(BookStoreProps.AVG_PRICE.unwrap()),
-                        prop,
-                        stringValueCommands,
-                        stringHashCommands,
-                        objectMapper,
-                        Duration.ofHours(1));
-            }
-        };
-    }
-
-    private static <K, V> Cache<K, V> createPropCache(
-            boolean isMultiView,
-            ImmutableProp prop,
-            ValueCommands<String, byte[]> stringValueCommands,
-            HashCommands<String, String, byte[]> stringHashCommands,
-            ObjectMapper objectMapper,
-            Duration redisDuration) {
-        if (isMultiView) {
-            return new ChainCacheBuilder<K, V>()
-                    .add(new RedisHashBinder<>(stringHashCommands, stringValueCommands, objectMapper, prop, redisDuration))
-                    .build();
-        }
-
-        return new ChainCacheBuilder<K, V>()
-                .add(new CaffeineBinder<>(512, Duration.ofSeconds(1)))
-                .add(new RedisValueBinder<>(stringValueCommands, objectMapper, prop, redisDuration))
-                .build();
-    }
-}
-```
+The integration application's `CacheFactory` producer passes the blocking `RedisDataSource` and
+`JimmerJsonCodecs.toJsonCodecV2(objectMapper)` to Jimmer's `org.babyfish.jimmer.sql.cache.redis.quarkus.RedisCacheCreator`.
+The example configures entity, association and resolver caches, a local Caffeine cache, and optional Redisson locking and tracking.
+See the [complete CDI configuration](integration-tests/src/main/java/io/quarkiverse/jimmer/it/config/CacheConfig.java) and its [Maven dependencies](integration-tests/pom.xml).
 
 ### Remote Associations
 
