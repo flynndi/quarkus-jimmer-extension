@@ -528,12 +528,15 @@ The OpenAPI document and TypeScript handlers receive their build-time configurat
 They do not look up CDI beans or create a request context. Swagger UI and its static assets are managed
 by the application's optional Quarkus Swagger UI extension.
 
-Microservice export handlers are CDI singletons. `@ActivateRequestContext` covers dependency resolution,
-database access, and response generation; an existing request context is retained, and a context created by
-the interceptor is terminated when the synchronous handler returns or throws. The handlers use the default
-`JSqlClient` and `ObjectMapper` with standard CDI selection. Missing or ambiguous dependencies fail resolution
-instead of selecting an arbitrary bean. ArC caches the selected CDI references, preserving normal-scope
-proxies and managing the lifetime of dependent instances.
+Both microservice export handlers use the client for `quarkus.jimmer.language`. In Kotlin mode they use the
+Java client backing the selected `KSqlClient`. The exporter prefers the CDI `@Default` client and otherwise
+uses the client for the sole named datasource. If multiple named datasources are available, provide a
+default client to select which one serves inbound requests. Missing or ambiguous client selection fails startup.
+
+The handlers are CDI singletons. Each obtains the selected client and the default `ObjectMapper` inside
+`@ActivateRequestContext`, which also covers database access and response generation. The interceptor retains
+an existing request context and closes any context it creates when the handler returns or throws. ArC caches
+the selected CDI references, preserving normal-scope proxies and managing dependent instances.
 
 == REST client metadata
 

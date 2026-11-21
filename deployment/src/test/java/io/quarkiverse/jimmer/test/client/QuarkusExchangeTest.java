@@ -72,7 +72,10 @@ class QuarkusExchangeTest {
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
             .overrideConfigKey("quarkus.datasource.jdbc.url", "jdbc:h2:mem:microservice-exchange;DB_CLOSE_DELAY=-1")
+            .overrideConfigKey("quarkus.datasource.secondary.db-kind", "h2")
+            .overrideConfigKey("quarkus.datasource.secondary.jdbc.url", "jdbc:h2:mem:secondary-microservice-exchange")
             .overrideConfigKey("quarkus.http.test-port", Integer.toString(PORT))
+            .overrideConfigKey("quarkus.jimmer.language", "kotlin")
             .overrideConfigKey("quarkus.jimmer.micro-service-name", "http-test")
             .overrideConfigKey("quarkus.rest-client.local.url", BASE_URL)
             .overrideConfigKey("quarkus.rest-client.alternate.url", BASE_URL);
@@ -118,7 +121,7 @@ class QuarkusExchangeTest {
     }
 
     @Test
-    void bothExportersRoundTripEntitiesAndTypedTuplesOverHttp() throws Exception {
+    void bothExportersRoundTripEntitiesAndTypedTuplesWithTheKotlinClient() throws Exception {
         List<ImmutableSpi> books = exchange.findByIds("local", List.of(1L), HttpBookFetcher.$.allScalarFields());
         assertEquals(1, books.size());
         assertEquals("Alpha", ((HttpBook) books.get(0)).name());

@@ -21,6 +21,7 @@ class MissingKotlinSqlTest {
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
             .overrideConfigKey("quarkus.datasource.jdbc.url", "jdbc:h2:mem:missing-kotlin-sql")
             .overrideConfigKey("quarkus.jimmer.language", "kotlin")
+            .overrideConfigKey("quarkus.jimmer.micro-service-name", "inventory")
             .assertException(failure -> {
                 String messages = OptionalIntegrationTestSupport.messages(failure);
                 assertTrue(messages.contains("org.babyfish.jimmer:jimmer-sql-kotlin"), messages);

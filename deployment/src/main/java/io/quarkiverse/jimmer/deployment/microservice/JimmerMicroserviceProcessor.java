@@ -26,6 +26,7 @@ import io.quarkus.arc.deployment.ValidationPhaseBuildItem;
 import io.quarkus.arc.deployment.ValidationPhaseBuildItem.ValidationErrorBuildItem;
 import io.quarkus.arc.processor.BeanInfo;
 import io.quarkus.arc.processor.BeanResolver;
+import io.quarkus.arc.processor.DotNames;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.deployment.Capabilities;
@@ -44,6 +45,7 @@ final class JimmerMicroserviceProcessor {
     private static final String EXCHANGE = "io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange";
     private static final String IDS = "io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsHandler";
     private static final String ASSOCIATED_IDS = "io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsHandler";
+    private static final String EXPORTER_CLIENT = "io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterClient";
     private static final DotName KOTLIN_SQL_CLIENT = DotName.createSimple("org.babyfish.jimmer.sql.kt.KSqlClient");
 
     @BuildStep
@@ -67,7 +69,10 @@ final class JimmerMicroserviceProcessor {
             excluded.produce(new ExcludedTypeBuildItem(EXCHANGE));
         }
         if (exporterEnabled) {
-            beans.produce(AdditionalBeanBuildItem.builder().addBeanClasses(IDS, ASSOCIATED_IDS).setUnremovable().build());
+            boolean kotlin = "kotlin".equalsIgnoreCase(config.language());
+            beans.produce(AdditionalBeanBuildItem.builder()
+                    .addBeanClasses(IDS, ASSOCIATED_IDS, EXPORTER_CLIENT + (kotlin ? "$Kotlin" : "$Java"))
+                    .setDefaultScope(DotNames.SINGLETON).setUnremovable().build());
         } else {
             excluded.produce(new ExcludedTypeBuildItem(IDS));
             excluded.produce(new ExcludedTypeBuildItem(ASSOCIATED_IDS));
