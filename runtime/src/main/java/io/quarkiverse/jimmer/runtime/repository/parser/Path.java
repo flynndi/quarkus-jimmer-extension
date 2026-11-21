@@ -1,5 +1,6 @@
 package io.quarkiverse.jimmer.runtime.repository.parser;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,13 +18,23 @@ public class Path {
         return new PathParser(ctx, allowCollection).parse(source, type);
     }
 
+    /** Bind the exact property names emitted at build time to the runtime entity metadata. */
+    public static Path resolved(ImmutableType root, String... propNames) {
+        List<ImmutableProp> props = new ArrayList<>(propNames.length);
+        for (int i = 0; i < propNames.length; i++) {
+            ImmutableType type = i == 0 ? root : props.get(i - 1).getTargetType();
+            props.add(type.getProp(propNames[i]));
+        }
+        return new Path(null, props);
+    }
+
     public Path(Source source, List<ImmutableProp> props) {
         this.source = source;
-        this.props = props;
+        this.props = List.copyOf(props);
     }
 
     public Source getSource() {
-        return source;
+        return source != null ? source : new Source(toString());
     }
 
     public List<ImmutableProp> getProps() {

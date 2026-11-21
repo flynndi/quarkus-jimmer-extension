@@ -1,7 +1,6 @@
 package io.quarkiverse.jimmer.runtime.repository.parser;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.babyfish.jimmer.meta.ImmutableProp;
@@ -31,7 +30,7 @@ class PathParser {
                             type +
                             "\"");
         }
-        return new Path(source, Collections.unmodifiableList(props));
+        return new Path(source, props);
     }
 
     private boolean parse0(Source source, ImmutableType type) {

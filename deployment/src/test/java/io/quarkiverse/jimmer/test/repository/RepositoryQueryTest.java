@@ -3,12 +3,15 @@ package io.quarkiverse.jimmer.test.repository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,10 +36,14 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
 import io.quarkiverse.jimmer.runtime.repository.DynamicParam;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
+import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import io.quarkiverse.jimmer.test.repository.model.Author;
 import io.quarkiverse.jimmer.test.repository.model.Book;
@@ -105,6 +112,29 @@ class RepositoryQueryTest {
     }
 
     @Test
+    void generatedRepositoryDoesNotLookUpOrReparseDerivedMethods() throws IOException {
+        Class<?> implementation = legacy.getClass();
+        String resource = "/" + implementation.getName().replace('.', '/') + ".class";
+        var generated = new ClassNode();
+        try (var input = implementation.getResourceAsStream(resource)) {
+            assertNotNull(input, resource);
+            new ClassReader(input).accept(generated, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        }
+        assertTrue(generated.methods.stream().anyMatch(method -> method.name.equals("deleteByNameNotLike")));
+        for (var method : generated.methods) {
+            for (var instruction : method.instructions) {
+                if (instruction instanceof MethodInsnNode call) {
+                    assertFalse(call.owner.equals("java/lang/Class")
+                            && (call.name.equals("getMethod") || call.name.equals("getDeclaredMethod")),
+                            method.name + " looks up a repository method");
+                    assertFalse(call.owner.equals("io/quarkiverse/jimmer/runtime/repository/parser/QueryMethod")
+                            && call.name.equals("of"), method.name + " parses a repository method");
+                }
+            }
+        }
+    }
+
+    @Test
     void derivedListsHonorTheFetcherSelection() {
         List<Book> books = legacy.findByNameLike("Alpha", BookFetcher.$.name());
 
@@ -134,6 +164,25 @@ class RepositoryQueryTest {
         assertEquals(5, page.getTotalRowCount());
         assertEquals(3, page.getTotalPageCount());
         assertTrue(page.getRows().stream().noneMatch(book -> ImmutableObjects.isLoaded(book, "price")));
+    }
+
+    @Test
+    void projectsDistinctNamesWithALimitAndASortBetweenRangeParameters() {
+        Sort byName = Sort.by("name");
+        assertEquals(List.of("Alpha", "Beta"), legacy.findDistinctTop2NameByPriceBetween(
+                new BigDecimal("50"), byName, new BigDecimal("80")));
+        assertEquals(List.of("Elsewhere", "Unassigned"), legacy.findDistinctTop2NameByPriceBetween(
+                new BigDecimal("90"), byName, null));
+    }
+
+    @Test
+    void preservesOptionalAndPrimitiveResultTypes() {
+        assertEquals(Optional.of("Alpha"), legacy.findNameById(1L));
+        assertEquals(Optional.empty(), legacy.findNameById(99L));
+        assertEquals(2, legacy.countByName("Alpha"));
+        assertEquals(4L, legacy.countByStoreName("Manning"));
+        assertTrue(legacy.existsByEdition(3));
+        assertFalse(legacy.existsByEdition(4));
     }
 
     @Test
@@ -265,6 +314,16 @@ class RepositoryQueryTest {
     }
 
     public interface LegacyBooks extends JRepository<Book, Long> {
+        List<String> findDistinctTop2NameByPriceBetween(BigDecimal min, Sort sort, @DynamicParam @Nullable BigDecimal max);
+
+        Optional<String> findNameById(long id);
+
+        int countByName(String name);
+
+        long countByStoreName(String storeName);
+
+        boolean existsByEdition(int edition);
+
         int deleteByNameNotLike(String name);
 
         void deleteByName(@DynamicParam @Nullable String name);
