@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import javax.sql.DataSource;
 
+import org.babyfish.jimmer.sql.exception.ExecutionException;
 import org.babyfish.jimmer.sql.transaction.Propagation;
 import org.babyfish.jimmer.sql.transaction.TxConnectionManager;
 import org.jetbrains.annotations.NotNull;
@@ -46,9 +47,32 @@ public class QuarkusConnectionManager implements DataSourceAwareConnectionManage
     }
 
     @Override
+    public ConnectionScope open(@Nullable Connection con) {
+        if (con != null) {
+            return ConnectionScope.userConnection(con);
+        }
+        try {
+            return new PooledConnectionScope(dataSource.getConnection());
+        } catch (SQLException ex) {
+            throw new ExecutionException("Cannot acquire JDBC connection for streaming", ex);
+        }
+    }
+
+    @Override
     public <R> R executeTransaction(Propagation propagation, Function<Connection, R> block) {
         // Acquire the JDBC connection inside the intercepted boundary, after Narayana applies propagation.
         return Arc.container().instance(QuarkusTransactionExecutor.class).get()
                 .execute(propagation, () -> execute(block));
+    }
+
+    private record PooledConnectionScope(Connection connection) implements ConnectionScope {
+        @Override
+        public void close() {
+            try {
+                connection.close();
+            } catch (SQLException ex) {
+                throw new ExecutionException("Cannot release JDBC connection after streaming", ex);
+            }
+        }
     }
 }
