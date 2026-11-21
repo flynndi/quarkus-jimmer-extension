@@ -31,7 +31,7 @@ public class Query {
         this.distinct = distinct;
         this.selectedPath = selectedPath;
         this.predicate = predicate;
-        this.orders = orders;
+        this.orders = List.copyOf(orders);
     }
 
     public Query(Query base, Predicate predicate) {

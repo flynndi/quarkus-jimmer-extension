@@ -7,7 +7,7 @@ public class AndPredicate implements Predicate {
     private final List<Predicate> predicates;
 
     private AndPredicate(List<Predicate> predicates) {
-        this.predicates = predicates;
+        this.predicates = List.copyOf(predicates);
     }
 
     public List<Predicate> getPredicates() {

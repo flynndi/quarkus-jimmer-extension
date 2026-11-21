@@ -155,7 +155,7 @@ public abstract class PropPredicate implements Predicate {
         }
     }
 
-    static class Resolved extends PropPredicate {
+    public static final class Resolved extends PropPredicate {
 
         private final int paramIndex;
 

@@ -1,30 +1,51 @@
 package io.quarkiverse.jimmer.runtime.cfg.support;
 
+import jakarta.enterprise.inject.Any;
+
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.di.LogicalDeletedValueGeneratorProvider;
 import org.babyfish.jimmer.sql.meta.LogicalDeletedValueGenerator;
+import org.jboss.logging.Logger;
 
 import io.quarkus.arc.ArcContainer;
 
 public class QuarkusLogicalDeletedValueGeneratorProvider implements LogicalDeletedValueGeneratorProvider {
 
+    private static final Logger LOG = Logger.getLogger(QuarkusLogicalDeletedValueGeneratorProvider.class);
+
     private final ArcContainer container;
+    private final SqlClientBeanAccess access;
 
     public QuarkusLogicalDeletedValueGeneratorProvider(ArcContainer container) {
+        this(container, SqlClientBeanAccess.UNMANAGED);
+    }
+
+    public QuarkusLogicalDeletedValueGeneratorProvider(ArcContainer container, SqlClientBeanAccess access) {
         this.container = container;
+        this.access = access;
+    }
+
+    @Override
+    public LogicalDeletedValueGenerator<?> get(Class<LogicalDeletedValueGenerator<?>> type, JSqlClient sqlClient)
+            throws Exception {
+        if (container.select(type, Any.Literal.INSTANCE).isUnsatisfied()) {
+            return LogicalDeletedValueGeneratorProvider.super.get(type, sqlClient);
+        }
+        return access.lookup(container, root -> root.select(type, Any.Literal.INSTANCE).get());
     }
 
     @Override
     public LogicalDeletedValueGenerator<?> get(String ref, JSqlClient sqlClient) throws Exception {
-        Object bean = container.instance(ref).get();
-        if (!(bean instanceof LogicalDeletedValueGenerator<?>)) {
-            throw new IllegalStateException(
-                    "The expected type of quarkus bean named \"ref\" is \"" +
-                            LogicalDeletedValueGenerator.class.getName() +
-                            "\", but the actual type is + \"" +
-                            bean.getClass().getName() +
-                            "\"");
+        Object bean = access.get(container.instance(ref));
+        if (bean instanceof LogicalDeletedValueGenerator<?> generator) {
+            return generator;
         }
-        return (LogicalDeletedValueGenerator<?>) bean;
+        String message = bean == null
+                ? "Cannot resolve a Quarkus bean named \"" + ref + "\""
+                : "Quarkus bean named \"" + ref + "\" has type \"" + bean.getClass().getName()
+                        + "\", expected \"" + LogicalDeletedValueGenerator.class.getName() + "\"";
+        // Jimmer 0.12.5 discards the provider exception when resolving generatorRef.
+        LOG.error(message);
+        throw new IllegalStateException(message);
     }
 }

@@ -41,6 +41,7 @@ import io.quarkiverse.jimmer.runtime.JimmerJavaDataSourcesRecorder;
 import io.quarkiverse.jimmer.runtime.JimmerKotlinDataSourcesRecorder;
 import io.quarkiverse.jimmer.runtime.QuarkusJSqlClientProducer;
 import io.quarkiverse.jimmer.runtime.QuarkusKSqlClientProducer;
+import io.quarkiverse.jimmer.runtime.cfg.support.SqlClientBeanAccess;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
@@ -322,7 +323,8 @@ final class JimmerProcessor {
             return;
         }
 
-        additionalBeans.produce(new AdditionalBeanBuildItem(JSqlClient.class, JSqlClientImplementor.class));
+        additionalBeans.produce(new AdditionalBeanBuildItem(JSqlClient.class, JSqlClientImplementor.class,
+                SqlClientBeanAccess.Managed.class));
 
         additionalBeans
                 .produce(AdditionalBeanBuildItem.builder().addBeanClasses(QuarkusJSqlClientProducer.class).setUnremovable()
@@ -339,6 +341,7 @@ final class JimmerProcessor {
                     .setRuntimeInit()
                     .unremovable()
                     .addInjectionPoint(ClassType.create(QuarkusJSqlClientProducer.class))
+                    .addInjectionPoint(ClassType.create(SqlClientBeanAccess.Managed.class))
                     // Defer datasource access until ArC creates the active client instance.
                     .addInjectionPoint(
                             ParameterizedType.create(InjectableInstance.class, ClassType.create(javax.sql.DataSource.class)),
@@ -373,7 +376,7 @@ final class JimmerProcessor {
             return;
         }
 
-        additionalBeans.produce(new AdditionalBeanBuildItem(KSqlClient.class));
+        additionalBeans.produce(new AdditionalBeanBuildItem(KSqlClient.class, SqlClientBeanAccess.Managed.class));
 
         additionalBeans
                 .produce(AdditionalBeanBuildItem.builder().addBeanClasses(QuarkusKSqlClientProducer.class).setUnremovable()
@@ -388,6 +391,7 @@ final class JimmerProcessor {
                     .setRuntimeInit()
                     .unremovable()
                     .addInjectionPoint(ClassType.create(QuarkusKSqlClientProducer.class))
+                    .addInjectionPoint(ClassType.create(SqlClientBeanAccess.Managed.class))
                     // Defer datasource access until ArC creates the active client instance.
                     .addInjectionPoint(
                             ParameterizedType.create(InjectableInstance.class, ClassType.create(javax.sql.DataSource.class)),

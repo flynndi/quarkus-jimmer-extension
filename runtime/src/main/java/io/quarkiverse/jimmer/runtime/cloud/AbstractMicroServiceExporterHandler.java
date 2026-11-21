@@ -4,8 +4,6 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 
-import org.babyfish.jimmer.sql.JSqlClient;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -17,11 +15,8 @@ import io.vertx.ext.web.RoutingContext;
 
 public abstract class AbstractMicroServiceExporterHandler implements Handler<RoutingContext> {
 
-    // Resolve within the activated request context. ArC caches the selected CDI reference,
-    // including a normal-scoped proxy, and owns any dependent instances until handler destruction.
     @Inject
-    @WithCaching
-    Instance<JSqlClient> sqlClients;
+    MicroServiceExporterClient sqlClient;
 
     @Inject
     @WithCaching

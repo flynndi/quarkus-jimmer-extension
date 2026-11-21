@@ -26,7 +26,7 @@ public class MicroServiceExporterAssociatedIdsHandler extends AbstractMicroServi
     @ActivateRequestContext
     public void handle(RoutingContext routingContext) {
         ObjectMapper objectMapper = objectMappers.get();
-        MicroServiceExporter exporter = new MicroServiceExporter(sqlClients.get());
+        MicroServiceExporter exporter = new MicroServiceExporter(sqlClient.get());
 
         String prop = routingContext.request().getParam(Constant.PROP);
         String targetIdArrStr = routingContext.request().getParam(Constant.TARGET_IDS);

@@ -40,6 +40,7 @@ abstract class MethodCodeWriter implements Constants {
                 parent.ctx,
                 ImmutableType.get(parent.metadata.getDomainType()),
                 method);
+        QueryPlanCodeWriter.write(parent.getClassVisitor(), queryPlanFactoryName(), queryMethod.getPlan());
         List<Integer> slots = new ArrayList<>();
         int slot = 0;
         for (Class<?> type : method.getParameterTypes()) {
@@ -64,19 +65,13 @@ abstract class MethodCodeWriter implements Constants {
 
         visitLoadJSqlClient();
 
-        mv.visitLdcInsn(Type.getType(parent.metadata.getDomainType()));
-        mv.visitMethodInsn(
-                Opcodes.INVOKESTATIC,
-                IMMUTABLE_TYPE_INTERNAL_NAME,
-                "get",
-                "(Ljava/lang/Class;)" + IMMUTABLE_TYPE_DESCRIPTOR,
-                true);
+        mv.visitFieldInsn(Opcodes.GETSTATIC, parent.getImplInternalName(), DOMAIN_TYPE_FIELD, IMMUTABLE_TYPE_DESCRIPTOR);
 
         mv.visitFieldInsn(
                 Opcodes.GETSTATIC,
                 parent.getImplInternalName(),
-                queryMethodFieldName(),
-                QUERY_METHOD_DESCRIPTOR);
+                queryPlanFieldName(),
+                QUERY_PLAN_DESCRIPTOR);
 
         if (queryMethod.getPageableParamIndex() != -1) {
             mv.visitVarInsn(Opcodes.ALOAD, slots.get(queryMethod.getPageableParamIndex()));
@@ -181,8 +176,12 @@ abstract class MethodCodeWriter implements Constants {
 
     protected abstract void visitLoadJSqlClient();
 
-    String queryMethodFieldName() {
-        return "QUERY_METHOD_{" + id + '}';
+    String queryPlanFieldName() {
+        return "QUERY_PLAN_{" + id + '}';
+    }
+
+    String queryPlanFactoryName() {
+        return "createQueryPlan_{" + id + '}';
     }
 
     protected final Method getDefaultImplMethod() {

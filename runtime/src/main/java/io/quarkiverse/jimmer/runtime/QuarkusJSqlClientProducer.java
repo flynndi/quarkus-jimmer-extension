@@ -7,6 +7,7 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusCacheOperatorProvider;
+import io.quarkiverse.jimmer.runtime.cfg.support.SqlClientBeanAccess;
 import io.quarkus.arc.Arc;
 
 /**
@@ -27,10 +28,15 @@ public class QuarkusJSqlClientProducer {
     }
 
     public JSqlClient createJSqlClient(DataSource dataSource, String dataSourceName) {
+        return createJSqlClient(dataSource, dataSourceName, SqlClientBeanAccess.UNMANAGED);
+    }
+
+    JSqlClient createJSqlClient(DataSource dataSource, String dataSourceName, SqlClientBeanAccess access) {
         var container = Arc.container();
         return new QuarkusSqlClientFactory(container, jimmerRuntimeConfig, jimmerBuildTimeConfig,
                 dataSource, dataSourceName,
-                builder -> builder.setCacheOperator(QuarkusCacheOperatorProvider.find(container, dataSourceName)), false)
+                builder -> builder.setCacheOperator(QuarkusCacheOperatorProvider.find(container, dataSourceName, access)),
+                false, access)
                 .create();
     }
 }

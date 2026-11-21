@@ -7,7 +7,7 @@ public class OrPredicate implements Predicate {
     private final List<Predicate> predicates;
 
     private OrPredicate(List<Predicate> predicates) {
-        this.predicates = predicates;
+        this.predicates = List.copyOf(predicates);
     }
 
     public List<Predicate> getPredicates() {

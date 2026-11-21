@@ -3,10 +3,15 @@ package io.quarkiverse.jimmer.test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Disposes;
 import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.Typed;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -45,12 +50,15 @@ class CdiSqlClientLifecycleTest {
                     .addPackage(CdiBook.class.getPackage())
                     .addClasses(Probe.class, ClientDependentFilter.class, ClientDependentCustomizer.class,
                             ClientDependentInitializer.class, OtherDataSourceCustomizer.class,
-                            UnselectedKotlinCustomizer.class, TrackingCacheOperator.class)
+                            UnselectedKotlinCustomizer.class, TrackingCacheOperator.class, SharedBuilder.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
             .overrideConfigKey("quarkus.datasource.jdbc.url", "jdbc:h2:mem:cdi-client-lifecycle;DB_CLOSE_DELAY=-1")
+            .overrideConfigKey("quarkus.datasource.books.db-kind", "h2")
+            .overrideConfigKey("quarkus.datasource.books.jdbc.url", "jdbc:h2:mem:cdi-books-lifecycle")
+            .overrideConfigKey("quarkus.jimmer.books.trigger-type", "BINLOG_ONLY")
             .overrideConfigKey("quarkus.jimmer.trigger-type", "BINLOG_ONLY");
 
     @Inject
@@ -98,15 +106,37 @@ class CdiSqlClientLifecycleTest {
         assertEquals(1, probe.events);
         assertEquals(1L, probe.lastEvent.getId());
         assertSame(book, probe.lastEvent.getNewEntity());
+
+        var named = Arc.container().instance(JSqlClient.class, new DataSource.DataSourceLiteral("books"));
+        var namedClient = ClientProxy.unwrap(named.get());
+        assertEquals(2, probe.filterConstructions);
+        assertEquals(0, probe.filterDestructions);
+        assertEquals(0, probe.cacheOperatorDisposals);
+        Arc.container().instance(JSqlClient.class).destroy();
+        assertEquals(1, probe.filterDestructions);
+        assertEquals(1, probe.cacheOperatorDisposals);
+        assertSame(namedClient, ClientProxy.unwrap(named.get()));
+        assertEquals(0, probe.builderDisposals);
+        named.destroy();
+        assertEquals(2, probe.filterDestructions);
+        assertEquals(1, probe.cacheOperatorDisposals);
+        assertEquals(0, probe.sharedCustomizerDestructions);
+        assertEquals(1, probe.builderDisposals);
+        assertEquals(0, probe.sharedBuilderDestructions);
     }
 
     @Singleton
     public static class Probe {
         int filterConstructions;
+        int filterDestructions;
+        int sharedCustomizerDestructions;
         int customizations;
         int initializations;
         int events;
         int cacheOperatorCreations;
+        int cacheOperatorDisposals;
+        int builderDisposals;
+        int sharedBuilderDestructions;
         TrackingCacheOperator cacheOperator;
         JSqlClient filterClient;
         JSqlClient customizerClient;
@@ -122,17 +152,58 @@ class CdiSqlClientLifecycleTest {
             return cacheOperator;
         }
 
+        void disposeCacheOperator(@Disposes CacheOperator operator) {
+            assertSame(cacheOperator, operator);
+            cacheOperatorDisposals++;
+        }
+
+        @Produces
+        @Dependent
+        @DataSource("books")
+        Consumer<JSqlClient.Builder> namedBuilder(SharedBuilder shared) {
+            return shared;
+        }
+
+        void disposeBuilder(@Disposes @DataSource("books") Consumer<JSqlClient.Builder> builder) {
+            assertInstanceOf(ClientProxy.class, builder);
+            builderDisposals++;
+        }
+
         void onEntityChange(@Observes EntityEvent<?> event) {
             events++;
             lastEvent = event;
         }
     }
 
-    @Singleton
+    @ApplicationScoped
+    @Typed(SharedBuilder.class)
+    public static class SharedBuilder implements Consumer<JSqlClient.Builder> {
+        @Inject
+        Probe probe;
+
+        @Override
+        public void accept(JSqlClient.Builder builder) {
+        }
+
+        @PreDestroy
+        void destroy() {
+            probe.sharedBuilderDestructions++;
+        }
+    }
+
+    @Dependent
     public static class ClientDependentFilter implements Filter<CdiBookProps> {
+        private final Probe probe;
+
         public ClientDependentFilter(JSqlClient client, Probe probe) {
+            this.probe = probe;
             probe.filterConstructions++;
             probe.filterClient = client;
+        }
+
+        @PreDestroy
+        void destroy() {
+            probe.filterDestructions++;
         }
 
         @Override
@@ -140,7 +211,7 @@ class CdiSqlClientLifecycleTest {
         }
     }
 
-    @Singleton
+    @ApplicationScoped
     public static class ClientDependentCustomizer implements Customizer {
         private final Probe probe;
 
@@ -153,6 +224,11 @@ class CdiSqlClientLifecycleTest {
         public void customize(JSqlClient.Builder builder) {
             probe.customizations++;
             builder.setDefaultBatchSize(23);
+        }
+
+        @PreDestroy
+        void destroy() {
+            probe.sharedCustomizerDestructions++;
         }
     }
 

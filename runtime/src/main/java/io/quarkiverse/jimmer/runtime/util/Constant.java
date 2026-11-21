@@ -8,6 +8,7 @@ import org.babyfish.jimmer.sql.DraftInterceptor;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.filter.Filter;
 import org.babyfish.jimmer.sql.kt.filter.KFilter;
+import org.babyfish.jimmer.sql.runtime.ExceptionTranslator;
 import org.babyfish.jimmer.sql.runtime.ScalarProvider;
 
 public class Constant {
@@ -25,6 +26,9 @@ public class Constant {
     };
 
     public static final TypeLiteral<DraftInterceptor<?, ?>> DRAFT_INTERCEPTOR_TYPE_LITERAL = new TypeLiteral<>() {
+    };
+
+    public static final TypeLiteral<ExceptionTranslator<?>> EXCEPTION_TRANSLATOR_TYPE_LITERAL = new TypeLiteral<>() {
     };
 
     public static final TypeLiteral<Consumer<JSqlClient.Builder>> J_SQL_CLIENT_BUILDER_TYPE_LITERAL = new TypeLiteral<>() {

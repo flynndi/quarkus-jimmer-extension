@@ -16,6 +16,7 @@ import jakarta.enterprise.inject.spi.EventMetadata;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
+import org.babyfish.jimmer.jackson.v2.ImmutableModuleV2;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.event.EntityEvent;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
@@ -24,6 +25,8 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkiverse.jimmer.runtime.SqlClients;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
@@ -59,6 +62,14 @@ class DisabledJimmerManualClientTest {
 
     @Inject
     JimmerBuildTimeConfig buildTimeConfig;
+
+    @Inject
+    ObjectMapper objectMapper;
+
+    @Test
+    void jackson2ModuleRemainsRegisteredWhenJimmerIsDisabled() {
+        assertTrue(objectMapper.getRegisteredModuleIds().contains(ImmutableModuleV2.MODULE_ID));
+    }
 
     @Test
     void manualClientsStillAccessTheDatabaseAndPublishWildcardEventsWithoutGeneratedBeans() {

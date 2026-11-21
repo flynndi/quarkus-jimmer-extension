@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import jakarta.inject.Singleton;
 
-import org.babyfish.jimmer.impl.util.Classes;
 import org.objectweb.asm.*;
 
 import io.quarkiverse.jimmer.deployment.repository.RepositoryMetadata;
@@ -38,7 +37,7 @@ abstract class ClassCodeWriter implements Constants {
 
     private ClassWriter cw;
 
-    Context ctx = new Context();
+    final Context ctx = new Context();
 
     protected ClassCodeWriter(RepositoryMetadata metadata, Class<?> sqlClientType, Class<?> superType) {
         this.metadata = metadata;
@@ -163,13 +162,10 @@ abstract class ClassCodeWriter implements Constants {
     }
 
     private void writeStaticFields() {
+        int access = Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL;
+        cw.visitField(access, DOMAIN_TYPE_FIELD, IMMUTABLE_TYPE_DESCRIPTOR, null, null).visitEnd();
         for (MethodCodeWriter writer : autoGenMethodCodeWriters) {
-            cw.visitField(
-                    Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL,
-                    writer.queryMethodFieldName(),
-                    QUERY_METHOD_DESCRIPTOR,
-                    null,
-                    null).visitEnd();
+            cw.visitField(access, writer.queryPlanFieldName(), QUERY_PLAN_DESCRIPTOR, null, null).visitEnd();
         }
     }
 
@@ -182,16 +178,6 @@ abstract class ClassCodeWriter implements Constants {
                 null);
         mv.visitCode();
 
-        mv.visitTypeInsn(Opcodes.NEW, CONTEXT_INTERNAL_NAME);
-        mv.visitInsn(Opcodes.DUP);
-        mv.visitMethodInsn(
-                Opcodes.INVOKESPECIAL,
-                CONTEXT_INTERNAL_NAME,
-                "<init>",
-                "()V",
-                false);
-        mv.visitVarInsn(Opcodes.ASTORE, 0);
-
         mv.visitLdcInsn(Type.getType(metadata.getDomainType()));
         mv.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
@@ -199,48 +185,13 @@ abstract class ClassCodeWriter implements Constants {
                 "get",
                 "(Ljava/lang/Class;)" + IMMUTABLE_TYPE_DESCRIPTOR,
                 true);
-        mv.visitVarInsn(Opcodes.ASTORE, 1);
+        mv.visitFieldInsn(Opcodes.PUTSTATIC, implInternalName, DOMAIN_TYPE_FIELD, IMMUTABLE_TYPE_DESCRIPTOR);
 
         for (MethodCodeWriter writer : autoGenMethodCodeWriters) {
-            mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitVarInsn(Opcodes.ALOAD, 1);
-            mv.visitLdcInsn(Type.getType(metadata.getRepositoryInterface()));
-            mv.visitLdcInsn(writer.method.getName());
-            mv.visitLdcInsn(writer.method.getParameterTypes().length);
-            mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Class");
-            int index = 0;
-            for (Class<?> clazz : writer.method.getParameterTypes()) {
-                mv.visitInsn(Opcodes.DUP);
-                mv.visitLdcInsn(index++);
-                if (clazz.isPrimitive()) {
-                    mv.visitFieldInsn(
-                            Opcodes.GETSTATIC,
-                            Type.getInternalName(Classes.boxTypeOf(clazz)),
-                            "TYPE",
-                            "Ljava/lang/Class;");
-                } else {
-                    mv.visitLdcInsn(Type.getType(clazz));
-                }
-                mv.visitInsn(Opcodes.AASTORE);
-            }
-            mv.visitMethodInsn(
-                    Opcodes.INVOKEVIRTUAL,
-                    "java/lang/Class",
-                    "getMethod",
-                    "(Ljava/lang/String;[Ljava/lang/Class;)" + METHOD_DESCRIPTOR,
-                    false);
-            mv.visitMethodInsn(
-                    Opcodes.INVOKESTATIC,
-                    QUERY_METHOD_INTERNAL_NAME,
-                    "of",
-                    "(" + CONTEXT_DESCRIPTOR + IMMUTABLE_TYPE_DESCRIPTOR + METHOD_DESCRIPTOR + ")" +
-                            QUERY_METHOD_DESCRIPTOR,
-                    false);
-            mv.visitFieldInsn(
-                    Opcodes.PUTSTATIC,
-                    implInternalName,
-                    writer.queryMethodFieldName(),
-                    QUERY_METHOD_DESCRIPTOR);
+            mv.visitFieldInsn(Opcodes.GETSTATIC, implInternalName, DOMAIN_TYPE_FIELD, IMMUTABLE_TYPE_DESCRIPTOR);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, implInternalName, writer.queryPlanFactoryName(),
+                    QUERY_PLAN_FACTORY_DESCRIPTOR, false);
+            mv.visitFieldInsn(Opcodes.PUTSTATIC, implInternalName, writer.queryPlanFieldName(), QUERY_PLAN_DESCRIPTOR);
         }
         mv.visitInsn(Opcodes.RETURN);
 

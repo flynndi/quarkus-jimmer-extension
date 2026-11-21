@@ -370,6 +370,9 @@ They do not need `@Unremovable` merely because Jimmer discovers them dynamically
 SPI beans may inject the matching client for later use, but must not call back through its proxy during construction,
 `@PostConstruct`, `customize`, or `initialize` while that client is being created.
 An `Initializer` should use the client passed to its callback.
+Each CDI-managed SQL client owns the `@Dependent` plugins it obtains, including generators and resolvers looked up on first use.
+Destroying the client runs their `@PreDestroy` callbacks or producer disposers. A failed client build also releases the plugins it already obtained.
+
 Only the selected language's filters, customizers, and initializers are instantiated.
 Connection and dialect defaults are completed after user customizers run.
 An explicit dialect skips JDBC probing; replacing the connection manager makes detection use that connection manager.
@@ -379,6 +382,7 @@ The default datasource accepts ordinary `@Default` and the legacy `@DataSource("
 Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator.
 
 `SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately and report construction failures at the factory call.
+These clients have no close hook for dependent CDI plugins.
 They select `CacheFactory` beans by datasource, falling back to the default factory, and accept builder overrides.
 They do not automatically select `CacheOperator` beans: a `TransactionCacheOperator` instance cannot be shared by multiple SQL clients.
 Configure a dedicated operator through the builder when needed.
@@ -528,12 +532,15 @@ The OpenAPI document and TypeScript handlers receive their build-time configurat
 They do not look up CDI beans or create a request context. Swagger UI and its static assets are managed
 by the application's optional Quarkus Swagger UI extension.
 
-Microservice export handlers are CDI singletons. `@ActivateRequestContext` covers dependency resolution,
-database access, and response generation; an existing request context is retained, and a context created by
-the interceptor is terminated when the synchronous handler returns or throws. The handlers use the default
-`JSqlClient` and `ObjectMapper` with standard CDI selection. Missing or ambiguous dependencies fail resolution
-instead of selecting an arbitrary bean. ArC caches the selected CDI references, preserving normal-scope
-proxies and managing the lifetime of dependent instances.
+Both microservice export handlers use the client for `quarkus.jimmer.language`. In Kotlin mode they use the
+Java client backing the selected `KSqlClient`. The exporter prefers the CDI `@Default` client and otherwise
+uses the client for the sole named datasource. If multiple named datasources are available, provide a
+default client to select which one serves inbound requests. Missing or ambiguous client selection fails startup.
+
+The handlers are CDI singletons. Each obtains the selected client and the default `ObjectMapper` inside
+`@ActivateRequestContext`, which also covers database access and response generation. The interceptor retains
+an existing request context and closes any context it creates when the handler returns or throws. ArC caches
+the selected CDI references, preserving normal-scope proxies and managing dependent instances.
 
 == REST client metadata
 

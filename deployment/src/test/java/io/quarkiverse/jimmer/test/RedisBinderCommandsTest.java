@@ -1,31 +1,71 @@
 package io.quarkiverse.jimmer.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.babyfish.jimmer.meta.ImmutableType;
+import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.cache.Cache;
+import org.babyfish.jimmer.sql.cache.CacheEnvironment;
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import io.quarkiverse.jimmer.runtime.cache.RedisCacheCreator;
 import io.quarkiverse.jimmer.runtime.cache.RedisHashBinder;
 import io.quarkiverse.jimmer.runtime.cache.RedisValueBinder;
 import io.quarkiverse.jimmer.test.model.CdiBook;
+import io.quarkiverse.jimmer.test.model.CdiBookDraft;
 import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.hash.HashCommands;
 import io.quarkus.redis.datasource.keys.KeyCommands;
 import io.quarkus.redis.datasource.value.ValueCommands;
 
 class RedisBinderCommandsTest {
+
+    @Test
+    void creatorBuildsObjectAndPropertyCachesWithACallerSuppliedMapper() {
+        RedisCommands redis = new RedisCommands();
+        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+        var modules = Set.copyOf(mapper.getRegisteredModuleIds());
+        RedisCacheCreator creator = new RedisCacheCreator(redis.dataSource, mapper);
+        var type = ImmutableType.get(CdiBook.class);
+        var name = type.getProp("name");
+
+        Cache<Long, CdiBook> objects = creator.createForObject(type);
+        assertSame(type, objects.type());
+        assertSame(name, creator.createForProp(name, false).prop());
+        assertSame(name, creator.createForProp(name, true).prop());
+        assertEquals(modules, mapper.getRegisteredModuleIds());
+        assertTrue(redis.calls.isEmpty());
+
+        CdiBook book = CdiBookDraft.$.produce(draft -> draft.setId(1L).setName("Example"));
+        InvocationHandler unexpectedSql = (proxy, method, args) -> {
+            throw new AssertionError("Unexpected SQL operation: " + method);
+        };
+        var environment = new CacheEnvironment<Long, CdiBook>(RedisCommands.proxy(JSqlClient.class, unexpectedSql),
+                RedisCommands.proxy(Connection.class, unexpectedSql), keys -> Map.of(1L, book), false);
+        assertEquals(book, objects.get(1L, environment));
+        assertTrue(new String(redis.values.get("CdiBook-1"), StandardCharsets.UTF_8).contains("\n"));
+        assertEquals(book, objects.get(1L, environment));
+        assertEquals(List.of("mget", "mset", "pexpire:CdiBook-1", "mget"), redis.calls);
+    }
 
     @Test
     void hashWritesExpireEachKeyOnceAndKeepParameterVariantsSeparate() {

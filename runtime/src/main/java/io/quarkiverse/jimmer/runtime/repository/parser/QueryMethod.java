@@ -2,6 +2,8 @@ package io.quarkiverse.jimmer.runtime.repository.parser;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.babyfish.jimmer.meta.ImmutableType;
 
@@ -11,7 +13,7 @@ public class QueryMethod {
 
     private final Method javaMethod;
 
-    private final Query query;
+    private final QueryPlan plan;
 
     private final Class<?> viewType;
 
@@ -25,8 +27,6 @@ public class QueryMethod {
 
     private final int viewTypeParamIndex;
 
-    private final boolean[] dynamicFlags;
-
     public QueryMethod(
             Method javaMethod,
             Query query,
@@ -37,7 +37,6 @@ public class QueryMethod {
             int fetcherParamIndex,
             int viewTypeParamIndex) {
         this.javaMethod = javaMethod;
-        this.query = query;
         this.viewType = viewType;
         this.pageableParamIndex = pageableParamIndex;
         this.sortParamIndex = sortParamIndex;
@@ -45,11 +44,12 @@ public class QueryMethod {
         this.fetcherParamIndex = fetcherParamIndex;
         this.viewTypeParamIndex = viewTypeParamIndex;
         Parameter[] parameters = javaMethod.getParameters();
-        boolean[] arr = new boolean[parameters.length];
-        for (int i = arr.length - 1; i >= 0; --i) {
-            arr[i] = parameters[i].isAnnotationPresent(DynamicParam.class);
+        List<QueryPlan.Parameter> planParameters = new ArrayList<>(parameters.length);
+        for (Parameter parameter : parameters) {
+            planParameters.add(new QueryPlan.Parameter(parameter.getName(), parameter.isAnnotationPresent(DynamicParam.class)));
         }
-        this.dynamicFlags = arr;
+        this.plan = new QueryPlan(query, QueryPlan.ReturnShape.of(javaMethod.getReturnType()), javaMethod.toString(),
+                planParameters);
     }
 
     public static QueryMethod of(Context ctx, ImmutableType type, Method method) {
@@ -61,7 +61,11 @@ public class QueryMethod {
     }
 
     public Query getQuery() {
-        return query;
+        return plan.query();
+    }
+
+    public QueryPlan getPlan() {
+        return plan;
     }
 
     public Class<?> getViewType() {
@@ -89,29 +93,18 @@ public class QueryMethod {
     }
 
     public boolean isDynamicParam(int index) {
-        return dynamicFlags[index];
+        return plan.parameters().get(index).dynamic();
     }
 
     public void throwNullParameterException(int index) {
-        throw new NullPointerException(
-                "The parameters[" +
-                        index +
-                        "](" +
-                        javaMethod.getParameters()[index].getName() +
-                        ") of \"" +
-                        javaMethod +
-                        "\" cannot be null. If you want to use dynamic queries, " +
-                        "that is, ignore this parameter, please annotate this " +
-                        "parameter with \"@" +
-                        DynamicParam.class.getName() +
-                        "\"");
+        plan.throwNullParameterException(index);
     }
 
     @Override
     public String toString() {
         return "QueryMethod{" +
                 "javaMethod=" + javaMethod +
-                ", query=" + query +
+                ", query=" + plan.query() +
                 ", viewType=" + viewType +
                 ", pageableParamIndex=" + pageableParamIndex +
                 ", sortParamIndex=" + sortParamIndex +

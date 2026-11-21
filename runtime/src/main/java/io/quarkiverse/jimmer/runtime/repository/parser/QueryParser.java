@@ -76,7 +76,7 @@ class QueryParser {
                 parseOrders(orderBySource);
             }
         }
-        return new Query(action, limit, distinct, selectedPath, predicate, Collections.unmodifiableList(orders));
+        return new Query(action, limit, distinct, selectedPath, predicate, orders);
     }
 
     private Source parseAction(Source source) {

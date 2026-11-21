@@ -2,17 +2,23 @@ package io.quarkiverse.jimmer.test.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -20,7 +26,9 @@ import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.Page;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
+import org.babyfish.jimmer.sql.exception.SaveException;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.babyfish.jimmer.sql.runtime.ExceptionTranslator;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -28,10 +36,14 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
 import io.quarkiverse.jimmer.runtime.repository.DynamicParam;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
+import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import io.quarkiverse.jimmer.test.repository.model.Author;
 import io.quarkiverse.jimmer.test.repository.model.Book;
@@ -49,7 +61,8 @@ class RepositoryQueryTest {
     static final QuarkusUnitTest APP = new QuarkusUnitTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(Book.class.getPackage())
-                    .addClasses(CurrentBooks.class, LegacyBooks.class)
+                    .addClasses(CurrentBooks.class, LegacyBooks.class, BookNameExceptionTranslator.class,
+                            DuplicateBookTranslator.class)
                     .addAsResource(new StringAsset(String.join("\n", Book.class.getName(), BookStore.class.getName(),
                             Author.class.getName()) + "\n"), "META-INF/jimmer/entities"))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
@@ -99,6 +112,29 @@ class RepositoryQueryTest {
     }
 
     @Test
+    void generatedRepositoryDoesNotLookUpOrReparseDerivedMethods() throws IOException {
+        Class<?> implementation = legacy.getClass();
+        String resource = "/" + implementation.getName().replace('.', '/') + ".class";
+        var generated = new ClassNode();
+        try (var input = implementation.getResourceAsStream(resource)) {
+            assertNotNull(input, resource);
+            new ClassReader(input).accept(generated, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        }
+        assertTrue(generated.methods.stream().anyMatch(method -> method.name.equals("deleteByNameNotLike")));
+        for (var method : generated.methods) {
+            for (var instruction : method.instructions) {
+                if (instruction instanceof MethodInsnNode call) {
+                    assertFalse(call.owner.equals("java/lang/Class")
+                            && (call.name.equals("getMethod") || call.name.equals("getDeclaredMethod")),
+                            method.name + " looks up a repository method");
+                    assertFalse(call.owner.equals("io/quarkiverse/jimmer/runtime/repository/parser/QueryMethod")
+                            && call.name.equals("of"), method.name + " parses a repository method");
+                }
+            }
+        }
+    }
+
+    @Test
     void derivedListsHonorTheFetcherSelection() {
         List<Book> books = legacy.findByNameLike("Alpha", BookFetcher.$.name());
 
@@ -128,6 +164,25 @@ class RepositoryQueryTest {
         assertEquals(5, page.getTotalRowCount());
         assertEquals(3, page.getTotalPageCount());
         assertTrue(page.getRows().stream().noneMatch(book -> ImmutableObjects.isLoaded(book, "price")));
+    }
+
+    @Test
+    void projectsDistinctNamesWithALimitAndASortBetweenRangeParameters() {
+        Sort byName = Sort.by("name");
+        assertEquals(List.of("Alpha", "Beta"), legacy.findDistinctTop2NameByPriceBetween(
+                new BigDecimal("50"), byName, new BigDecimal("80")));
+        assertEquals(List.of("Elsewhere", "Unassigned"), legacy.findDistinctTop2NameByPriceBetween(
+                new BigDecimal("90"), byName, null));
+    }
+
+    @Test
+    void preservesOptionalAndPrimitiveResultTypes() {
+        assertEquals(Optional.of("Alpha"), legacy.findNameById(1L));
+        assertEquals(Optional.empty(), legacy.findNameById(99L));
+        assertEquals(2, legacy.countByName("Alpha"));
+        assertEquals(4L, legacy.countByStoreName("Manning"));
+        assertTrue(legacy.existsByEdition(3));
+        assertFalse(legacy.existsByEdition(4));
     }
 
     @Test
@@ -162,6 +217,30 @@ class RepositoryQueryTest {
     }
 
     @Test
+    void rejectsDerivedDeletesWhenAllConditionsAreOmitted() {
+        QuarkusTransaction.requiringNew().run(() -> {
+            var failure = assertThrows(IllegalArgumentException.class, () -> legacy.deleteByNameNotLike(""));
+            assertTrue(failure.getMessage().contains("deleteByNameNotLike"));
+            assertThrows(IllegalArgumentException.class, () -> legacy.deleteByName(null));
+            assertThrows(IllegalArgumentException.class, () -> legacy.deleteByNameNotLikeOrEdition("", null));
+        });
+        assertEquals(6, legacy.count());
+    }
+
+    @Test
+    void derivedDeleteUsesTheRemainingCondition() {
+        QuarkusTransaction.requiringNew().run(() -> assertEquals(1, legacy.deleteByNameNotLikeOrEdition("", 2)));
+        assertTrue(legacy.findById(2L).isEmpty());
+        assertEquals(5, legacy.count());
+    }
+
+    @Test
+    void allowsExplicitDeleteAll() {
+        QuarkusTransaction.requiringNew().run(legacy::deleteAll);
+        assertEquals(0, legacy.count());
+    }
+
+    @Test
     void applicationRepositoriesCanUseTheirProtectedSqlClient() {
         Book book = current.findWithSql(1L);
 
@@ -188,7 +267,69 @@ class RepositoryQueryTest {
         assertEquals(2, legacy.findById(2L).orElseThrow().edition());
     }
 
+    @Test
+    void translatesSqlExceptionFromFailedSave() {
+        Book book = BookDraft.$.produce(draft -> draft.setId(1L).setName("x".repeat(101)));
+        QuarkusTransaction.requiringNew().run(() -> {
+            var failure = assertThrows(IllegalArgumentException.class,
+                    () -> current.saveCommand(book).setMode(SaveMode.UPDATE_ONLY).execute());
+            assertEquals("Book name is too long", failure.getMessage());
+            assertEquals("22001", assertInstanceOf(SQLException.class, failure.getCause()).getSQLState());
+        });
+    }
+
+    @Test
+    void translatesDuplicateInsertWithRawProducer() {
+        Book book = current.findById(1L);
+        QuarkusTransaction.requiringNew().run(() -> {
+            var failure = assertThrows(IllegalStateException.class,
+                    () -> current.saveCommand(book).setMode(SaveMode.INSERT_ONLY).execute());
+            assertEquals("Book already exists", failure.getMessage());
+            assertInstanceOf(SaveException.NotUnique.class, failure.getCause());
+        });
+    }
+
+    @ApplicationScoped
+    public static class BookNameExceptionTranslator implements ExceptionTranslator<SQLException> {
+        @Produces
+        @SuppressWarnings("rawtypes")
+        static ExceptionTranslator duplicateBookTranslator() {
+            return new DuplicateBookTranslator();
+        }
+
+        @Override
+        public Exception translate(SQLException exception, Args args) {
+            if ("22001".equals(exception.getSQLState())) {
+                return new IllegalArgumentException("Book name is too long", exception);
+            }
+            return null;
+        }
+    }
+
+    public static class DuplicateBookTranslator implements ExceptionTranslator<SaveException.NotUnique> {
+        @Override
+        public Exception translate(SaveException.NotUnique exception, Args args) {
+            return new IllegalStateException("Book already exists", exception);
+        }
+    }
+
     public interface LegacyBooks extends JRepository<Book, Long> {
+        List<String> findDistinctTop2NameByPriceBetween(BigDecimal min, Sort sort, @DynamicParam @Nullable BigDecimal max);
+
+        Optional<String> findNameById(long id);
+
+        int countByName(String name);
+
+        long countByStoreName(String storeName);
+
+        boolean existsByEdition(int edition);
+
+        int deleteByNameNotLike(String name);
+
+        void deleteByName(@DynamicParam @Nullable String name);
+
+        int deleteByNameNotLikeOrEdition(String name, @DynamicParam @Nullable Integer edition);
+
         Book findByNameAndEditionAndPrice(String name, int edition, BigDecimal price, Fetcher<Book> fetcher);
 
         List<Book> findByNameLike(String name, Fetcher<Book> fetcher);
