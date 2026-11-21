@@ -370,6 +370,9 @@ They do not need `@Unremovable` merely because Jimmer discovers them dynamically
 SPI beans may inject the matching client for later use, but must not call back through its proxy during construction,
 `@PostConstruct`, `customize`, or `initialize` while that client is being created.
 An `Initializer` should use the client passed to its callback.
+Each CDI-managed SQL client owns the `@Dependent` plugins it obtains, including generators and resolvers looked up on first use.
+Destroying the client runs their `@PreDestroy` callbacks or producer disposers. A failed client build also releases the plugins it already obtained.
+
 Only the selected language's filters, customizers, and initializers are instantiated.
 Connection and dialect defaults are completed after user customizers run.
 An explicit dialect skips JDBC probing; replacing the connection manager makes detection use that connection manager.
@@ -379,6 +382,7 @@ The default datasource accepts ordinary `@Default` and the legacy `@DataSource("
 Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator.
 
 `SqlClients.java(...)` and `SqlClients.kotlin(...)` build independent clients immediately and report construction failures at the factory call.
+These clients have no close hook for dependent CDI plugins.
 They select `CacheFactory` beans by datasource, falling back to the default factory, and accept builder overrides.
 They do not automatically select `CacheOperator` beans: a `TransactionCacheOperator` instance cannot be shared by multiple SQL clients.
 Configure a dedicated operator through the builder when needed.

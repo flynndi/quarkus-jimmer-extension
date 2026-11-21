@@ -1,18 +1,18 @@
 package io.quarkiverse.jimmer.runtime;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
 import jakarta.enterprise.inject.Default;
+import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.util.TypeLiteral;
 
 import org.babyfish.jimmer.sql.DraftInterceptor;
@@ -22,12 +22,10 @@ import org.babyfish.jimmer.sql.cache.CacheFactory;
 import org.babyfish.jimmer.sql.di.*;
 import org.babyfish.jimmer.sql.dialect.DefaultDialect;
 import org.babyfish.jimmer.sql.dialect.Dialect;
-import org.babyfish.jimmer.sql.filter.Filter;
 import org.babyfish.jimmer.sql.kt.cfg.KCustomizer;
 import org.babyfish.jimmer.sql.kt.cfg.KCustomizerKt;
 import org.babyfish.jimmer.sql.kt.cfg.KInitializer;
 import org.babyfish.jimmer.sql.kt.cfg.KInitializerKt;
-import org.babyfish.jimmer.sql.kt.filter.KFilter;
 import org.babyfish.jimmer.sql.kt.filter.impl.JavaFiltersKt;
 import org.babyfish.jimmer.sql.meta.DatabaseNamingStrategy;
 import org.babyfish.jimmer.sql.meta.DatabaseSchemaStrategy;
@@ -48,11 +46,13 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusUserIdGeneratorProvider;
+import io.quarkiverse.jimmer.runtime.cfg.support.SqlClientBeanAccess;
 import io.quarkiverse.jimmer.runtime.dialect.DialectDetector;
 import io.quarkiverse.jimmer.runtime.event.QuarkusEventDispatcher;
 import io.quarkiverse.jimmer.runtime.meta.QuarkusMetaStringResolver;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
+import io.quarkus.agroal.DataSource.DataSourceLiteral;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InstanceHandle;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
@@ -68,7 +68,11 @@ final class QuarkusSqlClientFactory {
 
     private final String dataSourceName;
 
+    private final DataSourceLiteral dataSourceQualifier;
+
     private final ArcContainer container;
+
+    private final SqlClientBeanAccess access;
 
     private final Consumer<JSqlClient.Builder> block;
 
@@ -77,17 +81,20 @@ final class QuarkusSqlClientFactory {
     QuarkusSqlClientFactory(ArcContainer container, DataSource dataSource, String dataSourceName,
             Consumer<JSqlClient.Builder> block, boolean isKotlin) {
         this(container, container.select(JimmerRuntimeConfig.class).get(),
-                container.select(JimmerBuildTimeConfig.class).get(), dataSource, dataSourceName, block, isKotlin);
+                container.select(JimmerBuildTimeConfig.class).get(), dataSource, dataSourceName, block, isKotlin,
+                SqlClientBeanAccess.UNMANAGED);
     }
 
     QuarkusSqlClientFactory(ArcContainer container, JimmerRuntimeConfig runtimeConfig,
             JimmerBuildTimeConfig buildTimeConfig, DataSource dataSource, String dataSourceName,
-            Consumer<JSqlClient.Builder> block, boolean isKotlin) {
+            Consumer<JSqlClient.Builder> block, boolean isKotlin, SqlClientBeanAccess access) {
         this.container = Objects.requireNonNull(container);
+        this.access = Objects.requireNonNull(access);
         this.runtimeConfig = Objects.requireNonNull(runtimeConfig);
         this.buildTimeConfig = Objects.requireNonNull(buildTimeConfig);
         this.dataSource = dataSource;
         this.dataSourceName = dataSourceName != null ? dataSourceName : DataSourceUtil.DEFAULT_DATASOURCE_NAME;
+        this.dataSourceQualifier = new DataSourceLiteral(this.dataSourceName);
         this.block = block;
         this.isKotlin = isKotlin;
         JimmerConfigValidator.validateDataSource(this.dataSourceName,
@@ -110,19 +117,21 @@ final class QuarkusSqlClientFactory {
         ObjectMapper objectMapper = getOptionalBean(ObjectMapper.class);
         CacheFactory cacheFactory = getOptionalBean(CacheFactory.class);
         Collection<CacheAbandonedCallback> callbacks = getMatchingBeans(CacheAbandonedCallback.class);
-        Collection<ScalarProvider<?, ?>> providers = getMatchingBeans(Constant.SCALAR_PROVIDER_TYPE_LITERAL.getType());
-        Collection<DraftInterceptor<?, ?>> interceptors = getMatchingBeans(Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL.getType());
+        Collection<ScalarProvider<?, ?>> providers = getMatchingBeans(Constant.SCALAR_PROVIDER_TYPE_LITERAL);
+        Collection<DraftInterceptor<?, ?>> interceptors = getMatchingBeans(Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL);
         // ArC matches raw producer return types and parameterized translator beans separately.
-        Collection<ExceptionTranslator<?>> exceptionTranslators = getMatchingBeans(ExceptionTranslator.class);
-        exceptionTranslators.addAll(getMatchingBeans(Constant.EXCEPTION_TRANSLATOR_TYPE_LITERAL.getType()));
+        Collection<ExceptionTranslator<?>> exceptionTranslators = new ArrayList<>();
+        getMatchingBeans(ExceptionTranslator.class).forEach(exceptionTranslators::add);
+        exceptionTranslators.addAll(getMatchingBeans(Constant.EXCEPTION_TRANSLATOR_TYPE_LITERAL));
 
         JSqlClient.Builder builder = JSqlClient.newBuilder();
         builder.setUserIdGeneratorProvider(
-                Objects.requireNonNullElseGet(userIdGeneratorProvider, () -> new QuarkusUserIdGeneratorProvider(container)));
+                Objects.requireNonNullElseGet(userIdGeneratorProvider,
+                        () -> new QuarkusUserIdGeneratorProvider(container, access)));
         builder.setLogicalDeletedValueGeneratorProvider(Objects.requireNonNullElseGet(logicalDeletedValueGeneratorProvider,
-                () -> new QuarkusLogicalDeletedValueGeneratorProvider(container)));
+                () -> new QuarkusLogicalDeletedValueGeneratorProvider(container, access)));
         builder.setTransientResolverProvider(Objects.requireNonNullElseGet(transientResolverProvider,
-                () -> new QuarkusTransientResolverProvider(container)));
+                () -> new QuarkusTransientResolverProvider(container, access)));
         builder.setAopProxyProvider(Objects.requireNonNullElseGet(aopProxyProvider, QuarkusAopProxyProvider::new));
         if (null != entityManager) {
             builder.setEntityManager(entityManager);
@@ -197,10 +206,11 @@ final class QuarkusSqlClientFactory {
         builder.addDraftInterceptors(interceptors);
         builder.addExceptionTranslators(exceptionTranslators);
         configureLanguageExtensions(builder);
-        var dispatchers = container.select(QuarkusEventDispatcher.class);
-        QuarkusEventDispatcher dispatcher = dispatchers.isUnsatisfied()
-                ? new QuarkusEventDispatcher(container.beanManager().getEvent())
-                : dispatchers.get();
+        QuarkusEventDispatcher dispatcher = access.lookup(container, root -> {
+            var dispatchers = root.select(QuarkusEventDispatcher.class);
+            return dispatchers.isUnsatisfied() ? new QuarkusEventDispatcher(container.beanManager().getEvent())
+                    : dispatchers.get();
+        });
         builder.addInitializers(dispatcher.initializer(dataSourceName));
 
         builder.setMicroServiceName(buildTimeConfig.microServiceName().orElse(null));
@@ -231,9 +241,9 @@ final class QuarkusSqlClientFactory {
         if (connectionManager == null) {
             // Datasources never inherit the SPI fallback to @Default: a named client must use its own datasource.
             DataSource selectedDataSource = dataSource != null ? dataSource
-                    : container.select(DataSource.class, DataSourceUtil.isDefault(dataSourceName)
+                    : access.lookup(container, root -> root.select(DataSource.class, DataSourceUtil.isDefault(dataSourceName)
                             ? Default.Literal.INSTANCE
-                            : new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName)).get();
+                            : dataSourceQualifier).get());
             connectionManager = new QuarkusConnectionManager(selectedDataSource);
         }
         builder.setConnectionManager(connectionManager);
@@ -261,9 +271,9 @@ final class QuarkusSqlClientFactory {
             }
             KotlinExtensions.configure(this, builder);
         } else {
-            builder.addFilters(this.<Filter<?>> getMatchingBeans(Constant.FILTER_TYPE_LITERAL.getType()));
-            builder.addCustomizers(this.<Customizer> getMatchingBeans(Customizer.class));
-            builder.addInitializers(this.<Initializer> getMatchingBeans(Initializer.class));
+            builder.addFilters(getMatchingBeans(Constant.FILTER_TYPE_LITERAL));
+            builder.addCustomizers(getMatchingBeans(Customizer.class));
+            builder.addInitializers(getMatchingBeans(Initializer.class));
         }
     }
 
@@ -272,17 +282,17 @@ final class QuarkusSqlClientFactory {
 
         private static void configure(QuarkusSqlClientFactory factory, JSqlClient.Builder builder) {
             builder.addFilters(
-                    factory.<KFilter<?>> getMatchingBeans(Constant.K_FILTER_TYPE_LITERAL.getType())
+                    factory.getMatchingBeans(Constant.K_FILTER_TYPE_LITERAL)
                             .stream()
                             .map(JavaFiltersKt::toJavaFilter)
                             .collect(Collectors.toList()));
             builder.addCustomizers(
-                    factory.<KCustomizer> getMatchingBeans(KCustomizer.class)
+                    factory.getMatchingBeans(KCustomizer.class)
                             .stream()
                             .map(KCustomizerKt::toJavaCustomizer)
                             .collect(Collectors.toList()));
             builder.addInitializers(
-                    factory.<KInitializer> getMatchingBeans(KInitializer.class)
+                    factory.getMatchingBeans(KInitializer.class)
                             .stream()
                             .map(KInitializerKt::toJavaInitializer)
                             .collect(Collectors.toList()));
@@ -290,40 +300,41 @@ final class QuarkusSqlClientFactory {
     }
 
     private <T> T getOptionalBean(Class<T> type) {
-        var named = container.select(type, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName));
-        if (!named.isUnsatisfied()) {
-            return named.get();
-        }
-        var defaults = container.select(type);
-        return defaults.isUnsatisfied() ? null : defaults.get();
+        return access.lookup(container,
+                root -> getOptionalBean(root.select(type, dataSourceQualifier), () -> root.select(type)));
     }
 
-    @SuppressWarnings("unchecked")
-    private <E> Collection<E> getMatchingBeans(Type elementType) {
-        Collection<E> collection = new ArrayList<>();
-        for (InstanceHandle<?> instanceHandle : container.listAll(elementType)) {
-            Optional<Annotation> qualifier = instanceHandle.getBean().getQualifiers().stream()
-                    .filter(annotation -> annotation.annotationType() == io.quarkus.agroal.DataSource.class)
-                    .findFirst();
+    private <T> T getOptionalBean(TypeLiteral<T> type) {
+        return access.lookup(container,
+                root -> getOptionalBean(root.select(type, dataSourceQualifier), () -> root.select(type)));
+    }
+
+    private <T> T getOptionalBean(Instance<T> named, Supplier<Instance<T>> defaults) {
+        var beans = named.isUnsatisfied() ? defaults.get() : named;
+        return beans.isUnsatisfied() ? null : beans.get();
+    }
+
+    private <T> Collection<T> getMatchingBeans(Class<T> type) {
+        return getMatchingBeans(container.listAll(type));
+    }
+
+    private <T> Collection<T> getMatchingBeans(TypeLiteral<T> type) {
+        return getMatchingBeans(container.listAll(type));
+    }
+
+    private <T> Collection<T> getMatchingBeans(List<InstanceHandle<T>> handles) {
+        Collection<T> collection = new ArrayList<>();
+        for (var handle : handles) {
             // Inspect qualifiers before get(): unrelated datasource beans must not be instantiated.
-            if (qualifier.isEmpty()
-                    || dataSourceName.equals(((io.quarkus.agroal.DataSource) qualifier.get()).value())) {
-                E value = (E) instanceHandle.get();
+            if (handle.getBean().getQualifiers().stream().noneMatch(
+                    q -> q instanceof io.quarkus.agroal.DataSource ds && !dataSourceName.equals(ds.value()))) {
+                T value = access.get(handle);
                 if (value != null) {
                     collection.add(value);
                 }
             }
         }
         return collection;
-    }
-
-    private <E> E getOptionalBean(TypeLiteral<E> typeLiteral) {
-        var named = container.select(typeLiteral, new io.quarkus.agroal.DataSource.DataSourceLiteral(dataSourceName));
-        if (!named.isUnsatisfied()) {
-            return named.get();
-        }
-        var defaults = container.select(typeLiteral);
-        return defaults.isUnsatisfied() ? null : defaults.get();
     }
 
     @Nullable

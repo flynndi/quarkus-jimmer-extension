@@ -168,6 +168,8 @@ For single-valued CDI extension points such as `Dialect`, `ConnectionManager`, a
 
 SPI beans may inject the matching client for later use. During construction, `@PostConstruct`, `customize`, or `initialize`, do not call back through the injected proxy if that client is being created. An `Initializer` should use the client passed to its callback.
 
+Each CDI-managed SQL client owns the `@Dependent` plugins it obtains, including generators and resolvers looked up on first use. Destroying the client runs their `@PreDestroy` callbacks or producer disposers. A failed client build also releases the plugins it already obtained. Manual clients created by `SqlClients.java(...)` or `SqlClients.kotlin(...)` have no corresponding close hook.
+
 Only the selected Java or Kotlin filters, customizers, and initializers are instantiated. Connection and dialect defaults are completed after Jimmer executes the user customizers. A customizer's explicit dialect avoids JDBC dialect probing; if it replaces the connection manager, dialect detection uses the replacement.
 
 CDI-managed clients select their `CacheOperator` through ArC, including `@DefaultBean` and alternative priorities. The default datasource accepts both ordinary `@Default` and the legacy `@DataSource("<default>")` form; unresolved ambiguity fails client creation. Named clients require a matching `@DataSource(name)` operator and do not fall back to the default datasource's operator.

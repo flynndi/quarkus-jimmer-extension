@@ -59,6 +59,9 @@ class CdiExtensionPointsTest {
     @Inject
     DataSource dataSource;
 
+    @Inject
+    ArchivedBook.MarkerSource markerSource;
+
     @Test
     void discoversUninjectedSpiBeansAndKeepsTheirInterceptors() {
         JSqlClientImplementor implementation = (JSqlClientImplementor) client;
@@ -82,17 +85,23 @@ class CdiExtensionPointsTest {
     }
 
     @Test
-    void logicalDeleteWritesTheMarkerFromTheInjectedGenerator() throws SQLException {
+    void logicalDeleteUsesALazyGeneratorOwnedByTheClient() throws SQLException {
         try (var connection = dataSource.getConnection(); var statement = connection.createStatement()) {
             statement.execute("create table if not exists ARCHIVED_BOOK "
                     + "(ID bigint primary key, DELETED_MARKER bigint not null)");
             statement.executeUpdate("merge into ARCHIVED_BOOK key(ID) values (1, 0)");
-            client.getEntities().deleteCommand(ArchivedBook.class, 1L).execute(connection);
+            var entities = client.getEntities();
+            assertEquals(0, markerSource.generatorsCreated);
+            entities.deleteCommand(ArchivedBook.class, 1L).execute(connection);
             try (var result = statement.executeQuery("select DELETED_MARKER from ARCHIVED_BOOK where ID = 1")) {
                 assertTrue(result.next());
                 assertEquals(73L, result.getLong(1));
             }
         }
+        assertEquals(1, markerSource.generatorsCreated);
+        assertEquals(0, markerSource.generatorsDestroyed);
+        Arc.container().instance(JSqlClient.class).destroy();
+        assertEquals(1, markerSource.generatorsDestroyed);
     }
 
     @Test

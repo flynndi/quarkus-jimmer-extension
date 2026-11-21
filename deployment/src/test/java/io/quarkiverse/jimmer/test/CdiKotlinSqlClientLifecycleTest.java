@@ -2,6 +2,8 @@ package io.quarkiverse.jimmer.test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -82,11 +84,16 @@ class CdiKotlinSqlClientLifecycleTest {
         assertSame(probe.lastEvent, probe.lastTypedEvent);
         assertEquals(2L, probe.lastEvent.getId());
         assertSame(book, probe.lastEvent.getNewEntity());
+
+        assertEquals(0, probe.customizerDestructions);
+        Arc.container().instance(KSqlClient.class).destroy();
+        assertEquals(1, probe.customizerDestructions);
     }
 
     @Singleton
     public static class Probe {
         int customizations;
+        int customizerDestructions;
         int initializations;
         int events;
         int typedEvents;
@@ -107,7 +114,7 @@ class CdiKotlinSqlClientLifecycleTest {
         }
     }
 
-    @Singleton
+    @Dependent
     public static class ClientDependentCustomizer implements KCustomizer {
         private final Probe probe;
 
@@ -120,6 +127,11 @@ class CdiKotlinSqlClientLifecycleTest {
         public void customize(KSqlClientDsl dsl) {
             probe.customizations++;
             dsl.getJavaBuilder().setDefaultBatchSize(29);
+        }
+
+        @PreDestroy
+        void destroy() {
+            probe.customizerDestructions++;
         }
     }
 

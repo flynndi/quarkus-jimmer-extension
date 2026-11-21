@@ -19,6 +19,10 @@ public final class QuarkusCacheOperatorProvider {
     }
 
     public static CacheOperator find(ArcContainer container, String dataSourceName) {
+        return find(container, dataSourceName, SqlClientBeanAccess.UNMANAGED);
+    }
+
+    public static CacheOperator find(ArcContainer container, String dataSourceName, SqlClientBeanAccess access) {
         Map<Bean<? extends CacheOperator>, InstanceHandle<CacheOperator>> candidates = new LinkedHashMap<>();
         var handles = new java.util.ArrayList<>(
                 container.listAll(CacheOperator.class, new DataSource.DataSourceLiteral(dataSourceName)));
@@ -32,6 +36,6 @@ public final class QuarkusCacheOperatorProvider {
         // Resolve the combined qualifier sets through ArC, including DefaultBean and alternative priorities.
         // Obtain only the selected handle so unselected operators remain uninitialized.
         var selected = container.beanManager().resolve(candidates.keySet());
-        return selected != null ? candidates.get(selected).get() : null;
+        return selected != null ? access.get(candidates.get(selected)) : null;
     }
 }

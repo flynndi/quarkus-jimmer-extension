@@ -14,21 +14,29 @@ public class QuarkusLogicalDeletedValueGeneratorProvider implements LogicalDelet
     private static final Logger LOG = Logger.getLogger(QuarkusLogicalDeletedValueGeneratorProvider.class);
 
     private final ArcContainer container;
+    private final SqlClientBeanAccess access;
 
     public QuarkusLogicalDeletedValueGeneratorProvider(ArcContainer container) {
+        this(container, SqlClientBeanAccess.UNMANAGED);
+    }
+
+    public QuarkusLogicalDeletedValueGeneratorProvider(ArcContainer container, SqlClientBeanAccess access) {
         this.container = container;
+        this.access = access;
     }
 
     @Override
     public LogicalDeletedValueGenerator<?> get(Class<LogicalDeletedValueGenerator<?>> type, JSqlClient sqlClient)
             throws Exception {
-        var beans = container.select(type, Any.Literal.INSTANCE);
-        return beans.isUnsatisfied() ? LogicalDeletedValueGeneratorProvider.super.get(type, sqlClient) : beans.get();
+        if (container.select(type, Any.Literal.INSTANCE).isUnsatisfied()) {
+            return LogicalDeletedValueGeneratorProvider.super.get(type, sqlClient);
+        }
+        return access.lookup(container, root -> root.select(type, Any.Literal.INSTANCE).get());
     }
 
     @Override
     public LogicalDeletedValueGenerator<?> get(String ref, JSqlClient sqlClient) throws Exception {
-        Object bean = container.instance(ref).get();
+        Object bean = access.get(container.instance(ref));
         if (bean instanceof LogicalDeletedValueGenerator<?> generator) {
             return generator;
         }

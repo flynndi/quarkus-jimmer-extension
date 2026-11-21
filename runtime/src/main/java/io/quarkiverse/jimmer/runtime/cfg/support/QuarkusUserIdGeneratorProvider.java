@@ -12,9 +12,15 @@ import io.quarkus.arc.InstanceHandle;
 public class QuarkusUserIdGeneratorProvider extends DefaultUserIdGeneratorProvider {
 
     private final ArcContainer container;
+    private final SqlClientBeanAccess access;
 
     public QuarkusUserIdGeneratorProvider(ArcContainer container) {
+        this(container, SqlClientBeanAccess.UNMANAGED);
+    }
+
+    public QuarkusUserIdGeneratorProvider(ArcContainer container, SqlClientBeanAccess access) {
         this.container = container;
+        this.access = access;
     }
 
     @Override
@@ -26,12 +32,12 @@ public class QuarkusUserIdGeneratorProvider extends DefaultUserIdGeneratorProvid
         if (instanceHandles.size() > 1) {
             throw new IllegalStateException("Two many quarkus beans whose type is \"" + type.getName() + "\"");
         }
-        return instanceHandles.iterator().next().get();
+        return access.get(instanceHandles.get(0));
     }
 
     @Override
     public UserIdGenerator<?> get(String ref, JSqlClient sqlClient) throws Exception {
-        Object bean = container.instance(ref).get();
+        Object bean = access.get(container.instance(ref));
         if (!(bean instanceof UserIdGenerator<?>)) {
             throw new IllegalStateException(
                     "The expected type of quarkus bean named \"ref\" is \"" +

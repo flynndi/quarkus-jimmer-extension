@@ -1,5 +1,6 @@
 package io.quarkiverse.jimmer.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -8,6 +9,7 @@ import java.util.function.Consumer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.AmbiguousResolutionException;
 import jakarta.enterprise.inject.CreationException;
+import jakarta.enterprise.inject.Disposes;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -17,6 +19,7 @@ import org.babyfish.jimmer.sql.cache.CacheOperator;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.H2Dialect;
 import org.babyfish.jimmer.sql.exception.ExecutionException;
+import org.babyfish.jimmer.sql.runtime.Initializer;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -27,7 +30,7 @@ import io.quarkus.test.QuarkusUnitTest;
 class DataSourceAmbiguousSpiTest {
     @RegisterExtension
     static final QuarkusUnitTest APP = new QuarkusUnitTest()
-            .withApplicationRoot(archive -> archive.addClass(Strategies.class))
+            .withApplicationRoot(archive -> archive.addClasses(Strategies.class, Initializers.class))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
@@ -48,6 +51,9 @@ class DataSourceAmbiguousSpiTest {
     @DataSource("builders")
     JSqlClient builders;
 
+    @Inject
+    Initializers initializers;
+
     @Test
     void ambiguousSingletonDoesNotSilentlyFallBackToDefault() {
         CreationException failure = assertThrows(CreationException.class,
@@ -62,6 +68,8 @@ class DataSourceAmbiguousSpiTest {
         CreationException failure = assertThrows(CreationException.class,
                 () -> ((JSqlClientImplementor) builders).getDialect());
         assertInstanceOf(AmbiguousResolutionException.class, failure.getCause());
+        assertEquals(1, initializers.creations);
+        assertEquals(1, initializers.disposals);
     }
 
     @Test
@@ -69,6 +77,25 @@ class DataSourceAmbiguousSpiTest {
         CreationException failure = assertThrows(CreationException.class,
                 () -> ((JSqlClientImplementor) defaults).getCacheOperator());
         assertInstanceOf(AmbiguousResolutionException.class, failure.getCause());
+    }
+
+    @Singleton
+    public static class Initializers {
+        int creations;
+        int disposals;
+
+        @Produces
+        @DataSource("builders")
+        Initializer initializer() {
+            creations++;
+            return client -> {
+                throw new AssertionError("An ambiguous builder must fail before initialization");
+            };
+        }
+
+        void dispose(@Disposes @DataSource("builders") Initializer initializer) {
+            disposals++;
+        }
     }
 
     @ApplicationScoped

@@ -1,5 +1,7 @@
 package io.quarkiverse.jimmer.test.model.deletion;
 
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -17,13 +19,19 @@ public interface ArchivedBook {
     @LogicalDeleted(generatorType = MarkerGenerator.class)
     long deletedMarker();
 
-    @Singleton
+    @Dependent
     class MarkerGenerator implements LogicalDeletedValueGenerator<Long> {
         private final MarkerSource source;
 
         @Inject
         MarkerGenerator(MarkerSource source) {
             this.source = source;
+            source.generatorsCreated++;
+        }
+
+        @PreDestroy
+        void destroy() {
+            source.generatorsDestroyed++;
         }
 
         @Override
@@ -35,6 +43,9 @@ public interface ArchivedBook {
     @Singleton
     @Named("bookMarkerSource")
     class MarkerSource {
+        public int generatorsCreated;
+        public int generatorsDestroyed;
+
         long value() {
             return 73L;
         }

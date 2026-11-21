@@ -9,21 +9,27 @@ import io.quarkus.arc.ArcContainer;
 public class QuarkusTransientResolverProvider implements TransientResolverProvider {
 
     private final ArcContainer container;
+    private final SqlClientBeanAccess access;
 
     public QuarkusTransientResolverProvider(ArcContainer container) {
+        this(container, SqlClientBeanAccess.UNMANAGED);
+    }
+
+    public QuarkusTransientResolverProvider(ArcContainer container, SqlClientBeanAccess access) {
         this.container = container;
+        this.access = access;
     }
 
     @Override
     public TransientResolver<?, ?> get(
             Class<TransientResolver<?, ?>> type,
             JSqlClient sqlClient) throws Exception {
-        return container.instance(type).get();
+        return access.get(container.instance(type));
     }
 
     @Override
     public TransientResolver<?, ?> get(String ref, JSqlClient sqlClient) throws Exception {
-        Object bean = container.instance(ref).get();
+        Object bean = access.get(container.instance(ref));
         if (!(bean instanceof TransientResolver<?, ?>)) {
             throw new IllegalStateException(
                     "The expected type of quarkus bean named \"ref\" is \"" +
