@@ -1,22 +1,20 @@
 package io.quarkiverse.jimmer.it.resource;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
 
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 
 import org.babyfish.jimmer.Page;
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.Api;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
-import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.RestResponse;
-import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.it.config.error.UserInfoException;
 import io.quarkiverse.jimmer.it.entity.Book;
@@ -25,7 +23,6 @@ import io.quarkiverse.jimmer.it.entity.Fetchers;
 import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
 import io.quarkiverse.jimmer.it.entity.dto.BookSpecification;
 import io.quarkiverse.jimmer.it.repository.BookJavaRepository;
-import io.quarkiverse.jimmer.it.service.IBook;
 import io.quarkiverse.jimmer.runtime.repo.PageParam;
 
 @Path("/bookResource")
@@ -34,19 +31,10 @@ import io.quarkiverse.jimmer.runtime.repo.PageParam;
 @Api
 public class BookResources implements Fetchers {
 
-    private final IBook iBook;
     private final BookJavaRepository bookRepository;
 
-    public BookResources(IBook iBook, BookJavaRepository bookRepository) {
-        this.iBook = iBook;
+    public BookResources(BookJavaRepository bookRepository) {
         this.bookRepository = bookRepository;
-    }
-
-    @GET
-    @Path("/book")
-    @Api
-    public Response getBookById(@RestQuery long id) {
-        return Response.ok(iBook.findById(id)).build();
     }
 
     @GET
@@ -76,87 +64,33 @@ public class BookResources implements Fetchers {
     }
 
     @POST
-    @Path("/books")
-    @Api
-    public Response getBookByIds(List<Integer> ids) {
-        return Response.ok(iBook.findByIds(ids)).build();
-    }
-
-    @POST
     @Path("/book")
     @Transactional(rollbackOn = Exception.class)
     @Api
-    public Response postBook(Book book) {
-        return Response.ok(iBook.save(book).getModifiedEntity()).build();
+    public Book postBook(Book book) {
+        return bookRepository.save(book).getModifiedEntity();
     }
 
     @GET
-    @Path("/books")
+    @Path("/books/search")
     @Api
-    public List<@FetchBy("SIMPLE_BOOK") Book> getBookByNameFetcher(@RestQuery String name) {
-        return iBook.findBooksByName(name, SIMPLE_BOOK);
-    }
-
-    @GET
-    @Path("/booksByName")
-    @Api
-    public List<Book> getBookByName(@RestQuery String name) {
-        return iBook.findBooksByName(name);
-    }
-
-    @PUT
-    @Path("/update")
-    @Api
-    public Response update() {
-        iBook.update();
-        return Response.ok().build();
-    }
-
-    @GET
-    @Path("/testManyToMany")
-    @Api
-    public Response testManyToMany() {
-        return Response.ok(iBook.manyToMany()).build();
-    }
-
-    @PUT
-    @Path("/testUpdateOneToMany")
-    @Api
-    public Response testUpdateOneToMany() {
-        iBook.updateOneToMany();
-        return Response.ok().build();
-    }
-
-    @POST
-    @Path("/testSaveManyToMany")
-    @Api
-    public Response testSaveManyToMany() {
-        iBook.saveManyToMany();
-        return Response.ok().build();
-    }
-
-    @POST
-    @Path("/testFile")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Api
-    public Response testFile(@RestForm("file") FileUpload filePart) {
-        return Response.ok().build();
+    public List<BookDetailView> searchBooks(@RestQuery @Nullable String name,
+            @RestQuery @Nullable BigDecimal minPrice, @RestQuery @Nullable BigDecimal maxPrice,
+            @RestQuery @Nullable String storeName, @RestQuery @Nullable String authorName) {
+        BookSpecification specification = new BookSpecification();
+        specification.setName(name);
+        specification.setMinPrice(minPrice);
+        specification.setMaxPrice(maxPrice);
+        specification.setStoreName(storeName);
+        specification.setAuthorName(authorName);
+        return bookRepository.find(specification);
     }
 
     @GET
     @Path("/testError")
     @Api
-    public Response testError() throws UserInfoException.IllegalUserName {
-        List<Character> illegalChars = new ArrayList<>();
-        illegalChars.add('a');
-        throw UserInfoException.illegalUserName("testError", illegalChars);
-    }
-
-    @GET
-    @Path("/testBookSpecification")
-    @Api
-    public Response testBoolSpecification(BookSpecification bookSpecification) {
-        return Response.ok(bookRepository.find(bookSpecification)).build();
+    public void testError() throws UserInfoException.IllegalUserName {
+        throw UserInfoException.illegalUserName("testError", List.of('a'));
     }
 
     private static final Fetcher<Book> SIMPLE_BOOK = BOOK_FETCHER.name();

@@ -33,11 +33,16 @@ public class JimmerHttpTestCase {
     @Test
     void generatesDocumentsForRestResponseBodiesAndPrivateFetchers() throws IOException {
         String openApi = given().get("/jimmer-test/openapi.yml").then().statusCode(200).extract().asString();
-        var paths = new YAMLMapper().readTree(openApi).path("paths");
+        var document = new YAMLMapper().readTree(openApi);
+        var paths = document.path("paths");
         assertEquals("#/components/schemas/BookDetailView", paths.path("/bookResource/book/{id}/view")
                 .at("/get/responses/200/content/application~1json/schema/$ref").asText());
         assertTrue(paths.path("/bookResource/book/{id}").has("get"));
         assertTrue(paths.path("/bookResource/books/page").has("get"));
+        var search = paths.path("/bookResource/books/search").path("get");
+        assertTrue(search.path("parameters").findValuesAsText("name").contains("minPrice"));
+        assertFalse(search.has("requestBody"));
+        assertFalse(document.at("/components/schemas").has("NewCookie"));
         assertFalse(openApi.contains("RestResponse"));
 
         byte[] archive = given().get("/jimmer-test/typescript.zip").then().statusCode(200)
@@ -111,10 +116,31 @@ public class JimmerHttpTestCase {
                 .body("authors.gender", containsInAnyOrder("FEMALE", "MALE"));
     }
 
+    @Test
+    void searchesBooksByTitlePriceAndStore() {
+        request().queryParam("name", "graphql").queryParam("minPrice", 51).queryParam("storeName", "REILLY")
+                .get("/bookResource/books/search")
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("id", contains(3))
+                .body("[0].name", equalTo("Learning GraphQL"))
+                .body("[0].store.name", equalTo("O'REILLY"));
+    }
+
+    @Test
+    void resolvesAveragePriceAndLatestEditionsForABookstore() {
+        request().get("/bookStoreResource/1")
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("name", equalTo("O'REILLY"))
+                .body("avgPrice", equalTo(53.1f))
+                .body("newestBooks.id", containsInAnyOrder(3, 5, 9))
+                .body("newestBooks.find { it.id == 5 }.edition", equalTo(2));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {
             "/bookResource/book/3000000000",
-            "/bookResource/book/3000000000/view"
+            "/bookResource/book/3000000000/view",
+            "/bookStoreResource/3000000000"
     })
     void absentEntitiesProduceNoContent(String path) {
         request().get(path)
@@ -189,6 +215,11 @@ public class JimmerHttpTestCase {
                 .body("find { it.id == 1 }.name", equalTo("Home"))
                 .body("find { it.id == 1 }.childNodes.id", containsInAnyOrder(2, 9))
                 .body("find { it.id == 1 }.childNodes.find { it.id == 9 }.childNodes.id", containsInAnyOrder(10, 18));
+
+        request().queryParam("parentId", 1).get("/treeNodeResources/all")
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("id", containsInAnyOrder(2, 9))
+                .body("find { it.id == 9 }.childNodes.id", containsInAnyOrder(10, 18));
     }
 
     @Test

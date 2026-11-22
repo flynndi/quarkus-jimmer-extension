@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.BookDraft;
-import io.quarkiverse.jimmer.it.service.IBook;
+import io.quarkiverse.jimmer.it.repository.BookJavaRepository;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
@@ -32,7 +32,7 @@ class BookSaveTest {
     private static final long SAVED_BOOK_ID = 7_330_003L;
 
     @Inject
-    IBook books;
+    BookJavaRepository books;
 
     @Inject
     TransactionManager transactions;
@@ -67,8 +67,7 @@ class BookSaveTest {
 
         assertEquals(SAVED_BOOK_ID, savedId);
         assertEquals(1, storedCount(savedId));
-        given().queryParam("id", savedId)
-                .get("/bookResource/book")
+        given().get("/bookResource/book/{id}", savedId)
                 .then().statusCode(200).contentType(ContentType.JSON)
                 .body("name", equalTo(name))
                 .body("edition", equalTo(1))

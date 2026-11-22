@@ -298,7 +298,7 @@ public interface BookStore {}
 ```
 ### Book query examples
 
-The integration application shows three ways to read books using an injected
+The integration application reads and saves books using an injected
 [BookJavaRepository](integration-tests/src/main/java/io/quarkiverse/jimmer/it/repository/BookJavaRepository.java).
 The endpoints and their Fetcher definitions are in
 [BookResources](integration-tests/src/main/java/io/quarkiverse/jimmer/it/resource/BookResources.java).
@@ -308,9 +308,10 @@ The endpoints and their Fetcher definitions are in
 | `GET /bookResource/books/page?index=0&size=2` | A zero-based page, sorted by descending book ID. Each row contains the ID and name. |
 | `GET /bookResource/book/1` | A book with its store name and author names, selected by a Fetcher. |
 | `GET /bookResource/book/1/view` | A generated `BookDetailView` with store and author details. |
+| `GET /bookResource/books/search?name=graphql&minPrice=51&storeName=REILLY` | Books matching the generated `BookSpecification`. With the test data, only edition 3 of *Learning GraphQL* matches. |
 
 Both single-book endpoints return HTTP 204 when the ID is missing from the database.
-[HTTP example tests](integration-tests/src/test/java/io/quarkiverse/jimmer/it/resource/JimmerHttpTestCase.java)
+The [integration example guide](integration-tests/README.md) includes the save request, the named-datasource workflow, and the tests for each example.
 
 ### Configuration file example
 quarkus datasource documentation https://quarkus.io/guides/datasource
