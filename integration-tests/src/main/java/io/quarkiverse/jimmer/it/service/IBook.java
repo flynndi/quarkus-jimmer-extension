@@ -15,8 +15,6 @@ public interface IBook {
 
     Book findById(long id);
 
-    Book findById(int id, Fetcher<Book> fetcher);
-
     List<Book> findByIds(List<Integer> ids);
 
     SimpleSaveResult<Book> save(Book book);

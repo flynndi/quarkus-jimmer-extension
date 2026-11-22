@@ -8,22 +8,25 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import org.babyfish.jimmer.Page;
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.Api;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
+import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
 import io.quarkiverse.jimmer.it.config.error.UserInfoException;
 import io.quarkiverse.jimmer.it.entity.Book;
+import io.quarkiverse.jimmer.it.entity.BookProps;
 import io.quarkiverse.jimmer.it.entity.Fetchers;
-import io.quarkiverse.jimmer.it.entity.Tables;
 import io.quarkiverse.jimmer.it.entity.dto.BookDetailView;
 import io.quarkiverse.jimmer.it.entity.dto.BookSpecification;
+import io.quarkiverse.jimmer.it.repository.BookJavaRepository;
 import io.quarkiverse.jimmer.it.service.IBook;
-import io.quarkiverse.jimmer.runtime.Jimmer;
+import io.quarkiverse.jimmer.runtime.repo.PageParam;
 
 @Path("/bookResource")
 @Produces(MediaType.APPLICATION_JSON)
@@ -32,9 +35,11 @@ import io.quarkiverse.jimmer.runtime.Jimmer;
 public class BookResources implements Fetchers {
 
     private final IBook iBook;
+    private final BookJavaRepository bookRepository;
 
-    public BookResources(IBook iBook) {
+    public BookResources(IBook iBook, BookJavaRepository bookRepository) {
         this.iBook = iBook;
+        this.bookRepository = bookRepository;
     }
 
     @GET
@@ -47,8 +52,27 @@ public class BookResources implements Fetchers {
     @GET
     @Path("/book/{id}")
     @Api
-    public @FetchBy("COMPLEX_BOOK") Book getBookByIdFetcher(@RestPath int id) {
-        return iBook.findById(id, COMPLEX_BOOK);
+    public @FetchBy("COMPLEX_BOOK") Book getBookByIdFetcher(@RestPath long id) {
+        return bookRepository.findById(id, COMPLEX_BOOK);
+    }
+
+    @GET
+    @Path("/book/{id}/view")
+    @Api
+    public RestResponse<BookDetailView> getBookView(@RestPath long id) {
+        BookDetailView view = bookRepository.findById(id, BookDetailView.class);
+        return view == null ? RestResponse.noContent() : RestResponse.ok(view);
+    }
+
+    @GET
+    @Path("/books/page")
+    @Api
+    public Page<@FetchBy("SIMPLE_BOOK") Book> getBookPage(
+            @RestQuery @DefaultValue("0") int index, @RestQuery @DefaultValue("10") int size) {
+        if (index < 0 || size < 1) {
+            throw new BadRequestException("index must be non-negative and size must be positive");
+        }
+        return bookRepository.findPage(PageParam.byIndex(index, size), SIMPLE_BOOK, BookProps.ID.desc());
     }
 
     @POST
@@ -132,12 +156,7 @@ public class BookResources implements Fetchers {
     @Path("/testBookSpecification")
     @Api
     public Response testBoolSpecification(BookSpecification bookSpecification) {
-        return Response.ok(
-                Jimmer.getDefaultJSqlClient().createQuery(Tables.BOOK_TABLE)
-                        .where(bookSpecification)
-                        .select(Tables.BOOK_TABLE.fetch(BookDetailView.class))
-                        .execute())
-                .build();
+        return Response.ok(bookRepository.find(bookSpecification)).build();
     }
 
     private static final Fetcher<Book> SIMPLE_BOOK = BOOK_FETCHER.name();

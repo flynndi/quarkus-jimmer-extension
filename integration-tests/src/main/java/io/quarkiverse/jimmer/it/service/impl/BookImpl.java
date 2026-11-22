@@ -35,11 +35,6 @@ public class BookImpl implements IBook {
     }
 
     @Override
-    public Book findById(int id, Fetcher<Book> fetcher) {
-        return sqlClient.findById(fetcher, id);
-    }
-
-    @Override
     public List<Book> findByIds(List<Integer> ids) {
         return sqlClient.findByIds(Book.class, ids);
     }
