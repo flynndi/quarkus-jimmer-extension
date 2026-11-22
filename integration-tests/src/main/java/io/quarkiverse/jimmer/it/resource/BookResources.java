@@ -63,7 +63,7 @@ public class BookResources implements Fetchers {
     @Transactional(rollbackOn = Exception.class)
     @Api
     public Response postBook(Book book) {
-        return Response.ok(iBook.save(book)).build();
+        return Response.ok(iBook.save(book).getModifiedEntity()).build();
     }
 
     @GET

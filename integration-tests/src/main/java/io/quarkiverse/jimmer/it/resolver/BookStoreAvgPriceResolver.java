@@ -59,11 +59,13 @@ public class BookStoreAvgPriceResolver implements TransientResolver<Long, BigDec
     @Override
     public Collection<?> getAffectedSourceIds(@NotNull EntityEvent<?> e) {
         if (Jimmer.getDefaultJSqlClient().getCaches().isAffectedBy(e) &&
-                !e.isEvict() &&
-                e.getImmutableType().getJavaClass() == Book.class) {
+                e.getType() == EntityEvent.Type.UPDATE &&
+                e.getImmutableType().getJavaClass() == Book.class &&
+                e.isChanged(BookProps.PRICE)) {
 
+            // Changes in store membership are handled by the BookStore.books association event.
             Ref<BookStore> storeRef = e.getUnchangedRef(BookProps.STORE);
-            if (storeRef != null && storeRef.getValue() != null && e.isChanged(BookProps.PRICE)) {
+            if (storeRef != null && storeRef.getValue() != null) {
                 return Collections.singletonList(storeRef.getValue().id());
             }
         }

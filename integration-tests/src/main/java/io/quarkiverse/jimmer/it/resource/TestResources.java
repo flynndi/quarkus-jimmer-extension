@@ -305,14 +305,6 @@ public class TestResources {
     }
 
     @POST
-    @Path("/testUserRoleRepositoryInsertInput")
-    @Transactional(rollbackOn = Exception.class)
-    @Api
-    public Response testUserRoleRepositoryInsertInput(UserRoleInput userRoleInput) {
-        return Response.ok(userRoleRepository.insert(userRoleInput)).build();
-    }
-
-    @POST
     @Path("/testUserRoleRepositorySave")
     @Transactional(rollbackOn = Exception.class)
     @Api
@@ -389,15 +381,6 @@ public class TestResources {
     @Api
     public Response UserRoleRepositoryById(@RestQuery UUID id) {
         return Response.ok(userRoleRepository.findNullable(id)).build();
-    }
-
-    @PUT
-    @Path("/testUserRoleRepositoryUpdateInput")
-    @Transactional(rollbackOn = Exception.class)
-    @Api
-    public Response testUserRoleRepositoryUpdateInput(UserRoleInput userRoleInput) {
-        userRoleRepository.update(userRoleInput);
-        return Response.ok().build();
     }
 
     @POST

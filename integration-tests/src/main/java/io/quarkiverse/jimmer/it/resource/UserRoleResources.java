@@ -7,27 +7,43 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import org.babyfish.jimmer.client.meta.Api;
+import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.jboss.resteasy.reactive.RestQuery;
 
-import io.quarkiverse.jimmer.it.config.Constant;
+import io.quarkiverse.jimmer.it.entity.dto.UserRoleInput;
 import io.quarkiverse.jimmer.it.entity.dto.UserRoleSpecification;
-import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
+import io.quarkiverse.jimmer.it.repository.UserRoleJavaRepository;
 import io.quarkiverse.jimmer.it.service.IUserRoleService;
-import io.quarkus.agroal.DataSource;
 
 @Path("/userRoleResources")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Api("test")
 public class UserRoleResources {
 
     private final IUserRoleService iUserRoleService;
 
-    private final UserRoleRepository userRoleRepository;
+    private final UserRoleJavaRepository userRoleRepository;
 
-    public UserRoleResources(IUserRoleService iUserRoleService,
-            @DataSource(Constant.DATASOURCE2) UserRoleRepository userRoleRepository) {
+    public UserRoleResources(IUserRoleService iUserRoleService, UserRoleJavaRepository userRoleRepository) {
         this.iUserRoleService = iUserRoleService;
         this.userRoleRepository = userRoleRepository;
+    }
+
+    @POST
+    @Transactional(rollbackOn = Exception.class)
+    @Api
+    public Response create(UserRoleInput input) {
+        return Response.ok(userRoleRepository.save(input, SaveMode.INSERT_ONLY).getModifiedEntity()).build();
+    }
+
+    @PUT
+    @Transactional(rollbackOn = Exception.class)
+    @Api
+    public Response update(UserRoleInput input) {
+        userRoleRepository.save(input, SaveMode.UPDATE_ONLY);
+        return Response.ok().build();
     }
 
     @GET

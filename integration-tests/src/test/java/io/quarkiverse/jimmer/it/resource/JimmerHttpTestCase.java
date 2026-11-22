@@ -117,14 +117,14 @@ public class JimmerHttpTestCase {
     }
 
     @Test
-    void createsQueriesAndUpdatesGeneratedInputOnTheNamedDatasource() {
+    void createsUpdatesAndLogicallyDeletesAUserRoleOnTheNamedDatasource() {
         String id = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
         String roleId = UUID.randomUUID().toString();
         String updatedRoleId = UUID.randomUUID().toString();
         try {
             request().body(Map.of("id", id, "userId", userId, "roleId", roleId))
-                    .post("/testResources/testUserRoleRepositoryInsertInput")
+                    .post("/userRoleResources")
                     .then().statusCode(200).contentType(ContentType.JSON)
                     .body("id", equalTo(id))
                     .body("userId", equalTo(userId))
@@ -144,7 +144,7 @@ public class JimmerHttpTestCase {
                     .body("id", contains(id));
 
             request().body(Map.of("id", id, "userId", userId, "roleId", updatedRoleId))
-                    .put("/testResources/testUserRoleRepositoryUpdateInput")
+                    .put("/userRoleResources")
                     .then().statusCode(200);
 
             request().queryParam("id", id)
@@ -163,6 +163,11 @@ public class JimmerHttpTestCase {
                 .get("/userRoleResources/testUserRoleSpecification")
                 .then().statusCode(200).contentType(ContentType.JSON)
                 .body("", hasSize(0));
+        request().queryParam("id", id)
+                .get("/userRoleResources/deleteReverseById")
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("id", equalTo(id))
+                .body("deleteFlag", equalTo(true));
     }
 
     @Test

@@ -10,6 +10,7 @@ import java.util.Map;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.SimpleSaveResult;
 import org.babyfish.jimmer.sql.ast.tuple.Tuple2;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
@@ -17,40 +18,41 @@ import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.it.entity.*;
 import io.quarkiverse.jimmer.it.service.IBook;
-import io.quarkiverse.jimmer.runtime.Jimmer;
 
 @ApplicationScoped
 public class BookImpl implements IBook {
 
-    BookTable table = BOOK_TABLE;
+    private final BookTable table = BOOK_TABLE;
+    private final JSqlClient sqlClient;
+
+    public BookImpl(JSqlClient sqlClient) {
+        this.sqlClient = sqlClient;
+    }
 
     @Override
     public Book findById(long id) {
-        return Jimmer.getDefaultJSqlClient().findById(Book.class, id);
+        return sqlClient.findById(Book.class, id);
     }
 
     @Override
     public Book findById(int id, Fetcher<Book> fetcher) {
-        return Jimmer.getDefaultJSqlClient().findById(fetcher, id);
+        return sqlClient.findById(fetcher, id);
     }
 
     @Override
     public List<Book> findByIds(List<Integer> ids) {
-        return Jimmer.getDefaultJSqlClient().findByIds(Book.class, ids);
+        return sqlClient.findByIds(Book.class, ids);
     }
 
     @Override
     public SimpleSaveResult<Book> save(Book book) {
-        SimpleSaveResult<Book> save = Jimmer.getDefaultJSqlClient().save(book);
-        int i = 1 / 0;
-        return save;
+        return sqlClient.save(book);
     }
 
     @Override
     public Map<Long, BigDecimal> findAvgPriceGroupByStoreId(Collection<Long> storeIds) {
         return Tuple2.toMap(
-                Jimmer.getDefaultJSqlClient()
-                        .createQuery(table)
+                sqlClient.createQuery(table)
                         .where(table.storeId().in(storeIds))
                         .groupBy(table.storeId())
                         .select(
@@ -61,8 +63,7 @@ public class BookImpl implements IBook {
 
     @Override
     public List<Book> findBooksByName(@Nullable String name, @Nullable Fetcher<Book> fetcher) {
-        return Jimmer.getDefaultJSqlClient()
-                .createQuery(table)
+        return sqlClient.createQuery(table)
                 .whereIf(
                         name != null && !name.isEmpty(),
                         table.name().ilike(name))
@@ -73,8 +74,7 @@ public class BookImpl implements IBook {
 
     @Override
     public List<Book> findBooksByName(@Nullable String name) {
-        return Jimmer.getDefaultJSqlClient()
-                .createQuery(table)
+        return sqlClient.createQuery(table)
                 .whereIf(
                         name != null && !name.isEmpty(),
                         table.name().ilike(name))
@@ -85,8 +85,7 @@ public class BookImpl implements IBook {
     @Override
     @Transactional
     public void update() {
-        Jimmer.getDefaultJSqlClient()
-                .createUpdate(Tables.BOOK_STORE_TABLE)
+        sqlClient.createUpdate(Tables.BOOK_STORE_TABLE)
                 .set(Tables.BOOK_STORE_TABLE.website(), "https://www.manning.com")
                 .where(Tables.BOOK_STORE_TABLE.id().eq(2L))
                 .execute();
@@ -94,8 +93,7 @@ public class BookImpl implements IBook {
 
     @Override
     public List<Book> manyToMany() {
-        return Jimmer.getDefaultJSqlClient()
-                .createQuery(table)
+        return sqlClient.createQuery(table)
                 .where(table.edition().eq(1))
                 .select(
                         table.fetch(
@@ -109,8 +107,7 @@ public class BookImpl implements IBook {
 
     @Override
     public void updateOneToMany() {
-        Jimmer.getDefaultJSqlClient()
-                .createUpdate(table)
+        sqlClient.createUpdate(table)
                 .set(table.store().id(), 2L)
                 .where(table.id().eq(7L))
                 .execute();
@@ -118,8 +115,7 @@ public class BookImpl implements IBook {
 
     @Override
     public void saveManyToMany() {
-        Jimmer.getDefaultJSqlClient()
-                .getAssociations(BookProps.AUTHORS)
+        sqlClient.getAssociations(BookProps.AUTHORS)
                 .save(10, 3);
     }
 }

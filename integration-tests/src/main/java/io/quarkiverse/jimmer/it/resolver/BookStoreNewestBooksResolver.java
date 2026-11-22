@@ -61,11 +61,13 @@ public class BookStoreNewestBooksResolver implements TransientResolver<Long, Lis
     @Override
     public Collection<?> getAffectedSourceIds(@NotNull EntityEvent<?> e) {
         if (sqlClient().getCaches().isAffectedBy(e) &&
-                !e.isEvict() &&
-                e.getImmutableType().getJavaClass() == Book.class) {
+                e.getType() == EntityEvent.Type.UPDATE &&
+                e.getImmutableType().getJavaClass() == Book.class &&
+                e.isChanged(BookProps.EDITION)) {
 
+            // Changes in store membership are handled by the BookStore.books association event.
             Ref<BookStore> storeRef = e.getUnchangedRef(BookProps.STORE);
-            if (storeRef != null && storeRef.getValue() != null && e.isChanged(BookProps.EDITION)) {
+            if (storeRef != null && storeRef.getValue() != null) {
                 return Collections.singletonList(storeRef.getValue().id());
             }
         }

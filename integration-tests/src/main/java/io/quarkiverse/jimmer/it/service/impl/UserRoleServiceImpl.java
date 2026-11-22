@@ -10,19 +10,18 @@ import org.babyfish.jimmer.sql.runtime.LogicalDeletedBehavior;
 import io.quarkiverse.jimmer.it.config.Constant;
 import io.quarkiverse.jimmer.it.entity.Tables;
 import io.quarkiverse.jimmer.it.entity.UserRole;
-import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
+import io.quarkiverse.jimmer.it.repository.UserRoleJavaRepository;
 import io.quarkiverse.jimmer.it.service.IUserRoleService;
-import io.quarkiverse.jimmer.runtime.Jimmer;
 import io.quarkus.agroal.DataSource;
 
 @ApplicationScoped
 public class UserRoleServiceImpl implements IUserRoleService {
 
-    private final UserRoleRepository userRoleRepository;
+    private final UserRoleJavaRepository userRoleRepository;
 
     private final JSqlClient jSqlClientDB2;
 
-    public UserRoleServiceImpl(@DataSource(Constant.DATASOURCE2) UserRoleRepository userRoleRepository,
+    public UserRoleServiceImpl(UserRoleJavaRepository userRoleRepository,
             @DataSource(Constant.DATASOURCE2) JSqlClient jSqlClientDB2) {
         this.userRoleRepository = userRoleRepository;
         this.jSqlClientDB2 = jSqlClientDB2;
@@ -30,13 +29,12 @@ public class UserRoleServiceImpl implements IUserRoleService {
 
     @Override
     public UserRole findById(UUID id) {
-        return Jimmer.getJSqlClient(Constant.DATASOURCE2).findById(UserRole.class, id);
+        return userRoleRepository.findById(id);
     }
 
     @Override
     public void updateById(UUID id) {
-        Jimmer.getJSqlClient(Constant.DATASOURCE2)
-                .createUpdate(Tables.USER_ROLE_TABLE)
+        jSqlClientDB2.createUpdate(Tables.USER_ROLE_TABLE)
                 .set(Tables.USER_ROLE_TABLE.roleId(), "123")
                 .where(Tables.USER_ROLE_TABLE.id().eq(id))
                 .execute();
