@@ -311,7 +311,7 @@ The endpoints and their Fetcher definitions are in
 | `GET /bookResource/books/search?name=graphql&minPrice=51&storeName=REILLY` | Books matching the generated `BookSpecification`. With the test data, only edition 3 of *Learning GraphQL* matches. |
 
 Both single-book endpoints return HTTP 204 when the ID is missing from the database.
-The [integration example guide](integration-tests/README.md) includes the save request, the named-datasource workflow, and the tests for each example.
+For the requests and expected responses, see the [HTTP example tests](integration-tests/src/test/java/io/quarkiverse/jimmer/it/resource/JimmerHttpTestCase.java).
 
 ### Configuration file example
 quarkus datasource documentation https://quarkus.io/guides/datasource
