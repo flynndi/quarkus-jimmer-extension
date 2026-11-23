@@ -19,10 +19,6 @@ import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 
 public interface BookRepository extends JRepository<Book, Long> {
 
-    default Book selectBookById(long id) {
-        return sql().findById(Book.class, id);
-    }
-
     default Map<Long, List<Long>> findNewestIdsGroupByStoreId(Collection<Long> ids) {
         return Tuple2.toMultiMap(
                 sql()

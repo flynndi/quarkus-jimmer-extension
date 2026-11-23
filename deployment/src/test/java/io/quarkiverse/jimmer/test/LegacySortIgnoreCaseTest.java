@@ -18,11 +18,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import io.quarkiverse.jimmer.runtime.model.SortUtils;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.test.model.sort.LegacySortBook;
 import io.quarkiverse.jimmer.test.model.sort.LegacySortBookDraft;
 import io.quarkiverse.jimmer.test.model.sort.LegacySortBookFetcher;
+import io.quarkiverse.jimmer.test.model.sort.LegacySortBookProps;
 import io.quarkus.test.QuarkusUnitTest;
 
 @SuppressWarnings("deprecation")
@@ -68,6 +70,15 @@ class LegacySortIgnoreCaseTest {
         assertEquals(List.of(5L, 2L, 3L, 6L, 1L, 4L), books.findAll(descending).stream().map(LegacySortBook::id).toList());
         assertEquals(List.of(6L, 5L, 4L, 3L, 2L, 1L),
                 books.findAll(Sort.by(Sort.Order.desc("id").ignoreCase())).stream().map(LegacySortBook::id).toList());
+    }
+
+    @Test
+    void convertsStringAndTypedPropertySortsToTheExpectedDatabaseOrder() {
+        Sort fromString = SortUtils.toSort("name desc nulls first");
+        Sort fromProperty = SortUtils.toSort(LegacySortBookProps.NAME.desc().nullsFirst());
+        List<Long> expected = List.of(5L, 6L, 1L, 2L, 3L, 4L);
+        assertEquals(expected, books.findAll(fromString).stream().map(LegacySortBook::id).toList());
+        assertEquals(expected, books.findAll(fromProperty).stream().map(LegacySortBook::id).toList());
     }
 
     @Test

@@ -7,55 +7,61 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import org.babyfish.jimmer.client.meta.Api;
+import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
+import org.jboss.resteasy.reactive.ResponseStatus;
 import org.jboss.resteasy.reactive.RestQuery;
 
-import io.quarkiverse.jimmer.it.config.Constant;
+import io.quarkiverse.jimmer.it.entity.UserRole;
+import io.quarkiverse.jimmer.it.entity.dto.UserRoleInput;
 import io.quarkiverse.jimmer.it.entity.dto.UserRoleSpecification;
-import io.quarkiverse.jimmer.it.repository.UserRoleRepository;
-import io.quarkiverse.jimmer.it.service.IUserRoleService;
-import io.quarkus.agroal.DataSource;
+import io.quarkiverse.jimmer.it.repository.UserRoleJavaRepository;
 
 @Path("/userRoleResources")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Api("test")
 public class UserRoleResources {
 
-    private final IUserRoleService iUserRoleService;
+    private final UserRoleJavaRepository userRoleRepository;
 
-    private final UserRoleRepository userRoleRepository;
-
-    public UserRoleResources(IUserRoleService iUserRoleService,
-            @DataSource(Constant.DATASOURCE2) UserRoleRepository userRoleRepository) {
-        this.iUserRoleService = iUserRoleService;
+    public UserRoleResources(UserRoleJavaRepository userRoleRepository) {
         this.userRoleRepository = userRoleRepository;
+    }
+
+    @POST
+    @Transactional(rollbackOn = Exception.class)
+    @Api
+    public UserRole create(UserRoleInput input) {
+        return userRoleRepository.save(input, SaveMode.INSERT_ONLY).getModifiedEntity();
+    }
+
+    @PUT
+    @ResponseStatus(200)
+    @Transactional(rollbackOn = Exception.class)
+    @Api
+    public void update(UserRoleInput input) {
+        userRoleRepository.save(input, SaveMode.UPDATE_ONLY);
     }
 
     @GET
     @Path("/userRoleFindById")
     public Response userRoleFindById(@RestQuery UUID id) {
-        return Response.ok(iUserRoleService.findById(id)).build();
-    }
-
-    @PUT
-    @Path("/updateUserRoleById")
-    @Transactional(rollbackOn = Exception.class)
-    public Response updateUserRoleById(@RestQuery UUID id) {
-        iUserRoleService.updateById(id);
-        return Response.ok().build();
+        return Response.ok(userRoleRepository.findById(id)).build();
     }
 
     @DELETE
     @Path("/delete")
     @Transactional(rollbackOn = Exception.class)
     public Response delete(@RestQuery UUID id) {
-        iUserRoleService.deleteById(id);
+        userRoleRepository.deleteById(id);
         return Response.ok().build();
     }
 
     @GET
     @Path("/deleteReverseById")
     public Response deleteReverseById(@RestQuery UUID id) {
-        return Response.ok(iUserRoleService.deleteReverseById(id)).build();
+        return Response.ok(userRoleRepository.findDeletedById(id)).build();
     }
 
     @GET

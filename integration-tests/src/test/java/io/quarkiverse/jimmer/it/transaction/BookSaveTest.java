@@ -1,10 +1,14 @@
 package io.quarkiverse.jimmer.it.transaction;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.UUID;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.Status;
@@ -15,18 +19,20 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.BookDraft;
-import io.quarkiverse.jimmer.it.service.IBook;
+import io.quarkiverse.jimmer.it.repository.BookJavaRepository;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
 
 @QuarkusTest
-class SqlClientRollbackTestCase {
+class BookSaveTest {
 
     private static final long NEW_TRANSACTION_BOOK_ID = 7_330_001L;
     private static final long JOINED_TRANSACTION_BOOK_ID = 7_330_002L;
+    private static final long SAVED_BOOK_ID = 7_330_003L;
 
     @Inject
-    IBook books;
+    BookJavaRepository books;
 
     @Inject
     TransactionManager transactions;
@@ -39,16 +45,40 @@ class SqlClientRollbackTestCase {
         if (transactions.getTransaction() != null) {
             transactions.rollback();
         }
-        try (var connection = dataSource.getConnection(); var statement = connection.createStatement()) {
-            statement.executeUpdate("delete from book where id in (7330001, 7330002)");
+        try (var connection = dataSource.getConnection();
+                var delete = connection.prepareStatement("delete from book where id in (?, ?, ?)")) {
+            delete.setLong(1, NEW_TRANSACTION_BOOK_ID);
+            delete.setLong(2, JOINED_TRANSACTION_BOOK_ID);
+            delete.setLong(3, SAVED_BOOK_ID);
+            delete.executeUpdate();
         }
     }
 
     @Test
-    void failedSaveRollsBackTheInsertedRow() throws Exception {
+    void savedBookCanBeReadBackFromTheResource() {
+        assertEquals(0, storedCount(SAVED_BOOK_ID));
+        String name = "Book " + UUID.randomUUID();
+        long savedId = given().contentType(ContentType.JSON)
+                .body(Map.of("id", SAVED_BOOK_ID, "name", name, "edition", 1, "price", 15, "tenant", "a"))
+                .post("/bookResource/book")
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("name", equalTo(name))
+                .extract().jsonPath().getLong("id");
+
+        assertEquals(SAVED_BOOK_ID, savedId);
+        assertEquals(1, storedCount(savedId));
+        given().get("/bookResource/book/{id}", savedId)
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("name", equalTo(name))
+                .body("edition", equalTo(1))
+                .body("tenant", equalTo("a"));
+    }
+
+    @Test
+    void failureAfterSaveRollsBackTheInsertedRow() throws Exception {
         assertEquals(0, storedCount(NEW_TRANSACTION_BOOK_ID));
-        assertThrows(ArithmeticException.class, () -> QuarkusTransaction.requiringNew()
-                .run(() -> saveAndVerifyFailure(NEW_TRANSACTION_BOOK_ID)));
+        assertThrows(FailureAfterSave.class, () -> QuarkusTransaction.requiringNew()
+                .run(() -> saveThenFail(NEW_TRANSACTION_BOOK_ID)));
 
         assertEquals(Status.STATUS_NO_TRANSACTION, transactions.getStatus());
         assertEquals(0, storedCount(NEW_TRANSACTION_BOOK_ID));
@@ -59,8 +89,8 @@ class SqlClientRollbackTestCase {
         assertEquals(0, storedCount(JOINED_TRANSACTION_BOOK_ID));
         transactions.begin();
         try {
-            assertThrows(ArithmeticException.class, () -> QuarkusTransaction.joiningExisting()
-                    .run(() -> saveAndVerifyFailure(JOINED_TRANSACTION_BOOK_ID)));
+            assertThrows(FailureAfterSave.class, () -> QuarkusTransaction.joiningExisting()
+                    .run(() -> saveThenFail(JOINED_TRANSACTION_BOOK_ID)));
             assertEquals(Status.STATUS_MARKED_ROLLBACK, transactions.getStatus());
         } finally {
             transactions.rollback();
@@ -70,16 +100,15 @@ class SqlClientRollbackTestCase {
         assertEquals(0, storedCount(JOINED_TRANSACTION_BOOK_ID));
     }
 
-    private void saveAndVerifyFailure(long id) {
+    private void saveThenFail(long id) {
         Book book = BookDraft.$.produce(draft -> draft.setId(id).setName("Rollback integration " + id)
                 .setEdition(1).setPrice(BigDecimal.ONE).setStoreId(null).setTenant("rollback-test"));
-        try {
-            books.save(book);
-        } catch (ArithmeticException failure) {
-            // Prove the SQL insert happened before the service failed, then let Narayana roll it back.
-            assertEquals(1, storedCount(id));
-            throw failure;
-        }
+        books.save(book);
+        assertEquals(1, storedCount(id));
+        throw new FailureAfterSave();
+    }
+
+    private static class FailureAfterSave extends RuntimeException {
     }
 
     private int storedCount(long id) {

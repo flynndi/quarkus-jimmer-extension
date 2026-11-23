@@ -3,12 +3,16 @@ package io.quarkiverse.jimmer.test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
+import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.Page;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.ast.mutation.DeleteMode;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -82,6 +86,21 @@ class RepositoryCompatibilityTest {
     }
 
     @Test
+    void legacyMapsUseEntityIdsAsKeysAndHonorTheProjection() {
+        List<Long> ids = List.of(1L, 3L, 99L);
+        assertEquals(Map.of(1L, book(1, "Alpha"), 3L, book(3, "Gamma")), legacy.findMapByIds(ids));
+
+        var idOnly = legacy.findMapByIds(ids, CdiBookFetcher.$);
+        assertEquals(Set.of(1L, 3L), idOnly.keySet());
+        idOnly.forEach((id, entity) -> {
+            assertEquals(id.longValue(), entity.id());
+            assertFalse(ImmutableObjects.isLoaded(entity, "name"));
+        });
+        assertEquals(Map.of(1L, new CdiBookView(1, "Alpha"), 3L, new CdiBookView(3, "Gamma")),
+                legacy.viewer(CdiBookView.class).findMapByIds(ids));
+    }
+
+    @Test
     void keepsSaveResultsAndAcceptsNonListIterables() {
         QuarkusTransaction.requiringNew().run(() -> {
             CdiBook newBook = book(4, "Delta");
@@ -95,6 +114,19 @@ class RepositoryCompatibilityTest {
             assertEquals(2, current.saveEntities(currentBatch).getItems().size());
         });
         assertEquals(9, current.findAll().size());
+    }
+
+    @Test
+    void legacyBatchSaveIsDeferredAndDeleteAllTargetsOnlyTheGivenEntities() {
+        List<CdiBook> books = List.of(book(4, "Delta"), book(5, "Epsilon"));
+        var command = legacy.saveEntitiesCommand(books);
+        assertTrue(legacy.findMapByIds(List.of(4L, 5L)).isEmpty());
+
+        QuarkusTransaction.requiringNew().run(command::execute);
+        assertEquals(Map.of(4L, books.get(0), 5L, books.get(1)), legacy.findMapByIds(List.of(4L, 5L)));
+
+        QuarkusTransaction.requiringNew().run(() -> assertEquals(2, legacy.deleteAll(books, DeleteMode.AUTO)));
+        assertEquals(List.of(1L, 2L, 3L), legacy.findAll(CdiBookProps.ID).stream().map(CdiBook::id).toList());
     }
 
     @Test

@@ -3,11 +3,10 @@ package io.quarkiverse.jimmer.it.resource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -22,6 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
@@ -31,28 +32,39 @@ public class JimmerHttpTestCase {
 
     @Test
     void generatesDocumentsForRestResponseBodiesAndPrivateFetchers() throws IOException {
-        given().get("/jimmer-test/openapi.yml").then().statusCode(200)
-                .body(containsString("/testResources/testBookRepositoryViewById"))
-                .body(containsString("BookDetailView"))
-                .body(containsString("/bookResource/book/{id}"))
-                .body(not(containsString("RestResponse")));
+        String openApi = given().get("/jimmer-test/openapi.yml").then().statusCode(200).extract().asString();
+        var document = new YAMLMapper().readTree(openApi);
+        var paths = document.path("paths");
+        assertEquals("#/components/schemas/BookDetailView", paths.path("/bookResource/book/{id}/view")
+                .at("/get/responses/200/content/application~1json/schema/$ref").asText());
+        assertTrue(paths.path("/bookResource/book/{id}").has("get"));
+        assertTrue(paths.path("/bookResource/books/page").has("get"));
+        var search = paths.path("/bookResource/books/search").path("get");
+        assertTrue(search.path("parameters").findValuesAsText("name").contains("minPrice"));
+        assertFalse(search.has("requestBody"));
+        assertFalse(document.at("/components/schemas").has("NewCookie"));
+        assertFalse(openApi.contains("RestResponse"));
 
         byte[] archive = given().get("/jimmer-test/typescript.zip").then().statusCode(200)
                 .contentType("application/zip").extract().asByteArray();
-        StringBuilder sources = new StringBuilder();
         try (var zip = new ZipInputStream(new ByteArrayInputStream(archive))) {
-            while (zip.getNextEntry() != null) {
-                sources.append(new String(zip.readAllBytes(), StandardCharsets.UTF_8));
+            for (var entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
+                if (entry.getName().endsWith("/BookResources.ts")) {
+                    String service = new String(zip.readAllBytes(), StandardCharsets.UTF_8);
+                    assertTrue(service.contains("getBookView"), service);
+                    assertTrue(service.contains("BookDetailView"), service);
+                    assertFalse(service.contains("RestResponse"), service);
+                    return;
+                }
             }
         }
-        assertTrue(sources.toString().contains("BookDetailView"), sources.toString());
-        assertFalse(sources.toString().contains("RestResponse<"), sources.toString());
+        throw new AssertionError("BookResources.ts is missing from the generated TypeScript client");
     }
 
     @Test
     void resolvesGeneratedTablesForDynamicQueries() {
         request().queryParam("id", 1)
-                .get("/testResources/testDynamicTableQueries")
+                .get("/diagnostics/dynamic-tables")
                 .then().statusCode(200).contentType(ContentType.JSON)
                 .body("tableTypesMatch", equalTo(true))
                 .body("bookName", equalTo("Learning GraphQL"))
@@ -61,23 +73,29 @@ public class JimmerHttpTestCase {
 
     @Test
     void paginatesAndSortsImmutableEntities() {
-        request().body(Map.of("index", 0, "size", 2))
-                .post("/testResources/testBookRepositoryPageSort")
+        request().queryParam("size", 2)
+                .get("/bookResource/books/page")
                 .then().statusCode(200).contentType(ContentType.JSON)
                 .body("totalRowCount", equalTo(6))
                 .body("totalPageCount", equalTo(3))
-                .body("rows.id", contains(11, 9));
+                .body("rows.id", contains(11, 9))
+                .body("rows[0].keySet()", containsInAnyOrder("id", "name"));
 
-        request().body(Map.of("index", 1, "size", 2))
-                .post("/testResources/testBookRepositoryPageSort")
+        request().queryParam("index", 1).queryParam("size", 2)
+                .get("/bookResource/books/page")
                 .then().statusCode(200).contentType(ContentType.JSON)
                 .body("rows.id", contains(7, 5));
     }
 
     @Test
+    void rejectsInvalidPageBounds() {
+        request().queryParam("index", -1).get("/bookResource/books/page").then().statusCode(400);
+        request().queryParam("size", 0).get("/bookResource/books/page").then().statusCode(400);
+    }
+
+    @Test
     void serializesFetcherAssociations() {
-        request().queryParam("id", 1)
-                .get("/testResources/testBookRepositoryByIdFetcher")
+        request().get("/bookResource/book/1")
                 .then().statusCode(200).contentType(ContentType.JSON)
                 .body("id", equalTo(1))
                 .body("name", equalTo("Learning GraphQL"))
@@ -89,8 +107,7 @@ public class JimmerHttpTestCase {
 
     @Test
     void serializesGeneratedDtoAssociations() {
-        request().queryParam("id", 1)
-                .get("/testResources/testBookRepositoryViewById")
+        request().get("/bookResource/book/1/view")
                 .then().statusCode(200).contentType(ContentType.JSON)
                 .body("id", equalTo(1))
                 .body("name", equalTo("Learning GraphQL"))
@@ -99,32 +116,52 @@ public class JimmerHttpTestCase {
                 .body("authors.gender", containsInAnyOrder("FEMALE", "MALE"));
     }
 
+    @Test
+    void searchesBooksByTitlePriceAndStore() {
+        request().queryParam("name", "graphql").queryParam("minPrice", 51).queryParam("storeName", "REILLY")
+                .get("/bookResource/books/search")
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("id", contains(3))
+                .body("[0].name", equalTo("Learning GraphQL"))
+                .body("[0].store.name", equalTo("O'REILLY"));
+    }
+
+    @Test
+    void resolvesAveragePriceAndLatestEditionsForABookstore() {
+        request().get("/bookStoreResource/1")
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("name", equalTo("O'REILLY"))
+                .body("avgPrice", equalTo(53.1f))
+                .body("newestBooks.id", containsInAnyOrder(3, 5, 9))
+                .body("newestBooks.find { it.id == 5 }.edition", equalTo(2));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {
-            "/testResources/testBookRepositoryByIdOptional",
-            "/testResources/testBookRepositoryByIdFetcher",
-            "/testResources/testBookRepositoryByIdFetcherOptional"
+            "/bookResource/book/3000000000",
+            "/bookResource/book/3000000000/view",
+            "/bookStoreResource/3000000000"
     })
     void absentEntitiesProduceNoContent(String path) {
-        request().queryParam("id", 0).get(path)
+        request().get(path)
                 .then().statusCode(204).body(emptyString());
     }
 
     @Test
     void unmappedRoutesProduceNotFound() {
-        request().get("/testResources/no-such-resource")
+        request().get("/bookResource/no-such-resource")
                 .then().statusCode(404);
     }
 
     @Test
-    void createsQueriesAndUpdatesGeneratedInputOnTheNamedDatasource() {
+    void createsUpdatesAndLogicallyDeletesAUserRoleOnTheNamedDatasource() {
         String id = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
         String roleId = UUID.randomUUID().toString();
         String updatedRoleId = UUID.randomUUID().toString();
         try {
             request().body(Map.of("id", id, "userId", userId, "roleId", roleId))
-                    .post("/testResources/testUserRoleRepositoryInsertInput")
+                    .post("/userRoleResources")
                     .then().statusCode(200).contentType(ContentType.JSON)
                     .body("id", equalTo(id))
                     .body("userId", equalTo(userId))
@@ -144,7 +181,7 @@ public class JimmerHttpTestCase {
                     .body("id", contains(id));
 
             request().body(Map.of("id", id, "userId", userId, "roleId", updatedRoleId))
-                    .put("/testResources/testUserRoleRepositoryUpdateInput")
+                    .put("/userRoleResources")
                     .then().statusCode(200);
 
             request().queryParam("id", id)
@@ -163,6 +200,11 @@ public class JimmerHttpTestCase {
                 .get("/userRoleResources/testUserRoleSpecification")
                 .then().statusCode(200).contentType(ContentType.JSON)
                 .body("", hasSize(0));
+        request().queryParam("id", id)
+                .get("/userRoleResources/deleteReverseById")
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("id", equalTo(id))
+                .body("deleteFlag", equalTo(true));
     }
 
     @Test
@@ -173,6 +215,11 @@ public class JimmerHttpTestCase {
                 .body("find { it.id == 1 }.name", equalTo("Home"))
                 .body("find { it.id == 1 }.childNodes.id", containsInAnyOrder(2, 9))
                 .body("find { it.id == 1 }.childNodes.find { it.id == 9 }.childNodes.id", containsInAnyOrder(10, 18));
+
+        request().queryParam("parentId", 1).get("/treeNodeResources/all")
+                .then().statusCode(200).contentType(ContentType.JSON)
+                .body("id", containsInAnyOrder(2, 9))
+                .body("find { it.id == 9 }.childNodes.id", containsInAnyOrder(10, 18));
     }
 
     @Test

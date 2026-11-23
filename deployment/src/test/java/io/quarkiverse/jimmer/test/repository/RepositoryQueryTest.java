@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,8 +24,10 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import org.babyfish.jimmer.ImmutableObjects;
+import org.babyfish.jimmer.Input;
 import org.babyfish.jimmer.Page;
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.ast.mutation.AssociatedSaveMode;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.exception.SaveException;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
@@ -46,6 +49,7 @@ import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.runtime.repository.common.Sort;
 import io.quarkiverse.jimmer.runtime.repository.support.Pagination;
 import io.quarkiverse.jimmer.test.repository.model.Author;
+import io.quarkiverse.jimmer.test.repository.model.AuthorFetcher;
 import io.quarkiverse.jimmer.test.repository.model.Book;
 import io.quarkiverse.jimmer.test.repository.model.BookDraft;
 import io.quarkiverse.jimmer.test.repository.model.BookFetcher;
@@ -87,7 +91,8 @@ class RepositoryQueryTest {
             statement.execute("create table if not exists REPOSITORY_BOOK (ID bigint primary key, NAME varchar(100) not null, "
                     + "EDITION int not null, PRICE decimal(10, 2) not null, STORE_ID bigint)");
             statement.execute("create table if not exists REPOSITORY_AUTHOR (ID bigint primary key, FIRST_NAME varchar(100))");
-            statement.execute("create table if not exists REPOSITORY_BOOK_AUTHOR (BOOK_ID bigint, AUTHOR_ID bigint)");
+            statement.execute("create table if not exists REPOSITORY_BOOK_AUTHOR "
+                    + "(BOOK_ID bigint, AUTHOR_ID bigint, primary key (BOOK_ID, AUTHOR_ID))");
             statement.executeUpdate("delete from REPOSITORY_BOOK_AUTHOR");
             statement.executeUpdate("delete from REPOSITORY_AUTHOR");
             statement.executeUpdate("delete from REPOSITORY_BOOK");
@@ -265,6 +270,29 @@ class RepositoryQueryTest {
         assertEquals("Legacy", legacy.findById(2L).orElseThrow().name());
         assertEquals(new BigDecimal("50.00"), current.findById(1L).price());
         assertEquals(2, legacy.findById(2L).orElseThrow().edition());
+    }
+
+    @Test
+    void mergingAndAppendingAuthorsPreserveExistingLinksAndRespectExistingAuthorValues() throws SQLException {
+        try (var connection = dataSource.getConnection(); var statement = connection.createStatement()) {
+            statement.executeUpdate("insert into REPOSITORY_AUTHOR values (1, 'Kept'), (2, 'Original')");
+            statement.executeUpdate("insert into REPOSITORY_BOOK_AUTHOR values (1, 1), (1, 2)");
+        }
+        Book book = legacy.findById(1L).orElseThrow();
+        Input<Book> merge = () -> BookDraft.$.produce(book, draft -> draft
+                .addIntoAuthors(author -> author.setId(2L).setFirstName("Updated"))
+                .addIntoAuthors(author -> author.setId(3L).setFirstName("Merged")));
+        Book append = BookDraft.$.produce(book, draft -> draft
+                .addIntoAuthors(author -> author.setId(2L).setFirstName("Ignored"))
+                .addIntoAuthors(author -> author.setId(4L).setFirstName("Appended")));
+        QuarkusTransaction.requiringNew().run(() -> {
+            legacy.save(merge, AssociatedSaveMode.MERGE);
+            legacy.save(append, AssociatedSaveMode.APPEND_IF_ABSENT);
+        });
+
+        Book stored = legacy.findById(1L, BookFetcher.$.authors(AuthorFetcher.$.firstName())).orElseThrow();
+        assertEquals(Map.of(1L, "Kept", 2L, "Updated", 3L, "Merged", 4L, "Appended"),
+                stored.authors().stream().collect(Collectors.toMap(Author::id, Author::firstName)));
     }
 
     @Test

@@ -9,6 +9,7 @@ import java.util.SortedMap;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import org.babyfish.jimmer.lang.Ref;
+import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.TransientResolver;
 import org.babyfish.jimmer.sql.event.AssociationEvent;
 import org.babyfish.jimmer.sql.event.EntityEvent;
@@ -18,38 +19,39 @@ import io.quarkiverse.jimmer.it.entity.Book;
 import io.quarkiverse.jimmer.it.entity.BookProps;
 import io.quarkiverse.jimmer.it.entity.BookStore;
 import io.quarkiverse.jimmer.it.entity.BookStoreProps;
-import io.quarkiverse.jimmer.it.service.IBook;
-import io.quarkiverse.jimmer.runtime.Jimmer;
+import io.quarkiverse.jimmer.it.repository.BookJavaRepository;
 import io.quarkus.arc.Unremovable;
 
 @ApplicationScoped
 @Unremovable
 public class BookStoreAvgPriceResolver implements TransientResolver<Long, BigDecimal> {
 
-    private final IBook iBook;
+    private final BookJavaRepository bookRepository;
+    private final JSqlClient sqlClient;
 
-    public BookStoreAvgPriceResolver(IBook iBook) {
-        this.iBook = iBook;
+    public BookStoreAvgPriceResolver(BookJavaRepository bookRepository, JSqlClient sqlClient) {
+        this.bookRepository = bookRepository;
+        this.sqlClient = sqlClient;
     }
 
     @Override
     public Map<Long, BigDecimal> resolve(Collection<Long> ids) {
-        return iBook.findAvgPriceGroupByStoreId(ids);
+        return bookRepository.findAvgPriceGroupByStoreId(ids);
     }
 
     @Override
-    public BigDecimal getDefaultValue() { // ❸
+    public BigDecimal getDefaultValue() {
         return BigDecimal.ZERO;
     }
 
     @Override
     public Ref<SortedMap<String, Object>> getParameterMapRef() {
-        return Jimmer.getDefaultJSqlClient().getFilters().getTargetParameterMapRef(BookStoreProps.BOOKS);
+        return sqlClient.getFilters().getTargetParameterMapRef(BookStoreProps.BOOKS);
     }
 
     @Override
     public Collection<?> getAffectedSourceIds(@NotNull AssociationEvent e) {
-        if (Jimmer.getDefaultJSqlClient().getCaches().isAffectedBy(e)
+        if (sqlClient.getCaches().isAffectedBy(e)
                 && e.getImmutableProp() == BookStoreProps.BOOKS.unwrap()) {
             return Collections.singletonList(e.getSourceId());
         }
@@ -58,12 +60,14 @@ public class BookStoreAvgPriceResolver implements TransientResolver<Long, BigDec
 
     @Override
     public Collection<?> getAffectedSourceIds(@NotNull EntityEvent<?> e) {
-        if (Jimmer.getDefaultJSqlClient().getCaches().isAffectedBy(e) &&
-                !e.isEvict() &&
-                e.getImmutableType().getJavaClass() == Book.class) {
+        if (sqlClient.getCaches().isAffectedBy(e) &&
+                e.getType() == EntityEvent.Type.UPDATE &&
+                e.getImmutableType().getJavaClass() == Book.class &&
+                e.isChanged(BookProps.PRICE)) {
 
+            // Changes in store membership are handled by the BookStore.books association event.
             Ref<BookStore> storeRef = e.getUnchangedRef(BookProps.STORE);
-            if (storeRef != null && storeRef.getValue() != null && e.isChanged(BookProps.PRICE)) {
+            if (storeRef != null && storeRef.getValue() != null) {
                 return Collections.singletonList(storeRef.getValue().id());
             }
         }

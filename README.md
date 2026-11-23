@@ -296,19 +296,22 @@ public interface Book {}
 @Entity(microServiceName = "other-service")
 public interface BookStore {}
 ```
-#### start query
-[TestResources.java](integration-tests%2Fsrc%2Fmain%2Fjava%2Fio%2Fquarkiverse%2Fjimmer%2Fit%2Fresource%2FTestResources.java)
-```java
-@Inject
-BookRepository bookRepository;
+### Book query examples
 
-@GET
-@Path("/path")
-@Api
-public Response testBookRepositoryViewById(@RestQuery long id) {
-    return Response.ok(bookRepository.findById(id, BookDetailView.class)).build();
-}
-```
+The integration application reads and saves books using an injected
+[BookJavaRepository](integration-tests/src/main/java/io/quarkiverse/jimmer/it/repository/BookJavaRepository.java).
+The endpoints and their Fetcher definitions are in
+[BookResources](integration-tests/src/main/java/io/quarkiverse/jimmer/it/resource/BookResources.java).
+
+| Request | Response |
+| --- | --- |
+| `GET /bookResource/books/page?index=0&size=2` | A zero-based page, sorted by descending book ID. Each row contains the ID and name. |
+| `GET /bookResource/book/1` | A book with its store name and author names, selected by a Fetcher. |
+| `GET /bookResource/book/1/view` | A generated `BookDetailView` with store and author details. |
+| `GET /bookResource/books/search?name=graphql&minPrice=51&storeName=REILLY` | Books matching the generated `BookSpecification`. With the test data, only edition 3 of *Learning GraphQL* matches. |
+
+Both single-book endpoints return HTTP 204 when the ID is missing from the database.
+For the requests and expected responses, see the [HTTP example tests](integration-tests/src/test/java/io/quarkiverse/jimmer/it/resource/JimmerHttpTestCase.java).
 
 ### Configuration file example
 quarkus datasource documentation https://quarkus.io/guides/datasource
