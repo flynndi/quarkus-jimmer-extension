@@ -1,5 +1,7 @@
 package io.quarkiverse.jimmer.runtime.dialect;
 
+import org.babyfish.jimmer.sql.dialect.Dialect;
+
 /**
  * Classpath constants used to discard unavailable dialect branches during native-image analysis.
  * Keep this class build-time initialized and free of configuration or database access.
@@ -15,7 +17,7 @@ public final class DialectAvailability {
     /** Checks availability without initializing the optional driver's class. */
     private static boolean present(String name) {
         try {
-            Class.forName(name, false, DialectAvailability.class.getClassLoader());
+            Class.forName(name, false, Dialect.class.getClassLoader());
             return true;
         } catch (ClassNotFoundException ex) {
             return false;
