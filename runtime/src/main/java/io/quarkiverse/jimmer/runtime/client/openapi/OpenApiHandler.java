@@ -17,8 +17,7 @@ public class OpenApiHandler implements Handler<RoutingContext> {
     private final String uriPrefix;
 
     public OpenApiHandler(JimmerBuildTimeConfig buildTimeConfig) {
-        this.generator = new OpenApiDocumentGenerator(buildTimeConfig.client().openapi().properties(),
-                buildTimeConfig.errorTranslator().map(JimmerBuildTimeConfig.ErrorTranslator::httpStatus).orElse(500));
+        this.generator = OpenApiDocumentGenerator.from(buildTimeConfig);
         this.uriPrefix = buildTimeConfig.client().uriPrefix().orElse(null);
     }
 

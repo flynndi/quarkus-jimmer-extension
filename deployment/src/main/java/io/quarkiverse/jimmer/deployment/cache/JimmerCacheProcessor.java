@@ -52,12 +52,28 @@ import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
 import io.quarkus.gizmo.ClassTransformer;
 import io.quarkus.gizmo.MethodDescriptor;
+import io.quarkus.jackson.deployment.IgnoreJsonDeserializeClassBuildItem;
 import io.quarkus.maven.dependency.ArtifactKey;
 
 final class JimmerCacheProcessor {
 
     // Keep optional scheduler types out of the always-loaded processor's signatures and class literals.
     private static final String RETRY_JOB = "io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorRetryJob";
+    private static final String INVALIDATE_MESSAGE = "org.babyfish.jimmer.sql.cache.redisson.InvalidateMessage";
+
+    @BuildStep
+    void registerInvalidationMessageForJackson(CombinedIndexBuildItem index,
+            BuildProducer<IgnoreJsonDeserializeClassBuildItem> ignored,
+            BuildProducer<ReflectiveClassBuildItem> reflection) {
+        var name = DotName.createSimple(INVALIDATE_MESSAGE);
+        if (index.getIndex().getClassByName(name) != null) {
+            // Its annotated Jackson codecs access the payload directly. Following the transient
+            // ImmutableType would expose the SQL metadata graph and every indexed dialect.
+            ignored.produce(new IgnoreJsonDeserializeClassBuildItem(name));
+            reflection.produce(ReflectiveClassBuildItem.builder(INVALIDATE_MESSAGE)
+                    .constructors(false).reason("Jimmer cache invalidation message annotations").build());
+        }
+    }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class, onlyIfNot = Jackson2Present.class)
     void excludeUnavailableRedissonCodec(BuildProducer<RemovedResourceBuildItem> removed) {
@@ -73,7 +89,7 @@ final class JimmerCacheProcessor {
             BuildProducer<BytecodeTransformerBuildItem> transformers,
             BuildProducer<ReflectiveClassBuildItem> types, BuildProducer<ReflectiveMethodBuildItem> methods,
             BuildProducer<ReflectiveFieldBuildItem> fields) {
-        String name = "org.babyfish.jimmer.sql.cache.redisson.InvalidateMessage";
+        String name = INVALIDATE_MESSAGE;
         var message = index.getComputingIndex().getClassByName(DotName.createSimple(name));
         if (message == null) {
             return;
@@ -90,7 +106,6 @@ final class JimmerCacheProcessor {
                 return transformer.applyTo(visitor);
             }));
         }
-        // Headless/manual clients can lack Jackson's hierarchy registration; Quarkus merges overlapping members.
         String reason = "Redisson Kryo cache invalidation messages";
         // Cache.delete uses Collections.singleton, and deleteAll preserves an application's Set.of ids.
         // Kryo resolves the set and UUID classes by name; their serializers construct them directly.
@@ -100,8 +115,9 @@ final class JimmerCacheProcessor {
         // AbstractTrackingProducerBinder and TransactionCacheOperator collect batched ids into a LinkedHashSet.
         methods.produce(new ReflectiveMethodBuildItem(reason, LinkedHashSet.class.getName(), "<init>"));
         methods.produce(new ReflectiveMethodBuildItem(reason, name, "<init>"));
+        // Kryo computes offsets for transient fields too when building the FieldSerializer's copy metadata.
         for (var field : message.fields()) {
-            if (!Modifier.isStatic(field.flags()) && !Modifier.isTransient(field.flags())) {
+            if (!Modifier.isStatic(field.flags())) {
                 fields.produce(new ReflectiveFieldBuildItem(reason, field));
             }
         }

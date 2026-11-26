@@ -36,7 +36,6 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.spi.RouteBuildItem;
 
@@ -51,7 +50,7 @@ final class JimmerMicroserviceProcessor {
     @BuildStep
     void registerBeans(JimmerBuildTimeConfig config, Capabilities capabilities,
             BuildProducer<AdditionalBeanBuildItem> beans, BuildProducer<AdditionalIndexedClassesBuildItem> indexed,
-            BuildProducer<ExcludedTypeBuildItem> excluded, BuildProducer<ReflectiveClassBuildItem> reflection) {
+            BuildProducer<ExcludedTypeBuildItem> excluded) {
         if (JimmerMicroserviceSupport.enabled(config) && capabilities.isPresent(Capability.VERTX_HTTP)
                 && capabilities.isPresent(Capability.JACKSON)
                 && !QuarkusClassLoader.isClassPresentAtRuntime("org.antlr.v4.runtime.CharStream")) {
@@ -76,11 +75,6 @@ final class JimmerMicroserviceProcessor {
         } else {
             excluded.produce(new ExcludedTypeBuildItem(IDS));
             excluded.produce(new ExcludedTypeBuildItem(ASSOCIATED_IDS));
-        }
-        if (exchangeEnabled || exporterEnabled) {
-            // Both HTTP directions use Tuple2 JSON without a typed REST response signature.
-            reflection.produce(ReflectiveClassBuildItem.builder("org.babyfish.jimmer.sql.ast.tuple.Tuple2")
-                    .constructors().methods().build());
         }
     }
 

@@ -51,6 +51,8 @@ import io.quarkiverse.jimmer.test.http.model.HttpBookFetcher;
 import io.quarkiverse.jimmer.test.http.model.HttpStore;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ClientProxy;
+import io.quarkus.builder.item.EmptyBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 import io.quarkus.test.QuarkusExtensionTest;
 
 class QuarkusExchangeTest {
@@ -62,6 +64,15 @@ class QuarkusExchangeTest {
 
     @RegisterExtension
     static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
+            .addBuildChainCustomizer(chain -> {
+                chain.addFinal(TupleCreatorChecked.class);
+                chain.addBuildStep(context -> assertTrue(context.consumeMulti(ReflectiveMethodBuildItem.class).stream()
+                        .anyMatch(item -> Tuple2.class.getName().equals(item.getDeclaringClass())
+                                && "<init>".equals(item.getName())
+                                && List.of(Object.class.getName(), Object.class.getName()).equals(List.of(item.getParams()))),
+                        "The Jackson extension must register the indexed @JsonCreator for typed association responses"))
+                        .consumes(ReflectiveMethodBuildItem.class).produces(TupleCreatorChecked.class).build();
+            })
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(HttpBook.class.getPackage())
                     .addPackage(ExchangeBook.class.getPackage())
@@ -79,6 +90,9 @@ class QuarkusExchangeTest {
             .overrideConfigKey("quarkus.jimmer.micro-service-name", "http-test")
             .overrideConfigKey("quarkus.rest-client.local.url", BASE_URL)
             .overrideConfigKey("quarkus.rest-client.alternate.url", BASE_URL);
+
+    private static final class TupleCreatorChecked extends EmptyBuildItem {
+    }
 
     @Inject
     QuarkusExchange exchange;

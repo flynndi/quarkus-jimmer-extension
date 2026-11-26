@@ -25,11 +25,16 @@ public final class OpenApiDocumentGenerator {
         this.errorHttpStatus = errorHttpStatus;
     }
 
+    static OpenApiDocumentGenerator from(JimmerBuildTimeConfig config) {
+        // Quarkus registers config method references for native reflection, even when jimmer-client is absent.
+        var translator = config.errorTranslator();
+        int status = translator.isPresent() ? translator.get().httpStatus() : 500;
+        return new OpenApiDocumentGenerator(config.client().openapi().properties(), status);
+    }
+
     /** Generates one document without requiring an HTTP handler or a reusable generator instance. */
     public static byte[] generate(Metadata metadata, JimmerBuildTimeConfig buildTimeConfig) {
-        return new OpenApiDocumentGenerator(buildTimeConfig.client().openapi().properties(),
-                buildTimeConfig.errorTranslator().map(JimmerBuildTimeConfig.ErrorTranslator::httpStatus).orElse(500))
-                .generate(metadata);
+        return from(buildTimeConfig).generate(metadata);
     }
 
     public byte[] generate(Metadata metadata) {

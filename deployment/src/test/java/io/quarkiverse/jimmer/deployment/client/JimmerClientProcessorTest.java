@@ -48,11 +48,12 @@ class JimmerClientProcessorTest {
         var availability = new JimmerClientAvailabilityBuildItem(false, false, false);
         List<IgnoreJsonDeserializeClassBuildItem> ignored = new ArrayList<>();
         List<ReflectiveClassBuildItem> reflection = new ArrayList<>();
+        List<ReflectiveMethodBuildItem> constructors = new ArrayList<>();
         List<NativeImageResourceBuildItem> resources = new ArrayList<>();
         List<ReflectiveFieldBuildItem> fields = new ArrayList<>();
 
         processor.excludeJimmerClientMetadataFromAutoJacksonReflection(ignored::add);
-        processor.registerJimmerClientMetadataForReflection(availability, reflection::add);
+        processor.registerJimmerClientMetadataForReflection(availability, reflection::add, constructors::add);
         processor.registerClientMetadataResource(availability, resources::add);
         var index = new Indexer().complete();
         processor.registerClientApiReflection(availability, new CombinedIndexBuildItem(index, index),
@@ -62,6 +63,7 @@ class JimmerClientProcessorTest {
         assertTrue(ignoredNames.contains("org.babyfish.jimmer.client.meta.Doc"));
         assertTrue(ignoredNames.contains("org.babyfish.jimmer.client.meta.impl.SchemaImpl"));
         assertTrue(reflection.isEmpty());
+        assertTrue(constructors.isEmpty());
         assertTrue(resources.isEmpty());
         assertTrue(fields.isEmpty());
     }
@@ -71,18 +73,26 @@ class JimmerClientProcessorTest {
         var processor = new JimmerClientProcessor();
         var availability = new JimmerClientAvailabilityBuildItem(true, false, false);
         List<ReflectiveClassBuildItem> reflection = new ArrayList<>();
+        List<ReflectiveMethodBuildItem> constructors = new ArrayList<>();
         List<NativeImageResourceBuildItem> resources = new ArrayList<>();
 
-        processor.registerJimmerClientMetadataForReflection(availability, reflection::add);
+        processor.registerJimmerClientMetadataForReflection(availability, reflection::add, constructors::add);
         processor.registerClientMetadataResource(availability, resources::add);
 
         assertEquals(1, reflection.size());
         var metadata = reflection.get(0);
-        assertTrue(metadata.isConstructors());
-        assertTrue(metadata.getClassNames().contains("org.babyfish.jimmer.client.meta.Doc$Builder"));
-        assertTrue(metadata.getClassNames().contains("org.babyfish.jimmer.client.meta.impl.SchemaImpl$SerializerV3"));
-        assertTrue(metadata.getClassNames().contains("org.babyfish.jimmer.client.meta.impl.SchemaImpl$DeserializerV3"));
-        assertTrue(metadata.getClassNames().stream().noneMatch(name -> name.endsWith("V2")));
+        assertFalse(metadata.isConstructors());
+        assertFalse(metadata.isMethods());
+        assertFalse(metadata.isFields());
+        assertTrue(metadata.getClassNames().contains("org.babyfish.jimmer.client.meta.Doc"));
+        assertTrue(metadata.getClassNames().contains("org.babyfish.jimmer.client.meta.impl.SchemaImpl"));
+        assertTrue(metadata.getClassNames().stream().noneMatch(name -> name.contains("$")));
+        var expectedCodecs = metadata.getClassNames().stream()
+                .flatMap(name -> java.util.stream.Stream.of(name + "$SerializerV3", name + "$DeserializerV3"))
+                .collect(Collectors.toSet());
+        assertEquals(expectedCodecs, constructors.stream().map(ReflectiveMethodBuildItem::getDeclaringClass)
+                .collect(Collectors.toSet()));
+        assertTrue(constructors.stream().allMatch(item -> item.getName().equals("<init>") && item.getParams().length == 0));
         assertEquals(List.of(Constant.CLIENT_RESOURCE),
                 resources.stream().flatMap(item -> item.getResources().stream()).toList());
     }

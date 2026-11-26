@@ -132,20 +132,21 @@ final class JimmerClientProcessor {
 
     @BuildStep
     void registerJimmerClientMetadataForReflection(JimmerClientAvailabilityBuildItem availability,
-            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
+            BuildProducer<ReflectiveMethodBuildItem> constructors) {
         if (!availability.generatorAvailable()) {
             return;
         }
-        List<String> classes = new ArrayList<>();
+        // Jackson inspects annotations on the metadata types and instantiates their custom codecs.
+        // The codecs construct the metadata objects themselves.
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(JIMMER_CLIENT_METADATA_CLASSES)
+                .constructors(false).reason("Jimmer client schema annotations").build());
         for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
-            classes.add(metadataClass);
-            classes.add(metadataClass + "$SerializerV3");
-            classes.add(metadataClass + "$DeserializerV3");
+            constructors.produce(new ReflectiveMethodBuildItem("Jimmer client schema serialization",
+                    metadataClass + "$SerializerV3", "<init>"));
+            constructors.produce(new ReflectiveMethodBuildItem("Jimmer client schema deserialization",
+                    metadataClass + "$DeserializerV3", "<init>"));
         }
-        classes.add("org.babyfish.jimmer.client.meta.Doc$Builder");
-        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(classes.toArray(new String[0]))
-                .constructors()
-                .build());
     }
 
     @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class, onlyIfNot = Jackson2Present.class)

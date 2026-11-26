@@ -32,8 +32,32 @@ import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveFieldBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
+import io.quarkus.jackson.deployment.IgnoreJsonDeserializeClassBuildItem;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 class JimmerCacheProcessorTest {
+
+    @Test
+    void jacksonUsesTheMessageCodecsWithoutTraversingSqlMetadata() throws Exception {
+        var message = Class.forName("org.babyfish.jimmer.sql.cache.redisson.InvalidateMessage", false,
+                getClass().getClassLoader());
+        assertEquals("InvalidateMessageDeserializer3", message.getAnnotation(JsonDeserialize.class).using().getSimpleName());
+        assertEquals("InvalidateMessageSerializer3", message.getAnnotation(JsonSerialize.class).using().getSimpleName());
+        var indexer = new Indexer();
+        indexer.indexClass(message);
+        var index = indexer.complete();
+        var ignored = new ArrayList<IgnoreJsonDeserializeClassBuildItem>();
+        var types = new ArrayList<ReflectiveClassBuildItem>();
+        new JimmerCacheProcessor().registerInvalidationMessageForJackson(new CombinedIndexBuildItem(index, index),
+                ignored::add, types::add);
+        assertEquals(List.of(message.getName()), ignored.stream().flatMap(item -> item.getDotNames().stream())
+                .map(Object::toString).toList());
+        assertEquals(List.of(message.getName()), types.stream().flatMap(item -> item.getClassNames().stream()).toList());
+        assertFalse(types.getFirst().isConstructors());
+        assertFalse(types.getFirst().isMethods());
+        assertFalse(types.getFirst().isFields());
+    }
 
     @Test
     void kryoCanConstructTheNativeInvalidationMessageWithItsOriginalFields() throws Exception {
@@ -64,7 +88,7 @@ class JimmerCacheProcessorTest {
         assertEquals(Set.of(name, LinkedHashSet.class.getName()),
                 methods.stream().map(ReflectiveMethodBuildItem::getDeclaringClass).collect(Collectors.toSet()));
         assertTrue(methods.stream().allMatch(method -> method.getName().equals("<init>") && method.getParams().length == 0));
-        assertEquals(Set.of("trackerId", "typeName", "propName", "ids"),
+        assertEquals(Set.of("trackerId", "typeName", "propName", "ids", "type"),
                 fields.stream().map(ReflectiveFieldBuildItem::getName).collect(Collectors.toSet()));
 
         var writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);

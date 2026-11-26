@@ -21,7 +21,6 @@ import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.smallrye.config.SmallRyeConfigBuilder;
 import io.smallrye.config.common.MapBackedConfigSource;
 
@@ -49,18 +48,16 @@ class JimmerMicroserviceProcessorTest {
     }
 
     @Test
-    void missingTransportCapabilitiesDoNotRegisterBeansIndexOrReflection() {
+    void missingTransportCapabilitiesDoNotRegisterBeansOrIndex() {
         var config = config(Map.of("quarkus.jimmer.micro-service-name", "inventory"));
         var capabilities = new Capabilities(Set.of(Capability.JACKSON));
         List<AdditionalBeanBuildItem> beans = new ArrayList<>();
         List<AdditionalIndexedClassesBuildItem> indexed = new ArrayList<>();
         List<ExcludedTypeBuildItem> excluded = new ArrayList<>();
-        List<ReflectiveClassBuildItem> reflection = new ArrayList<>();
         new JimmerMicroserviceProcessor().registerBeans(config, capabilities,
-                beans::add, indexed::add, excluded::add, reflection::add);
+                beans::add, indexed::add, excluded::add);
         assertTrue(beans.isEmpty());
         assertTrue(indexed.isEmpty());
-        assertTrue(reflection.isEmpty());
         assertEquals(3, excluded.size());
     }
 
@@ -72,12 +69,10 @@ class JimmerMicroserviceProcessorTest {
             List<AdditionalBeanBuildItem> beans = new ArrayList<>();
             List<AdditionalIndexedClassesBuildItem> indexed = new ArrayList<>();
             List<ExcludedTypeBuildItem> excluded = new ArrayList<>();
-            List<ReflectiveClassBuildItem> reflection = new ArrayList<>();
             new JimmerMicroserviceProcessor().registerBeans(config, capabilities,
-                    beans::add, indexed::add, excluded::add, reflection::add);
+                    beans::add, indexed::add, excluded::add);
             assertTrue(beans.isEmpty());
             assertTrue(indexed.isEmpty());
-            assertTrue(reflection.isEmpty());
             assertEquals(3, excluded.size());
         }
     }
