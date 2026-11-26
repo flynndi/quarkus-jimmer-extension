@@ -1,3 +1,3 @@
-:project-version: 0.0.1.CR68
+:project-version: 0.0.1.CR69
 
 :examples-dir: ./../examples/
