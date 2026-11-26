@@ -42,12 +42,12 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkus.agroal.DataSource.DataSourceLiteral;
 import io.quarkus.arc.Arc;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class CacheMultiDataSourceCompletionTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addPackage(CdiBook.class.getPackage())
                     .addClasses(RecordingOperator.class, DefaultOperator.class, BooksOperator.class, Observation.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))

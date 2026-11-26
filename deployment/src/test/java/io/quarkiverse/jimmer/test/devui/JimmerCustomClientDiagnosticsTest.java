@@ -23,12 +23,12 @@ import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class JimmerCustomClientDiagnosticsTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addClass(ClientProducers.class))
             // With JDBC disabled, register Agroal's qualifier as metadata without copying its class into the application.
             .addBuildChainCustomizer(chain -> chain.addBuildStep(context -> context.produce(

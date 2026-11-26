@@ -14,13 +14,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.builder.Version;
 import io.quarkus.maven.dependency.Dependency;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
 
 class HttpFeaturesEnabledTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(HttpFeatureTestSupport::addMetadata)
             .setForcedDependencies(List.of(Dependency.of("io.quarkus", "quarkus-rest-jackson", Version.getVersion())))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")

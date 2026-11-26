@@ -39,14 +39,15 @@ import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkus.arc.Arc;
 import io.quarkus.maven.dependency.ArtifactKey;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 @SuppressWarnings("deprecation")
 class HeadlessCoreTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = OptionalIntegrationTestSupport.isolateExcludedDependencies(new QuarkusUnitTest(),
-            withoutOptionalIntegrations())
+    static final QuarkusExtensionTest APP = OptionalIntegrationTestSupport
+            .isolateExcludedDependencies(new QuarkusExtensionTest(),
+                    withoutOptionalIntegrations())
             .withApplicationRoot(archive -> archive.addPackage(CdiBook.class.getPackage())
                     .addClasses(OptionalIntegrationTestSupport.class, Books.class, NameSpecification.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))

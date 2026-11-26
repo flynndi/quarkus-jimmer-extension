@@ -51,7 +51,7 @@ import io.quarkiverse.jimmer.test.http.model.HttpBookFetcher;
 import io.quarkiverse.jimmer.test.http.model.HttpStore;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ClientProxy;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class QuarkusExchangeTest {
 
@@ -61,7 +61,7 @@ class QuarkusExchangeTest {
     private static final String BOOK_ID = "book\"\\\n雪&?=,+/";
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(HttpBook.class.getPackage())
                     .addPackage(ExchangeBook.class.getPackage())

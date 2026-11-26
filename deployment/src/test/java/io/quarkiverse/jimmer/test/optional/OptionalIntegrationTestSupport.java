@@ -14,14 +14,14 @@ import java.util.stream.Stream;
 import io.quarkus.bootstrap.classloading.ClassPathElement;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.maven.dependency.ArtifactKey;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 final class OptionalIntegrationTestSupport {
 
     private OptionalIntegrationTestSupport() {
     }
 
-    static QuarkusUnitTest isolateExcludedDependencies(QuarkusUnitTest test, Set<ArtifactKey> excluded) {
+    static QuarkusExtensionTest isolateExcludedDependencies(QuarkusExtensionTest test, Set<ArtifactKey> excluded) {
         AtomicReference<QuarkusClassLoader> isolation = new AtomicReference<>();
         return test.setExcludedDependencies(excluded)
                 .addBootstrapCustomizer(builder -> {

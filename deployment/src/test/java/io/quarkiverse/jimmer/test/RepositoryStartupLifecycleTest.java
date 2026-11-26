@@ -17,13 +17,13 @@ import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.runtime.StartupEvent;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 @SuppressWarnings("deprecation")
 class RepositoryStartupLifecycleTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = RepositoryStartupTestSupport.application("java",
+    static final QuarkusExtensionTest APP = RepositoryStartupTestSupport.application("java",
             DefaultBooks.class, NamedBooks.class, StartupSchema.class);
 
     @Inject

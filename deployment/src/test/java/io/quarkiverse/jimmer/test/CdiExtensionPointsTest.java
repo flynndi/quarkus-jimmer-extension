@@ -36,12 +36,12 @@ import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkiverse.jimmer.test.model.CdiBookProps;
 import io.quarkiverse.jimmer.test.model.deletion.ArchivedBook;
 import io.quarkus.arc.Arc;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class CdiExtensionPointsTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(CdiBook.class.getPackage())
                     .addPackage(ArchivedBook.class.getPackage())

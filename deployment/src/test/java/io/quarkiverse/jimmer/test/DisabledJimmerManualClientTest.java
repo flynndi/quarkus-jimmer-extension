@@ -36,12 +36,12 @@ import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkiverse.jimmer.test.model.CdiBookDraft;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class DisabledJimmerManualClientTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(CdiBook.class.getPackage())
                     .addClass(EventObserver.class)

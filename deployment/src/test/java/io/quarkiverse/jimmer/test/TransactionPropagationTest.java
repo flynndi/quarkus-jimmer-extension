@@ -38,13 +38,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkus.arc.ArcUndeclaredThrowableException;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.transaction.annotations.Rollback;
 
 class TransactionPropagationTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addClasses(NonRollbackFailure.class, RollbackCheckedFailure.class))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")

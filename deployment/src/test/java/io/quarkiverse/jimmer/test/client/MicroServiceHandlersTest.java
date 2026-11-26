@@ -47,13 +47,13 @@ import io.quarkiverse.jimmer.test.http.model.HttpStore;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ManagedContext;
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
 
 class MicroServiceHandlersTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(HttpBook.class.getPackage())
                     .addClasses(Counters.class, RequestState.class, MapperProducer.class, RequestCheckingExecutor.class,

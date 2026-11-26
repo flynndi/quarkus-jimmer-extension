@@ -8,13 +8,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkus.runtime.configuration.ConfigurationException;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class MicroserviceWithoutFetcherCompilerTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = OptionalIntegrationTestSupport.isolateExcludedDependencies(new QuarkusUnitTest(),
-            OptionalIntegrationTestSupport.withoutAntlr())
+    static final QuarkusExtensionTest APP = OptionalIntegrationTestSupport
+            .isolateExcludedDependencies(new QuarkusExtensionTest(),
+                    OptionalIntegrationTestSupport.withoutAntlr())
             .withApplicationRoot(archive -> archive.addClass(OptionalIntegrationTestSupport.class))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")

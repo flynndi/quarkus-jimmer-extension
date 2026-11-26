@@ -22,11 +22,11 @@ import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.devui.JimmerDevUIService;
 import io.quarkus.arc.Arc;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class JimmerRuntimeDiagnosticsTest {
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addClass(ProbeCustomizer.class))
             .overrideConfigKey("quarkus.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")

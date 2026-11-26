@@ -22,12 +22,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkiverse.jimmer.test.model.CdiBookTable;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class SqlClientStreamingTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addPackage(CdiBook.class.getPackage())
                     .addAsResource(new StringAsset(CdiBook.class.getName()), "META-INF/jimmer/entities"))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")

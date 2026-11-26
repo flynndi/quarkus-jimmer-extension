@@ -23,11 +23,11 @@ import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ClientProxy;
 import io.quarkus.arc.InactiveBeanException;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class DataSourceKotlinTest {
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addClass(InitializationProbe.class))
             .overrideConfigKey("quarkus.jimmer.language", "kotlin")
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")

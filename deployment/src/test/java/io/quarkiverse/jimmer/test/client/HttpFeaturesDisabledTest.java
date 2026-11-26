@@ -16,13 +16,13 @@ import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsHandler;
 import io.quarkiverse.jimmer.runtime.cloud.QuarkusExchange;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.arc.Arc;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
 
 class HttpFeaturesDisabledTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(HttpFeatureTestSupport::addClasses)
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")

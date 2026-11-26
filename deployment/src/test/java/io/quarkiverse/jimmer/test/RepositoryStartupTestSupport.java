@@ -9,15 +9,15 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 
 import io.quarkiverse.jimmer.test.model.CdiBook;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 public final class RepositoryStartupTestSupport {
 
     private RepositoryStartupTestSupport() {
     }
 
-    public static QuarkusUnitTest application(String language, Class<?>... beans) {
-        return new QuarkusUnitTest()
+    public static QuarkusExtensionTest application(String language, Class<?>... beans) {
+        return new QuarkusExtensionTest()
                 .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                         .addPackage(CdiBook.class.getPackage())
                         .addClasses(beans)

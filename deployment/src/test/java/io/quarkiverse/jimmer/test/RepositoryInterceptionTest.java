@@ -19,12 +19,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
 import io.quarkiverse.jimmer.test.model.CdiBook;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class RepositoryInterceptionTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest app = new QuarkusUnitTest()
+    static final QuarkusExtensionTest app = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(CdiBook.class.getPackage())
                     .addClass(TransactionalBookRepository.class)

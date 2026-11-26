@@ -28,12 +28,12 @@ import io.quarkiverse.jimmer.test.CacheFactoryOwnershipTest.RecordingCacheFactor
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ClientProxy;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class CacheFactoryCdiProxyTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addPackage(CdiBook.class.getPackage())
                     .addClasses(FactoryBeans.class, RecordingCacheFactory.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))

@@ -30,14 +30,15 @@ import io.quarkiverse.jimmer.test.http.model.HttpBook;
 import io.quarkiverse.jimmer.test.http.model.HttpBookFetcher;
 import io.quarkiverse.jimmer.test.http.model.HttpStore;
 import io.quarkus.maven.dependency.ArtifactKey;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
 
 class MicroserviceExporterWithoutRestClientTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = OptionalIntegrationTestSupport.isolateExcludedDependencies(new QuarkusUnitTest(),
-            withoutRestClientAndKotlinSql())
+    static final QuarkusExtensionTest APP = OptionalIntegrationTestSupport
+            .isolateExcludedDependencies(new QuarkusExtensionTest(),
+                    withoutRestClientAndKotlinSql())
             .withApplicationRoot(archive -> archive.addPackage(HttpBook.class.getPackage())
                     .addClasses(OptionalIntegrationTestSupport.class,
                             MicroserviceTestSupport.DefaultExchange.class)

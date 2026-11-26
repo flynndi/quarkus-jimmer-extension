@@ -5,7 +5,7 @@
   <parent>
     <groupId>io.quarkiverse</groupId>
     <artifactId>quarkiverse-parent</artifactId>
-    <version>20</version>
+    <version>22</version>
   </parent>
 
   <groupId>io.github.flynndi</groupId>
@@ -52,17 +52,17 @@
 
   <properties>
     <compiler-plugin.version>3.13.0</compiler-plugin.version>
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <quarkus.version>3.39.1</quarkus.version>
+    <quarkus.version>4.0.1</quarkus.version>
     <jimmer.version>0.12.5</jimmer.version>
     <central-publishing-maven-plugin.version>0.11.0</central-publishing-maven-plugin.version>
     <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
     <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
     <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
     <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
-    <kotlin.version>2.3.20</kotlin.version>
+    <kotlin.version>2.4.20</kotlin.version>
   </properties>
 
   <dependencyManagement>
