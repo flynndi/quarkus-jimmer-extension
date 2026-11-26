@@ -51,8 +51,7 @@ public class BookStoreAvgPriceResolver implements TransientResolver<Long, BigDec
 
     @Override
     public Collection<?> getAffectedSourceIds(@NotNull AssociationEvent e) {
-        if (sqlClient.getCaches().isAffectedBy(e)
-                && e.getImmutableProp() == BookStoreProps.BOOKS.unwrap()) {
+        if (e.getImmutableProp() == BookStoreProps.BOOKS.unwrap() && sqlClient.getCaches().isAffectedBy(e)) {
             return Collections.singletonList(e.getSourceId());
         }
         return null;
@@ -60,10 +59,11 @@ public class BookStoreAvgPriceResolver implements TransientResolver<Long, BigDec
 
     @Override
     public Collection<?> getAffectedSourceIds(@NotNull EntityEvent<?> e) {
-        if (sqlClient.getCaches().isAffectedBy(e) &&
-                e.getType() == EntityEvent.Type.UPDATE &&
+        // An unrelated event can arrive inside another datasource's transaction while the default client is still lazy.
+        if (e.getType() == EntityEvent.Type.UPDATE &&
                 e.getImmutableType().getJavaClass() == Book.class &&
-                e.isChanged(BookProps.PRICE)) {
+                e.isChanged(BookProps.PRICE) &&
+                sqlClient.getCaches().isAffectedBy(e)) {
 
             // Changes in store membership are handled by the BookStore.books association event.
             Ref<BookStore> storeRef = e.getUnchangedRef(BookProps.STORE);
