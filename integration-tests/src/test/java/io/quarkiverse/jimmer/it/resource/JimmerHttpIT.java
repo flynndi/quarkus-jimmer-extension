@@ -1,6 +1,8 @@
 package io.quarkiverse.jimmer.it.resource;
 
+import static org.hamcrest.Matchers.emptyString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -10,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.cache.CacheTracker;
@@ -17,6 +20,7 @@ import org.babyfish.jimmer.sql.cache.RemoteKeyPrefixProvider;
 import org.babyfish.jimmer.sql.cache.redisson.RedissonCacheTracker;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.redisson.Redisson;
 import org.redisson.api.RBucket;
 import org.redisson.client.codec.StringCodec;
@@ -28,6 +32,37 @@ import tools.jackson.databind.json.JsonMapper;
 
 @QuarkusIntegrationTest
 public class JimmerHttpIT extends JimmerHttpTestCase {
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void cachesMissingRolesOnlyWhenTheSoftLockIsAvailable(boolean lockHeldByAnotherClient) throws IOException {
+        UUID id = UUID.randomUUID();
+        String prefix = RemoteKeyPrefixProvider.DEFAULT.typeKeyPrefix(ImmutableType.get(UserRole.class));
+        var redis = Redisson.create(Config.fromYAML(JimmerHttpIT.class.getResource("/redisson-test.yaml")));
+        var bucket = redis.getBucket(prefix + id, StringCodec.INSTANCE);
+        // RedissonCacheLocker in Jimmer 0.12.5 uses this lock name for a single missed key.
+        var lock = redis.getLock("$lock$" + prefix + "-" + id);
+        try {
+            assertFalse(bucket.isExists(), "The first read must miss the shared cache");
+            if (lockHeldByAnotherClient) {
+                lock.lock(30, TimeUnit.SECONDS);
+            }
+
+            request().queryParam("id", id).get("/userRoleResources/userRoleFindById")
+                    .then().statusCode(200).body(emptyString());
+            assertEquals(lockHeldByAnotherClient, lock.isLocked(), "The read must finish while a competing lock is held");
+            assertEquals(!lockHeldByAnotherClient, bucket.isExists(), "Only the lock holder may cache the missing role");
+        } finally {
+            try {
+                if (lock.isHeldByCurrentThread()) {
+                    lock.unlock();
+                }
+                bucket.delete();
+            } finally {
+                redis.shutdown();
+            }
+        }
+    }
 
     @ParameterizedTest
     @MethodSource("invalidationIds")

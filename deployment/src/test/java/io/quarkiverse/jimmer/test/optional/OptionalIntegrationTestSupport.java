@@ -25,8 +25,8 @@ final class OptionalIntegrationTestSupport {
         AtomicReference<QuarkusClassLoader> isolation = new AtomicReference<>();
         return test.setExcludedDependencies(excluded)
                 .addBootstrapCustomizer(builder -> {
-                    // Dependency exclusion updates the application model, but Quarkus 3.39's ArC ValueRegistry
-                    // discovery can still see excluded providers through the Maven test parent classloader.
+                    // Exclusions remove artifacts from the application model. Classes and service providers
+                    // in those jars can still be visible through the Maven test parent classloader.
                     // Preserve the test framework's existing parent (and its test-class bans).
                     ClassLoader parent = builder.build().getBaseClassLoader();
                     var filtered = QuarkusClassLoader.builder("Excluded optional dependencies", parent, false);

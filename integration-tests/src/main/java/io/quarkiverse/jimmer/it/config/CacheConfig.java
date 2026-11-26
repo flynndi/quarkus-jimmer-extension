@@ -3,7 +3,6 @@ package io.quarkiverse.jimmer.it.config;
 import java.time.Duration;
 import java.util.List;
 
-import io.quarkiverse.jimmer.runtime.cache.RedisCacheCreator;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Singleton;
 
@@ -16,6 +15,8 @@ import org.babyfish.jimmer.sql.cache.CacheFactory;
 import org.babyfish.jimmer.sql.cache.redisson.RedissonCacheLocker;
 import org.babyfish.jimmer.sql.cache.redisson.RedissonCacheTracker;
 import org.redisson.api.RedissonClient;
+
+import io.quarkiverse.jimmer.runtime.cache.RedisCacheCreator;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.redis.datasource.RedisDataSource;
 import tools.jackson.databind.json.JsonMapper;

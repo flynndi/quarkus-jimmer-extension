@@ -37,6 +37,7 @@ import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.devui.JimmerDevUIService;
 import io.quarkiverse.jimmer.runtime.repository.JRepository;
 import io.quarkiverse.jimmer.test.model.CdiBook;
+import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.maven.dependency.ArtifactKey;
 import io.quarkus.test.QuarkusExtensionTest;
@@ -49,14 +50,14 @@ class HeadlessCoreTest {
             .isolateExcludedDependencies(new QuarkusExtensionTest(),
                     withoutOptionalIntegrations())
             .withApplicationRoot(archive -> archive.addPackage(CdiBook.class.getPackage())
-                    .addClasses(OptionalIntegrationTestSupport.class, Books.class, NameSpecification.class)
+                    .addClasses(OptionalIntegrationTestSupport.class, Books.class, NamedBooks.class, NameSpecification.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
-            .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
             .overrideConfigKey("quarkus.datasource.jdbc.url", "jdbc:h2:mem:headless-core")
-            .overrideConfigKey("quarkus.jimmer.trigger-type", "TRANSACTION_ONLY")
-            .overrideConfigKey("quarkus.jimmer.transaction-cache-operator-fixed-delay", "off");
+            .overrideConfigKey("quarkus.datasource.books.db-kind", "h2")
+            .overrideConfigKey("quarkus.datasource.books.jdbc.url", "jdbc:h2:mem:headless-books")
+            .overrideConfigKey("quarkus.jimmer.trigger-type", "TRANSACTION_ONLY");
 
     @Inject
     JSqlClient client;
@@ -66,6 +67,14 @@ class HeadlessCoreTest {
 
     @Inject
     Books books;
+
+    @Inject
+    @DataSource("books")
+    NamedBooks namedBooks;
+
+    @Inject
+    @DataSource("books")
+    javax.sql.DataSource namedDataSource;
 
     @Inject
     JimmerBuildTimeConfig buildConfig;
@@ -126,6 +135,24 @@ class HeadlessCoreTest {
         assertEquals(H2Dialect.class.getName(), actual.get("dialect"));
     }
 
+    @Test
+    void namedRepositoryJoinsTheAgroalTransactionWithoutOptionalIntegrations() throws Exception {
+        try (var connection = namedDataSource.getConnection(); var statement = connection.createStatement()) {
+            statement.execute("create table CDI_BOOK (ID bigint primary key, NAME varchar(100) not null)");
+            statement.executeUpdate("insert into CDI_BOOK (ID, NAME) values (1, 'Named')");
+        }
+
+        transactions.begin();
+        try {
+            assertEquals("Named", namedBooks.findById(1L).orElseThrow().name());
+            namedBooks.deleteById(1L);
+            assertTrue(namedBooks.findById(1L).isEmpty());
+        } finally {
+            transactions.rollback();
+        }
+        assertEquals("Named", namedBooks.findById(1L).orElseThrow().name());
+    }
+
     private static Set<ArtifactKey> withoutOptionalIntegrations() {
         return Stream.of(OptionalIntegrationTestSupport.withoutHttp(), OptionalIntegrationTestSupport.withoutScheduler(),
                 OptionalIntegrationTestSupport.withoutCacheBackends(),
@@ -135,6 +162,10 @@ class HeadlessCoreTest {
 
     public interface Books extends JRepository<CdiBook, Long> {
         List<CdiBook> findByIdGreaterThan(long id, Specification<CdiBook> specification);
+    }
+
+    @DataSource("books")
+    public interface NamedBooks extends JRepository<CdiBook, Long> {
     }
 
     public record NameSpecification(String name) implements JSpecification<CdiBook, Table<CdiBook>> {
