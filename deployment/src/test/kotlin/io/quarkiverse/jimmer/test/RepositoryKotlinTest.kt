@@ -9,7 +9,7 @@ import io.quarkiverse.jimmer.runtime.repository.orderBy as legacyOrderBy
 import io.quarkiverse.jimmer.test.model.CdiBook
 import io.quarkiverse.jimmer.test.model.CdiBookView
 import io.quarkus.arc.Arc
-import io.quarkus.test.QuarkusUnitTest
+import io.quarkus.test.QuarkusExtensionTest
 import io.quarkus.narayana.jta.QuarkusTransaction
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -44,7 +44,7 @@ class RepositoryKotlinTest {
     companion object {
         @JvmField
         @RegisterExtension
-        val app: QuarkusUnitTest = QuarkusUnitTest()
+        val app: QuarkusExtensionTest = QuarkusExtensionTest()
             .setArchiveProducer {
                 ShrinkWrap.create(JavaArchive::class.java)
                     .addPackage(CdiBook::class.java.`package`)

@@ -262,8 +262,10 @@ Clients using the same datasource name must refer to the same database and compa
 For automatically selected CDI cache factories, the extension preserves `FilterStateAware` support even when a producer's declared `CacheFactory` return type hides that interface behind an ArC proxy. Cache creation still goes through the original CDI reference.
 
 The integration application's `CacheFactory` producer passes the blocking `RedisDataSource` and
-`JimmerJsonCodecs.toJsonCodecV2(objectMapper)` to Jimmer's `org.babyfish.jimmer.sql.cache.redis.quarkus.RedisCacheCreator`.
+`JimmerJsonCodecs.toJsonCodecV3(jsonMapper)` to Jimmer's `org.babyfish.jimmer.sql.cache.redis.quarkus.RedisCacheCreator`.
+Inject Quarkus's `tools.jackson.databind.json.JsonMapper` to share application customizations with the cache.
 The example configures entity, association and resolver caches, a local Caffeine cache, and optional Redisson locking and tracking.
+Redisson's tracker uses its configured topic codec (Kryo5 by default) for cache invalidation messages between nodes.
 See the [complete CDI configuration](integration-tests/src/main/java/io/quarkiverse/jimmer/it/config/CacheConfig.java) and its [Maven dependencies](integration-tests/pom.xml).
 
 ### Remote Associations

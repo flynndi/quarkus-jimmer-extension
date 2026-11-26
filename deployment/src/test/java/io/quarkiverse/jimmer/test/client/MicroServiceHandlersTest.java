@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.net.URL;
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
@@ -20,8 +20,9 @@ import jakarta.enterprise.inject.Disposes;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import jakarta.ws.rs.WebApplicationException;
 
-import org.babyfish.jimmer.jackson.v2.ImmutableModuleV2;
+import org.babyfish.jimmer.jackson.v3.ImmutableModuleV3;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.runtime.DefaultExecutor;
@@ -35,8 +36,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsHandler;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsHandler;
@@ -47,13 +46,14 @@ import io.quarkiverse.jimmer.test.http.model.HttpStore;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ManagedContext;
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
+import tools.jackson.databind.json.JsonMapper;
 
 class MicroServiceHandlersTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(HttpBook.class.getPackage())
                     .addClasses(Counters.class, RequestState.class, MapperProducer.class, RequestCheckingExecutor.class,
@@ -64,6 +64,9 @@ class MicroServiceHandlersTest {
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
             .overrideConfigKey("quarkus.datasource.jdbc.url", "jdbc:h2:mem:http-handlers;DB_CLOSE_DELAY=-1")
+            .overrideConfigKey("quarkus.management.enabled", "true")
+            .overrideConfigKey("quarkus.management.test-port", "0")
+            .overrideConfigKey("quarkus.management.root-path", "/operations")
             .overrideConfigKey("quarkus.jimmer.micro-service-name", "http-test");
 
     @Inject
@@ -79,7 +82,10 @@ class MicroServiceHandlersTest {
     Counters counters;
 
     @TestHTTPResource
-    URL baseUrl;
+    URI applicationUrl;
+
+    @TestHTTPResource(management = true)
+    URI managementUrl;
 
     @BeforeEach
     void prepare() throws SQLException {
@@ -110,7 +116,8 @@ class MicroServiceHandlersTest {
         HttpTestResponse second = new HttpTestResponse();
         associatedIds.handle(second.context(Map.of(Constant.FETCHER, fetcher(), Constant.PROP, "store",
                 Constant.TARGET_IDS, "[10]")));
-        assertTrue(second.body.toString().contains("Alpha"));
+        assertEquals(JsonMapper.shared().readTree("[{\"_1\":10,\"_2\":{\"id\":1,\"name\":\"Alpha\"}}]"),
+                JsonMapper.shared().readTree(second.body.toString()));
         assertEquals(2, counters.created.get());
         assertEquals(2, counters.destroyed.get());
         assertEquals(2, counters.mappersDisposed.get());
@@ -149,15 +156,20 @@ class MicroServiceHandlersTest {
     }
 
     @Test
-    void programmaticRestClientCallsBothExportersWithoutRegisterRestClient() throws Exception {
-        ExchangeRestClient client = QuarkusRestClientBuilder.newBuilder().baseUrl(baseUrl).build(ExchangeRestClient.class);
-        try {
+    void programmaticRestClientCallsBothExportersOnTheManagementPort() throws Exception {
+        // The bridge paths are absolute and @TestHTTPResource includes the management root.
+        try (var client = QuarkusRestClientBuilder.newBuilder().baseUri(managementUrl.resolve("/"))
+                .build(ExchangeRestClient.class)) {
             assertTrue(client.findByIds("[1]", fetcher()).contains("Alpha"));
             assertTrue(client.findByAssociatedIds("store", "[10]", fetcher()).contains("Alpha"));
-        } finally {
-            ((AutoCloseable) client).close();
         }
         assertTrue(counters.queries.get() >= 2);
+        try (var client = QuarkusRestClientBuilder.newBuilder().baseUri(applicationUrl).build(ExchangeRestClient.class)) {
+            assertEquals(404, assertThrows(WebApplicationException.class,
+                    () -> client.findByIds("[1]", fetcher())).getResponse().getStatus());
+            assertEquals(404, assertThrows(WebApplicationException.class,
+                    () -> client.findByAssociatedIds("store", "[10]", fetcher())).getResponse().getStatus());
+        }
     }
 
     private static Map<String, String> parameters() {
@@ -212,20 +224,20 @@ class MicroServiceHandlersTest {
     public static class MapperProducer {
         @Produces
         @RequestScoped
-        ObjectMapper mapper(RequestState state, Counters counters) {
+        JsonMapper mapper(RequestState state, Counters counters) {
             state.touch();
             counters.mappersCreated.incrementAndGet();
-            return new ObjectMapper().registerModule(new ImmutableModuleV2());
+            return JsonMapper.builder().addModule(new ImmutableModuleV3()).build();
         }
 
-        void dispose(@Disposes ObjectMapper mapper, Counters counters) {
+        void dispose(@Disposes JsonMapper mapper, Counters counters) {
             counters.mappersDisposed.incrementAndGet();
         }
 
         @Produces
         @Singleton
         @io.quarkus.agroal.DataSource("unrelated")
-        ObjectMapper unrelatedMapper() {
+        JsonMapper unrelatedMapper() {
             throw new AssertionError("A datasource-qualified mapper is not the default HTTP mapper");
         }
 

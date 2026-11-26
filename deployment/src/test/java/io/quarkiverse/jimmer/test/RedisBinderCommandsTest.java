@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -23,9 +22,6 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.Cache;
 import org.babyfish.jimmer.sql.cache.CacheEnvironment;
 import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 import io.quarkiverse.jimmer.runtime.cache.RedisCacheCreator;
 import io.quarkiverse.jimmer.runtime.cache.RedisHashBinder;
@@ -36,14 +32,16 @@ import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.hash.HashCommands;
 import io.quarkus.redis.datasource.keys.KeyCommands;
 import io.quarkus.redis.datasource.value.ValueCommands;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 class RedisBinderCommandsTest {
 
     @Test
     void creatorBuildsObjectAndPropertyCachesWithACallerSuppliedMapper() {
         RedisCommands redis = new RedisCommands();
-        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        var modules = Set.copyOf(mapper.getRegisteredModuleIds());
+        JsonMapper mapper = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build();
+        var modules = List.copyOf(mapper.registeredModules());
         RedisCacheCreator creator = new RedisCacheCreator(redis.dataSource, mapper);
         var type = ImmutableType.get(CdiBook.class);
         var name = type.getProp("name");
@@ -52,7 +50,7 @@ class RedisBinderCommandsTest {
         assertSame(type, objects.type());
         assertSame(name, creator.createForProp(name, false).prop());
         assertSame(name, creator.createForProp(name, true).prop());
-        assertEquals(modules, mapper.getRegisteredModuleIds());
+        assertEquals(modules, List.copyOf(mapper.registeredModules()));
         assertTrue(redis.calls.isEmpty());
 
         CdiBook book = CdiBookDraft.$.produce(draft -> draft.setId(1L).setName("Example"));

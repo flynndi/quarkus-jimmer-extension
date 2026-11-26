@@ -1,36 +1,26 @@
 package io.quarkiverse.jimmer.it.config.jsonmapping;
 
-import java.io.IOException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ValueDeserializer;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.MissingNode;
-
-class AuthUserDeserializer extends JsonDeserializer<AuthUser> {
+class AuthUserDeserializer extends ValueDeserializer<AuthUser> {
     @Override
-    public AuthUser deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
-            throws IOException {
-        ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
-        JsonNode jsonNode = mapper.readTree(jsonParser);
-        String authorities = readJsonNode(jsonNode, "authorities").asText();
-        JsonNode passwordNode = readJsonNode(jsonNode, "password");
-        String username = readJsonNode(jsonNode, "username").asText();
-        String id = readJsonNode(jsonNode, "id").asText();
-        String password = passwordNode.asText("");
-        boolean enabled = readJsonNode(jsonNode, "enabled").asBoolean();
-        boolean accountNonExpired = readJsonNode(jsonNode, "accountNonExpired").asBoolean();
-        boolean credentialsNonExpired = readJsonNode(jsonNode, "credentialsNonExpired").asBoolean();
-        boolean accountNonLocked = readJsonNode(jsonNode, "accountNonLocked").asBoolean();
-        String tenantId = readJsonNode(jsonNode, "tenantId").asText();
-        boolean deleteFlag = readJsonNode(jsonNode, "deleteFlag").asBoolean();
-        return new AuthUser(id, username, password, authorities, accountNonExpired, accountNonLocked, credentialsNonExpired,
+    public AuthUser deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
+        JsonNode jsonNode = deserializationContext.readTree(jsonParser);
+        String authorities = jsonNode.path("authorities").asString();
+        JsonNode passwordNode = jsonNode.path("password");
+        String username = jsonNode.path("username").asString();
+        String id = jsonNode.path("id").asString();
+        String password = passwordNode.asString("");
+        boolean enabled = jsonNode.path("enabled").asBoolean();
+        boolean accountNonExpired = jsonNode.path("accountNonExpired").asBoolean();
+        boolean credentialsNonExpired = jsonNode.path("credentialsNonExpired").asBoolean();
+        boolean accountNonLocked = jsonNode.path("accountNonLocked").asBoolean();
+        String tenantId = jsonNode.path("tenantId").asString();
+        boolean deleteFlag = jsonNode.path("deleteFlag").asBoolean();
+        return new AuthUser(id, password, username, authorities, accountNonExpired, accountNonLocked, credentialsNonExpired,
                 enabled, tenantId, deleteFlag);
-    }
-
-    private JsonNode readJsonNode(JsonNode jsonNode, String field) {
-        return jsonNode.has(field) ? jsonNode.get(field) : MissingNode.getInstance();
     }
 }

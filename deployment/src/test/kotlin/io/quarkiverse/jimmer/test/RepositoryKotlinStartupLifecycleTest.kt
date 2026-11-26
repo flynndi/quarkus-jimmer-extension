@@ -4,7 +4,7 @@ import io.quarkiverse.jimmer.runtime.repository.KRepository
 import io.quarkiverse.jimmer.test.model.CdiBook
 import io.quarkus.agroal.DataSource
 import io.quarkus.runtime.StartupEvent
-import io.quarkus.test.QuarkusUnitTest
+import io.quarkus.test.QuarkusExtensionTest
 import jakarta.enterprise.event.Observes
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -18,7 +18,7 @@ class RepositoryKotlinStartupLifecycleTest {
     companion object {
         @JvmField
         @RegisterExtension
-        val app: QuarkusUnitTest = RepositoryStartupTestSupport.application("kotlin",
+        val app: QuarkusExtensionTest = RepositoryStartupTestSupport.application("kotlin",
             DefaultBooks::class.java, NamedBooks::class.java, StartupSchema::class.java)
     }
 

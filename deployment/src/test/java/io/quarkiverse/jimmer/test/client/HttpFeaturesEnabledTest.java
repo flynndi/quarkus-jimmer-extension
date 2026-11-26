@@ -9,18 +9,17 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.builder.Version;
 import io.quarkus.maven.dependency.Dependency;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
+import tools.jackson.databind.json.JsonMapper;
 
 class HttpFeaturesEnabledTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(HttpFeatureTestSupport::addMetadata)
             .setForcedDependencies(List.of(Dependency.of("io.quarkus", "quarkus-rest-jackson", Version.getVersion())))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
@@ -53,8 +52,8 @@ class HttpFeaturesEnabledTest {
         var response = HttpFeatureTestSupport.get(baseUrl.toURI().resolve("/app/http-feature/failure"));
         assertEquals(409, response.statusCode(), response.body());
         assertTrue(response.headers().firstValue("content-type").orElse("").startsWith("application/json"));
-        var error = new ObjectMapper().readTree(response.body());
-        assertEquals("HTTP_TEST", error.path("family").asText());
-        assertEquals("EXPECTED_FAILURE", error.path("code").asText());
+        var error = JsonMapper.shared().readTree(response.body());
+        assertEquals("HTTP_TEST", error.path("family").asString());
+        assertEquals("EXPECTED_FAILURE", error.path("code").asString());
     }
 }

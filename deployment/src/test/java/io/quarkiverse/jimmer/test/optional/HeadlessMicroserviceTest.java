@@ -15,14 +15,15 @@ import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class HeadlessMicroserviceTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = OptionalIntegrationTestSupport.isolateExcludedDependencies(new QuarkusUnitTest(),
-            Stream.concat(OptionalIntegrationTestSupport.withoutHttp().stream(),
-                    OptionalIntegrationTestSupport.withoutAntlr().stream()).collect(Collectors.toSet()))
+    static final QuarkusExtensionTest APP = OptionalIntegrationTestSupport
+            .isolateExcludedDependencies(new QuarkusExtensionTest(),
+                    Stream.concat(OptionalIntegrationTestSupport.withoutHttp().stream(),
+                            OptionalIntegrationTestSupport.withoutAntlr().stream()).collect(Collectors.toSet()))
             .withApplicationRoot(archive -> archive.addClasses(OptionalIntegrationTestSupport.class,
                     MicroserviceTestSupport.DefaultExchange.class,
                     MicroserviceTestSupport.NamedExchange.class))

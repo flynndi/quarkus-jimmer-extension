@@ -25,13 +25,13 @@ import io.quarkiverse.jimmer.test.model.sort.LegacySortBook;
 import io.quarkiverse.jimmer.test.model.sort.LegacySortBookDraft;
 import io.quarkiverse.jimmer.test.model.sort.LegacySortBookFetcher;
 import io.quarkiverse.jimmer.test.model.sort.LegacySortBookProps;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 @SuppressWarnings("deprecation")
 class LegacySortIgnoreCaseTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(LegacySortBook.class.getPackage())
                     .addClasses(Books.class, BookView.class)

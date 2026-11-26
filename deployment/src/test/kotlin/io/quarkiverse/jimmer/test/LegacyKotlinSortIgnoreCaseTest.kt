@@ -7,7 +7,7 @@ import io.quarkiverse.jimmer.runtime.repository.orderByIf as legacyOrderByIf
 import io.quarkiverse.jimmer.test.model.CdiBook
 import io.quarkiverse.jimmer.test.model.CdiBookFetcher
 import io.quarkiverse.jimmer.test.model.CdiBookView
-import io.quarkus.test.QuarkusUnitTest
+import io.quarkus.test.QuarkusExtensionTest
 import jakarta.inject.Inject
 import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.jboss.shrinkwrap.api.ShrinkWrap
@@ -24,7 +24,7 @@ class LegacyKotlinSortIgnoreCaseTest {
     companion object {
         @JvmField
         @RegisterExtension
-        val app: QuarkusUnitTest = QuarkusUnitTest()
+        val app: QuarkusExtensionTest = QuarkusExtensionTest()
             .setArchiveProducer {
                 ShrinkWrap.create(JavaArchive::class.java)
                     .addPackage(CdiBook::class.java.`package`)

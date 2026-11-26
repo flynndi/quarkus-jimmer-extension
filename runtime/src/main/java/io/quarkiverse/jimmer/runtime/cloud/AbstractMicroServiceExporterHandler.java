@@ -4,14 +4,13 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkus.arc.WithCaching;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 public abstract class AbstractMicroServiceExporterHandler implements Handler<RoutingContext> {
 
@@ -20,13 +19,13 @@ public abstract class AbstractMicroServiceExporterHandler implements Handler<Rou
 
     @Inject
     @WithCaching
-    Instance<ObjectMapper> objectMappers;
+    Instance<JsonMapper> jsonMappers;
 
-    protected void doHandle(HttpServerResponse response, ObjectMapper objectMapper, Object result) {
+    protected void doHandle(HttpServerResponse response, JsonMapper jsonMapper, Object result) {
         try {
             response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                    .end(objectMapper.writeValueAsString(result));
-        } catch (JsonProcessingException e) {
+                    .end(jsonMapper.writeValueAsString(result));
+        } catch (JacksonException e) {
             throw new IllegalStateException("Cannot serialize the Jimmer microservice response", e);
         }
     }

@@ -7,17 +7,13 @@ import jakarta.inject.Singleton;
 
 import org.babyfish.jimmer.impl.util.Classes;
 import org.babyfish.jimmer.meta.ImmutableProp;
-import org.babyfish.jimmer.runtime.ImmutableSpi;
-import org.babyfish.jimmer.sql.ast.tuple.Tuple2;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.babyfish.jimmer.sql.fetcher.compiler.FetcherCompiler;
 import org.babyfish.jimmer.sql.runtime.MicroServiceExporter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.vertx.ext.web.RoutingContext;
+import tools.jackson.databind.json.JsonMapper;
 
 @Singleton
 public class MicroServiceExporterAssociatedIdsHandler extends AbstractMicroServiceExporterHandler {
@@ -25,7 +21,7 @@ public class MicroServiceExporterAssociatedIdsHandler extends AbstractMicroServi
     @Override
     @ActivateRequestContext
     public void handle(RoutingContext routingContext) {
-        ObjectMapper objectMapper = objectMappers.get();
+        JsonMapper objectMapper = jsonMappers.get();
         MicroServiceExporter exporter = new MicroServiceExporter(sqlClient.get());
 
         String prop = routingContext.request().getParam(Constant.PROP);
@@ -35,16 +31,13 @@ public class MicroServiceExporterAssociatedIdsHandler extends AbstractMicroServi
         Fetcher<?> fetcher = FetcherCompiler.compile(fetcherStr, Thread.currentThread().getContextClassLoader());
         ImmutableProp immutableProp = fetcher.getImmutableType().getProp(prop);
         Class<?> targetIdType = immutableProp.getTargetType().getIdProp().getElementClass();
-        List<?> targetIds;
-        try {
-            targetIds = objectMapper.readValue(
-                    targetIdArrStr,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, Classes.boxTypeOf(targetIdType)));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        List<?> targetIds = objectMapper.readValue(targetIdArrStr,
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Classes.boxTypeOf(targetIdType)));
+        // Java and Kotlin consumers both read the property names declared on Jimmer's Tuple2 constructor.
+        var result = objectMapper.createArrayNode();
+        for (var tuple : exporter.findByAssociatedIds(immutableProp, targetIds, fetcher)) {
+            result.addObject().putPOJO("_1", tuple.get_1()).putPOJO("_2", tuple.get_2());
         }
-
-        List<Tuple2<Object, ImmutableSpi>> result = exporter.findByAssociatedIds(immutableProp, targetIds, fetcher);
 
         doHandle(routingContext.response(), objectMapper, result);
     }

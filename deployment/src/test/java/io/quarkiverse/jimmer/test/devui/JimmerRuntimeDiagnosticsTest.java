@@ -15,18 +15,17 @@ import org.babyfish.jimmer.sql.runtime.Customizer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerRuntimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.devui.JimmerDevUIService;
 import io.quarkus.arc.Arc;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
+import tools.jackson.databind.json.JsonMapper;
 
 class JimmerRuntimeDiagnosticsTest {
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addClass(ProbeCustomizer.class))
             .overrideConfigKey("quarkus.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
@@ -82,7 +81,7 @@ class JimmerRuntimeDiagnosticsTest {
         assertEquals(0, actual.get("propertyCacheCount"));
         assertEquals("initialized", ((List<Map<String, Object>>) diagnostics.getClients().get("clients")).get(0).get("state"));
         assertEquals(1, ProbeCustomizer.INVOCATIONS.get());
-        String json = new ObjectMapper().writeValueAsString(snapshot);
+        String json = JsonMapper.shared().writeValueAsString(snapshot);
         assertFalse(json.contains("jdbc:h2"));
         assertFalse(json.contains("never-export-this-password"));
     }

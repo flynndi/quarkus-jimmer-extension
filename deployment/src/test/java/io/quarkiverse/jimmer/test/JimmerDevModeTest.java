@@ -22,13 +22,12 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.repo.support.AbstractJavaRepository;
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkus.test.QuarkusDevModeTest;
 import io.quarkus.test.common.http.TestHTTPResource;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 public class JimmerDevModeTest {
 
@@ -59,20 +58,20 @@ public class JimmerDevModeTest {
         String html = get("/q/dev-ui/");
         var matcher = Pattern.compile("<script type=\"importmap\">(.*?)</script>", Pattern.DOTALL).matcher(html);
         assertTrue(matcher.find(), "Quarkus Dev UI must supply its import map");
-        var imports = new ObjectMapper().readTree(matcher.group(1)).get("imports");
+        var imports = JsonMapper.shared().readTree(matcher.group(1)).get("imports");
         String namespace = "quarkus-jimmer";
         assertTrue(imports.has(namespace + "-data"), imports::toPrettyString);
-        String module = get(imports.get(namespace + "-data").asText());
+        String module = get(imports.get(namespace + "-data").asString());
         String json = module.substring(module.indexOf("export const jimmer = ") + "export const jimmer = ".length()).strip();
         if (json.endsWith(";")) {
             json = json.substring(0, json.length() - 1);
         }
-        var data = new ObjectMapper().readTree(json);
-        assertEquals(CdiBook.class.getName(), data.at("/entities/0/name").asText());
-        assertEquals("id", data.at("/entities/0/properties/0/name").asText());
-        assertEquals(Books.class.getName(), data.at("/overview/repositories/0/name").asText());
-        assertEquals("<default>", data.at("/overview/repositories/0/dataSource").asText());
-        assertEquals("h2", data.at("/overview/dataSources/0/dbKind").asText());
+        var data = JsonMapper.shared().readTree(json);
+        assertEquals(CdiBook.class.getName(), data.at("/entities/0/name").asString());
+        assertEquals("id", data.at("/entities/0/properties/0/name").asString());
+        assertEquals(Books.class.getName(), data.at("/overview/repositories/0/name").asString());
+        assertEquals("<default>", data.at("/overview/repositories/0/dataSource").asString());
+        assertEquals("h2", data.at("/overview/dataSources/0/dbKind").asString());
         assertFalse(module.contains("jdbc:h2"));
         assertFalse(module.contains("dev-ui-must-not-export-this"));
 
@@ -91,23 +90,23 @@ public class JimmerDevModeTest {
         assertTrue(source.contains("JsonRpc"));
         JsonNode clients = rpc("getClients", Map.of());
         assertTrue(clients.path("enabled").asBoolean());
-        assertEquals("5s", clients.at("/cacheRetry/interval").asText());
+        assertEquals("5s", clients.at("/cacheRetry/interval").asString());
         assertTrue(clients.at("/cacheRetry/intervalEnabled").asBoolean());
         assertTrue(clients.at("/cacheRetry/schedulerEnabled").asBoolean());
-        assertEquals("uninitialized", clients.at("/clients/0/state").asText());
-        assertEquals("inactive", clients.at("/clients/1/state").asText());
+        assertEquals("uninitialized", clients.at("/clients/0/state").asString());
+        assertEquals("inactive", clients.at("/clients/1/state").asString());
         JsonNode client = rpc("getClient", Map.of("name", "<default>"));
-        assertEquals("uninitialized", client.path("state").asText());
+        assertEquals("uninitialized", client.path("state").asString());
         // Quarkus's JSON-RPC mapper omits null map values.
         assertFalse(client.hasNonNull("actual"), client::toPrettyString);
-        assertEquals("BINLOG_ONLY", client.at("/configured/triggerType").asText());
+        assertEquals("BINLOG_ONLY", client.at("/configured/triggerType").asString());
         assertFalse(client.toString().contains("jdbc:h2"));
         assertFalse(client.toString().contains("dev-ui-must-not-export-this"));
-        assertEquals("uninitialized", rpc("getClients", Map.of()).at("/clients/0/state").asText());
+        assertEquals("uninitialized", rpc("getClients", Map.of()).at("/clients/0/state").asString());
     }
 
     private JsonNode rpc(String method, Map<String, Object> params) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
+        JsonMapper mapper = JsonMapper.shared();
         CompletableFuture<String> response = new CompletableFuture<>();
         WebSocket socket = HTTP.newWebSocketBuilder().connectTimeout(Duration.ofSeconds(10))
                 .buildAsync(URI.create("ws://" + baseUri.getAuthority() + "/q/dev-ui/json-rpc-ws"),

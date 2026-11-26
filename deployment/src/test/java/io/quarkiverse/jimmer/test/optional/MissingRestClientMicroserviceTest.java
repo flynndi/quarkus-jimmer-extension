@@ -6,12 +6,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class MissingRestClientMicroserviceTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addClass(OptionalIntegrationTestSupport.class))
             .setExcludedDependencies(OptionalIntegrationTestSupport.withoutRestClient())
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")

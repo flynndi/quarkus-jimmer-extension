@@ -18,13 +18,18 @@ import org.babyfish.jimmer.ClientException;
 import org.babyfish.jimmer.client.ApiIgnore;
 import org.babyfish.jimmer.error.CodeBasedRuntimeException;
 import org.babyfish.jimmer.sql.fetcher.Fetcher;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.quarkiverse.jimmer.runtime.util.Constant;
+import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
@@ -43,11 +48,12 @@ class JimmerClientProcessorTest {
         var availability = new JimmerClientAvailabilityBuildItem(false, false, false);
         List<IgnoreJsonDeserializeClassBuildItem> ignored = new ArrayList<>();
         List<ReflectiveClassBuildItem> reflection = new ArrayList<>();
+        List<ReflectiveMethodBuildItem> constructors = new ArrayList<>();
         List<NativeImageResourceBuildItem> resources = new ArrayList<>();
         List<ReflectiveFieldBuildItem> fields = new ArrayList<>();
 
         processor.excludeJimmerClientMetadataFromAutoJacksonReflection(ignored::add);
-        processor.registerJimmerClientMetadataForReflection(availability, reflection::add);
+        processor.registerJimmerClientMetadataForReflection(availability, reflection::add, constructors::add);
         processor.registerClientMetadataResource(availability, resources::add);
         var index = new Indexer().complete();
         processor.registerClientApiReflection(availability, new CombinedIndexBuildItem(index, index),
@@ -57,30 +63,58 @@ class JimmerClientProcessorTest {
         assertTrue(ignoredNames.contains("org.babyfish.jimmer.client.meta.Doc"));
         assertTrue(ignoredNames.contains("org.babyfish.jimmer.client.meta.impl.SchemaImpl"));
         assertTrue(reflection.isEmpty());
+        assertTrue(constructors.isEmpty());
         assertTrue(resources.isEmpty());
         assertTrue(fields.isEmpty());
     }
 
     @Test
-    void programmaticGenerationKeepsMetadataResourcesAndOnlyJacksonTwoReflectionWithoutHttp() {
+    void programmaticGenerationKeepsMetadataResourcesAndOnlyJacksonThreeReflectionWithoutHttp() {
         var processor = new JimmerClientProcessor();
         var availability = new JimmerClientAvailabilityBuildItem(true, false, false);
         List<ReflectiveClassBuildItem> reflection = new ArrayList<>();
+        List<ReflectiveMethodBuildItem> constructors = new ArrayList<>();
         List<NativeImageResourceBuildItem> resources = new ArrayList<>();
 
-        processor.registerJimmerClientMetadataForReflection(availability, reflection::add);
+        processor.registerJimmerClientMetadataForReflection(availability, reflection::add, constructors::add);
         processor.registerClientMetadataResource(availability, resources::add);
 
         assertEquals(1, reflection.size());
         var metadata = reflection.get(0);
-        assertTrue(metadata.isConstructors());
-        assertFalse(metadata.isClasses(), "Walking all nested types would include the unavailable Jackson 3 serializers");
-        assertTrue(metadata.getClassNames().contains("org.babyfish.jimmer.client.meta.Doc$Builder"));
-        assertTrue(metadata.getClassNames().contains("org.babyfish.jimmer.client.meta.impl.SchemaImpl$SerializerV2"));
-        assertTrue(metadata.getClassNames().contains("org.babyfish.jimmer.client.meta.impl.SchemaImpl$DeserializerV2"));
-        assertTrue(metadata.getClassNames().stream().noneMatch(name -> name.endsWith("V3")));
+        assertFalse(metadata.isConstructors());
+        assertFalse(metadata.isMethods());
+        assertFalse(metadata.isFields());
+        assertTrue(metadata.getClassNames().contains("org.babyfish.jimmer.client.meta.Doc"));
+        assertTrue(metadata.getClassNames().contains("org.babyfish.jimmer.client.meta.impl.SchemaImpl"));
+        assertTrue(metadata.getClassNames().stream().noneMatch(name -> name.contains("$")));
+        var expectedCodecs = metadata.getClassNames().stream()
+                .flatMap(name -> java.util.stream.Stream.of(name + "$SerializerV3", name + "$DeserializerV3"))
+                .collect(Collectors.toSet());
+        assertEquals(expectedCodecs, constructors.stream().map(ReflectiveMethodBuildItem::getDeclaringClass)
+                .collect(Collectors.toSet()));
+        assertTrue(constructors.stream().allMatch(item -> item.getName().equals("<init>") && item.getParams().length == 0));
         assertEquals(List.of(Constant.CLIENT_RESOURCE),
                 resources.stream().flatMap(item -> item.getResources().stream()).toList());
+    }
+
+    @Test
+    void nativeMetadataKeepsAllDeclaredMembersExceptTheLegacyJacksonPair() throws IOException {
+        List<BytecodeTransformerBuildItem> transforms = new ArrayList<>();
+        new JimmerClientProcessor().pruneJackson2MetadataMembers(transforms::add);
+        assertEquals(10, transforms.size());
+        for (var transform : transforms) {
+            String name = transform.getClassToTransform();
+            byte[] original;
+            try (var input = getClass().getResourceAsStream("/" + name.replace('.', '/') + ".class")) {
+                original = input.readAllBytes();
+            }
+            var writer = new ClassWriter(0);
+            new ClassReader(original).accept(transform.getVisitorFunction().apply(name, writer), 0);
+            var expected = new java.util.HashSet<>(Index.singleClass(original).memberClasses());
+            assertTrue(expected.remove(DotName.createSimple(name + "$SerializerV2")));
+            assertTrue(expected.remove(DotName.createSimple(name + "$DeserializerV2")));
+            assertEquals(expected, Index.singleClass(writer.toByteArray()).memberClasses(), name);
+        }
     }
 
     @Test
@@ -115,11 +149,9 @@ class JimmerClientProcessorTest {
         assertEquals(Set.of(ApiService.class.getName(), ApiBase.class.getName(), ApiContract.class.getName()),
                 reflection.stream().flatMap(item -> item.getClassNames().stream()).collect(Collectors.toSet()));
         for (var item : reflection) {
-            assertTrue(item.isQueryMethods(), "Client metadata reads service signatures and annotations without invocation");
             assertFalse(item.isMethods());
             assertFalse(item.isConstructors());
             assertFalse(item.isFields());
-            assertFalse(item.isClasses());
         }
         assertEquals(Set.of(FetcherOwner.class.getName() + "#BOOKS", KotlinFetcherOwner.class.getName() + "#Companion",
                 KotlinFetcherOwner.Companion.class.getName() + "#BOOKS"),
@@ -145,13 +177,10 @@ class JimmerClientProcessorTest {
                 FieldFailure.class.getName() + "#isRetryable"),
                 methods.stream().map(method -> method.getDeclaringClass() + "#" + method.getName())
                         .collect(Collectors.toSet()));
-        assertTrue(methods.stream().noneMatch(ReflectiveMethodBuildItem::isQueryOnly));
         for (var item : reflection) {
-            assertTrue(item.isQueryMethods());
             assertFalse(item.isMethods());
             assertFalse(item.isConstructors());
             assertFalse(item.isFields());
-            assertFalse(item.isClasses());
         }
     }
 

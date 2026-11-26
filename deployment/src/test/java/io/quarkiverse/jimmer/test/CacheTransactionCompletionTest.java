@@ -63,12 +63,12 @@ import io.quarkiverse.jimmer.test.model.CdiBookDraft;
 import io.quarkiverse.jimmer.test.model.sort.LegacySortBook;
 import io.quarkus.agroal.DataSource.DataSourceLiteral;
 import io.quarkus.arc.Arc;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class CacheTransactionCompletionTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addPackage(CdiBook.class.getPackage())
                     .addPackage(LegacySortBook.class.getPackage())
                     .addClasses(RecordingOperator.class, RecordingCacheFactory.class, TrackingCache.class, Observation.class,

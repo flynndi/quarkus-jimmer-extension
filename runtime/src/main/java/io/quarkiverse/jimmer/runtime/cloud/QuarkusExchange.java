@@ -20,12 +20,11 @@ import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.babyfish.jimmer.sql.runtime.MicroServiceExchange;
 import org.jboss.logging.Logger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
 import io.quarkus.restclient.config.RestClientsConfig;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.type.TypeFactory;
 
 @ApplicationScoped
 @DefaultBean
@@ -33,7 +32,7 @@ public class QuarkusExchange implements MicroServiceExchange {
 
     private static final Logger LOG = Logger.getLogger(QuarkusExchange.class);
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     private final RestClientsConfig restClientsConfig;
 
@@ -46,8 +45,8 @@ public class QuarkusExchange implements MicroServiceExchange {
 
     private boolean closed;
 
-    public QuarkusExchange(ObjectMapper objectMapper, RestClientsConfig restClientsConfig) {
-        this.objectMapper = objectMapper;
+    public QuarkusExchange(JsonMapper jsonMapper, RestClientsConfig restClientsConfig) {
+        this.jsonMapper = jsonMapper;
         this.restClientsConfig = restClientsConfig;
     }
 
@@ -55,10 +54,10 @@ public class QuarkusExchange implements MicroServiceExchange {
     public List<ImmutableSpi> findByIds(String microServiceName, Collection<?> ids, Fetcher<?> fetcher) throws Exception {
         lifecycleLock.readLock().lock();
         try {
-            String json = client(microServiceName).findByIds(objectMapper.writeValueAsString(ids), fetcher.toString());
-            return objectMapper.readValue(
+            String json = client(microServiceName).findByIds(jsonMapper.writeValueAsString(ids), fetcher.toString());
+            return jsonMapper.readValue(
                     json,
-                    objectMapper.getTypeFactory().constructParametricType(
+                    jsonMapper.getTypeFactory().constructParametricType(
                             List.class,
                             fetcher.getImmutableType().getJavaClass()));
         } finally {
@@ -72,10 +71,10 @@ public class QuarkusExchange implements MicroServiceExchange {
         lifecycleLock.readLock().lock();
         try {
             String json = client(microServiceName).findByAssociatedIds(prop.getName(),
-                    objectMapper.writeValueAsString(targetIds),
+                    jsonMapper.writeValueAsString(targetIds),
                     fetcher.toString());
-            TypeFactory typeFactory = objectMapper.getTypeFactory();
-            return objectMapper.readValue(
+            TypeFactory typeFactory = jsonMapper.getTypeFactory();
+            return jsonMapper.readValue(
                     json,
                     typeFactory.constructParametricType(
                             List.class,

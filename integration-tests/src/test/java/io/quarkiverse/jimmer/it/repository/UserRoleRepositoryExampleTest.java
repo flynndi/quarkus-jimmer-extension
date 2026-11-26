@@ -43,5 +43,7 @@ class UserRoleRepositoryExampleTest {
         assertEquals(USER_ROLE_ID, role.id());
         assertEquals(Constant.USER_ID, role.userId());
         assertEquals(Constant.ROLE_ID, role.roleId());
+        assertEquals("123", role.authUser().getId());
+        assertEquals("", role.authUser().getPassword());
     }
 }

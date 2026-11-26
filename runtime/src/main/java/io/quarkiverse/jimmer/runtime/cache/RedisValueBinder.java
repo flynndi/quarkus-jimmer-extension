@@ -3,7 +3,6 @@ package io.quarkiverse.jimmer.runtime.cache;
 import java.time.Duration;
 import java.util.*;
 
-import org.babyfish.jimmer.jackson.codec.JsonCodec;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.cache.CacheTracker;
@@ -14,14 +13,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
 import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.keys.KeyCommands;
 import io.quarkus.redis.datasource.value.ValueCommands;
+import tools.jackson.databind.json.JsonMapper;
 
-@Deprecated
 public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisValueBinder.class);
@@ -34,18 +31,14 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
             @Nullable ImmutableType type,
             @Nullable ImmutableProp prop,
             @Nullable CacheTracker tracker,
-            @Nullable ObjectMapper objectMapper,
+            @Nullable JsonMapper jsonMapper,
             @Nullable RemoteKeyPrefixProvider keyPrefixProvider,
             @NotNull Duration duration,
             int randomPercent,
             @NotNull RedisDataSource redisDataSource) {
-        super(type, prop, tracker, toCodec(objectMapper), keyPrefixProvider, duration, randomPercent);
+        super(type, prop, tracker, JimmerJsonCodecs.toJsonCodecV3(jsonMapper), keyPrefixProvider, duration, randomPercent);
         this.operations = redisDataSource.value(byte[].class);
         this.keyCommands = redisDataSource.key();
-    }
-
-    static JsonCodec<?> toCodec(@Nullable ObjectMapper objectMapper) {
-        return JimmerJsonCodecs.toJsonCodecV2(objectMapper);
     }
 
     @Override
@@ -102,7 +95,7 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
 
         private RedisDataSource redisDataSource;
 
-        private ObjectMapper objectMapper;
+        private JsonMapper jsonMapper;
 
         protected Builder(ImmutableType type, ImmutableProp prop) {
             super(type, prop, null);
@@ -113,8 +106,8 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
             return this;
         }
 
-        public Builder<K, V> objectMapper(ObjectMapper objectMapper) {
-            this.objectMapper = objectMapper;
+        public Builder<K, V> objectMapper(JsonMapper jsonMapper) {
+            this.jsonMapper = jsonMapper;
             return this;
         }
 
@@ -122,7 +115,7 @@ public class RedisValueBinder<K, V> extends AbstractRemoteValueBinder<K, V> {
             if (null == redisDataSource) {
                 throw new IllegalStateException("RedisDataSource has not been specified");
             }
-            return new RedisValueBinder<>(type, prop, tracker, objectMapper, keyPrefixProvider, duration, randomPercent,
+            return new RedisValueBinder<>(type, prop, tracker, jsonMapper, keyPrefixProvider, duration, randomPercent,
                     redisDataSource);
         }
     }

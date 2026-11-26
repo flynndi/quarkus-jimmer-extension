@@ -12,10 +12,11 @@ import java.util.Set;
 import org.babyfish.jimmer.ClientException;
 import org.babyfish.jimmer.impl.util.StringUtil;
 import org.jboss.jandex.DotName;
-
-import com.fasterxml.jackson.databind.JsonNode;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
 
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Enabled;
+import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Jackson2Present;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerConfigValidator;
 import io.quarkiverse.jimmer.runtime.client.openapi.OpenApiRecorder;
@@ -28,6 +29,7 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
@@ -35,9 +37,11 @@ import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveFieldBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
+import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
 import io.quarkus.jackson.deployment.IgnoreJsonDeserializeClassBuildItem;
 import io.quarkus.runtime.configuration.ConfigurationException;
 import io.quarkus.vertx.http.deployment.spi.RouteBuildItem;
+import tools.jackson.databind.JsonNode;
 
 final class JimmerClientProcessor {
 
@@ -116,38 +120,60 @@ final class JimmerClientProcessor {
         });
     }
 
-    @BuildStep(onlyIf = Enabled.class)
+    @BuildStep
     void excludeJimmerClientMetadataFromAutoJacksonReflection(
             BuildProducer<IgnoreJsonDeserializeClassBuildItem> ignoredClasses) {
-        // Each class below declares both a Jackson-2 (V2) and a Jackson-3 (V3) serializer/deserializer as
-        // nested classes. Quarkus's automatic Jackson reflection registration walks the *entire* declared-class
-        // hierarchy (allDeclaredClasses) of every Jackson-annotated type it finds, which drags in the V3 nested
-        // classes even though only Jackson 2 is on the runtime classpath. Loading those V3 classes during the
-        // native-image build fails with NoClassDefFoundError (tools.jackson.databind.ValueSerializer/ValueDeserializer
-        // are absent), so these classes are excluded from that automatic walk; the members actually needed are
-        // registered explicitly below when generation is available. These metadata types live in jimmer-core,
-        // so this exclusion must also apply when the optional jimmer-client dependency is absent.
+        // Jimmer core ships metadata for both Jackson versions. Select the Jackson 3 implementations below
+        // instead of walking both hierarchies when indexing these types, including in headless applications.
         for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
             ignoredClasses.produce(new IgnoreJsonDeserializeClassBuildItem(DotName.createSimple(metadataClass)));
         }
     }
 
-    @BuildStep(onlyIf = Enabled.class)
+    @BuildStep
     void registerJimmerClientMetadataForReflection(JimmerClientAvailabilityBuildItem availability,
-            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
+            BuildProducer<ReflectiveMethodBuildItem> constructors) {
         if (!availability.generatorAvailable()) {
             return;
         }
-        List<String> classes = new ArrayList<>();
+        // Jackson inspects annotations on the metadata types and instantiates their custom codecs.
+        // The codecs construct the metadata objects themselves.
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(JIMMER_CLIENT_METADATA_CLASSES)
+                .constructors(false).reason("Jimmer client schema annotations").build());
         for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
-            classes.add(metadataClass);
-            classes.add(metadataClass + "$SerializerV2");
-            classes.add(metadataClass + "$DeserializerV2");
+            constructors.produce(new ReflectiveMethodBuildItem("Jimmer client schema serialization",
+                    metadataClass + "$SerializerV3", "<init>"));
+            constructors.produce(new ReflectiveMethodBuildItem("Jimmer client schema deserialization",
+                    metadataClass + "$DeserializerV3", "<init>"));
         }
-        classes.add("org.babyfish.jimmer.client.meta.Doc$Builder");
-        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(classes.toArray(new String[0]))
-                .constructors()
-                .build());
+    }
+
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class, onlyIfNot = Jackson2Present.class)
+    void pruneJackson2MetadataMembers(BuildProducer<BytecodeTransformerBuildItem> transformers) {
+        // GraalVM 25 enumerates declared classes for every registered type. Jimmer 0.12.5 lists
+        // Jackson 2 serializers as members of the same metadata types that Jackson 3 must reflect on.
+        for (String metadataClass : JIMMER_CLIENT_METADATA_CLASSES) {
+            transformers.produce(new BytecodeTransformerBuildItem(metadataClass, (name, visitor) -> {
+                String owner = name.replace('.', '/');
+                Set<String> legacyMembers = Set.of(owner + "$SerializerV2", owner + "$DeserializerV2");
+                return new ClassVisitor(Opcodes.ASM9, visitor) {
+                    @Override
+                    public void visitInnerClass(String name, String outerName, String innerName, int access) {
+                        if (!legacyMembers.contains(name)) {
+                            super.visitInnerClass(name, outerName, innerName, access);
+                        }
+                    }
+
+                    @Override
+                    public void visitNestMember(String nestMember) {
+                        if (!legacyMembers.contains(nestMember)) {
+                            super.visitNestMember(nestMember);
+                        }
+                    }
+                };
+            }));
+        }
     }
 
     @BuildStep(onlyIf = Enabled.class)
@@ -193,7 +219,7 @@ final class JimmerClientProcessor {
         var fetcherTypes = new ArrayList<JsonNode>();
         for (var schema : schemas) {
             for (JsonNode service : schema.path("services")) {
-                pending.add(DotName.createSimple(service.path("typeName").asText()));
+                pending.add(DotName.createSimple(service.path("typeName").asString("")));
             }
             fetcherTypes.addAll(schema.findParents("fetchBy"));
         }
@@ -209,7 +235,7 @@ final class JimmerClientProcessor {
             }
             // MetadataBuilder enumerates public methods, including inherited API declarations, without invoking them.
             reflection.produce(ReflectiveClassBuildItem.builder(name.toString())
-                    .constructors(false).queryMethods().reason("Jimmer client API method discovery").build());
+                    .constructors(false).reason("Jimmer client API method discovery").build());
             if (service.superName() != null) {
                 pending.add(service.superName());
             }
@@ -217,11 +243,11 @@ final class JimmerClientProcessor {
         }
         var registeredFields = new HashSet<String>();
         for (JsonNode type : fetcherTypes) {
-            var owner = index.getClassByName(DotName.createSimple(type.path("fetcherOwner").asText()));
+            var owner = index.getClassByName(DotName.createSimple(type.path("fetcherOwner").asString("")));
             if (owner == null) {
                 continue;
             }
-            String fieldName = type.path("fetchBy").asText();
+            String fieldName = type.path("fetchBy").asString("");
             var field = owner.field(fieldName);
             if (field != null && registeredFields.add(owner.name() + "#" + fieldName)) {
                 fields.produce(new ReflectiveFieldBuildItem(field));
@@ -256,7 +282,7 @@ final class JimmerClientProcessor {
                 }
                 // Exception construction discovers getters even without the optional client generator.
                 reflection.produce(ReflectiveClassBuildItem.builder(exception.name().toString())
-                        .constructors(false).queryMethods().reason("Jimmer coded exception getter discovery").build());
+                        .constructors(false).reason("Jimmer coded exception getter discovery").build());
                 for (var method : exception.methods()) {
                     if (!Modifier.isPublic(method.flags()) || Modifier.isStatic(method.flags())
                             || method.parametersCount() != 0 || !method.typeParameters().isEmpty()
@@ -268,7 +294,7 @@ final class JimmerClientProcessor {
                                     method.returnType().name().toString().equals("boolean")) == null) {
                         continue;
                     }
-                    methods.produce(new ReflectiveMethodBuildItem("Jimmer coded exception field access", false, method));
+                    methods.produce(new ReflectiveMethodBuildItem("Jimmer coded exception field access", method));
                 }
             }
         }

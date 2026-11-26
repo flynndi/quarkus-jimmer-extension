@@ -19,12 +19,12 @@ import io.quarkus.builder.Version;
 import io.quarkus.maven.dependency.Dependency;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class BinlogOnlyCacheScheduleTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .setForcedDependencies(List.of(Dependency.of("io.quarkus", "quarkus-scheduler", Version.getVersion())))
             .withApplicationRoot(archive -> archive.addClass(ApplicationJob.class))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")

@@ -25,13 +25,14 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkus.arc.Arc;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class MissingSchedulerCacheRetryTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = OptionalIntegrationTestSupport.isolateExcludedDependencies(new QuarkusUnitTest(),
-            OptionalIntegrationTestSupport.withoutScheduler())
+    static final QuarkusExtensionTest APP = OptionalIntegrationTestSupport
+            .isolateExcludedDependencies(new QuarkusExtensionTest(),
+                    OptionalIntegrationTestSupport.withoutScheduler())
             .withApplicationRoot(archive -> archive.addPackage(CdiBook.class.getPackage())
                     .addClasses(OptionalIntegrationTestSupport.class, RecordingOperator.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))

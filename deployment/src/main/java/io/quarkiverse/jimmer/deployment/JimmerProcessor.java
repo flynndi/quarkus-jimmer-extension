@@ -16,7 +16,9 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.JoinTable;
 import org.babyfish.jimmer.sql.LogicalDeleted;
 import org.babyfish.jimmer.sql.TransientResolver;
+import org.babyfish.jimmer.sql.ast.impl.table.TableImplementor;
 import org.babyfish.jimmer.sql.ast.table.WeakJoin;
+import org.babyfish.jimmer.sql.ast.table.spi.AbstractTypedTable;
 import org.babyfish.jimmer.sql.ast.table.spi.UsingWeakJoinMetadataParser;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
@@ -67,7 +69,6 @@ import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassConditionBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveFieldBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
@@ -81,36 +82,6 @@ final class JimmerProcessor {
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
-    }
-
-    /** Registers available dialect constructors and guards optional dialects reached by other reflection scans. */
-    @BuildStep
-    void registerDialectsForReflection(BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
-            BuildProducer<ReflectiveClassConditionBuildItem> conditions) {
-        for (String dialect : List.of(
-                "org.babyfish.jimmer.sql.dialect.DefaultDialect",
-                "org.babyfish.jimmer.sql.dialect.H2Dialect",
-                "org.babyfish.jimmer.sql.dialect.MySql5Dialect",
-                "org.babyfish.jimmer.sql.dialect.MySqlDialect",
-                "org.babyfish.jimmer.sql.dialect.MySqlStyleDialect",
-                "org.babyfish.jimmer.sql.dialect.OracleDialect",
-                "org.babyfish.jimmer.sql.dialect.PostgresDialect",
-                "org.babyfish.jimmer.sql.dialect.SQLiteDialect",
-                "org.babyfish.jimmer.sql.dialect.SqlServerDialect",
-                "org.babyfish.jimmer.sql.dialect.TiDBDialect")) {
-            String requiredType = switch (dialect) {
-                case "org.babyfish.jimmer.sql.dialect.PostgresDialect" -> "org.postgresql.util.PGobject";
-                case "org.babyfish.jimmer.sql.dialect.H2Dialect" -> "org.h2.value.ValueJson";
-                default -> null;
-            };
-            if (requiredType != null && !QuarkusClassLoader.isClassPresentAtRuntime(requiredType)) {
-                // Conditions are applied after merging reflection from REST/Jackson and other extensions.
-                conditions.produce(new ReflectiveClassConditionBuildItem(dialect, requiredType));
-                continue;
-            }
-            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(dialect)
-                    .constructors().reason("Jimmer configured dialect construction").build());
-        }
     }
 
     @BuildStep
@@ -127,7 +98,7 @@ final class JimmerProcessor {
 
     @BuildStep
     void registerGeneratedTableReflection(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<ReflectiveClassBuildItem> reflection,
+            BuildProducer<ReflectiveMethodBuildItem> constructors,
             BuildProducer<ReflectiveFieldBuildItem> fields) {
         for (var entity : combinedIndex.getIndex().getAnnotations(DotName.createSimple(Entity.class))) {
             String entityName = entity.target().asClass().name().toString();
@@ -137,11 +108,18 @@ final class JimmerProcessor {
                 if (table == null) {
                     continue;
                 }
-                // TableProxies dynamically constructs wrappers and delayed joins, and reads the root table singleton.
-                reflection.produce(ReflectiveClassBuildItem.builder(table.name().toString())
-                        .constructors().reason("Jimmer generated table construction").build());
+                // TableProxies reads the public root field on both table types, but constructs only TableEx.
+                if (suffix.equals("TableEx")) {
+                    for (var parameter : List.of(TableImplementor.class, AbstractTypedTable.DelayedOperation.class)) {
+                        var constructor = table.method("<init>", ClassType.create(parameter));
+                        if (constructor != null && Modifier.isPublic(constructor.flags())) {
+                            constructors
+                                    .produce(new ReflectiveMethodBuildItem("Jimmer generated table construction", constructor));
+                        }
+                    }
+                }
                 var root = table.field("$");
-                if (root != null && Modifier.isStatic(root.flags())) {
+                if (root != null && Modifier.isPublic(root.flags()) && Modifier.isStatic(root.flags())) {
                     fields.produce(new ReflectiveFieldBuildItem(root));
                 }
             }
@@ -177,36 +155,31 @@ final class JimmerProcessor {
     }
 
     @BuildStep
-    void registerCustomDialectConstructors(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<ReflectiveMethodBuildItem> reflection,
+    void registerDialectConstructors(CombinedIndexBuildItem combinedIndex,
+            BuildProducer<ReflectiveMethodBuildItem> constructors,
             BuildProducer<ReflectiveClassConditionBuildItem> conditions) {
+        var index = combinedIndex.getComputingIndex();
+        // jimmer-sql is indexed along with the application, so the same rules cover built-in and custom dialects.
         for (var dialect : combinedIndex.getIndex().getAllKnownImplementors(DotName.createSimple(Dialect.class))) {
-            // Built-in dialects have separate availability guards for optional JDBC driver types.
-            if (dialect.name().toString().startsWith("org.babyfish.jimmer.sql.dialect.")
-                    || Modifier.isAbstract(dialect.flags())) {
+            String driverType = null;
+            for (var type = dialect; type != null && type.superName() != null; type = index.getClassByName(type.superName())) {
+                driverType = switch (type.name().toString()) {
+                    case "org.babyfish.jimmer.sql.dialect.PostgresDialect" -> "org.postgresql.util.PGobject";
+                    case "org.babyfish.jimmer.sql.dialect.H2Dialect" -> "org.h2.value.ValueJson";
+                    default -> null;
+                };
+                if (driverType != null) {
+                    break;
+                }
+            }
+            if (driverType != null && !QuarkusClassLoader.isClassPresentAtRuntime(driverType)) {
+                // Also guard registrations contributed by other extensions for this dialect.
+                conditions.produce(new ReflectiveClassConditionBuildItem(dialect.name().toString(), driverType));
                 continue;
             }
             var constructor = dialect.method("<init>");
-            if (constructor != null && Modifier.isPublic(constructor.flags())) {
-                String requiredType = null;
-                var parentName = dialect.superName();
-                while (parentName != null) {
-                    requiredType = switch (parentName.toString()) {
-                        case "org.babyfish.jimmer.sql.dialect.PostgresDialect" -> "org.postgresql.util.PGobject";
-                        case "org.babyfish.jimmer.sql.dialect.H2Dialect" -> "org.h2.value.ValueJson";
-                        default -> null;
-                    };
-                    if (requiredType != null) {
-                        break;
-                    }
-                    var parent = combinedIndex.getComputingIndex().getClassByName(parentName);
-                    parentName = parent != null ? parent.superName() : null;
-                }
-                if (requiredType != null && !QuarkusClassLoader.isClassPresentAtRuntime(requiredType)) {
-                    conditions.produce(new ReflectiveClassConditionBuildItem(dialect.name().toString(), requiredType));
-                    continue;
-                }
-                reflection.produce(new ReflectiveMethodBuildItem(constructor));
+            if (!Modifier.isAbstract(dialect.flags()) && constructor != null && Modifier.isPublic(constructor.flags())) {
+                constructors.produce(new ReflectiveMethodBuildItem("Jimmer configured dialect construction", constructor));
             }
         }
     }

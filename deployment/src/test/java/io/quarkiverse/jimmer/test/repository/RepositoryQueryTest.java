@@ -56,13 +56,13 @@ import io.quarkiverse.jimmer.test.repository.model.BookFetcher;
 import io.quarkiverse.jimmer.test.repository.model.BookStore;
 import io.quarkiverse.jimmer.test.repository.model.BookStoreFetcher;
 import io.quarkus.narayana.jta.QuarkusTransaction;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 @SuppressWarnings("deprecation")
 class RepositoryQueryTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(Book.class.getPackage())
                     .addClasses(CurrentBooks.class, LegacyBooks.class, BookNameExceptionTranslator.class,

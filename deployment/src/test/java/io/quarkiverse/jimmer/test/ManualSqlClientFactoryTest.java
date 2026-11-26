@@ -29,13 +29,13 @@ import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.runtime.AgroalDataSourceUtil;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ClientProxy;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import kotlin.Unit;
 
 class ManualSqlClientFactoryTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(archive -> archive.addClasses(BuilderBeans.class,
                     TrackingJavaInitializer.class, TrackingKotlinInitializer.class))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")

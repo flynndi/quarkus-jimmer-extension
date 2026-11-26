@@ -36,7 +36,7 @@ import io.quarkiverse.jimmer.runtime.client.ts.TypeScriptGenerator;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.builder.Version;
 import io.quarkus.maven.dependency.Dependency;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.smallrye.config.SmallRyeConfigBuilder;
 
 class RestResponseMetadataTest {
@@ -45,7 +45,7 @@ class RestResponseMetadataTest {
     private static final String LIBRARY_PAYLOAD = TypeName.of(LibraryPayload.class).toString(true);
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .withApplicationRoot(
                     archive -> archive.addClasses(Api.class, Payload.class, DuplicateApi.class, SharedPayload.class)
                             .addAsResource(new StringAsset(schema(Api.class, "app", PAYLOAD,

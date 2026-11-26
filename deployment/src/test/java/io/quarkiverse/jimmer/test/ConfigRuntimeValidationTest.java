@@ -9,12 +9,12 @@ import java.io.StringWriter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class ConfigRuntimeValidationTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest().withEmptyApplication()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest().withEmptyApplication()
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")

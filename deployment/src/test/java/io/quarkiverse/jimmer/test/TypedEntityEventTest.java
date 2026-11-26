@@ -40,12 +40,12 @@ import io.quarkiverse.jimmer.test.model.ParserEntity;
 import io.quarkiverse.jimmer.test.model.ParserEntityDraft;
 import io.quarkiverse.jimmer.test.model.sort.LegacySortBook;
 import io.quarkus.agroal.DataSource;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class TypedEntityEventTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = new QuarkusUnitTest()
+    static final QuarkusExtensionTest APP = new QuarkusExtensionTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(CdiBook.class.getPackage())
                     .addPackage(LegacySortBook.class.getPackage())

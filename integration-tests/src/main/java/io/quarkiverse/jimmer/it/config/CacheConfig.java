@@ -12,16 +12,14 @@ import org.babyfish.jimmer.sql.cache.AbstractCacheFactory;
 import org.babyfish.jimmer.sql.cache.Cache;
 import org.babyfish.jimmer.sql.cache.CacheCreator;
 import org.babyfish.jimmer.sql.cache.CacheFactory;
-import org.babyfish.jimmer.sql.cache.redis.quarkus.RedisCacheCreator;
 import org.babyfish.jimmer.sql.cache.redisson.RedissonCacheLocker;
 import org.babyfish.jimmer.sql.cache.redisson.RedissonCacheTracker;
 import org.redisson.api.RedissonClient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
+import io.quarkiverse.jimmer.runtime.cache.RedisCacheCreator;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.redis.datasource.RedisDataSource;
+import tools.jackson.databind.json.JsonMapper;
 
 @ApplicationScoped
 public class CacheConfig {
@@ -29,8 +27,8 @@ public class CacheConfig {
     @Singleton
     @Unremovable
     public CacheFactory cacheFactory(RedissonClient redissonClient, RedisDataSource redisDataSource,
-            ObjectMapper objectMapper) {
-        CacheCreator creator = new RedisCacheCreator(redisDataSource, JimmerJsonCodecs.toJsonCodecV2(objectMapper))
+            JsonMapper jsonMapper) {
+        CacheCreator creator = new RedisCacheCreator(redisDataSource, jsonMapper)
                 .withRemoteDuration(Duration.ofHours(1))
                 .withLocalCache(100, Duration.ofMinutes(5))
                 .withMultiViewProperties(40, Duration.ofMinutes(2), Duration.ofMinutes(24))

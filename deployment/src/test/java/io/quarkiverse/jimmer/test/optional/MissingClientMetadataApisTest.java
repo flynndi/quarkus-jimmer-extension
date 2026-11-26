@@ -15,13 +15,14 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import io.quarkus.builder.Version;
 import io.quarkus.maven.dependency.ArtifactKey;
 import io.quarkus.maven.dependency.Dependency;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 class MissingClientMetadataApisTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest APP = OptionalIntegrationTestSupport.isolateExcludedDependencies(new QuarkusUnitTest(),
-            withoutClientMetadataApis())
+    static final QuarkusExtensionTest APP = OptionalIntegrationTestSupport
+            .isolateExcludedDependencies(new QuarkusExtensionTest(),
+                    withoutClientMetadataApis())
             .withApplicationRoot(archive -> archive.addClass(OptionalIntegrationTestSupport.class))
             .setForcedDependencies(List.of(Dependency.of("io.quarkus", "quarkus-vertx-http", Version.getVersion())))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")

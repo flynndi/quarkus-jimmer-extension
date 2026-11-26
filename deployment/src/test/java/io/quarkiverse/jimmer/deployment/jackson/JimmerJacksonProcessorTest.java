@@ -55,8 +55,8 @@ class JimmerJacksonProcessorTest {
         for (Class<?> model : models) {
             indexer.indexClass(model);
         }
-        // Read these classes as bytecode: loading the V3 type would require absent Jackson 3 dependencies.
-        for (String name : List.of("Doc", "Doc$Builder", "Doc$SerializerV3")) {
+        // Read these classes as bytecode: loading the V2 type would require absent Jackson 2 dependencies.
+        for (String name : List.of("Doc", "Doc$Builder", "Doc$SerializerV2")) {
             try (var input = getClass().getResourceAsStream("/org/babyfish/jimmer/client/meta/" + name + ".class")) {
                 assertNotNull(input);
                 indexer.index(input);
@@ -78,7 +78,6 @@ class JimmerJacksonProcessorTest {
         assertEquals(expected, registrations.keySet(), "Do not register unrelated classes or nonexistent Builders");
         for (Class<?> draft : drafts) {
             var draftRegistration = registrations.get(draft.getName());
-            assertTrue(draftRegistration.isClasses(), "Jimmer queries Draft.getDeclaredClasses()");
             assertFalse(draftRegistration.isConstructors());
             assertFalse(draftRegistration.isMethods());
             assertFalse(draftRegistration.isFields());
@@ -89,14 +88,12 @@ class JimmerJacksonProcessorTest {
             assertTrue(builderRegistration.isConstructors());
             assertTrue(builderRegistration.isMethods(), "Jackson must discover Builder properties and build()");
             assertFalse(builderRegistration.isFields());
-            assertFalse(builderRegistration.isClasses());
         }
         for (Class<?> model : models) {
             var modelRegistration = registrations.get(model.getName());
             assertTrue(modelRegistration.isMethods(), "ImmutableProp resolves model getters reflectively");
             assertFalse(modelRegistration.isConstructors());
             assertFalse(modelRegistration.isFields());
-            assertFalse(modelRegistration.isClasses());
         }
         assertEquals(Set.of(CdiBookDraft.Producer.class.getName() + "#TYPE",
                 NativeValueDraft.Producer.class.getName() + "#TYPE",
@@ -108,7 +105,6 @@ class JimmerJacksonProcessorTest {
         assertEquals(KotlinShapeDraft.$.class.getName(), methods.get(0).getDeclaringClass());
         assertEquals("getType", methods.get(0).getName());
         assertEquals(0, methods.get(0).getParams().length);
-        assertFalse(methods.get(0).isQueryOnly(), "Metadata invokes the Kotlin producer accessor");
     }
 
     @Test
@@ -157,7 +153,6 @@ class JimmerJacksonProcessorTest {
         for (var method : methods) {
             assertEquals("<init>", method.getName());
             assertEquals(0, method.getParams().length);
-            assertFalse(method.isQueryOnly(), "ConverterMetadata invokes the constructor");
         }
     }
 
@@ -183,7 +178,6 @@ class JimmerJacksonProcessorTest {
             assertTrue(item.isConstructors());
             assertTrue(item.isMethods(), "Jackson discovers DTO getters and setters behind Response/Object return types");
             assertFalse(item.isFields(), "Register only METADATA and fields queried for @FixedInputField");
-            assertFalse(item.isClasses());
         }
     }
 

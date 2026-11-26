@@ -14,19 +14,19 @@ import java.util.stream.Stream;
 import io.quarkus.bootstrap.classloading.ClassPathElement;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.maven.dependency.ArtifactKey;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 
 final class OptionalIntegrationTestSupport {
 
     private OptionalIntegrationTestSupport() {
     }
 
-    static QuarkusUnitTest isolateExcludedDependencies(QuarkusUnitTest test, Set<ArtifactKey> excluded) {
+    static QuarkusExtensionTest isolateExcludedDependencies(QuarkusExtensionTest test, Set<ArtifactKey> excluded) {
         AtomicReference<QuarkusClassLoader> isolation = new AtomicReference<>();
         return test.setExcludedDependencies(excluded)
                 .addBootstrapCustomizer(builder -> {
-                    // Dependency exclusion updates the application model, but Quarkus 3.39's ArC ValueRegistry
-                    // discovery can still see excluded providers through the Maven test parent classloader.
+                    // Exclusions remove artifacts from the application model. Classes and service providers
+                    // in those jars can still be visible through the Maven test parent classloader.
                     // Preserve the test framework's existing parent (and its test-class bans).
                     ClassLoader parent = builder.build().getBaseClassLoader();
                     var filtered = QuarkusClassLoader.builder("Excluded optional dependencies", parent, false);
