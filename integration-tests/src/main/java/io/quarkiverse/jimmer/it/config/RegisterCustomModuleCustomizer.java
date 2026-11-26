@@ -2,16 +2,15 @@ package io.quarkiverse.jimmer.it.config;
 
 import jakarta.inject.Singleton;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
-import io.quarkus.jackson.ObjectMapperCustomizer;
+import io.quarkus.jackson.JsonMapperBuilderCustomizer;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @Singleton
-public class RegisterCustomModuleCustomizer implements ObjectMapperCustomizer {
+public class RegisterCustomModuleCustomizer implements JsonMapperBuilderCustomizer {
 
     @Override
-    public void customize(ObjectMapper objectMapper) {
-        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    public void customize(JsonMapper.Builder builder) {
+        builder.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     }
 }

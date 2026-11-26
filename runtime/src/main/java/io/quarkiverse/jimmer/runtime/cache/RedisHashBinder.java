@@ -17,13 +17,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
 import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.hash.HashCommands;
 import io.quarkus.redis.datasource.keys.KeyCommands;
+import tools.jackson.databind.json.JsonMapper;
 
-@Deprecated
 public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisHashBinder.class);
@@ -36,12 +35,12 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
             @Nullable ImmutableType type,
             @Nullable ImmutableProp prop,
             @Nullable CacheTracker tracker,
-            @Nullable ObjectMapper objectMapper,
+            @Nullable JsonMapper jsonMapper,
             @Nullable RemoteKeyPrefixProvider keyPrefixProvider,
             @NotNull Duration duration,
             int randomPercent,
             @NotNull RedisDataSource redisDataSource) {
-        super(type, prop, tracker, RedisValueBinder.toCodec(objectMapper), keyPrefixProvider, duration, randomPercent);
+        super(type, prop, tracker, JimmerJsonCodecs.toJsonCodecV3(jsonMapper), keyPrefixProvider, duration, randomPercent);
         this.hashCommands = redisDataSource.hash(byte[].class);
         this.keyCommands = redisDataSource.key();
     }
@@ -91,7 +90,7 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
 
         private RedisDataSource redisDataSource;
 
-        private ObjectMapper objectMapper;
+        private JsonMapper jsonMapper;
 
         protected Builder(ImmutableType type, ImmutableProp prop) {
             super(type, prop, null);
@@ -102,8 +101,8 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
             return this;
         }
 
-        public Builder<K, V> objectMapper(ObjectMapper objectMapper) {
-            this.objectMapper = objectMapper;
+        public Builder<K, V> objectMapper(JsonMapper jsonMapper) {
+            this.jsonMapper = jsonMapper;
             return this;
         }
 
@@ -111,7 +110,7 @@ public class RedisHashBinder<K, V> extends AbstractRemoteHashBinder<K, V> {
             if (null == redisDataSource) {
                 throw new IllegalStateException("RedisDataSource has not been specified");
             }
-            return new RedisHashBinder<>(type, prop, tracker, objectMapper, keyPrefixProvider, duration, randomPercent,
+            return new RedisHashBinder<>(type, prop, tracker, jsonMapper, keyPrefixProvider, duration, randomPercent,
                     redisDataSource);
         }
     }

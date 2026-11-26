@@ -16,7 +16,7 @@ import jakarta.enterprise.inject.spi.EventMetadata;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-import org.babyfish.jimmer.jackson.v2.ImmutableModuleV2;
+import org.babyfish.jimmer.jackson.v3.ImmutableModuleV3;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.event.EntityEvent;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
@@ -25,8 +25,6 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.quarkiverse.jimmer.runtime.SqlClients;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
@@ -37,6 +35,7 @@ import io.quarkiverse.jimmer.test.model.CdiBookDraft;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.QuarkusExtensionTest;
+import tools.jackson.databind.json.JsonMapper;
 
 class DisabledJimmerManualClientTest {
 
@@ -64,11 +63,11 @@ class DisabledJimmerManualClientTest {
     JimmerBuildTimeConfig buildTimeConfig;
 
     @Inject
-    ObjectMapper objectMapper;
+    JsonMapper objectMapper;
 
     @Test
-    void jackson2ModuleRemainsRegisteredWhenJimmerIsDisabled() {
-        assertTrue(objectMapper.getRegisteredModuleIds().contains(ImmutableModuleV2.MODULE_ID));
+    void jackson3ModuleRemainsRegisteredWhenJimmerIsDisabled() {
+        assertTrue(objectMapper.registeredModules().stream().anyMatch(ImmutableModuleV3.class::isInstance));
     }
 
     @Test

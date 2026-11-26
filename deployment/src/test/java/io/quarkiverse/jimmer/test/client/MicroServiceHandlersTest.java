@@ -21,7 +21,7 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-import org.babyfish.jimmer.jackson.v2.ImmutableModuleV2;
+import org.babyfish.jimmer.jackson.v3.ImmutableModuleV3;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.runtime.DefaultExecutor;
@@ -35,8 +35,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.cloud.ExchangeRestClient;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterAssociatedIdsHandler;
 import io.quarkiverse.jimmer.runtime.cloud.MicroServiceExporterIdsHandler;
@@ -49,6 +47,7 @@ import io.quarkus.arc.ManagedContext;
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
 import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
+import tools.jackson.databind.json.JsonMapper;
 
 class MicroServiceHandlersTest {
 
@@ -110,7 +109,8 @@ class MicroServiceHandlersTest {
         HttpTestResponse second = new HttpTestResponse();
         associatedIds.handle(second.context(Map.of(Constant.FETCHER, fetcher(), Constant.PROP, "store",
                 Constant.TARGET_IDS, "[10]")));
-        assertTrue(second.body.toString().contains("Alpha"));
+        assertEquals(JsonMapper.shared().readTree("[{\"_1\":10,\"_2\":{\"id\":1,\"name\":\"Alpha\"}}]"),
+                JsonMapper.shared().readTree(second.body.toString()));
         assertEquals(2, counters.created.get());
         assertEquals(2, counters.destroyed.get());
         assertEquals(2, counters.mappersDisposed.get());
@@ -212,20 +212,20 @@ class MicroServiceHandlersTest {
     public static class MapperProducer {
         @Produces
         @RequestScoped
-        ObjectMapper mapper(RequestState state, Counters counters) {
+        JsonMapper mapper(RequestState state, Counters counters) {
             state.touch();
             counters.mappersCreated.incrementAndGet();
-            return new ObjectMapper().registerModule(new ImmutableModuleV2());
+            return JsonMapper.builder().addModule(new ImmutableModuleV3()).build();
         }
 
-        void dispose(@Disposes ObjectMapper mapper, Counters counters) {
+        void dispose(@Disposes JsonMapper mapper, Counters counters) {
             counters.mappersDisposed.incrementAndGet();
         }
 
         @Produces
         @Singleton
         @io.quarkus.agroal.DataSource("unrelated")
-        ObjectMapper unrelatedMapper() {
+        JsonMapper unrelatedMapper() {
             throw new AssertionError("A datasource-qualified mapper is not the default HTTP mapper");
         }
 

@@ -77,8 +77,7 @@
     </dependencies>
   </dependencyManagement>
 
-  <!-- Override the obsolete repositories inherited from quarkiverse-parent 18.
-       Release deployments are handled by Central Publisher below, without Nexus staging. -->
+  <!-- Declare the project's Central Portal endpoints. The plugin below publishes releases. -->
   <distributionManagement>
     <snapshotRepository>
       <id>central</id>
@@ -94,6 +93,22 @@
 
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>validate-project-structure</id>
+            <configuration>
+              <rules>
+                <requireMatchingCoordinates>
+                  <groupIdPattern>io\.github\.flynndi</groupIdPattern>
+                  <message>Use the published io.github.flynndi group ID.</message>
+                </requireMatchingCoordinates>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.sonatype.central</groupId>
         <artifactId>central-publishing-maven-plugin</artifactId>

@@ -31,7 +31,14 @@ must be regenerated, including entities distributed in shared libraries.
 [[optional-integrations]]
 == Optional integrations
 
-Core data access uses CDI, Agroal, Narayana, and Jackson.
+Core data access uses CDI, Agroal, Narayana, and Jackson 3.
+Quarkus registers Jimmer's `ImmutableModuleV3` with the application `JsonMapper`.
+Applications updating a Redis binder or microservice exchange should inject `tools.jackson.databind.json.JsonMapper`.
+Jackson 3 continues to use annotations such as `com.fasterxml.jackson.annotation.JsonProperty`.
+Rebuild generated input DTOs with Jimmer 0.12.5 and Jackson 3 on the model module's compile classpath.
+If an enum overrides `toString()` and existing JSON stores its constant names, disable
+`EnumFeature.READ_ENUMS_USING_TO_STRING` and `EnumFeature.WRITE_ENUMS_USING_TO_STRING` in a
+`JsonMapperBuilderCustomizer` to preserve those names in HTTP payloads, Redis entries, and `@Serialized` columns.
 Kotlin SQL, ANTLR, Scheduler, Quartz, Redis, Caffeine, client generation, the HTTP server, and REST Client integrations are optional.
 Add `io.quarkus:quarkus-scheduler` for periodic transaction-cache retry, or `io.quarkus:quarkus-quartz`
 when the application needs Quartz. Quarkus selects the scheduler implementation without registering a second copy of the job.
@@ -537,7 +544,7 @@ Java client backing the selected `KSqlClient`. The exporter prefers the CDI `@De
 uses the client for the sole named datasource. If multiple named datasources are available, provide a
 default client to select which one serves inbound requests. Missing or ambiguous client selection fails startup.
 
-The handlers are CDI singletons. Each obtains the selected client and the default `ObjectMapper` inside
+The handlers are CDI singletons. Each obtains the selected client and the default `JsonMapper` inside
 `@ActivateRequestContext`, which also covers database access and response generation. The interceptor retains
 an existing request context and closes any context it creates when the handler returns or throws. ArC caches
 the selected CDI references, preserving normal-scope proxies and managing dependent instances.

@@ -4,16 +4,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.quarkiverse.jimmer.runtime.util.Constant;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 /** Adapts the compile-time client schema before Jimmer resolves its runtime types. */
 final class JimmerClientMetadata {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final JsonMapper MAPPER = JsonMapper.builder().build();
     private static final String REST_RESPONSE = "org.jboss.resteasy.reactive.RestResponse";
 
     private JimmerClientMetadata() {
@@ -26,7 +26,7 @@ final class JimmerClientMetadata {
             var resource = resources.nextElement();
             try (var input = resource.openStream()) {
                 schemas.add((ObjectNode) MAPPER.readTree(input));
-            } catch (IOException ex) {
+            } catch (IOException | JacksonException ex) {
                 throw new IOException("Cannot read Jimmer client metadata from " + resource, ex);
             }
         }
@@ -38,19 +38,19 @@ final class JimmerClientMetadata {
         for (JsonNode service : schema.path("services")) {
             for (JsonNode operation : service.path("operations")) {
                 JsonNode returnType = operation.get("returnType");
-                while (returnType != null && REST_RESPONSE.equals(returnType.path("typeName").asText())) {
+                while (returnType != null && REST_RESPONSE.equals(returnType.path("typeName").asString(""))) {
                     JsonNode arguments = returnType.path("arguments");
                     if (arguments.size() != 1 || !arguments.get(0).isObject()) {
                         throw new IllegalArgumentException("RestResponse must declare its response body type: "
-                                + service.path("typeName").asText() + '.' + operation.path("name").asText());
+                                + service.path("typeName").asString("") + '.' + operation.path("name").asString(""));
                     }
                     ObjectNode bodyType = ((ObjectNode) arguments.get(0)).deepCopy();
-                    if (returnType.path("nullable").asBoolean()) {
+                    if (returnType.path("nullable").asBoolean(false)) {
                         bodyType.put("nullable", true);
                     }
                     returnType = bodyType;
-                    if ("java.lang.Void".equals(bodyType.path("typeName").asText())
-                            || "void".equals(bodyType.path("typeName").asText())) {
+                    if ("java.lang.Void".equals(bodyType.path("typeName").asString(""))
+                            || "void".equals(bodyType.path("typeName").asString(""))) {
                         ((ObjectNode) operation).remove("returnType");
                         returnType = null;
                     } else {
@@ -63,7 +63,7 @@ final class JimmerClientMetadata {
         return changed;
     }
 
-    static byte[] write(ObjectNode schema) throws IOException {
+    static byte[] write(ObjectNode schema) {
         return MAPPER.writeValueAsBytes(schema);
     }
 }

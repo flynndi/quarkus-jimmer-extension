@@ -34,8 +34,6 @@ import org.babyfish.jimmer.sql.meta.MetaStringResolver;
 import org.babyfish.jimmer.sql.runtime.*;
 import org.jetbrains.annotations.Nullable;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.cache.QuarkusCacheFactory;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerConfigValidator;
@@ -56,6 +54,7 @@ import io.quarkus.agroal.DataSource.DataSourceLiteral;
 import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.InstanceHandle;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Builds real Jimmer clients; ArC owns the lifecycle of CDI-managed clients. */
 final class QuarkusSqlClientFactory {
@@ -114,7 +113,7 @@ final class QuarkusSqlClientFactory {
         MetaStringResolver metaStringResolver = getOptionalBean(MetaStringResolver.class);
         Executor executor = getOptionalBean(Executor.class);
         SqlFormatter sqlFormatter = getOptionalBean(SqlFormatter.class);
-        ObjectMapper objectMapper = getOptionalBean(ObjectMapper.class);
+        JsonMapper jsonMapper = getOptionalBean(JsonMapper.class);
         CacheFactory cacheFactory = getOptionalBean(CacheFactory.class);
         Collection<CacheAbandonedCallback> callbacks = getMatchingBeans(CacheAbandonedCallback.class);
         Collection<ScalarProvider<?, ?>> providers = getMatchingBeans(Constant.SCALAR_PROVIDER_TYPE_LITERAL);
@@ -195,7 +194,7 @@ final class QuarkusSqlClientFactory {
         builder
                 .setDatabaseValidationMode(runtimeConfig.databaseValidationMode())
                 .setDefaultSerializedTypeJsonCodec(
-                        objectMapper != null ? JimmerJsonCodecs.toJsonCodecV2(objectMapper) : null)
+                        jsonMapper != null ? JimmerJsonCodecs.toJsonCodecV3(jsonMapper) : null)
                 .setCacheFactory(cacheFactory != null ? QuarkusCacheFactory.adapt(cacheFactory) : null)
                 .addCacheAbandonedCallbacks(callbacks);
 

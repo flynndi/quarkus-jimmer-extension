@@ -22,9 +22,6 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkiverse.jimmer.test.http.model.HttpBook;
 import io.quarkiverse.jimmer.test.http.model.HttpBookFetcher;
@@ -32,6 +29,8 @@ import io.quarkiverse.jimmer.test.http.model.HttpStore;
 import io.quarkus.maven.dependency.ArtifactKey;
 import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 class MicroserviceExporterWithoutRestClientTest {
 
@@ -56,7 +55,7 @@ class MicroserviceExporterWithoutRestClientTest {
     DataSource dataSource;
 
     @Inject
-    ObjectMapper mapper;
+    JsonMapper mapper;
 
     @TestHTTPResource
     URL baseUrl;

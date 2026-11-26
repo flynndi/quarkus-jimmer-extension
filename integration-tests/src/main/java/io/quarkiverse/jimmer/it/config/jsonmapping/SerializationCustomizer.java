@@ -5,27 +5,27 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.runtime.Customizer;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
 import io.quarkus.arc.Unremovable;
+import tools.jackson.core.StreamReadFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @ApplicationScoped
 @Unremovable
 public class SerializationCustomizer implements Customizer {
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
-    public SerializationCustomizer(ObjectMapper objectMapper) {
+    public SerializationCustomizer(JsonMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     @Override
     public void customize(JSqlClient.Builder builder) {
-        builder
-                .setSerializedTypeJsonCodec(AuthUser.class,
-                        JimmerJsonCodecs.toJsonCodecV2(objectMapper.addMixIn(AuthUser.class, AuthUserMixin.class)
-                                .enable(JsonParser.Feature.INCLUDE_SOURCE_IN_LOCATION)));
+        JsonMapper userMapper = objectMapper.rebuild()
+                .addMixIn(AuthUser.class, AuthUserMixin.class)
+                .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
+                .build();
+        builder.setSerializedTypeJsonCodec(AuthUser.class, JimmerJsonCodecs.toJsonCodecV3(userMapper));
     }
 }

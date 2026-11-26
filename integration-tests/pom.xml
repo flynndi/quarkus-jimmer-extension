@@ -11,7 +11,7 @@
   <name>Quarkus Jimmer Extension - Integration Tests</name>
   <properties>
     <skipITs>true</skipITs>
-    <redisson.version>3.45.0</redisson.version>
+    <redisson.version>4.8.0</redisson.version>
     <native.surefire.skip>${skipITs}</native.surefire.skip>
     <quarkus.native.resources.includes>h2-database*.sql,redisson-test.yaml</quarkus.native.resources.includes>
   </properties>
@@ -85,6 +85,11 @@
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>tools.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

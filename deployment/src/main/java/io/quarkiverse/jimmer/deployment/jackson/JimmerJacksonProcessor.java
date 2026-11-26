@@ -9,13 +9,13 @@ import org.babyfish.jimmer.Draft;
 import org.babyfish.jimmer.Dto;
 import org.babyfish.jimmer.internal.FixedInputField;
 import org.babyfish.jimmer.jackson.JsonConverter;
+import org.babyfish.jimmer.jackson.v3.ImmutableModuleV3;
 import org.babyfish.jimmer.sql.fetcher.DtoMetadata;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Type;
 
 import io.quarkiverse.jimmer.runtime.util.Constant;
-import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
@@ -27,14 +27,9 @@ import io.quarkus.jackson.spi.ClassPathJacksonModuleBuildItem;
 
 final class JimmerJacksonProcessor {
 
-    private static final String JIMMER_JACKSON_MODULE = "org.babyfish.jimmer.jackson.v2.ImmutableModuleV2";
-
     @BuildStep
     void registerJimmerJacksonModule(BuildProducer<ClassPathJacksonModuleBuildItem> classPathJacksonModules) {
-        if (!QuarkusClassLoader.isClassPresentAtRuntime(JIMMER_JACKSON_MODULE)) {
-            return;
-        }
-        classPathJacksonModules.produce(new ClassPathJacksonModuleBuildItem(JIMMER_JACKSON_MODULE));
+        classPathJacksonModules.produce(new ClassPathJacksonModuleBuildItem(ImmutableModuleV3.class.getName()));
     }
 
     @BuildStep
@@ -61,7 +56,7 @@ final class JimmerJacksonProcessor {
             }
             // Both Jackson builder discovery and ImmutableType lookup enumerate the Draft's nested types.
             reflection.produce(ReflectiveClassBuildItem.builder(draftName)
-                    .constructors(false).classes().reason("Jimmer generated model discovery").build());
+                    .constructors(false).reason("Jimmer generated model discovery").build());
             if (builder != null) {
                 reflection.produce(ReflectiveClassBuildItem.builder(builderName)
                         .constructors().methods().reason("Jimmer Jackson builder deserialization").build());

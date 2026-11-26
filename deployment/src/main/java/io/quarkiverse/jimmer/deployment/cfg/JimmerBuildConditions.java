@@ -11,6 +11,20 @@ public final class JimmerBuildConditions {
     private JimmerBuildConditions() {
     }
 
+    public static final class Jackson2Present implements BooleanSupplier {
+        @Override
+        public boolean getAsBoolean() {
+            return QuarkusClassLoader.isClassPresentAtRuntime("com.fasterxml.jackson.databind.ObjectMapper");
+        }
+    }
+
+    public static final class RedissonKryoPresent implements BooleanSupplier {
+        @Override
+        public boolean getAsBoolean() {
+            return QuarkusClassLoader.isClassPresentAtRuntime("org.redisson.codec.Kryo5Codec");
+        }
+    }
+
     public static final class Enabled implements BooleanSupplier {
         private final JimmerBuildTimeConfig config;
 

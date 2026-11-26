@@ -77,7 +77,6 @@ class JimmerProcessorTest {
                 assertTrue(item.isConstructors(), "TableProxies invokes wrapper and delayed-operation constructors");
                 assertFalse(item.isMethods());
                 assertFalse(item.isFields(), "Only the static $ field needs reflective access");
-                assertFalse(item.isClasses());
             }
         }
     }
@@ -100,7 +99,6 @@ class JimmerProcessorTest {
         for (var constructor : constructors) {
             assertEquals("<init>", constructor.getName());
             assertEquals(0, constructor.getParams().length);
-            assertFalse(constructor.isQueryOnly());
         }
     }
 
@@ -120,7 +118,6 @@ class JimmerProcessorTest {
         assertEquals(1, constructors.size());
         assertEquals(CustomDialect.class.getName(), constructors.get(0).getDeclaringClass());
         assertEquals(0, constructors.get(0).getParams().length);
-        assertFalse(constructors.get(0).isQueryOnly());
     }
 
     @Test
@@ -152,7 +149,7 @@ class JimmerProcessorTest {
                 assertEquals(runtime ? 1 : 0, constructors.size());
                 assertEquals(runtime ? Map.of() : Map.of(entry.getKey().getName(), entry.getValue()),
                         conditions.stream().collect(Collectors.toMap(ReflectiveClassConditionBuildItem::getClassName,
-                                ReflectiveClassConditionBuildItem::getTypeReachable)));
+                                ReflectiveClassConditionBuildItem::getTypeReached)));
             }
         }
     }
@@ -180,7 +177,7 @@ class JimmerProcessorTest {
                     Thread.currentThread().setContextClassLoader(previous);
                 }
                 var guards = conditions.stream().collect(Collectors.toMap(
-                        ReflectiveClassConditionBuildItem::getClassName, ReflectiveClassConditionBuildItem::getTypeReachable));
+                        ReflectiveClassConditionBuildItem::getClassName, ReflectiveClassConditionBuildItem::getTypeReached));
                 var expected = new java.util.HashMap<>(optional);
                 if (runtime) {
                     expected.remove(entry.getKey());
@@ -194,7 +191,6 @@ class JimmerProcessorTest {
                     assertTrue(item.isConstructors());
                     assertFalse(item.isMethods());
                     assertFalse(item.isFields());
-                    assertFalse(item.isClasses());
                 }
             }
         }
@@ -223,7 +219,6 @@ class JimmerProcessorTest {
         for (var constructor : constructors) {
             assertEquals("<init>", constructor.getName());
             assertEquals(0, constructor.getParams().length);
-            assertFalse(constructor.isQueryOnly(), "StrategyProvider invokes the constructor");
         }
     }
 

@@ -21,11 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @QuarkusTest
 public class JimmerHttpTestCase {
@@ -33,14 +32,14 @@ public class JimmerHttpTestCase {
     @Test
     void generatesDocumentsForRestResponseBodiesAndPrivateFetchers() throws IOException {
         String openApi = given().get("/jimmer-test/openapi.yml").then().statusCode(200).extract().asString();
-        var document = new YAMLMapper().readTree(openApi);
+        var document = YAMLMapper.builder().build().readTree(openApi);
         var paths = document.path("paths");
         assertEquals("#/components/schemas/BookDetailView", paths.path("/bookResource/book/{id}/view")
-                .at("/get/responses/200/content/application~1json/schema/$ref").asText());
+                .at("/get/responses/200/content/application~1json/schema/$ref").asString());
         assertTrue(paths.path("/bookResource/book/{id}").has("get"));
         assertTrue(paths.path("/bookResource/books/page").has("get"));
         var search = paths.path("/bookResource/books/search").path("get");
-        assertTrue(search.path("parameters").findValuesAsText("name").contains("minPrice"));
+        assertTrue(search.path("parameters").findValuesAsString("name").contains("minPrice"));
         assertFalse(search.has("requestBody"));
         assertFalse(document.at("/components/schemas").has("NewCookie"));
         assertFalse(openApi.contains("RestResponse"));
@@ -231,7 +230,7 @@ public class JimmerHttpTestCase {
                 .body("illegalChars", contains("a"));
     }
 
-    private static RequestSpecification request() {
+    protected static RequestSpecification request() {
         return given().accept(ContentType.JSON).contentType(ContentType.JSON);
     }
 }

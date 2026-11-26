@@ -1,15 +1,20 @@
 package io.quarkiverse.jimmer.deployment.cache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.babyfish.jimmer.sql.TransientResolver;
 import org.babyfish.jimmer.sql.ast.table.Props;
@@ -19,14 +24,73 @@ import org.babyfish.jimmer.sql.event.EntityEvent;
 import org.babyfish.jimmer.sql.filter.CacheableFilter;
 import org.jboss.jandex.Indexer;
 import org.junit.jupiter.api.Test;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 
+import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveFieldBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
 
 class JimmerCacheProcessorTest {
 
     @Test
-    void registersOnlyInvalidationCallbacksIncludingInheritedAndDefaultDeclarations() throws IOException {
+    void kryoCanConstructTheNativeInvalidationMessageWithItsOriginalFields() throws Exception {
+        String name = "org.babyfish.jimmer.sql.cache.redisson.InvalidateMessage";
+        var indexer = new Indexer();
+        byte[] original;
+        try (var input = getClass().getResourceAsStream("/" + name.replace('.', '/') + ".class")) {
+            original = input.readAllBytes();
+        }
+        indexer.index(new ByteArrayInputStream(original));
+        var index = indexer.complete();
+        var transforms = new ArrayList<BytecodeTransformerBuildItem>();
+        var types = new ArrayList<ReflectiveClassBuildItem>();
+        var methods = new ArrayList<ReflectiveMethodBuildItem>();
+        var fields = new ArrayList<ReflectiveFieldBuildItem>();
+        var processor = new JimmerCacheProcessor();
+        processor.supportKryoInvalidationMessages(new CombinedIndexBuildItem(index, index),
+                transforms::add, types::add, methods::add, fields::add);
+        assertEquals(List.of(name), transforms.stream().map(BytecodeTransformerBuildItem::getClassToTransform).toList());
+        assertEquals(1, types.size());
+        var lookups = types.getFirst();
+        assertEquals(Set.of(Collections.singleton(1L).getClass().getName(), Set.of(1L).getClass().getName(),
+                Set.of(1L, 2L, 3L).getClass().getName(), UUID.class.getName()),
+                Set.copyOf(lookups.getClassNames()));
+        assertFalse(lookups.isConstructors());
+        assertFalse(lookups.isMethods());
+        assertFalse(lookups.isFields());
+        assertEquals(Set.of(name, LinkedHashSet.class.getName()),
+                methods.stream().map(ReflectiveMethodBuildItem::getDeclaringClass).collect(Collectors.toSet()));
+        assertTrue(methods.stream().allMatch(method -> method.getName().equals("<init>") && method.getParams().length == 0));
+        assertEquals(Set.of("trackerId", "typeName", "propName", "ids"),
+                fields.stream().map(ReflectiveFieldBuildItem::getName).collect(Collectors.toSet()));
+
+        var writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        new ClassReader(original).accept(transforms.getFirst().getVisitorFunction().apply(name, writer), 0);
+        byte[] transformed = writer.toByteArray();
+        var type = new ClassLoader(getClass().getClassLoader()) {
+            Class<?> defineMessage() {
+                return defineClass(name, transformed, 0, transformed.length);
+            }
+        }.defineMessage();
+        var constructor = type.getDeclaredConstructor();
+        assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+        constructor.setAccessible(true);
+        assertEquals(type, constructor.newInstance().getClass());
+
+        var updated = new Indexer();
+        updated.index(new ByteArrayInputStream(transformed));
+        var updatedIndex = updated.complete();
+        transforms.clear();
+        processor.supportKryoInvalidationMessages(new CombinedIndexBuildItem(updatedIndex, updatedIndex),
+                transforms::add, types::add, methods::add, fields::add);
+        assertTrue(transforms.isEmpty());
+    }
+
+    @Test
+    void registersInvalidatorImplementationsForInheritedAndDefaultCallbackLookup() throws IOException {
         var indexer = new Indexer();
         for (Class<?> type : List.of(PropCacheInvalidator.class, TransientResolver.class, CacheableFilter.class,
                 DirectResolver.class, InheritedResolver.class, CallbackBase.class, CustomFilter.class,
@@ -34,21 +98,17 @@ class JimmerCacheProcessorTest {
             indexer.indexClass(type);
         }
         var index = indexer.complete();
-        List<ReflectiveMethodBuildItem> registrations = new ArrayList<>();
+        List<ReflectiveClassBuildItem> registrations = new ArrayList<>();
         new JimmerCacheProcessor().registerCacheInvalidatorReflection(new CombinedIndexBuildItem(index, index),
                 registrations::add);
-        Set<String> expected = Stream.of(PropCacheInvalidator.class, DirectResolver.class, CallbackBase.class,
-                CustomFilter.class)
-                .flatMap(type -> Stream.of(EntityEvent.class, AssociationEvent.class)
-                        .map(event -> type.getName() + "#getAffectedSourceIds(" + event.getName() + ")"))
-                .collect(Collectors.toSet());
-        assertEquals(expected, registrations.stream()
-                .map(method -> method.getDeclaringClass() + "#" + method.getName()
-                        + "(" + String.join(",", method.getParams()) + ")")
-                .collect(Collectors.toSet()));
-        assertEquals(expected.size(), registrations.size(), "Shared callback declarations should be registered once");
-        assertTrue(registrations.stream().allMatch(ReflectiveMethodBuildItem::isQueryOnly),
-                "Jimmer inspects declaring classes without invoking these methods reflectively");
+        assertEquals(Set.of(DirectResolver.class.getName(), InheritedResolver.class.getName(),
+                DefaultFilter.class.getName(), DefaultResolver.class.getName()),
+                registrations.stream().flatMap(item -> item.getClassNames().stream()).collect(Collectors.toSet()));
+        for (var item : registrations) {
+            assertFalse(item.isConstructors());
+            assertFalse(item.isMethods());
+            assertFalse(item.isFields());
+        }
     }
 
     abstract static class DirectResolver implements TransientResolver<Long, String> {

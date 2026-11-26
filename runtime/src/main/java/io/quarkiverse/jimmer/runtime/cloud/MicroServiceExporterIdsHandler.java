@@ -11,11 +11,9 @@ import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.babyfish.jimmer.sql.fetcher.compiler.FetcherCompiler;
 import org.babyfish.jimmer.sql.runtime.MicroServiceExporter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.vertx.ext.web.RoutingContext;
+import tools.jackson.databind.json.JsonMapper;
 
 @Singleton
 public class MicroServiceExporterIdsHandler extends AbstractMicroServiceExporterHandler {
@@ -23,7 +21,7 @@ public class MicroServiceExporterIdsHandler extends AbstractMicroServiceExporter
     @Override
     @ActivateRequestContext
     public void handle(RoutingContext routingContext) {
-        ObjectMapper objectMapper = objectMappers.get();
+        JsonMapper objectMapper = jsonMappers.get();
         MicroServiceExporter exporter = new MicroServiceExporter(sqlClient.get());
 
         String idArrStr = routingContext.request().getParam(Constant.IDS);
@@ -31,14 +29,8 @@ public class MicroServiceExporterIdsHandler extends AbstractMicroServiceExporter
 
         Fetcher<?> fetcher = FetcherCompiler.compile(fetcherStr, Thread.currentThread().getContextClassLoader());
         Class<?> idType = fetcher.getImmutableType().getIdProp().getElementClass();
-        List<?> ids;
-        try {
-            ids = objectMapper.readValue(
-                    idArrStr,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, Classes.boxTypeOf(idType)));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        List<?> ids = objectMapper.readValue(idArrStr,
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Classes.boxTypeOf(idType)));
 
         List<ImmutableSpi> result = exporter.findByIds(ids, fetcher);
 

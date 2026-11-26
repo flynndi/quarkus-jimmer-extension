@@ -1,9 +1,11 @@
 package io.quarkiverse.jimmer.deployment.cache;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Singleton;
@@ -11,8 +13,6 @@ import jakarta.inject.Singleton;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.PropCacheInvalidator;
 import org.babyfish.jimmer.sql.cache.TransactionCacheOperator;
-import org.babyfish.jimmer.sql.event.AssociationEvent;
-import org.babyfish.jimmer.sql.event.EntityEvent;
 import org.babyfish.jimmer.sql.event.TriggerType;
 import org.babyfish.jimmer.sql.kt.KSqlClient;
 import org.jboss.jandex.AnnotationInstance;
@@ -21,8 +21,10 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.ParameterizedType;
 
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Enabled;
+import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Jackson2Present;
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.JavaEnabled;
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.KotlinEnabled;
+import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.RedissonKryoPresent;
 import io.quarkiverse.jimmer.runtime.JimmerConfigRecorder;
 import io.quarkiverse.jimmer.runtime.JimmerTransactionCacheOperatorRecorder;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
@@ -33,6 +35,7 @@ import io.quarkus.arc.InjectableInstance;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
+import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
@@ -40,50 +43,79 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
+import io.quarkus.deployment.builditem.RemovedResourceBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveFieldBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveMethodBuildItem;
+import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
+import io.quarkus.gizmo.ClassTransformer;
+import io.quarkus.gizmo.MethodDescriptor;
+import io.quarkus.maven.dependency.ArtifactKey;
 
 final class JimmerCacheProcessor {
 
     // Keep optional scheduler types out of the always-loaded processor's signatures and class literals.
     private static final String RETRY_JOB = "io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorRetryJob";
 
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class, onlyIfNot = Jackson2Present.class)
+    void excludeUnavailableRedissonCodec(BuildProducer<RemovedResourceBuildItem> removed) {
+        // Redisson registers this codec for native reflection even when Jackson 2 is absent.
+        if (QuarkusClassLoader.isClassPresentAtRuntime("org.redisson.codec.JsonJacksonCodec")) {
+            removed.produce(new RemovedResourceBuildItem(ArtifactKey.of("org.redisson", "redisson"),
+                    Set.of("org/redisson/codec/JsonJacksonCodec.class")));
+        }
+    }
+
+    @BuildStep(onlyIf = { NativeOrNativeSourcesBuild.class, RedissonKryoPresent.class })
+    void supportKryoInvalidationMessages(CombinedIndexBuildItem index,
+            BuildProducer<BytecodeTransformerBuildItem> transformers,
+            BuildProducer<ReflectiveClassBuildItem> types, BuildProducer<ReflectiveMethodBuildItem> methods,
+            BuildProducer<ReflectiveFieldBuildItem> fields) {
+        String name = "org.babyfish.jimmer.sql.cache.redisson.InvalidateMessage";
+        var message = index.getComputingIndex().getClassByName(DotName.createSimple(name));
+        if (message == null) {
+            return;
+        }
+        if (!message.hasNoArgsConstructor()) {
+            // Kryo5Codec can invoke this constructor in native images, avoiding its Objenesis fallback.
+            transformers.produce(new BytecodeTransformerBuildItem(name, (className, visitor) -> {
+                var transformer = new ClassTransformer(className);
+                var constructor = transformer.addMethod(MethodDescriptor.ofConstructor(className));
+                constructor.setModifiers(Modifier.PRIVATE);
+                constructor.invokeSpecialMethod(MethodDescriptor.ofConstructor(message.superName().toString()),
+                        constructor.getThis());
+                constructor.returnVoid();
+                return transformer.applyTo(visitor);
+            }));
+        }
+        // Headless/manual clients can lack Jackson's hierarchy registration; Quarkus merges overlapping members.
+        String reason = "Redisson Kryo cache invalidation messages";
+        // Cache.delete uses Collections.singleton, and deleteAll preserves an application's Set.of ids.
+        // Kryo resolves the set and UUID classes by name; their serializers construct them directly.
+        types.produce(ReflectiveClassBuildItem.builder(Collections.singleton(null).getClass(),
+                Set.of(1).getClass(), Set.of().getClass(), UUID.class)
+                .constructors(false).reason(reason).build());
+        // AbstractTrackingProducerBinder and TransactionCacheOperator collect batched ids into a LinkedHashSet.
+        methods.produce(new ReflectiveMethodBuildItem(reason, LinkedHashSet.class.getName(), "<init>"));
+        methods.produce(new ReflectiveMethodBuildItem(reason, name, "<init>"));
+        for (var field : message.fields()) {
+            if (!Modifier.isStatic(field.flags()) && !Modifier.isTransient(field.flags())) {
+                fields.produce(new ReflectiveFieldBuildItem(reason, field));
+            }
+        }
+    }
+
     @BuildStep(onlyIf = Enabled.class)
     void registerCacheInvalidatorReflection(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<ReflectiveMethodBuildItem> reflection) {
-        var index = combinedIndex.getIndex();
+            BuildProducer<ReflectiveClassBuildItem> reflection) {
         var invalidator = DotName.createSimple(PropCacheInvalidator.class);
-        var entityEvent = DotName.createSimple(EntityEvent.class);
-        var associationEvent = DotName.createSimple(AssociationEvent.class);
-        var pending = new ArrayDeque<DotName>();
-        var visited = new HashSet<DotName>();
-        pending.add(invalidator);
-        index.getAllKnownImplementors(invalidator).forEach(type -> pending.add(type.name()));
-        index.getAllKnownSubinterfaces(invalidator).forEach(type -> pending.add(type.name()));
-        while (!pending.isEmpty()) {
-            var name = pending.removeFirst();
-            if (!visited.add(name)) {
-                continue;
-            }
-            var type = combinedIndex.getComputingIndex().getClassByName(name);
-            if (type == null) {
-                continue;
-            }
-            for (var method : type.methods()) {
-                if (method.name().equals("getAffectedSourceIds") && method.parametersCount() == 1
-                        && Modifier.isPublic(method.flags()) && !Modifier.isStatic(method.flags())
-                        && (method.parameterType(0).name().equals(entityEvent)
-                                || method.parameterType(0).name().equals(associationEvent))) {
-                    // Jimmer queries the declaring class to detect overrides; invocation uses the interface directly.
-                    reflection.produce(new ReflectiveMethodBuildItem("Jimmer cache invalidator override detection", true,
-                            method));
-                }
-            }
-            // A callback can be inherited from a superclass that does not itself implement PropCacheInvalidator.
-            if (type.superName() != null) {
-                pending.add(type.superName());
-            }
-            pending.addAll(type.interfaceNames());
+        // Jimmer calls getMethod on the resolver/filter type to discover inherited callbacks.
+        // The callback itself is invoked through PropCacheInvalidator.
+        for (var type : combinedIndex.getIndex().getAllKnownImplementors(invalidator)) {
+            reflection.produce(ReflectiveClassBuildItem.builder(type.name().toString()).constructors(false)
+                    .reason("Jimmer cache invalidator override detection").build());
         }
     }
 
