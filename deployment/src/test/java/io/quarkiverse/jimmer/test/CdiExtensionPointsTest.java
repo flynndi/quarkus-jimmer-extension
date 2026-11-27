@@ -1,26 +1,40 @@
 package io.quarkiverse.jimmer.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
+import jakarta.enterprise.inject.AmbiguousResolutionException;
+import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.Vetoed;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Status;
 import jakarta.transaction.TransactionManager;
 import jakarta.transaction.Transactional;
 
 import org.babyfish.jimmer.sql.JSqlClient;
+import org.babyfish.jimmer.sql.TransientResolver;
 import org.babyfish.jimmer.sql.filter.Filter;
 import org.babyfish.jimmer.sql.filter.FilterArgs;
 import org.babyfish.jimmer.sql.meta.LogicalDeletedLongGenerator;
+import org.babyfish.jimmer.sql.meta.UUIDIdGenerator;
+import org.babyfish.jimmer.sql.meta.UserIdGenerator;
 import org.babyfish.jimmer.sql.runtime.Customizer;
 import org.babyfish.jimmer.sql.runtime.Initializer;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
@@ -37,6 +51,7 @@ import io.quarkiverse.jimmer.test.model.CdiBookProps;
 import io.quarkiverse.jimmer.test.model.deletion.ArchivedBook;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.QuarkusExtensionTest;
+import io.smallrye.common.annotation.Identifier;
 
 class CdiExtensionPointsTest {
 
@@ -46,6 +61,9 @@ class CdiExtensionPointsTest {
                     .addPackage(CdiBook.class.getPackage())
                     .addPackage(ArchivedBook.class.getPackage())
                     .addClasses(BookFilter.class, TransactionalCustomizer.class, TransactionalInitializer.class)
+                    .addClasses(BookIdGenerator.class, PreferredBookIdGenerator.class, AmbiguousBookIdGenerator.class,
+                            BookResolver.class,
+                            NamedBookResolver.class, UnmanagedBookResolver.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n" + ArchivedBook.class.getName() + "\n"),
                             "META-INF/jimmer/entities"))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
@@ -122,6 +140,94 @@ class CdiExtensionPointsTest {
                 () -> generators.getLogicalDeletedValueGenerator("bookMarkerSource"));
         assertTrue(wrongType.getMessage().contains("bookMarkerSource"));
         assertTrue(wrongType.getMessage().contains(ArchivedBook.MarkerSource.class.getName()));
+    }
+
+    @Test
+    void resolvesIdGeneratorsByTypeAndName() throws Exception {
+        var generators = ((JSqlClientImplementor) client).getGeneratorContext();
+        assertInstanceOf(PreferredBookIdGenerator.class, generators.getUserIdGenerator(BookIdGenerator.class));
+        assertThrows(AmbiguousResolutionException.class, () -> generators.getUserIdGenerator(AmbiguousBookIdGenerator.class));
+        assertEquals(BookIdGenerator.class, generators.getUserIdGenerator("bookIds").getClass());
+        assertInstanceOf(UUIDIdGenerator.class, generators.getUserIdGenerator(UUIDIdGenerator.class));
+    }
+
+    @Test
+    void resolvesQualifiedTransientResolversAndRejectsAmbiguity() throws Exception {
+        var resolvers = ((JSqlClientImplementor) client).getTransientResolverProvider();
+        var resolver = assertInstanceOf(NamedBookResolver.class, resolverByType(NamedBookResolver.class));
+        assertSame(resolver, resolvers.get("bookResolverByName", client));
+        assertThrows(AmbiguousResolutionException.class, () -> resolverByType(BookResolver.class));
+        assertNull(resolverByType(UnmanagedBookResolver.class));
+    }
+
+    @SuppressWarnings("unchecked")
+    private TransientResolver<?, ?> resolverByType(Class<? extends TransientResolver<?, ?>> type) throws Exception {
+        var resolvers = ((JSqlClientImplementor) client).getTransientResolverProvider();
+        return resolvers.get((Class<TransientResolver<?, ?>>) type, client);
+    }
+
+    @Test
+    void generatorAndResolverErrorsIdentifyTheRequestedBean() {
+        var implementation = (JSqlClientImplementor) client;
+        var generators = implementation.getGeneratorContext();
+        var resolvers = implementation.getTransientResolverProvider();
+        String missing = "Cannot resolve a Quarkus bean named \"missingBookStrategy\"";
+        assertEquals(missing, assertThrows(IllegalStateException.class,
+                () -> generators.getUserIdGenerator("missingBookStrategy")).getMessage());
+        assertEquals(missing, assertThrows(IllegalStateException.class,
+                () -> resolvers.get("missingBookStrategy", client)).getMessage());
+
+        String wrongType = "Quarkus bean named \"bookMarkerSource\" has type \"" + ArchivedBook.MarkerSource.class.getName()
+                + "\", expected \"%s\"";
+        assertEquals(wrongType.formatted(UserIdGenerator.class.getName()), assertThrows(IllegalStateException.class,
+                () -> generators.getUserIdGenerator("bookMarkerSource")).getMessage());
+        assertEquals(wrongType.formatted(TransientResolver.class.getName()), assertThrows(IllegalStateException.class,
+                () -> resolvers.get("bookMarkerSource", client)).getMessage());
+    }
+
+    @Singleton
+    @Named("bookIds")
+    @Identifier("book")
+    public static class BookIdGenerator implements UserIdGenerator<Long> {
+        @Override
+        public Long generate(Class<?> entityType) {
+            return 1L;
+        }
+    }
+
+    @Alternative
+    @Priority(1)
+    @Singleton
+    @Identifier("preferred")
+    public static class PreferredBookIdGenerator extends BookIdGenerator {
+    }
+
+    @Singleton
+    public static class AmbiguousBookIdGenerator extends BookIdGenerator {
+        @Produces
+        @Identifier("second")
+        static AmbiguousBookIdGenerator secondGenerator() {
+            return new AmbiguousBookIdGenerator();
+        }
+    }
+
+    @Singleton
+    @Identifier("book")
+    public static class BookResolver implements TransientResolver<Long, String> {
+        @Override
+        public Map<Long, String> resolve(Collection<Long> ids) {
+            return Map.of();
+        }
+    }
+
+    @Singleton
+    @Identifier("named")
+    @Named("bookResolverByName")
+    public static class NamedBookResolver extends BookResolver {
+    }
+
+    @Vetoed
+    public static class UnmanagedBookResolver extends BookResolver {
     }
 
     // Deliberately no @Unremovable, @Named, or injection points referring to these beans.

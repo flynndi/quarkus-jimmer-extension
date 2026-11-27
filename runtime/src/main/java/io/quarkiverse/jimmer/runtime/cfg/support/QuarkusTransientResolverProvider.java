@@ -1,5 +1,7 @@
 package io.quarkiverse.jimmer.runtime.cfg.support;
 
+import jakarta.enterprise.inject.Any;
+
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.TransientResolver;
 import org.babyfish.jimmer.sql.di.TransientResolverProvider;
@@ -24,20 +26,21 @@ public class QuarkusTransientResolverProvider implements TransientResolverProvid
     public TransientResolver<?, ?> get(
             Class<TransientResolver<?, ?>> type,
             JSqlClient sqlClient) throws Exception {
-        return access.get(container.instance(type));
+        if (container.select(type, Any.Literal.INSTANCE).isUnsatisfied()) {
+            return null;
+        }
+        return access.lookup(container, root -> root.select(type, Any.Literal.INSTANCE).get());
     }
 
     @Override
     public TransientResolver<?, ?> get(String ref, JSqlClient sqlClient) throws Exception {
         Object bean = access.get(container.instance(ref));
-        if (!(bean instanceof TransientResolver<?, ?>)) {
-            throw new IllegalStateException(
-                    "The expected type of quarkus bean named \"ref\" is \"" +
-                            TransientResolver.class.getName() +
-                            "\", but the actual type is + \"" +
-                            bean.getClass().getName() +
-                            "\"");
+        if (bean instanceof TransientResolver<?, ?> resolver) {
+            return resolver;
         }
-        return (TransientResolver<?, ?>) bean;
+        throw new IllegalStateException(bean == null
+                ? "Cannot resolve a Quarkus bean named \"" + ref + "\""
+                : "Quarkus bean named \"" + ref + "\" has type \"" + bean.getClass().getName()
+                        + "\", expected \"" + TransientResolver.class.getName() + "\"");
     }
 }
