@@ -15,8 +15,10 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Alternative;
 import jakarta.enterprise.inject.AmbiguousResolutionException;
 import jakarta.enterprise.inject.Produces;
@@ -33,6 +35,7 @@ import org.babyfish.jimmer.sql.TransientResolver;
 import org.babyfish.jimmer.sql.filter.Filter;
 import org.babyfish.jimmer.sql.filter.FilterArgs;
 import org.babyfish.jimmer.sql.meta.LogicalDeletedLongGenerator;
+import org.babyfish.jimmer.sql.meta.LogicalDeletedValueGenerator;
 import org.babyfish.jimmer.sql.meta.UUIDIdGenerator;
 import org.babyfish.jimmer.sql.meta.UserIdGenerator;
 import org.babyfish.jimmer.sql.runtime.Customizer;
@@ -50,6 +53,10 @@ import io.quarkiverse.jimmer.test.model.CdiBook;
 import io.quarkiverse.jimmer.test.model.CdiBookProps;
 import io.quarkiverse.jimmer.test.model.deletion.ArchivedBook;
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.BeanCreator;
+import io.quarkus.arc.BeanDestroyer;
+import io.quarkus.arc.SyntheticCreationalContext;
+import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.test.QuarkusExtensionTest;
 import io.smallrye.common.annotation.Identifier;
 
@@ -62,10 +69,38 @@ class CdiExtensionPointsTest {
                     .addPackage(ArchivedBook.class.getPackage())
                     .addClasses(BookFilter.class, TransactionalCustomizer.class, TransactionalInitializer.class)
                     .addClasses(BookIdGenerator.class, PreferredBookIdGenerator.class, AmbiguousBookIdGenerator.class,
+                            DependentIdGenerator.class,
                             BookResolver.class,
-                            NamedBookResolver.class, UnmanagedBookResolver.class)
+                            NamedBookResolver.class, DependentBookResolver.class, UnmanagedBookResolver.class,
+                            SyntheticIdGenerator.class, SyntheticDeletedGenerator.class, SyntheticBookResolver.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n" + ArchivedBook.class.getName() + "\n"),
                             "META-INF/jimmer/entities"))
+            .addBuildChainCustomizer(buildBuilder -> buildBuilder.addBuildStep(context -> {
+                context.produce(SyntheticBeanBuildItem.configure(SyntheticIdGenerator.class)
+                        .addType(UserIdGenerator.class)
+                        .scope(Dependent.class)
+                        .name("syntheticBookIds")
+                        .unremovable()
+                        .creator(SyntheticIdGenerator.Creator.class)
+                        .destroyer(SyntheticIdGenerator.Destroyer.class)
+                        .done());
+                context.produce(SyntheticBeanBuildItem.configure(SyntheticDeletedGenerator.class)
+                        .addType(LogicalDeletedValueGenerator.class)
+                        .scope(Dependent.class)
+                        .name("syntheticDeletedMarker")
+                        .unremovable()
+                        .creator(SyntheticDeletedGenerator.Creator.class)
+                        .destroyer(SyntheticDeletedGenerator.Destroyer.class)
+                        .done());
+                context.produce(SyntheticBeanBuildItem.configure(SyntheticBookResolver.class)
+                        .addType(TransientResolver.class)
+                        .scope(Dependent.class)
+                        .name("syntheticResolver")
+                        .unremovable()
+                        .creator(SyntheticBookResolver.Creator.class)
+                        .destroyer(SyntheticBookResolver.Destroyer.class)
+                        .done());
+            }).produces(SyntheticBeanBuildItem.class).build())
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
             .overrideConfigKey("quarkus.datasource.db-kind", "h2")
@@ -183,6 +218,177 @@ class CdiExtensionPointsTest {
                 () -> generators.getUserIdGenerator("bookMarkerSource")).getMessage());
         assertEquals(wrongType.formatted(TransientResolver.class.getName()), assertThrows(IllegalStateException.class,
                 () -> resolvers.get("bookMarkerSource", client)).getMessage());
+    }
+
+    @Test
+    void releasesDependentNamedGeneratorsAndResolversWithClient() throws Exception {
+        var implementation = (JSqlClientImplementor) client;
+        int idDestroyedBefore = DependentIdGenerator.destructions;
+        int resolverDestroyedBefore = DependentBookResolver.destructions;
+
+        assertInstanceOf(DependentIdGenerator.class,
+                implementation.getGeneratorContext().getUserIdGenerator("dependentBookIds"));
+        assertInstanceOf(DependentBookResolver.class,
+                implementation.getTransientResolverProvider().get("dependentBookResolver", client));
+        assertEquals(idDestroyedBefore, DependentIdGenerator.destructions);
+        assertEquals(resolverDestroyedBefore, DependentBookResolver.destructions);
+
+        Arc.container().instance(JSqlClient.class).destroy();
+        assertEquals(idDestroyedBefore + 1, DependentIdGenerator.destructions);
+        assertEquals(resolverDestroyedBefore + 1, DependentBookResolver.destructions);
+    }
+
+    @Test
+    void manualClientDoesNotLeakDependentPluginsIntoGlobalInstance() throws Exception {
+        JSqlClientImplementor manualClient = (JSqlClientImplementor) SqlClients.java(Arc.container());
+        int idDestroyedBefore = DependentIdGenerator.destructions;
+        int resolverDestroyedBefore = DependentBookResolver.destructions;
+
+        UserIdGenerator<?> idGenerator = manualClient.getGeneratorContext().getUserIdGenerator("dependentBookIds");
+        TransientResolver<?, ?> resolver = manualClient.getTransientResolverProvider()
+                .get("dependentBookResolver", manualClient);
+        assertInstanceOf(DependentIdGenerator.class, idGenerator);
+        assertInstanceOf(DependentBookResolver.class, resolver);
+
+        Arc.container().beanManager().createInstance().destroy(idGenerator);
+        Arc.container().beanManager().createInstance().destroy(resolver);
+        assertEquals(idDestroyedBefore, DependentIdGenerator.destructions);
+        assertEquals(resolverDestroyedBefore, DependentBookResolver.destructions);
+    }
+
+    @Test
+    void resolvesAndReleasesSyntheticCdiNamedPluginsWithoutNamedQualifier() throws Exception {
+        JSqlClientImplementor manualClient = (JSqlClientImplementor) SqlClients.java(Arc.container());
+        int manualIdDestroyedBefore = SyntheticIdGenerator.destructions;
+        UserIdGenerator<?> manualIdGen = manualClient.getGeneratorContext().getUserIdGenerator("syntheticBookIds");
+        assertEquals(42L, manualIdGen.generate(CdiBook.class));
+        Arc.container().beanManager().createInstance().destroy(manualIdGen);
+        assertEquals(manualIdDestroyedBefore, SyntheticIdGenerator.destructions);
+
+        var implementation = (JSqlClientImplementor) client;
+        int idDestroyedBefore = SyntheticIdGenerator.destructions;
+        int deletedDestroyedBefore = SyntheticDeletedGenerator.destructions;
+        int resolverDestroyedBefore = SyntheticBookResolver.destructions;
+
+        assertEquals(42L, implementation.getGeneratorContext().getUserIdGenerator("syntheticBookIds").generate(CdiBook.class));
+        assertEquals(84L, implementation.getGeneratorContext()
+                .getLogicalDeletedValueGenerator("syntheticDeletedMarker").generate());
+        @SuppressWarnings("unchecked")
+        TransientResolver<Long, String> resolver = (TransientResolver<Long, String>) implementation
+                .getTransientResolverProvider().get("syntheticResolver", client);
+        assertEquals(Map.of(1L, "synthetic"), resolver.resolve(java.util.List.of(1L)));
+
+        assertEquals(idDestroyedBefore, SyntheticIdGenerator.destructions);
+        assertEquals(deletedDestroyedBefore, SyntheticDeletedGenerator.destructions);
+        assertEquals(resolverDestroyedBefore, SyntheticBookResolver.destructions);
+
+        Arc.container().instance(JSqlClient.class).destroy();
+        assertEquals(idDestroyedBefore + 1, SyntheticIdGenerator.destructions);
+        assertEquals(deletedDestroyedBefore + 1, SyntheticDeletedGenerator.destructions);
+        assertEquals(resolverDestroyedBefore + 1, SyntheticBookResolver.destructions);
+    }
+
+    public static class SyntheticIdGenerator implements UserIdGenerator<Long> {
+        static int destructions;
+
+        @Override
+        public Long generate(Class<?> entityType) {
+            return 42L;
+        }
+
+        public static class Creator implements BeanCreator<SyntheticIdGenerator> {
+            @Override
+            public SyntheticIdGenerator create(SyntheticCreationalContext<SyntheticIdGenerator> context) {
+                return new SyntheticIdGenerator();
+            }
+        }
+
+        public static class Destroyer implements BeanDestroyer<SyntheticIdGenerator> {
+            @Override
+            public void destroy(SyntheticIdGenerator instance, SyntheticCreationalContext<SyntheticIdGenerator> context) {
+                destructions++;
+            }
+        }
+    }
+
+    public static class SyntheticDeletedGenerator implements LogicalDeletedValueGenerator<Long> {
+        static int destructions;
+
+        @Override
+        public Long generate() {
+            return 84L;
+        }
+
+        public static class Creator implements BeanCreator<SyntheticDeletedGenerator> {
+            @Override
+            public SyntheticDeletedGenerator create(SyntheticCreationalContext<SyntheticDeletedGenerator> context) {
+                return new SyntheticDeletedGenerator();
+            }
+        }
+
+        public static class Destroyer implements BeanDestroyer<SyntheticDeletedGenerator> {
+            @Override
+            public void destroy(SyntheticDeletedGenerator instance,
+                    SyntheticCreationalContext<SyntheticDeletedGenerator> context) {
+                destructions++;
+            }
+        }
+    }
+
+    public static class SyntheticBookResolver implements TransientResolver<Long, String> {
+        static int destructions;
+
+        @Override
+        public Map<Long, String> resolve(Collection<Long> ids) {
+            return Map.of(1L, "synthetic");
+        }
+
+        public static class Creator implements BeanCreator<SyntheticBookResolver> {
+            @Override
+            public SyntheticBookResolver create(SyntheticCreationalContext<SyntheticBookResolver> context) {
+                return new SyntheticBookResolver();
+            }
+        }
+
+        public static class Destroyer implements BeanDestroyer<SyntheticBookResolver> {
+            @Override
+            public void destroy(SyntheticBookResolver instance, SyntheticCreationalContext<SyntheticBookResolver> context) {
+                destructions++;
+            }
+        }
+    }
+
+    @Dependent
+    @Named("dependentBookIds")
+    public static class DependentIdGenerator implements UserIdGenerator<Long> {
+        static int destructions;
+
+        @Override
+        public Long generate(Class<?> entityType) {
+            return 2L;
+        }
+
+        @PreDestroy
+        void destroy() {
+            destructions++;
+        }
+    }
+
+    @Dependent
+    @Named("dependentBookResolver")
+    @Identifier("dependent")
+    public static class DependentBookResolver implements TransientResolver<Long, String> {
+        static int destructions;
+
+        @Override
+        public Map<Long, String> resolve(Collection<Long> ids) {
+            return Map.of();
+        }
+
+        @PreDestroy
+        void destroy() {
+            destructions++;
+        }
     }
 
     @Singleton

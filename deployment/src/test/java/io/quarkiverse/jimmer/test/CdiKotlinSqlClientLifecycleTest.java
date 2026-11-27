@@ -38,7 +38,7 @@ class CdiKotlinSqlClientLifecycleTest {
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addPackage(CdiBook.class.getPackage())
                     .addClasses(Probe.class, ClientDependentCustomizer.class, ClientDependentInitializer.class,
-                            OtherDataSourceCustomizer.class, UnselectedJavaCustomizer.class)
+                            OtherDataSourceCustomizer.class, UnselectedJavaCustomizer.class, UnusedDependentBean.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))
             .overrideConfigKey("quarkus.jimmer.language", "kotlin")
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
@@ -88,6 +88,11 @@ class CdiKotlinSqlClientLifecycleTest {
         assertEquals(0, probe.customizerDestructions);
         Arc.container().instance(KSqlClient.class).destroy();
         assertEquals(1, probe.customizerDestructions);
+        assertTrue(Arc.container().beanManager().getBeans(UnusedDependentBean.class).isEmpty());
+    }
+
+    @Dependent
+    public static class UnusedDependentBean {
     }
 
     @Singleton

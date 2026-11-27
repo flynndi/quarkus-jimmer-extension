@@ -50,7 +50,8 @@ class CdiSqlClientLifecycleTest {
                     .addPackage(CdiBook.class.getPackage())
                     .addClasses(Probe.class, ClientDependentFilter.class, ClientDependentCustomizer.class,
                             ClientDependentInitializer.class, OtherDataSourceCustomizer.class,
-                            UnselectedKotlinCustomizer.class, TrackingCacheOperator.class, SharedBuilder.class)
+                            UnselectedKotlinCustomizer.class, TrackingCacheOperator.class, SharedBuilder.class,
+                            UnusedDependentBean.class)
                     .addAsResource(new StringAsset(CdiBook.class.getName() + "\n"), "META-INF/jimmer/entities"))
             .overrideConfigKey("quarkus.datasource.devservices.enabled", "false")
             .overrideConfigKey("quarkus.redis.devservices.enabled", "false")
@@ -123,6 +124,11 @@ class CdiSqlClientLifecycleTest {
         assertEquals(0, probe.sharedCustomizerDestructions);
         assertEquals(1, probe.builderDisposals);
         assertEquals(0, probe.sharedBuilderDestructions);
+        assertTrue(Arc.container().beanManager().getBeans(UnusedDependentBean.class).isEmpty());
+    }
+
+    @Dependent
+    public static class UnusedDependentBean {
     }
 
     @Singleton
