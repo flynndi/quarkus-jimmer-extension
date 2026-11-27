@@ -1,19 +1,12 @@
 package io.quarkiverse.jimmer.runtime;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
-
-import jakarta.enterprise.inject.Default;
-import jakarta.enterprise.inject.Instance;
-import jakarta.enterprise.util.TypeLiteral;
 
 import org.babyfish.jimmer.sql.DraftInterceptor;
 import org.babyfish.jimmer.sql.JSqlClient;
@@ -22,10 +15,12 @@ import org.babyfish.jimmer.sql.cache.CacheFactory;
 import org.babyfish.jimmer.sql.di.*;
 import org.babyfish.jimmer.sql.dialect.DefaultDialect;
 import org.babyfish.jimmer.sql.dialect.Dialect;
+import org.babyfish.jimmer.sql.filter.Filter;
 import org.babyfish.jimmer.sql.kt.cfg.KCustomizer;
 import org.babyfish.jimmer.sql.kt.cfg.KCustomizerKt;
 import org.babyfish.jimmer.sql.kt.cfg.KInitializer;
 import org.babyfish.jimmer.sql.kt.cfg.KInitializerKt;
+import org.babyfish.jimmer.sql.kt.filter.KFilter;
 import org.babyfish.jimmer.sql.kt.filter.impl.JavaFiltersKt;
 import org.babyfish.jimmer.sql.meta.DatabaseNamingStrategy;
 import org.babyfish.jimmer.sql.meta.DatabaseSchemaStrategy;
@@ -44,15 +39,13 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusConnectionManager;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusUserIdGeneratorProvider;
-import io.quarkiverse.jimmer.runtime.cfg.support.SqlClientBeanAccess;
 import io.quarkiverse.jimmer.runtime.dialect.DialectDetector;
 import io.quarkiverse.jimmer.runtime.event.QuarkusEventDispatcher;
+import io.quarkiverse.jimmer.runtime.internal.SqlClientBeans;
 import io.quarkiverse.jimmer.runtime.meta.QuarkusMetaStringResolver;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
-import io.quarkus.agroal.DataSource.DataSourceLiteral;
 import io.quarkus.arc.ArcContainer;
-import io.quarkus.arc.InstanceHandle;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -67,11 +60,7 @@ final class QuarkusSqlClientFactory {
 
     private final String dataSourceName;
 
-    private final DataSourceLiteral dataSourceQualifier;
-
-    private final ArcContainer container;
-
-    private final SqlClientBeanAccess access;
+    private final SqlClientBeans beans;
 
     private final Consumer<JSqlClient.Builder> block;
 
@@ -79,21 +68,19 @@ final class QuarkusSqlClientFactory {
 
     QuarkusSqlClientFactory(ArcContainer container, DataSource dataSource, String dataSourceName,
             Consumer<JSqlClient.Builder> block, boolean isKotlin) {
-        this(container, container.select(JimmerRuntimeConfig.class).get(),
-                container.select(JimmerBuildTimeConfig.class).get(), dataSource, dataSourceName, block, isKotlin,
-                SqlClientBeanAccess.UNMANAGED);
+        this(container.select(JimmerRuntimeConfig.class).get(),
+                container.select(JimmerBuildTimeConfig.class).get(),
+                dataSource, new SqlClientBeans(container, dataSourceName), block, isKotlin);
     }
 
-    QuarkusSqlClientFactory(ArcContainer container, JimmerRuntimeConfig runtimeConfig,
-            JimmerBuildTimeConfig buildTimeConfig, DataSource dataSource, String dataSourceName,
-            Consumer<JSqlClient.Builder> block, boolean isKotlin, SqlClientBeanAccess access) {
-        this.container = Objects.requireNonNull(container);
-        this.access = Objects.requireNonNull(access);
+    QuarkusSqlClientFactory(JimmerRuntimeConfig runtimeConfig, JimmerBuildTimeConfig buildTimeConfig,
+            DataSource dataSource, SqlClientBeans beans,
+            Consumer<JSqlClient.Builder> block, boolean isKotlin) {
+        this.beans = Objects.requireNonNull(beans);
         this.runtimeConfig = Objects.requireNonNull(runtimeConfig);
         this.buildTimeConfig = Objects.requireNonNull(buildTimeConfig);
         this.dataSource = dataSource;
-        this.dataSourceName = dataSourceName != null ? dataSourceName : DataSourceUtil.DEFAULT_DATASOURCE_NAME;
-        this.dataSourceQualifier = new DataSourceLiteral(this.dataSourceName);
+        this.dataSourceName = beans.dataSourceName();
         this.block = block;
         this.isKotlin = isKotlin;
         JimmerConfigValidator.validateDataSource(this.dataSourceName,
@@ -102,35 +89,36 @@ final class QuarkusSqlClientFactory {
 
     JSqlClientImplementor create() {
         JimmerDataSourceRuntimeConfig config = runtimeConfig.dataSources().get(dataSourceName);
-        UserIdGeneratorProvider userIdGeneratorProvider = getOptionalBean(UserIdGeneratorProvider.class);
-        LogicalDeletedValueGeneratorProvider logicalDeletedValueGeneratorProvider = getOptionalBean(
+        UserIdGeneratorProvider userIdGeneratorProvider = beans.optional(UserIdGeneratorProvider.class);
+        LogicalDeletedValueGeneratorProvider logicalDeletedValueGeneratorProvider = beans.optional(
                 LogicalDeletedValueGeneratorProvider.class);
-        TransientResolverProvider transientResolverProvider = getOptionalBean(TransientResolverProvider.class);
-        AopProxyProvider aopProxyProvider = getOptionalBean(AopProxyProvider.class);
-        EntityManager entityManager = getOptionalBean(EntityManager.class);
-        DatabaseSchemaStrategy databaseSchemaStrategy = getOptionalBean(DatabaseSchemaStrategy.class);
-        DatabaseNamingStrategy databaseNamingStrategy = getOptionalBean(DatabaseNamingStrategy.class);
-        MetaStringResolver metaStringResolver = getOptionalBean(MetaStringResolver.class);
-        Executor executor = getOptionalBean(Executor.class);
-        SqlFormatter sqlFormatter = getOptionalBean(SqlFormatter.class);
-        JsonMapper jsonMapper = getOptionalBean(JsonMapper.class);
-        CacheFactory cacheFactory = getOptionalBean(CacheFactory.class);
-        Collection<CacheAbandonedCallback> callbacks = getMatchingBeans(CacheAbandonedCallback.class);
-        Collection<ScalarProvider<?, ?>> providers = getMatchingBeans(Constant.SCALAR_PROVIDER_TYPE_LITERAL);
-        Collection<DraftInterceptor<?, ?>> interceptors = getMatchingBeans(Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL);
+        TransientResolverProvider transientResolverProvider = beans.optional(TransientResolverProvider.class);
+        AopProxyProvider aopProxyProvider = beans.optional(AopProxyProvider.class);
+        EntityManager entityManager = beans.optional(EntityManager.class);
+        DatabaseSchemaStrategy databaseSchemaStrategy = beans.optional(DatabaseSchemaStrategy.class);
+        DatabaseNamingStrategy databaseNamingStrategy = beans.optional(DatabaseNamingStrategy.class);
+        MetaStringResolver metaStringResolver = beans.optional(MetaStringResolver.class);
+        Executor executor = beans.optional(Executor.class);
+        SqlFormatter sqlFormatter = beans.optional(SqlFormatter.class);
+        JsonMapper jsonMapper = beans.optional(JsonMapper.class);
+        CacheFactory cacheFactory = beans.optional(CacheFactory.class);
+        Collection<CacheAbandonedCallback> callbacks = beans.matching(CacheAbandonedCallback.class);
+        Collection<ScalarProvider<?, ?>> providers = beans.matching(
+                ScalarProvider.class, Constant.SCALAR_PROVIDER_TYPE_LITERAL);
+        Collection<DraftInterceptor<?, ?>> interceptors = beans.matching(
+                DraftInterceptor.class, Constant.DRAFT_INTERCEPTOR_TYPE_LITERAL);
         // ArC matches raw producer return types and parameterized translator beans separately.
-        Collection<ExceptionTranslator<?>> exceptionTranslators = new ArrayList<>();
-        getMatchingBeans(ExceptionTranslator.class).forEach(exceptionTranslators::add);
-        exceptionTranslators.addAll(getMatchingBeans(Constant.EXCEPTION_TRANSLATOR_TYPE_LITERAL));
+        Collection<ExceptionTranslator<?>> exceptionTranslators = beans.matching(
+                ExceptionTranslator.class, Constant.EXCEPTION_TRANSLATOR_TYPE_LITERAL);
 
         JSqlClient.Builder builder = JSqlClient.newBuilder();
         builder.setUserIdGeneratorProvider(
                 Objects.requireNonNullElseGet(userIdGeneratorProvider,
-                        () -> new QuarkusUserIdGeneratorProvider(container, access)));
+                        () -> new QuarkusUserIdGeneratorProvider(beans)));
         builder.setLogicalDeletedValueGeneratorProvider(Objects.requireNonNullElseGet(logicalDeletedValueGeneratorProvider,
-                () -> new QuarkusLogicalDeletedValueGeneratorProvider(container, access)));
+                () -> new QuarkusLogicalDeletedValueGeneratorProvider(beans)));
         builder.setTransientResolverProvider(Objects.requireNonNullElseGet(transientResolverProvider,
-                () -> new QuarkusTransientResolverProvider(container, access)));
+                () -> new QuarkusTransientResolverProvider(beans)));
         builder.setAopProxyProvider(Objects.requireNonNullElseGet(aopProxyProvider, QuarkusAopProxyProvider::new));
         if (null != entityManager) {
             builder.setEntityManager(entityManager);
@@ -205,22 +193,20 @@ final class QuarkusSqlClientFactory {
         builder.addDraftInterceptors(interceptors);
         builder.addExceptionTranslators(exceptionTranslators);
         configureLanguageExtensions(builder);
-        QuarkusEventDispatcher dispatcher = access.lookup(container, root -> {
-            var dispatchers = root.select(QuarkusEventDispatcher.class);
-            return dispatchers.isUnsatisfied() ? new QuarkusEventDispatcher(container.beanManager().getEvent())
-                    : dispatchers.get();
-        });
+        QuarkusEventDispatcher dispatcher = Objects.requireNonNullElseGet(
+                beans.optional(QuarkusEventDispatcher.class),
+                () -> new QuarkusEventDispatcher(beans.beanManager().getEvent()));
         builder.addInitializers(dispatcher.initializer(dataSourceName));
 
         builder.setMicroServiceName(buildTimeConfig.microServiceName().orElse(null));
         if (buildTimeConfig.microServiceName().isPresent()) {
-            builder.setMicroServiceExchange(getOptionalBean(MicroServiceExchange.class));
+            builder.setMicroServiceExchange(beans.optional(MicroServiceExchange.class));
         }
 
         if (null != this.block) {
             this.block.accept(builder);
         }
-        Consumer<JSqlClient.Builder> beanBlock = getOptionalBean(Constant.J_SQL_CLIENT_BUILDER_TYPE_LITERAL);
+        Consumer<JSqlClient.Builder> beanBlock = beans.optional(Constant.J_SQL_CLIENT_BUILDER_TYPE_LITERAL);
         if (beanBlock != null) {
             beanBlock.accept(builder);
         }
@@ -235,25 +221,22 @@ final class QuarkusSqlClientFactory {
         var implementor = (JSqlClientImplementor.Builder) builder;
         ConnectionManager connectionManager = implementor.getConnectionManager();
         if (connectionManager == null) {
-            connectionManager = getOptionalBean(ConnectionManager.class);
+            connectionManager = beans.optional(ConnectionManager.class);
         }
         if (connectionManager == null) {
             // Datasources never inherit the SPI fallback to @Default: a named client must use its own datasource.
-            DataSource selectedDataSource = dataSource != null ? dataSource
-                    : access.lookup(container, root -> root.select(DataSource.class, DataSourceUtil.isDefault(dataSourceName)
-                            ? Default.Literal.INSTANCE
-                            : dataSourceQualifier).get());
+            DataSource selectedDataSource = dataSource != null ? dataSource : beans.requiredForDataSource(DataSource.class);
             connectionManager = new QuarkusConnectionManager(selectedDataSource);
         }
         builder.setConnectionManager(connectionManager);
 
         if (implementor.getDialect().getClass() == DefaultDialect.class) {
-            Dialect dialect = getOptionalBean(Dialect.class);
+            Dialect dialect = beans.optional(Dialect.class);
             if (dialect == null) {
                 dialect = configuredDialect;
             }
             if (dialect == null) {
-                DialectDetector detector = getOptionalBean(DialectDetector.class);
+                DialectDetector detector = beans.optional(DialectDetector.class);
                 if (detector == null) {
                     detector = new DialectDetector.Impl(dataSource);
                 }
@@ -268,72 +251,34 @@ final class QuarkusSqlClientFactory {
             if (!Constant.KOTLIN_SQL_AVAILABLE) {
                 throw new IllegalStateException("Kotlin SQL clients require org.babyfish.jimmer:jimmer-sql-kotlin");
             }
-            KotlinExtensions.configure(this, builder);
+            KotlinExtensions.configure(beans, builder);
         } else {
-            builder.addFilters(getMatchingBeans(Constant.FILTER_TYPE_LITERAL));
-            builder.addCustomizers(getMatchingBeans(Customizer.class));
-            builder.addInitializers(getMatchingBeans(Initializer.class));
+            builder.addFilters(beans.matching(Filter.class, Constant.FILTER_TYPE_LITERAL));
+            builder.addCustomizers(beans.matching(Customizer.class));
+            builder.addInitializers(beans.matching(Initializer.class));
         }
     }
 
     // Keep Kotlin method references out of the shared method's bytecode, even behind an isKotlin check.
     private static final class KotlinExtensions {
 
-        private static void configure(QuarkusSqlClientFactory factory, JSqlClient.Builder builder) {
+        private static void configure(SqlClientBeans beans, JSqlClient.Builder builder) {
             builder.addFilters(
-                    factory.getMatchingBeans(Constant.K_FILTER_TYPE_LITERAL)
+                    beans.matching(KFilter.class, Constant.K_FILTER_TYPE_LITERAL)
                             .stream()
                             .map(JavaFiltersKt::toJavaFilter)
                             .collect(Collectors.toList()));
             builder.addCustomizers(
-                    factory.getMatchingBeans(KCustomizer.class)
+                    beans.matching(KCustomizer.class)
                             .stream()
                             .map(KCustomizerKt::toJavaCustomizer)
                             .collect(Collectors.toList()));
             builder.addInitializers(
-                    factory.getMatchingBeans(KInitializer.class)
+                    beans.matching(KInitializer.class)
                             .stream()
                             .map(KInitializerKt::toJavaInitializer)
                             .collect(Collectors.toList()));
         }
-    }
-
-    private <T> T getOptionalBean(Class<T> type) {
-        return access.lookup(container,
-                root -> getOptionalBean(root.select(type, dataSourceQualifier), () -> root.select(type)));
-    }
-
-    private <T> T getOptionalBean(TypeLiteral<T> type) {
-        return access.lookup(container,
-                root -> getOptionalBean(root.select(type, dataSourceQualifier), () -> root.select(type)));
-    }
-
-    private <T> T getOptionalBean(Instance<T> named, Supplier<Instance<T>> defaults) {
-        var beans = named.isUnsatisfied() ? defaults.get() : named;
-        return beans.isUnsatisfied() ? null : beans.get();
-    }
-
-    private <T> Collection<T> getMatchingBeans(Class<T> type) {
-        return getMatchingBeans(container.listAll(type));
-    }
-
-    private <T> Collection<T> getMatchingBeans(TypeLiteral<T> type) {
-        return getMatchingBeans(container.listAll(type));
-    }
-
-    private <T> Collection<T> getMatchingBeans(List<InstanceHandle<T>> handles) {
-        Collection<T> collection = new ArrayList<>();
-        for (var handle : handles) {
-            // Inspect qualifiers before get(): unrelated datasource beans must not be instantiated.
-            if (handle.getBean().getQualifiers().stream().noneMatch(
-                    q -> q instanceof io.quarkus.agroal.DataSource ds && !dataSourceName.equals(ds.value()))) {
-                T value = access.get(handle);
-                if (value != null) {
-                    collection.add(value);
-                }
-            }
-        }
-        return collection;
     }
 
     @Nullable
