@@ -9,6 +9,8 @@ import io.quarkus.arc.Subclass;
 /** Resolves metadata without replacing the CDI reference used to invoke an extension point. */
 public final class QuarkusAopProxyProvider implements AopProxyProvider {
 
+    public static final QuarkusAopProxyProvider INSTANCE = new QuarkusAopProxyProvider();
+
     @Override
     public Class<?> getTargetClass(Object instance) {
         while (instance instanceof ClientProxy proxy) {

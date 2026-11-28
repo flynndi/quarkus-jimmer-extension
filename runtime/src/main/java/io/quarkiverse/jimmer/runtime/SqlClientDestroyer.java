@@ -1,4 +1,4 @@
-package io.quarkiverse.jimmer.runtime.internal;
+package io.quarkiverse.jimmer.runtime;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -23,7 +23,7 @@ public final class SqlClientDestroyer implements BeanDestroyer<Object> {
     public SqlClientDestroyer() {
     }
 
-    public static <C> C create(
+    static <C> C create(
             SyntheticCreationalContext<C> context,
             @Nullable String dataSourceName,
             Function<SqlClientBeans, C> factory) {

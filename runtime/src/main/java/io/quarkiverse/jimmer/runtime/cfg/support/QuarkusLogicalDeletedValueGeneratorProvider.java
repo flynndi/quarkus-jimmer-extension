@@ -7,7 +7,7 @@ import org.babyfish.jimmer.sql.di.LogicalDeletedValueGeneratorProvider;
 import org.babyfish.jimmer.sql.meta.LogicalDeletedValueGenerator;
 import org.jboss.logging.Logger;
 
-import io.quarkiverse.jimmer.runtime.internal.SqlClientBeans;
+import io.quarkiverse.jimmer.runtime.SqlClientBeans;
 
 public class QuarkusLogicalDeletedValueGeneratorProvider implements LogicalDeletedValueGeneratorProvider {
 

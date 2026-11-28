@@ -1,4 +1,4 @@
-package io.quarkiverse.jimmer.runtime.internal;
+package io.quarkiverse.jimmer.runtime;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -28,7 +28,7 @@ import io.quarkus.arc.InstanceHandle;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 
 /**
- * Datasource-aware CDI bean lookup helper for Jimmer SQL clients and SPI providers.
+ * Datasource-aware CDI bean lookup context for Jimmer SQL clients and SPI providers.
  * <p>
  * All lookups resolve metadata through {@link BeanManager} and obtain isolated instances via
  * {@link ArcContainer#instance(InjectableBean)} without retaining references in the global container
@@ -47,12 +47,12 @@ public final class SqlClientBeans {
 
     private final Consumer<InstanceHandle<?>> dependentConsumer;
 
-    public SqlClientBeans(ArcContainer container, @Nullable String dataSourceName) {
+    SqlClientBeans(ArcContainer container, @Nullable String dataSourceName) {
         this(container, dataSourceName, ignored -> {
         });
     }
 
-    public SqlClientBeans(
+    SqlClientBeans(
             ArcContainer container,
             @Nullable String dataSourceName,
             Consumer<InstanceHandle<?>> dependentConsumer) {
@@ -63,23 +63,19 @@ public final class SqlClientBeans {
         this.dependentConsumer = Objects.requireNonNull(dependentConsumer, "dependentConsumer must not be null");
     }
 
-    public String dataSourceName() {
+    String dataSourceName() {
         return dataSourceName;
     }
 
-    public BeanManager beanManager() {
-        return beanManager;
-    }
-
-    public <T> @Nullable T optional(Class<T> type) {
+    <T> @Nullable T optional(Class<T> type) {
         return optional((Type) type);
     }
 
-    public <T> @Nullable T optional(TypeLiteral<T> type) {
+    <T> @Nullable T optional(TypeLiteral<T> type) {
         return optional(type.getType());
     }
 
-    public <T> T requiredForDataSource(Class<T> type) {
+    <T> T requiredForDataSource(Class<T> type) {
         Annotation qualifier = DataSourceUtil.isDefault(dataSourceName)
                 ? Default.Literal.INSTANCE
                 : dataSourceQualifier;
@@ -91,19 +87,13 @@ public final class SqlClientBeans {
         return Objects.requireNonNull(instantiate(resolved));
     }
 
-    public <T> List<T> matching(Class<T> type) {
+    <T> List<T> matching(Class<T> type) {
         List<T> result = new ArrayList<>();
         collectMatching(container.listAll(type), new HashSet<>(), result);
         return result;
     }
 
-    public <T> List<T> matching(TypeLiteral<T> type) {
-        List<T> result = new ArrayList<>();
-        collectMatching(container.listAll(type), new HashSet<>(), result);
-        return result;
-    }
-
-    public <T> List<T> matching(Class<? super T> rawType, TypeLiteral<T> parameterizedType) {
+    <T> List<T> matching(Class<? super T> rawType, TypeLiteral<T> parameterizedType) {
         List<T> result = new ArrayList<>();
         Set<InjectableBean<?>> seen = new HashSet<>();
         @SuppressWarnings("unchecked")
@@ -150,7 +140,7 @@ public final class SqlClientBeans {
         throw new IllegalStateException(message);
     }
 
-    public <T> @Nullable T resolve(Class<T> type, Annotation... candidateQualifiers) {
+    <T> @Nullable T resolve(Class<T> type, Annotation... candidateQualifiers) {
         Set<Bean<?>> candidates = new LinkedHashSet<>();
         for (Annotation qualifier : candidateQualifiers) {
             candidates.addAll(getBeans(type, qualifier));
