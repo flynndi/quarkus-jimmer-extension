@@ -6,7 +6,7 @@ import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.TransientResolver;
 import org.babyfish.jimmer.sql.di.TransientResolverProvider;
 
-import io.quarkiverse.jimmer.runtime.internal.SqlClientBeans;
+import io.quarkiverse.jimmer.runtime.SqlClientBeans;
 
 public class QuarkusTransientResolverProvider implements TransientResolverProvider {
 

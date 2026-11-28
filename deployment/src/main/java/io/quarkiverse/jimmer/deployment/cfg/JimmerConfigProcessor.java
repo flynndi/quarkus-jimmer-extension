@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Enabled;
-import io.quarkiverse.jimmer.runtime.JimmerConfigRecorder;
+import io.quarkiverse.jimmer.runtime.JimmerRecorder;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerConfigValidator;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
@@ -39,7 +39,7 @@ final class JimmerConfigProcessor {
     @BuildStep(onlyIf = Enabled.class)
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
-    void validateRuntime(JimmerConfigRecorder recorder, List<JdbcDataSourceBuildItem> dataSources) {
+    void validateRuntime(JimmerRecorder recorder, List<JdbcDataSourceBuildItem> dataSources) {
         recorder.validateActiveDataSources(dataSources.stream().map(JdbcDataSourceBuildItem::getName).sorted().toList());
     }
 }

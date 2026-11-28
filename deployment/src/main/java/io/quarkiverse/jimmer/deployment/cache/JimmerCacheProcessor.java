@@ -25,8 +25,8 @@ import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Jackson2Presen
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.JavaEnabled;
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.KotlinEnabled;
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.RedissonKryoPresent;
-import io.quarkiverse.jimmer.runtime.JimmerConfigRecorder;
-import io.quarkiverse.jimmer.runtime.JimmerTransactionCacheOperatorRecorder;
+import io.quarkiverse.jimmer.runtime.JimmerRecorder;
+import io.quarkiverse.jimmer.runtime.cache.impl.LazyTransactionCacheOperator;
 import io.quarkiverse.jimmer.runtime.cache.impl.TransactionCacheOperatorFlusher;
 import io.quarkiverse.jimmer.runtime.cfg.JimmerBuildTimeConfig;
 import io.quarkus.agroal.DataSource;
@@ -160,8 +160,7 @@ final class JimmerCacheProcessor {
 
     @BuildStep(onlyIf = JavaEnabled.class)
     @Record(ExecutionTime.RUNTIME_INIT)
-    void setTransactionJCacheOperatorBean(JimmerTransactionCacheOperatorRecorder recorder,
-            JimmerConfigRecorder configRecorder,
+    void setTransactionJCacheOperatorBean(JimmerRecorder recorder,
             JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
@@ -169,14 +168,14 @@ final class JimmerCacheProcessor {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
             if (!buildTimeConfig.dataSources().get(dataSourceName).triggerType().equals(TriggerType.BINLOG_ONLY)) {
                 SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
-                        .configure(JimmerTransactionCacheOperatorRecorder.LazyTransactionCacheOperator.class)
+                        .configure(LazyTransactionCacheOperator.class)
                         .addType(TransactionCacheOperator.class)
                         .addType(org.babyfish.jimmer.sql.cache.CacheOperator.class)
                         .defaultBean()
                         .scope(Singleton.class)
                         .unremovable()
                         .setRuntimeInit()
-                        .checkActive(configRecorder.checkActiveSupplier(dataSourceName))
+                        .checkActive(recorder.checkActiveSupplier(dataSourceName))
                         .addInjectionPoint(
                                 ParameterizedType.create(InjectableInstance.class,
                                         ClassType.create(JSqlClient.class)),
@@ -199,8 +198,7 @@ final class JimmerCacheProcessor {
 
     @BuildStep(onlyIf = KotlinEnabled.class)
     @Record(ExecutionTime.RUNTIME_INIT)
-    void setTransactionKCacheOperatorBean(JimmerTransactionCacheOperatorRecorder recorder,
-            JimmerConfigRecorder configRecorder,
+    void setTransactionKCacheOperatorBean(JimmerRecorder recorder,
             JimmerBuildTimeConfig buildTimeConfig,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
@@ -208,14 +206,14 @@ final class JimmerCacheProcessor {
             String dataSourceName = jdbcDataSourceBuildItem.getName();
             if (!buildTimeConfig.dataSources().get(dataSourceName).triggerType().equals(TriggerType.BINLOG_ONLY)) {
                 SyntheticBeanBuildItem.ExtendedBeanConfigurator transactionCacheOperatorConfigurator = SyntheticBeanBuildItem
-                        .configure(JimmerTransactionCacheOperatorRecorder.LazyTransactionCacheOperator.class)
+                        .configure(LazyTransactionCacheOperator.class)
                         .addType(TransactionCacheOperator.class)
                         .addType(org.babyfish.jimmer.sql.cache.CacheOperator.class)
                         .defaultBean()
                         .scope(Singleton.class)
                         .unremovable()
                         .setRuntimeInit()
-                        .checkActive(configRecorder.checkActiveSupplier(dataSourceName))
+                        .checkActive(recorder.checkActiveSupplier(dataSourceName))
                         .addInjectionPoint(
                                 ParameterizedType.create(InjectableInstance.class,
                                         ClassType.create(KSqlClient.class)),

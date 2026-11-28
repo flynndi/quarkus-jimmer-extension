@@ -13,7 +13,7 @@ import java.util.Set;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.fetcher.ReferenceFetchType;
 
-import io.quarkiverse.jimmer.runtime.dialect.DialectAvailability;
+import io.quarkiverse.jimmer.runtime.dialect.DialectResolver;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.runtime.configuration.ConfigurationException;
 
@@ -143,12 +143,9 @@ public final class JimmerConfigValidator {
     }
 
     private static void validateDialect(String key, String className, Problems problems) {
-        if (className.equals("org.babyfish.jimmer.sql.dialect.PostgresDialect") && !DialectAvailability.POSTGRES) {
-            problems.add(key, "requires org.postgresql:postgresql (org.postgresql.util.PGobject): " + className);
-            return;
-        }
-        if (className.equals("org.babyfish.jimmer.sql.dialect.H2Dialect") && !DialectAvailability.H2) {
-            problems.add(key, "requires com.h2database:h2 (org.h2.value.ValueJson): " + className);
+        String missingDriver = DialectResolver.missingDriverMessage(className);
+        if (missingDriver != null) {
+            problems.add(key, missingDriver + ": " + className);
             return;
         }
         try {

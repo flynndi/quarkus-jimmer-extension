@@ -3,7 +3,9 @@ package io.quarkiverse.jimmer.deployment;
 import java.beans.Introspector;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -38,10 +40,10 @@ import org.jboss.jandex.Type;
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.Enabled;
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.JavaEnabled;
 import io.quarkiverse.jimmer.deployment.cfg.JimmerBuildConditions.KotlinEnabled;
-import io.quarkiverse.jimmer.runtime.JimmerConfigRecorder;
-import io.quarkiverse.jimmer.runtime.JimmerJavaDataSourcesRecorder;
-import io.quarkiverse.jimmer.runtime.JimmerKotlinDataSourcesRecorder;
-import io.quarkiverse.jimmer.runtime.internal.SqlClientDestroyer;
+import io.quarkiverse.jimmer.runtime.JimmerRecorder;
+import io.quarkiverse.jimmer.runtime.QuarkusSqlClientFactory;
+import io.quarkiverse.jimmer.runtime.SqlClientDestroyer;
+import io.quarkiverse.jimmer.runtime.dialect.DialectResolver;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkus.agroal.DataSource;
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
@@ -53,6 +55,7 @@ import io.quarkus.arc.deployment.IgnoreSplitPackageBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
+import io.quarkus.arc.processor.DotNames;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -160,11 +163,7 @@ final class JimmerProcessor {
         for (var dialect : combinedIndex.getIndex().getAllKnownImplementors(DotName.createSimple(Dialect.class))) {
             String driverType = null;
             for (var type = dialect; type != null && type.superName() != null; type = index.getClassByName(type.superName())) {
-                driverType = switch (type.name().toString()) {
-                    case "org.babyfish.jimmer.sql.dialect.PostgresDialect" -> "org.postgresql.util.PGobject";
-                    case "org.babyfish.jimmer.sql.dialect.H2Dialect" -> "org.h2.value.ValueJson";
-                    default -> null;
-                };
+                driverType = DialectResolver.optionalDriverClass(type.name().toString());
                 if (driverType != null) {
                     break;
                 }
@@ -281,11 +280,34 @@ final class JimmerProcessor {
                 }));
     }
 
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    void registerSqlClientFactory(
+            JimmerRecorder recorder,
+            List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems,
+            BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
+        additionalBeans.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClass(QuarkusSqlClientFactory.class)
+                .setDefaultScope(DotNames.SINGLETON)
+                .setUnremovable()
+                .build());
+
+        Map<String, String> dbKinds = new LinkedHashMap<>();
+        Map<String, String> dbVersions = new LinkedHashMap<>();
+        for (JdbcDataSourceBuildItem dataSource : jdbcDataSourceBuildItems) {
+            if (dataSource.getDbKind() != null) {
+                dbKinds.put(dataSource.getName(), dataSource.getDbKind());
+            }
+            dataSource.getDbVersion().ifPresent(version -> dbVersions.put(dataSource.getName(), version));
+        }
+        recorder.registerDataSourceDialects(dbKinds, dbVersions);
+    }
+
     @BuildStep(onlyIf = JavaEnabled.class)
     @Produce(SyntheticBeansRuntimeInitBuildItem.class)
     @Consume(LoggingSetupBuildItem.class)
     @Record(ExecutionTime.RUNTIME_INIT)
-    void generateJSqlClientBeans(JimmerConfigRecorder configRecorder, JimmerJavaDataSourcesRecorder recorder,
+    void generateJSqlClientBeans(JimmerRecorder recorder,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems) {
@@ -305,14 +327,15 @@ final class JimmerProcessor {
                     .scope(ApplicationScoped.class)
                     .setRuntimeInit()
                     .unremovable()
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusSqlClientFactory.class)))
                     // Defer datasource access until ArC creates the active client instance.
                     .addInjectionPoint(
                             ParameterizedType.create(InjectableInstance.class, ClassType.create(javax.sql.DataSource.class)),
                             DataSourceUtil.isDefault(dataSourceName)
                                     ? AnnotationInstance.builder(Default.class).build()
                                     : AnnotationInstance.builder(DataSource.class).add("value", dataSourceName).build())
-                    .checkActive(configRecorder.checkActiveSupplier(dataSourceName))
-                    .createWith(recorder.quarkusJSqlClientFunction(dataSourceName))
+                    .checkActive(recorder.checkActiveSupplier(dataSourceName))
+                    .createWith(recorder.jSqlClientFunction(dataSourceName))
                     .destroyer(SqlClientDestroyer.class);
 
             if (DataSourceUtil.isDefault(dataSourceName)) {
@@ -332,7 +355,7 @@ final class JimmerProcessor {
     @Produce(SyntheticBeansRuntimeInitBuildItem.class)
     @Consume(LoggingSetupBuildItem.class)
     @Record(ExecutionTime.RUNTIME_INIT)
-    void generateKSqlClientBeans(JimmerConfigRecorder configRecorder, JimmerKotlinDataSourcesRecorder recorder,
+    void generateKSqlClientBeans(JimmerRecorder recorder,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems) {
@@ -350,14 +373,15 @@ final class JimmerProcessor {
                     .scope(ApplicationScoped.class)
                     .setRuntimeInit()
                     .unremovable()
+                    .addInjectionPoint(ClassType.create(DotName.createSimple(QuarkusSqlClientFactory.class)))
                     // Defer datasource access until ArC creates the active client instance.
                     .addInjectionPoint(
                             ParameterizedType.create(InjectableInstance.class, ClassType.create(javax.sql.DataSource.class)),
                             DataSourceUtil.isDefault(dataSourceName)
                                     ? AnnotationInstance.builder(Default.class).build()
                                     : AnnotationInstance.builder(DataSource.class).add("value", dataSourceName).build())
-                    .checkActive(configRecorder.checkActiveSupplier(dataSourceName))
-                    .createWith(recorder.quarkusKSqlClientFunction(dataSourceName))
+                    .checkActive(recorder.checkActiveSupplier(dataSourceName))
+                    .createWith(recorder.kSqlClientFunction(dataSourceName))
                     .destroyer(SqlClientDestroyer.class);
 
             if (DataSourceUtil.isDefault(dataSourceName)) {

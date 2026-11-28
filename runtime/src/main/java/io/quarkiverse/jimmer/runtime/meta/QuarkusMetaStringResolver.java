@@ -15,6 +15,8 @@ import io.smallrye.common.expression.ResolveContext;
 
 public class QuarkusMetaStringResolver implements MetaStringResolver {
 
+    public static final QuarkusMetaStringResolver INSTANCE = new QuarkusMetaStringResolver();
+
     @Override
     @Nullable
     public String resolve(@NotNull String propertyValue) {

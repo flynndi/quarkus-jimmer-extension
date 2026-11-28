@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.babyfish.jimmer.sql.dialect.*;
+import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.jboss.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,30 +28,7 @@ public interface DialectDetector {
         public @Nullable Dialect detectDialect(@NotNull Connection con) {
             try {
                 DatabaseMetaData metaData = con.getMetaData();
-                String databaseProductName = metaData.getDatabaseProductName();
-                switch (databaseProductName) {
-                    case "PostgreSQL":
-                        if (!DialectAvailability.POSTGRES) {
-                            throw new IllegalStateException(
-                                    "PostgresDialect requires org.postgresql:postgresql (org.postgresql.util.PGobject)");
-                        }
-                        return new PostgresDialect();
-                    case "Oracle":
-                        return new OracleDialect();
-                    case "MySQL":
-                        return new MySqlDialect();
-                    case "Microsoft SQL Server":
-                        return new SqlServerDialect();
-                    case "H2":
-                        if (!DialectAvailability.H2) {
-                            throw new IllegalStateException("H2Dialect requires com.h2database:h2 (org.h2.value.ValueJson)");
-                        }
-                        return new H2Dialect();
-                    case "SQLite":
-                        return new SQLiteDialect();
-                    default:
-                        return null;
-                }
+                return DialectResolver.fromProductName(metaData.getDatabaseProductName());
             } catch (SQLException e) {
                 LOGGER.warn("Failed to autodetect jimmer dialect", e);
                 return null;

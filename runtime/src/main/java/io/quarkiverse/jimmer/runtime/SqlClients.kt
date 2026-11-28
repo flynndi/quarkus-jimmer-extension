@@ -33,7 +33,7 @@ object SqlClients {
 
     @JvmStatic
     fun java(container: ArcContainer, dataSource: DataSource?, dataSourceName: String?, block: Consumer<JSqlClient.Builder>?): JSqlClient =
-        QuarkusSqlClientFactory(container, dataSource, dataSourceName, block, false).create()
+        QuarkusSqlClientFactory.resolve(container).createManualSqlClient(container, dataSource, dataSourceName, block, false)
 
     @JvmStatic
     fun kotlin(container: ArcContainer): KSqlClient =
@@ -49,5 +49,7 @@ object SqlClients {
 
     @JvmStatic
     fun kotlin(container: ArcContainer, dataSource: DataSource?, dataSourceName: String?, block: (KSqlClientDsl.() -> Unit)?): KSqlClient =
-        QuarkusSqlClientFactory(container, dataSource, dataSourceName, block?.let { Consumer { KSqlClientDsl(it).block()} }, true).create().toKSqlClient()
+        QuarkusSqlClientFactory.resolve(container)
+            .createManualSqlClient(container, dataSource, dataSourceName, block?.let { Consumer { KSqlClientDsl(it).block() } }, true)
+            .toKSqlClient()
 }

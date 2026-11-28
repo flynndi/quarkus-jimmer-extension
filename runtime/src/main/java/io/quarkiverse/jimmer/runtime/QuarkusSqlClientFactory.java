@@ -1,6 +1,5 @@
 package io.quarkiverse.jimmer.runtime;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -8,11 +7,17 @@ import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
+import jakarta.enterprise.inject.Default;
+
 import org.babyfish.jimmer.sql.DraftInterceptor;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.cache.CacheAbandonedCallback;
 import org.babyfish.jimmer.sql.cache.CacheFactory;
-import org.babyfish.jimmer.sql.di.*;
+import org.babyfish.jimmer.sql.cache.CacheOperator;
+import org.babyfish.jimmer.sql.di.AopProxyProvider;
+import org.babyfish.jimmer.sql.di.LogicalDeletedValueGeneratorProvider;
+import org.babyfish.jimmer.sql.di.TransientResolverProvider;
+import org.babyfish.jimmer.sql.di.UserIdGeneratorProvider;
 import org.babyfish.jimmer.sql.dialect.DefaultDialect;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.filter.Filter;
@@ -26,7 +31,16 @@ import org.babyfish.jimmer.sql.meta.DatabaseNamingStrategy;
 import org.babyfish.jimmer.sql.meta.DatabaseSchemaStrategy;
 import org.babyfish.jimmer.sql.meta.DefaultDatabaseSchemaStrategy;
 import org.babyfish.jimmer.sql.meta.MetaStringResolver;
-import org.babyfish.jimmer.sql.runtime.*;
+import org.babyfish.jimmer.sql.runtime.ConnectionManager;
+import org.babyfish.jimmer.sql.runtime.Customizer;
+import org.babyfish.jimmer.sql.runtime.EntityManager;
+import org.babyfish.jimmer.sql.runtime.ExceptionTranslator;
+import org.babyfish.jimmer.sql.runtime.Executor;
+import org.babyfish.jimmer.sql.runtime.Initializer;
+import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
+import org.babyfish.jimmer.sql.runtime.MicroServiceExchange;
+import org.babyfish.jimmer.sql.runtime.ScalarProvider;
+import org.babyfish.jimmer.sql.runtime.SqlFormatter;
 import org.jetbrains.annotations.Nullable;
 
 import io.quarkiverse.jimmer.runtime.cache.QuarkusCacheFactory;
@@ -40,55 +54,80 @@ import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusLogicalDeletedValueGener
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusTransientResolverProvider;
 import io.quarkiverse.jimmer.runtime.cfg.support.QuarkusUserIdGeneratorProvider;
 import io.quarkiverse.jimmer.runtime.dialect.DialectDetector;
+import io.quarkiverse.jimmer.runtime.dialect.DialectResolver;
 import io.quarkiverse.jimmer.runtime.event.QuarkusEventDispatcher;
-import io.quarkiverse.jimmer.runtime.internal.SqlClientBeans;
 import io.quarkiverse.jimmer.runtime.meta.QuarkusMetaStringResolver;
 import io.quarkiverse.jimmer.runtime.util.Constant;
 import io.quarkiverse.jimmer.runtime.util.JimmerJsonCodecs;
+import io.quarkus.agroal.DataSource.DataSourceLiteral;
 import io.quarkus.arc.ArcContainer;
+import io.quarkus.arc.InstanceHandle;
 import io.quarkus.datasource.common.runtime.DataSourceUtil;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Builds real Jimmer clients; ArC owns the lifecycle of CDI-managed clients. */
-final class QuarkusSqlClientFactory {
+/**
+ * Constructs Jimmer SQL clients for both synthetic CDI beans and programmatic {@link SqlClients} entry points.
+ * <p>
+ * CDI scope is configured at build time when Jimmer is enabled, which is why this class carries no scope annotation.
+ */
+public class QuarkusSqlClientFactory {
 
     private final JimmerRuntimeConfig runtimeConfig;
 
     private final JimmerBuildTimeConfig buildTimeConfig;
 
-    private final DataSource dataSource;
+    private final QuarkusEventDispatcher eventDispatcher;
 
-    private final String dataSourceName;
-
-    private final SqlClientBeans beans;
-
-    private final Consumer<JSqlClient.Builder> block;
-
-    private final boolean isKotlin;
-
-    QuarkusSqlClientFactory(ArcContainer container, DataSource dataSource, String dataSourceName,
-            Consumer<JSqlClient.Builder> block, boolean isKotlin) {
-        this(container.select(JimmerRuntimeConfig.class).get(),
-                container.select(JimmerBuildTimeConfig.class).get(),
-                dataSource, new SqlClientBeans(container, dataSourceName), block, isKotlin);
+    public QuarkusSqlClientFactory(
+            JimmerRuntimeConfig runtimeConfig,
+            JimmerBuildTimeConfig buildTimeConfig,
+            QuarkusEventDispatcher eventDispatcher) {
+        this.runtimeConfig = Objects.requireNonNull(runtimeConfig, "runtimeConfig must not be null");
+        this.buildTimeConfig = Objects.requireNonNull(buildTimeConfig, "buildTimeConfig must not be null");
+        this.eventDispatcher = Objects.requireNonNull(eventDispatcher, "eventDispatcher must not be null");
     }
 
-    QuarkusSqlClientFactory(JimmerRuntimeConfig runtimeConfig, JimmerBuildTimeConfig buildTimeConfig,
-            DataSource dataSource, SqlClientBeans beans,
-            Consumer<JSqlClient.Builder> block, boolean isKotlin) {
-        this.beans = Objects.requireNonNull(beans);
-        this.runtimeConfig = Objects.requireNonNull(runtimeConfig);
-        this.buildTimeConfig = Objects.requireNonNull(buildTimeConfig);
-        this.dataSource = dataSource;
-        this.dataSourceName = beans.dataSourceName();
-        this.block = block;
-        this.isKotlin = isKotlin;
-        JimmerConfigValidator.validateDataSource(this.dataSourceName,
-                runtimeConfig.dataSources().get(this.dataSourceName));
+    static QuarkusSqlClientFactory resolve(ArcContainer container) {
+        Objects.requireNonNull(container, "container must not be null");
+        InstanceHandle<QuarkusSqlClientFactory> handle = container.instance(QuarkusSqlClientFactory.class);
+        if (handle.isAvailable()) {
+            return handle.get();
+        }
+        // When quarkus.jimmer.enable=false, synthetic beans are skipped while manual SqlClients remain usable.
+        JimmerRuntimeConfig runtimeConfig = container.select(JimmerRuntimeConfig.class).get();
+        JimmerBuildTimeConfig buildTimeConfig = container.select(JimmerBuildTimeConfig.class).get();
+        return new QuarkusSqlClientFactory(
+                runtimeConfig,
+                buildTimeConfig,
+                new QuarkusEventDispatcher(container.beanManager().getEvent()));
     }
 
-    JSqlClientImplementor create() {
+    JSqlClientImplementor createManagedSqlClient(DataSource dataSource, SqlClientBeans beans, boolean isKotlin) {
+        return buildSqlClient(
+                dataSource,
+                beans,
+                builder -> builder.setCacheOperator(resolveCacheOperator(beans)),
+                isKotlin);
+    }
+
+    JSqlClientImplementor createManualSqlClient(
+            ArcContainer container,
+            @Nullable DataSource dataSource,
+            @Nullable String dataSourceName,
+            @Nullable Consumer<JSqlClient.Builder> block,
+            boolean isKotlin) {
+        return buildSqlClient(dataSource, new SqlClientBeans(container, dataSourceName), block, isKotlin);
+    }
+
+    private JSqlClientImplementor buildSqlClient(
+            @Nullable DataSource explicitDataSource,
+            SqlClientBeans beans,
+            @Nullable Consumer<JSqlClient.Builder> block,
+            boolean isKotlin) {
+        String dataSourceName = beans.dataSourceName();
         JimmerDataSourceRuntimeConfig config = runtimeConfig.dataSources().get(dataSourceName);
+        JimmerConfigValidator.validateDataSource(dataSourceName, config);
+
         UserIdGeneratorProvider userIdGeneratorProvider = beans.optional(UserIdGeneratorProvider.class);
         LogicalDeletedValueGeneratorProvider logicalDeletedValueGeneratorProvider = beans.optional(
                 LogicalDeletedValueGeneratorProvider.class);
@@ -115,51 +154,49 @@ final class QuarkusSqlClientFactory {
         builder.setUserIdGeneratorProvider(
                 Objects.requireNonNullElseGet(userIdGeneratorProvider,
                         () -> new QuarkusUserIdGeneratorProvider(beans)));
-        builder.setLogicalDeletedValueGeneratorProvider(Objects.requireNonNullElseGet(logicalDeletedValueGeneratorProvider,
-                () -> new QuarkusLogicalDeletedValueGeneratorProvider(beans)));
-        builder.setTransientResolverProvider(Objects.requireNonNullElseGet(transientResolverProvider,
-                () -> new QuarkusTransientResolverProvider(beans)));
-        builder.setAopProxyProvider(Objects.requireNonNullElseGet(aopProxyProvider, QuarkusAopProxyProvider::new));
-        if (null != entityManager) {
+        builder.setLogicalDeletedValueGeneratorProvider(
+                Objects.requireNonNullElseGet(logicalDeletedValueGeneratorProvider,
+                        () -> new QuarkusLogicalDeletedValueGeneratorProvider(beans)));
+        builder.setTransientResolverProvider(
+                Objects.requireNonNullElseGet(transientResolverProvider,
+                        () -> new QuarkusTransientResolverProvider(beans)));
+        builder.setAopProxyProvider(Objects.requireNonNullElse(aopProxyProvider, QuarkusAopProxyProvider.INSTANCE));
+
+        // When absent, Jimmer's builder falls back to EntityManager.fromResources(null, null) after customizers run.
+        if (entityManager != null) {
             builder.setEntityManager(entityManager);
         }
-        if (null != databaseNamingStrategy) {
+        if (databaseNamingStrategy != null) {
             builder.setDatabaseNamingStrategy(databaseNamingStrategy);
         }
-        builder.setDatabaseSchemaStrategy(databaseSchemaStrategy != null ? databaseSchemaStrategy
-                : new DefaultDatabaseSchemaStrategy(
-                        config.defaultSchema().orElse("")));
-        builder.setMetaStringResolver(Objects.requireNonNullElseGet(metaStringResolver, QuarkusMetaStringResolver::new));
+        builder.setDatabaseSchemaStrategy(databaseSchemaStrategy != null
+                ? databaseSchemaStrategy
+                : new DefaultDatabaseSchemaStrategy(config.defaultSchema().orElse("")));
+        builder.setMetaStringResolver(Objects.requireNonNullElse(metaStringResolver, QuarkusMetaStringResolver.INSTANCE));
 
-        Dialect configuredDialect = createConfiguredDialect(config);
+        Dialect configuredDialect = DialectResolver.instantiateConfigured(dataSourceName, config.dialect());
         builder.setDialect(configuredDialect);
         builder.setDefaultReferenceFetchType(config.defaultReferenceFetchType());
         config.maxJoinFetchDepth().ifPresent(builder::setMaxJoinFetchDepth);
         builder.setTriggerType(buildTimeConfig.dataSources().get(dataSourceName).triggerType());
-        builder.setDefaultDissociateActionCheckable(
-                config.defaultDissociationActionCheckable());
+        builder.setDefaultDissociateActionCheckable(config.defaultDissociationActionCheckable());
         builder.setIdOnlyTargetCheckingLevel(config.idOnlyTargetCheckingLevel());
         builder.setDefaultEnumStrategy(config.defaultEnumStrategy());
         config.defaultBatchSize().ifPresent(builder::setDefaultBatchSize);
         builder.setInListPaddingEnabled(config.inListPaddingEnabled());
         builder.setExpandedInListPaddingEnabled(config.expandedInListPaddingEnabled());
         config.defaultListBatchSize().ifPresent(builder::setDefaultListBatchSize);
-        builder.setDissociationLogicalDeleteEnabled(
-                config.dissociationLogicalDeleteEnabled());
-        config.offsetOptimizingThreshold()
-                .ifPresent(builder::setOffsetOptimizingThreshold);
-        builder.setReverseSortOptimizationEnabled(
-                config.reverseSortOptimizationEnabled());
+        builder.setDissociationLogicalDeleteEnabled(config.dissociationLogicalDeleteEnabled());
+        config.offsetOptimizingThreshold().ifPresent(builder::setOffsetOptimizingThreshold);
+        builder.setReverseSortOptimizationEnabled(config.reverseSortOptimizationEnabled());
         builder.setForeignKeyEnabledByDefault(config.isForeignKeyEnabledByDefault());
         builder.setMaxCommandJoinCount(config.maxCommandJoinCount());
         builder.setMutationTransactionRequired(config.mutationTransactionRequired());
         builder.setTargetTransferable(config.targetTransferable());
         builder.setExplicitBatchEnabled(config.explicitBatchEnabled());
         builder.setDumbBatchAcceptable(config.dumbBatchAcceptable());
-        builder.setConstraintViolationTranslatable(
-                config.constraintViolationTranslatable());
-        config.executorContextPrefixes()
-                .ifPresent(builder::setExecutorContextPrefixes);
+        builder.setConstraintViolationTranslatable(config.constraintViolationTranslatable());
+        config.executorContextPrefixes().ifPresent(builder::setExecutorContextPrefixes);
 
         if (config.showSql()) {
             builder.setExecutor(Executor.log(executor));
@@ -169,18 +206,13 @@ final class QuarkusSqlClientFactory {
         if (sqlFormatter != null) {
             builder.setSqlFormatter(sqlFormatter);
         } else if (config.prettySql()) {
-            if (config.inlineSqlVariables()) {
-                builder.setSqlFormatter(SqlFormatter.INLINE_PRETTY);
-            } else {
-                builder.setSqlFormatter(SqlFormatter.PRETTY);
-            }
+            builder.setSqlFormatter(config.inlineSqlVariables() ? SqlFormatter.INLINE_PRETTY : SqlFormatter.PRETTY);
         }
         // Preserve Jimmer's logging callback when the application does not supply one.
         if (callbacks.isEmpty()) {
             callbacks.add(CacheAbandonedCallback.log());
         }
-        builder
-                .setDatabaseValidationMode(runtimeConfig.databaseValidationMode())
+        builder.setDatabaseValidationMode(runtimeConfig.databaseValidationMode())
                 .setDefaultSerializedTypeJsonCodec(
                         jsonMapper != null ? JimmerJsonCodecs.toJsonCodecV3(jsonMapper) : null)
                 .setCacheFactory(cacheFactory != null ? QuarkusCacheFactory.adapt(cacheFactory) : null)
@@ -189,22 +221,18 @@ final class QuarkusSqlClientFactory {
         for (ScalarProvider<?, ?> provider : providers) {
             builder.addScalarProvider(provider);
         }
-
         builder.addDraftInterceptors(interceptors);
         builder.addExceptionTranslators(exceptionTranslators);
-        configureLanguageExtensions(builder);
-        QuarkusEventDispatcher dispatcher = Objects.requireNonNullElseGet(
-                beans.optional(QuarkusEventDispatcher.class),
-                () -> new QuarkusEventDispatcher(beans.beanManager().getEvent()));
-        builder.addInitializers(dispatcher.initializer(dataSourceName));
+        configureLanguageExtensions(builder, beans, isKotlin);
+        builder.addInitializers(eventDispatcher.initializer(dataSourceName));
 
         builder.setMicroServiceName(buildTimeConfig.microServiceName().orElse(null));
         if (buildTimeConfig.microServiceName().isPresent()) {
             builder.setMicroServiceExchange(beans.optional(MicroServiceExchange.class));
         }
 
-        if (null != this.block) {
-            this.block.accept(builder);
+        if (block != null) {
+            block.accept(builder);
         }
         Consumer<JSqlClient.Builder> beanBlock = beans.optional(Constant.J_SQL_CLIENT_BUILDER_TYPE_LITERAL);
         if (beanBlock != null) {
@@ -213,19 +241,38 @@ final class QuarkusSqlClientFactory {
 
         // Jimmer executes Customizer beans inside build(). Complete defaults after every user customizer,
         // so an explicit dialect avoids probing and a replacement connection manager supplies the metadata.
-        builder.addCustomizers(customized -> configureConnectionAndDialect(customized, configuredDialect));
+        builder.addCustomizers(
+                customized -> configureConnectionAndDialect(customized, beans, explicitDataSource, configuredDialect));
         return (JSqlClientImplementor) builder.build();
     }
 
-    private void configureConnectionAndDialect(JSqlClient.Builder builder, Dialect configuredDialect) {
+    @Nullable
+    private static CacheOperator resolveCacheOperator(SqlClientBeans beans) {
+        String dataSourceName = beans.dataSourceName();
+        var named = new DataSourceLiteral(dataSourceName);
+        // Retain the original @DataSource("<default>") override while also supporting ordinary @Default beans.
+        return DataSourceUtil.isDefault(dataSourceName)
+                ? beans.resolve(CacheOperator.class, named, Default.Literal.INSTANCE)
+                : beans.resolve(CacheOperator.class, named);
+    }
+
+    private static void configureConnectionAndDialect(
+            JSqlClient.Builder builder,
+            SqlClientBeans beans,
+            @Nullable DataSource explicitDataSource,
+            @Nullable Dialect configuredDialect) {
         var implementor = (JSqlClientImplementor.Builder) builder;
         ConnectionManager connectionManager = implementor.getConnectionManager();
+        boolean usesManagedDataSource = false;
         if (connectionManager == null) {
             connectionManager = beans.optional(ConnectionManager.class);
         }
         if (connectionManager == null) {
             // Datasources never inherit the SPI fallback to @Default: a named client must use its own datasource.
-            DataSource selectedDataSource = dataSource != null ? dataSource : beans.requiredForDataSource(DataSource.class);
+            usesManagedDataSource = explicitDataSource == null;
+            DataSource selectedDataSource = explicitDataSource != null
+                    ? explicitDataSource
+                    : beans.requiredForDataSource(DataSource.class);
             connectionManager = new QuarkusConnectionManager(selectedDataSource);
         }
         builder.setConnectionManager(connectionManager);
@@ -237,16 +284,21 @@ final class QuarkusSqlClientFactory {
             }
             if (dialect == null) {
                 DialectDetector detector = beans.optional(DialectDetector.class);
-                if (detector == null) {
-                    detector = new DialectDetector.Impl(dataSource);
+                if (detector == null && usesManagedDataSource) {
+                    dialect = DialectResolver.forDataSource(beans.dataSourceName());
                 }
-                dialect = connectionManager.execute(detector::detectDialect);
+                if (dialect == null) {
+                    if (detector == null) {
+                        detector = new DialectDetector.Impl(explicitDataSource);
+                    }
+                    dialect = connectionManager.execute(detector::detectDialect);
+                }
             }
             builder.setDialect(dialect);
         }
     }
 
-    private void configureLanguageExtensions(JSqlClient.Builder builder) {
+    private static void configureLanguageExtensions(JSqlClient.Builder builder, SqlClientBeans beans, boolean isKotlin) {
         if (isKotlin) {
             if (!Constant.KOTLIN_SQL_AVAILABLE) {
                 throw new IllegalStateException("Kotlin SQL clients require org.babyfish.jimmer:jimmer-sql-kotlin");
@@ -278,38 +330,6 @@ final class QuarkusSqlClientFactory {
                             .stream()
                             .map(KInitializerKt::toJavaInitializer)
                             .collect(Collectors.toList()));
-        }
-    }
-
-    @Nullable
-    private Dialect createConfiguredDialect(JimmerDataSourceRuntimeConfig jimmerDataSourceRuntimeConfig) {
-        if (jimmerDataSourceRuntimeConfig.dialect().isEmpty()) {
-            return null;
-        }
-        String className = jimmerDataSourceRuntimeConfig.dialect().get();
-        String property = DataSourceUtil.isDefault(dataSourceName) ? "quarkus.jimmer.dialect"
-                : "quarkus.jimmer.\"" + dataSourceName.replace("\"", "\\\"") + "\".dialect";
-        Class<?> clazz;
-        try {
-            clazz = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
-        } catch (ClassNotFoundException ex) {
-            throw new IllegalArgumentException(
-                    "The class \"" + className + "\" specified by `" + property + "` cannot be found");
-        }
-        if (!Dialect.class.isAssignableFrom(clazz) || clazz.isInterface()) {
-            throw new IllegalArgumentException(
-                    "The class \"" + className + "\" specified by `" + property + "` must be a valid dialect implementation");
-        }
-        try {
-            return (Dialect) clazz.getConstructor().newInstance();
-        } catch (InvocationTargetException ex) {
-            throw new IllegalArgumentException(
-                    "Cannot create instance for the class \"" + className + "\" specified by `" + property + "`",
-                    ex.getTargetException());
-        } catch (Exception ex) {
-            throw new IllegalArgumentException(
-                    "Cannot create instance for the class \"" + className + "\" specified by `" + property + "`",
-                    ex);
         }
     }
 }
